@@ -55,6 +55,11 @@ EN/IT/ES wherever a screen changes.
   progress on it, and can reset everyone's progress on it and delete its
   backups (also for a Publisher Course, which keeps everything by default);
   removing a Course this version cannot open can delete its backups too.
+  The admin can clean up anything, after a warning: a Publisher Course
+  others have and another learner's custom Course can be deleted from the
+  Inventory with the word DELETE, a second confirmation and the PIN; the
+  Inventory lists and resets the progress left by Courses no longer on the
+  device.
 
 ## Revision 2: the Audio Library like the Image Library; the Course Editor's top bar
 

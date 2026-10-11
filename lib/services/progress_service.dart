@@ -466,6 +466,37 @@ class ProgressService {
     await p.setStringList(recentKey, recent);
   }
 
+  /// The IDs of the Courses [learnerProfileId] has progress on (what
+  /// [resetCourseForProfile] would remove), on this device or not.
+  Future<Set<String>> courseIdsWithProgress(String learnerProfileId) async {
+    final p = await _prefs;
+    final ids = <String>{};
+    final prefix = ProfileService.prefixForProfileId(learnerProfileId);
+    for (final key in p.getKeys()) {
+      if (!key.startsWith(prefix)) continue;
+      final rest = key.substring(prefix.length);
+      for (final base in _courseProgressKeyBases) {
+        final marker = '${base}_course_';
+        if (!rest.startsWith(marker)) continue;
+        try {
+          ids.add(Uri.decodeComponent(rest.substring(marker.length)));
+        } catch (_) {
+          // Not a key QQL wrote.
+        }
+      }
+    }
+    for (final entry
+        in (p.getStringList(
+                  _profiles.keyForProfileId(learnerProfileId, _recentRoundsKey),
+                ) ??
+                const <String>[])
+            .map(RecentRoundEntry.decode)
+            .whereType<RecentRoundEntry>()) {
+      ids.add(entry.courseId);
+    }
+    return ids;
+  }
+
   /// Whether [learnerProfileId] has progress on [courseId] that
   /// [resetCourseForProfile] would remove: a completion record of any kind,
   /// or a recent Round.

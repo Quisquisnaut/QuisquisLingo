@@ -709,13 +709,26 @@ class CourseEditorService {
     }
   }
 
-  Future<void> removePublisherCourseFromDevice(Course course) =>
-      _store.withCourseLock(
-        course.courseId,
-        () => _removePublisherCourseFromDeviceLocked(course),
-      );
+  /// Removes an installed Publisher Course. It is refused while another
+  /// learner has the Course in their courses, unless [evenIfOthersHaveIt]:
+  /// the Inventory's override (Build 271 Revision 1 second follow-up, owner
+  /// decision of 11 October 2026: the admin can clean up anything, after a
+  /// warning, a second confirmation, the word DELETE and the admin PIN).
+  Future<void> removePublisherCourseFromDevice(
+    Course course, {
+    bool evenIfOthersHaveIt = false,
+  }) => _store.withCourseLock(
+    course.courseId,
+    () => _removePublisherCourseFromDeviceLocked(
+      course,
+      evenIfOthersHaveIt: evenIfOthersHaveIt,
+    ),
+  );
 
-  Future<void> _removePublisherCourseFromDeviceLocked(Course course) async {
+  Future<void> _removePublisherCourseFromDeviceLocked(
+    Course course, {
+    required bool evenIfOthersHaveIt,
+  }) async {
     final actor = await _profiles.getActiveProfileId();
     if (actor == null || !await _profiles.isAdmin(actor)) {
       throw StateError(
@@ -738,13 +751,18 @@ class CourseEditorService {
         stored.originType != CourseOriginType.externalOfficial) {
       throw const FormatException('Invalid stored publisher identity.');
     }
-    final library = CourseLibraryService(profileService: _profiles);
-    for (final profile in await _profiles.getProfileRecords()) {
-      if (profile.learnerProfileId != actor &&
-          await library.contains(stored, profileId: profile.learnerProfileId)) {
-        throw StateError(
-          'Another profile still has this course in My courses. Nothing was removed.',
-        );
+    if (!evenIfOthersHaveIt) {
+      final library = CourseLibraryService(profileService: _profiles);
+      for (final profile in await _profiles.getProfileRecords()) {
+        if (profile.learnerProfileId != actor &&
+            await library.contains(
+              stored,
+              profileId: profile.learnerProfileId,
+            )) {
+          throw StateError(
+            'Another profile still has this course in My courses. Nothing was removed.',
+          );
+        }
       }
     }
     await _store.removeIfUnchanged(
@@ -756,10 +774,32 @@ class CourseEditorService {
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
-  Future<void> deleteUserCourse(String courseId) =>
-      _store.withCourseLock(courseId, () => _deleteUserCourseLocked(courseId));
+  /// Deletes a stored custom Course: its Maintainer or a member of its
+  /// Team may (any learner a received Course, an admin too a Course this
+  /// version cannot open). [adminOverride] lets an admin delete any custom
+  /// Course: the Inventory's override (Build 271 Revision 1 second
+  /// follow-up, owner decision of 11 October 2026: the admin can clean up
+  /// anything, after a warning, a second confirmation, the word DELETE and
+  /// the admin PIN).
+  Future<void> deleteUserCourse(
+    String courseId, {
+    bool adminOverride = false,
+  }) => _store.withCourseLock(
+    courseId,
+    () => _deleteUserCourseLocked(courseId, adminOverride: adminOverride),
+  );
 
-  Future<void> _deleteUserCourseLocked(String courseId) async {
+  /// Whether the active learner may delete [course] without the admin's
+  /// override: its Maintainer, a member of its Team, or anyone for a
+  /// received Course.
+  Future<bool> mayDeleteUserCourse(Course course) async =>
+      (await _access.forCurrentProfile(course)).canDelete ||
+      await _receivedCourses.mayRemove(course);
+
+  Future<void> _deleteUserCourseLocked(
+    String courseId, {
+    required bool adminOverride,
+  }) async {
     final stored = await _customRecord(courseId);
     if (stored == null) return;
     final opened = StoredCourseReader.open(courseId, stored.entry);
@@ -780,11 +820,13 @@ class CourseEditorService {
       return;
     }
     final course = opened.course!;
-    if (!(await _access.forCurrentProfile(course)).canDelete &&
-        !await _receivedCourses.mayRemove(course)) {
-      throw StateError(
-        'Only the Course Maintainer or a member of the assigned Team can delete this Course.',
-      );
+    if (!await mayDeleteUserCourse(course)) {
+      final actor = await _profiles.getActiveProfileId();
+      if (!adminOverride || actor == null || !await _profiles.isAdmin(actor)) {
+        throw StateError(
+          'Only the Course Maintainer or a member of the assigned Team can delete this Course.',
+        );
+      }
     }
     await _store.removeIfUnchanged(
       CourseStoreKind.custom,

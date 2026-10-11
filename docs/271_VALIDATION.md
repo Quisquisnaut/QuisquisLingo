@@ -144,3 +144,42 @@ Course this version cannot open, and no kept Publisher copy.
   14:32–15:31; slow, with little memory free).
 
 Not checked: the dialogs by hand (no Windows release build was made).
+
+## Revision 1 second follow-up (2.0.71+271001, same version)
+
+11 October 2026, owner's Windows 10 PC, `build-271`. Owner's rule of the
+same day: the admin can clean up anything, after a warning.
+
+- `test/deleting_a_course_271_test.dart`, now **35 passed**. New or changed
+  in The Inventory:
+  - the admin removes a Publisher Course two other learners have: refused
+    without the override; refused with a wrong word ("", "delete",
+    "DELETE IT", "REMOVE") and with a wrong PIN; removed with DELETE, the
+    learners' progress kept because nothing else was asked;
+  - the admin deletes another learner's custom Course: the preview says
+    whose it is, the warning and the second confirmation name where
+    progress and backups are decided (both wordings, ticked and not), the
+    admin's own Course needs no override; refused without the override and
+    with a wrong word; deleted with DELETE, backups and progress kept;
+  - a learner who is not an admin cannot force a Delete through the service;
+  - only the Delete of a Course can be forced;
+  - progress left by Courses no longer here: not listed while the Course is
+    stored or bundled, and the Reset refuses such a Course; listed after the
+    Course is deleted without the reset, with the learners' names; Reset
+    needs the PIN, clears every learner's progress on that Course and leaves
+    the other Courses' progress and XP;
+  - `CourseService.bundledCourseIds` equals the bundled assets' Course IDs;
+  - two widget tests of the dialog: a Publisher Course others have (the
+    warning with where progress is reset, no second confirmation without
+    the word, "Keep the Course" keeps everything, the confirmation's wording
+    with the reset box ticked, the reset's own confirmation, the result);
+    another learner's Course (whose it is, "To delete it anyway, type
+    DELETE.", the confirmation naming the backups choice, the Course and
+    its backups gone).
+- Related files (15 files): **244 passed**.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,213 passed, 1 skipped**, 45:53 (11 October 2026,
+  16:46–17:32).
+
+Not checked: the dialogs by hand (no Windows release build was made).

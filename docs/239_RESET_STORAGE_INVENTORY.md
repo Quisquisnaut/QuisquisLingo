@@ -109,6 +109,11 @@ A Course's cover is ordinary Course media in `QQL_CourseMedia`, so the scopes th
   Course (the keys `ProgressService.resetCourse` removes, for each learner)
   and deletes the Course's backup folder. Removing a Course this version
   cannot open in Course Studio can delete its backup folder too.
+- Inventory, **Progress on Courses no longer on this device**: the learner
+  keys `learner_<UUID>_v4_<record>_course_<Course ID>` and the recent
+  Round entries whose Course is neither bundled nor stored, by Course ID,
+  with Reset (the keys `ProgressService.resetCourse` removes, for every
+  learner). The other scopes that remove learner progress remove them too.
 - Temporary files of an interrupted Course save (`*.json.<pid>.<time>.<n>.tmp`
   in `QQL_Courses_v12/Custom|Publisher`) are removed at start-up.
 - Inventory, Course media: one row per folder of a Course no longer on this

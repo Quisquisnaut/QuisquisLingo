@@ -45,8 +45,20 @@ Follow-up in the same version (owner decisions of 11 October 2026):
 - **Remove Publisher Course from device** in the Inventory has the same two
   extras. By default it still keeps progress, media and backups for a
   reinstallation, and the dialog says that learners may want their progress
-  back. It is still refused while another learner has the Course in their
-  courses.
+  back.
+- **The admin can clean up anything, after a warning.** Two Deletes the
+  Inventory refused are now possible for the admin: a Publisher Course that
+  other learners have in their courses, and another learner's custom
+  Course. The dialog says who is affected and what they lose, and where the
+  learners' progress and the backups are decided (the two boxes below it);
+  it then needs the word DELETE, a second confirmation that repeats what
+  was chosen, and the admin PIN. Outside the Inventory both stay refused.
+- **Inventory: Progress on Courses no longer on this device.** A new section
+  lists, by Course ID, the progress learners still have on Courses that
+  were deleted or removed, names the learners, and has **Reset** (admin
+  PIN). Before, once a Course was gone its leftover progress could not be
+  seen, and could be cleared only by installing the Course again or by
+  resetting every Course for everyone.
 - **Removing a stored Course this version cannot open** (Course Studio)
   offers **Also delete all its backups**, off, with the caution that its
   backups may be the last copies that can still be read. The Inventory's

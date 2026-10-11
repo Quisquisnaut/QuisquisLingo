@@ -8,6 +8,8 @@ import '../models/authoring_team.dart';
 import '../models/course_models.dart';
 import 'course_editor_service.dart';
 import 'course_file_store.dart';
+import 'course_learners.dart';
+import 'course_service.dart';
 import 'profile_service.dart';
 import 'course_media_store.dart';
 import 'course_favorite_service.dart';
@@ -58,6 +60,10 @@ enum InventoryActionKind {
   /// The whole media folder of a Course no longer on this device (Build 271
   /// Revision 1): every picture and recording in it, with one PIN.
   deleteCourseMediaFolder,
+
+  /// Every learner's progress on a Course that is no longer on this device
+  /// (Build 271 Revision 1 second follow-up).
+  resetCourseProgress,
 }
 
 class InventoryAction {
@@ -262,6 +268,63 @@ class InventoryService {
               ),
             ),
         ],
+      ),
+    );
+
+    // ---- Progress on Courses no longer on this device (Build 271 Revision 1
+    // second follow-up, owner decision of 11 October 2026): deleting a
+    // Course keeps its learners' progress unless the admin resets it there;
+    // afterwards the Course is not listed any more, so this is where that
+    // progress is seen and reset.
+    final unreadableFiles = _courseService?.unreadableCourseFiles ?? const [];
+    final storedUnknown =
+        (courseProblem != null && courses.isEmpty) ||
+        unreadableFiles.any((file) => file.courseId == null);
+    final leftProgress = courseProblem != null && courses.isEmpty
+        ? const <String, List<LearnerProfile>>{}
+        : await CourseLearnersService(profiles: _profiles).leftProgress(
+            onDevice: {
+              ...CourseService.bundledCourseIds,
+              for (final course in courses) course.courseId,
+              for (final file in unreadableFiles)
+                if (file.courseId case final id?) id,
+            },
+          );
+    final leftIds = leftProgress.keys.toList()..sort();
+    sections.add(
+      InventorySection(
+        title: 'Progress on Courses no longer on this device',
+        description:
+            'Progress learners still have on Courses that were deleted or '
+            'removed from this device. It is kept so that it comes back if '
+            'the same Course is installed again; Reset clears it for every '
+            'learner. XP, Weekly XP, study days and streaks are not part of '
+            'it and stay.'
+            '${storedUnknown ? ' A stored Course file could not be read, so its Course may be among these, or could not be checked.' : ''}',
+        items: [
+          for (final id in leftIds.take(maxListedPerSection))
+            InventoryItem(
+              name: 'Course ID $id',
+              note:
+                  'Progress kept by: '
+                  '${leftProgress[id]!.map((learner) => learner.displayName).join(', ')}.',
+              action: InventoryAction(
+                InventoryActionKind.resetCourseProgress,
+                id,
+                label: 'Reset',
+                explanation:
+                    'Reset the progress every learner still has on this '
+                    'Course, which is no longer on this device: completed '
+                    'Rounds and Lessons, Laurels, Duels, GuideBooks read and '
+                    'recent Rounds. XP, Weekly XP, study days and streaks '
+                    'are kept. If the Course is installed again, they start '
+                    'it from the beginning.',
+              ),
+            ),
+        ],
+        hiddenCount: leftIds.length > maxListedPerSection
+            ? leftIds.length - maxListedPerSection
+            : 0,
       ),
     );
 
@@ -703,8 +766,10 @@ class InventoryService {
                     label: 'Delete',
                     explanation: course.originType == CourseOriginType.custom
                         ? 'Delete the Course “$title” and its Course media '
-                              'from this device. Only its Maintainer or a '
-                              'member of its Team may.'
+                              'from this device. Its Maintainer or a member '
+                              'of its Team may; as admin you may delete '
+                              'another learner\'s Course too, after the '
+                              'warning below.'
                         : 'Remove the Publisher Course “$title” from this '
                               'device. Its progress, media and backups stay '
                               'for a reinstallation unless you choose '

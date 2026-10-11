@@ -31,6 +31,15 @@ class CourseService {
     'EN_IT': 'assets/courses/english_from_italian_it_en.json',
   };
 
+  /// The Course IDs of [courseAssets], for callers that must know which
+  /// Courses come with the app without loading them (Build 271 Revision 1:
+  /// the Inventory tells progress on a Course no longer on this device from
+  /// progress on a bundled one). A test keeps it equal to the assets.
+  static const bundledCourseIds = <String>{
+    'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
+    'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
+  };
+
   /// Test-only: Courses registered by a test beside the bundle, such as the
   /// former Korean demo (`test/fixtures/v12/korean_en.json`), whose nine
   /// regular Lessons, sections and Duels the Home and navigation tests need

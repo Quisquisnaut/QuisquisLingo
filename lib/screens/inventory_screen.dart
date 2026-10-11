@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../services/course_library_operations.dart' show CourseLibraryReports;
@@ -64,6 +66,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
   /// those who kept progress on it, and offers, both off, to reset
   /// everyone's progress on it and to delete all its backups; resetting
   /// progress is confirmed once more.
+  ///
+  /// A Publisher Course that other learners have in their courses is
+  /// refused by the service. The admin may remove it anyway (second
+  /// follow-up, owner decision: the admin can clean up anything, after a
+  /// warning): the dialog says who loses it, asks for the word DELETE, and
+  /// a second confirmation follows before the PIN is used.
   Future<void> _runAction(InventoryItem item) async {
     final action = item.action;
     if (action == null) return;
@@ -71,7 +79,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
     if (actor == null || !mounted) return;
     final isCourse = InventoryActionService.isCourseAction(action);
     final preview = isCourse ? _coursePreview(action, actor) : null;
+    InventoryCoursePreview? loaded;
+    unawaited(preview?.then((value) => loaded = value));
     final pin = TextEditingController();
+    final word = TextEditingController();
     String? error;
     String? note;
     var running = false;
@@ -95,6 +106,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         future: preview,
                         builder: (context, snapshot) => _CourseExtras(
                           preview: snapshot.data,
+                          word: word,
                           resetProgress: resetProgress,
                           deleteBackups: deleteBackups,
                           onResetProgress: running
@@ -144,6 +156,28 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   onPressed: running
                       ? null
                       : () async {
+                          final override = loaded?.needsOverride ?? false;
+                          if (override) {
+                            if (word.text.trim() !=
+                                InventoryActionService.overrideWord) {
+                              setLocal(
+                                () => error =
+                                    'Type DELETE in capital letters to go '
+                                    'ahead.',
+                              );
+                              return;
+                            }
+                            if (!await _confirmOverride(
+                              dialogContext,
+                              item,
+                              loaded!,
+                              resetProgress: resetProgress,
+                              deleteBackups: deleteBackups,
+                            )) {
+                              return;
+                            }
+                          }
+                          if (!dialogContext.mounted) return;
                           if (resetProgress &&
                               !await _confirmReset(
                                 dialogContext,
@@ -165,6 +199,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                               pin: pin.text,
                               resetEveryonesProgress: resetProgress,
                               deleteBackups: deleteBackups,
+                              adminOverride: override,
+                              typedWord: word.text,
                             );
                             if (dialogContext.mounted) {
                               Navigator.pop(dialogContext, true);
@@ -184,6 +220,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         ).whenComplete(() async {
           await Future<void>.delayed(const Duration(milliseconds: 250));
           pin.dispose();
+          word.dispose();
         });
     if (done != true || !mounted) return;
     setState(() {
@@ -214,6 +251,51 @@ class _InventoryScreenState extends State<InventoryScreen> {
       return null;
     }
   }
+
+  /// The second confirmation before a Delete the service refuses otherwise:
+  /// a Publisher Course other learners have in their courses, or another
+  /// learner's custom Course.
+  ///
+  /// It says what happens to the learners' progress, and for a custom
+  /// Course to its backups, and where the admin decides that (owner request
+  /// of 11 October 2026): the boxes in the first dialog.
+  Future<bool> _confirmOverride(
+    BuildContext context,
+    InventoryItem item,
+    InventoryCoursePreview preview, {
+    required bool resetProgress,
+    required bool deleteBackups,
+  }) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          key: const Key('inventory-course-override-confirm'),
+          title: Text(preview.overrideTitle),
+          content: Text(
+            preview.overrideQuestion(
+              item.name,
+              resetProgress: resetProgress,
+              deleteBackups: deleteBackups,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Keep the Course'),
+            ),
+            FilledButton(
+              key: const Key('inventory-course-override-confirm-run'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(ctx).colorScheme.error,
+                foregroundColor: Theme.of(ctx).colorScheme.onError,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(preview.overrideButton),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 
   /// The second confirmation before every learner's progress on a Course is
   /// reset. Learners may want it back when a Publisher Course is installed
@@ -433,6 +515,7 @@ class _SectionCard extends StatelessWidget {
 class _CourseExtras extends StatelessWidget {
   const _CourseExtras({
     required this.preview,
+    required this.word,
     required this.resetProgress,
     required this.deleteBackups,
     required this.onResetProgress,
@@ -440,6 +523,10 @@ class _CourseExtras extends StatelessWidget {
   });
 
   final InventoryCoursePreview? preview;
+
+  /// Where the admin types DELETE to remove a Publisher Course that other
+  /// learners have.
+  final TextEditingController word;
   final bool resetProgress;
   final bool deleteBackups;
   final ValueChanged<bool>? onResetProgress;
@@ -453,11 +540,12 @@ class _CourseExtras extends StatelessWidget {
     final keptIt = data?.keptIt;
     final held = data?.backups;
     final publisher = data?.publisher ?? false;
+    final overrideWarning = data?.overrideWarning;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (haveIt != null || keptIt != null) ...[
+        if (haveIt != null || keptIt != null || overrideWarning != null) ...[
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
@@ -486,10 +574,35 @@ class _CourseExtras extends StatelessWidget {
                           key: const Key('inventory-course-kept-progress'),
                           style: TextStyle(color: scheme.onErrorContainer),
                         ),
+                      if (overrideWarning != null)
+                        Text(
+                          overrideWarning,
+                          key: const Key('inventory-course-override-warning'),
+                          style: TextStyle(color: scheme.onErrorContainer),
+                        ),
                     ],
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+        if (data?.needsOverride ?? false) ...[
+          const SizedBox(height: 12),
+          Text(
+            data!.othersBlockRemoval
+                ? 'To remove it anyway, type DELETE.'
+                : 'To delete it anyway, type DELETE.',
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            key: const Key('inventory-course-override-word'),
+            controller: word,
+            textCapitalization: TextCapitalization.characters,
+            autocorrect: false,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Type DELETE to confirm',
             ),
           ),
         ],

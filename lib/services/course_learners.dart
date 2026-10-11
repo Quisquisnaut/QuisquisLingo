@@ -72,6 +72,27 @@ class CourseLearnersService {
     );
   }
 
+  /// The Courses learners still have progress on although they are not
+  /// among [onDevice] (Build 271 Revision 1 second follow-up): Course ID to
+  /// the learners, in the order of the profiles. Deleting a Course keeps
+  /// its learners' progress unless the admin resets it, and then it can no
+  /// longer be reset where the Course was listed.
+  Future<Map<String, List<LearnerProfile>>> leftProgress({
+    required Set<String> onDevice,
+  }) async {
+    final left = <String, List<LearnerProfile>>{};
+    for (final profile in await _profiles.getProfileRecords()) {
+      final ids = await _progress.courseIdsWithProgress(
+        profile.learnerProfileId,
+      );
+      for (final id in ids) {
+        if (onDevice.contains(id)) continue;
+        left.putIfAbsent(id, () => []).add(profile);
+      }
+    }
+    return left;
+  }
+
   /// Resets every learner's progress on [courseId], also of the learners
   /// who removed it from their courses. XP, Weekly XP, study days and
   /// streaks stay, as for [ProgressService.resetCourse].

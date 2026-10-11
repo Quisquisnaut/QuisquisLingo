@@ -161,9 +161,8 @@ Owner decisions of 11 October 2026, after the Revision 1 report:
 
 State: done. Related files 243 passed; analyzer clean; complete suite
 4,205 passed, 1 skipped (14:32–15:31, 11 October 2026). Committed on
-`build-271` and the branch pushed. Revision 1's first commit is `6e54e7ff`.
-Next: Revision 2 (the Audio Library like the Image Library; the Course
-Editor's top bar), which starts with mock-ups for the owner.
+`build-271` as `daffb9a5` and the branch pushed. Revision 1's first commit
+is `6e54e7ff`. A second follow-up came next (see below).
 
 What was done (details in `docs/271_CHANGE_SUMMARY.md`, "Follow-up"):
 
@@ -196,3 +195,49 @@ Gotchas:
   it returns. Look for the message in a loop of your own.
 - A Bash heredoc drops the backslash of `\'` in Dart text: use the Write
   or Edit tool for Dart strings with an apostrophe.
+
+## Revision 1 second follow-up (same version 2.0.71+271001)
+
+Owner's rule of 11 October 2026: "the admin can clean up anything if
+necessary, whatever the problem is, but has to be warned when destructive
+actions can have undesired effects." For a Delete that was refused: double
+confirmation, the word DELETE, and the PIN. Also asked: the texts say where
+the admin resets the learners' progress; and, since progress could not be
+reset once a Course was gone, the Inventory lists and resets it (asked and
+confirmed in the chat, with the override for another learner's custom
+Course).
+
+State: done. Related files 244 passed; analyzer clean; complete suite
+4,213 passed, 1 skipped (16:46–17:32, 11 October 2026). Committed on
+`build-271` and the branch pushed (the first follow-up is `daffb9a5`).
+Next: Revision 2 (the Audio Library like the Image Library; the Course
+Editor's top bar), which starts with mock-ups for the owner.
+
+What was done (details in `docs/271_CHANGE_SUMMARY.md`, "Second follow-up"):
+
+- `InventoryActionService.run(adminOverride:, typedWord:)`, `overrideWord`;
+  `CourseEditorService.removePublisherCourseFromDevice(evenIfOthersHaveIt:)`,
+  `deleteUserCourse(adminOverride:)`, `mayDeleteUserCourse`.
+- `InventoryCoursePreview`: `notYours`, `maintainerName`, `needsOverride`,
+  `overrideWarning`, `overrideTitle`, `overrideQuestion`, `overrideButton`.
+- The Inventory dialog: the warning, the DELETE field, `_confirmOverride`.
+- Inventory section "Progress on Courses no longer on this device",
+  `InventoryActionKind.resetCourseProgress`,
+  `CourseLearnersService.leftProgress`,
+  `ProgressService.courseIdsWithProgress`, `CourseService.bundledCourseIds`.
+- Help EN/IT/ES, CHANGELOG, README, AGENTS, the plan, the storage inventory
+  document. Memory: the admin rule.
+
+Decisions taken while working (say so in the report):
+
+- The override exists only in the Inventory. Course Studio's Delete and
+  Remove Publisher Course from device keep their refusals.
+- The new section shows Course IDs, not titles: nothing of a deleted Course
+  is left to read its title from.
+- Deleting a learner keeps its two refusals (the only admin; a learner who
+  maintains a Course). Not asked; by the owner's rule the second could get
+  the same override, but it needs a decision about that learner's Courses.
+
+Gotcha: `CourseService.bundledCourseIds` must change with `courseAssets`
+(a test in `deleting_a_course_271_test` fails otherwise); without it the
+Inventory would offer to reset progress on a bundled Course.

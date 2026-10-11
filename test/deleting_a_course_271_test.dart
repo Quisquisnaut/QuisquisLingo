@@ -13,6 +13,7 @@ import 'package:quisquislingo_app/services/course_learners.dart';
 import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_library_service.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
+import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/inventory_action_service.dart';
 import 'package:quisquislingo_app/services/inventory_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -1046,6 +1047,600 @@ void main() {
         expect((await editor.backupService.summaryOf(id)).isEmpty, isTrue);
       },
     );
+
+    // Second follow-up (owner decision of 11 October 2026): the admin can
+    // clean up anything, after a warning, the word DELETE and the PIN.
+    test(
+      'the admin removes a Publisher Course others have, with DELETE',
+      () async {
+        final publisher = Course.fromJson(
+          jsonDecode(
+                File(
+                  'test/fixtures/publishers/dummy-signed-v1.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>,
+        );
+        final id = publisher.courseId;
+        final editor = CourseEditorService(
+          publisherVerification: fixtureVerifier(
+            publisher.publisherId,
+            publisher.publisherName,
+          ),
+        );
+        await editor.installExternalOfficialUpdate(publisher);
+        await as(_bob, () async {
+          await CourseLibraryService().add(publisher);
+          await complete(id);
+        });
+        await as(_carla, () => CourseLibraryService().add(publisher));
+        await setPin();
+        final actions = InventoryActionService(
+          profiles: profiles,
+          courses: editor,
+        );
+        final remove = InventoryAction(
+          InventoryActionKind.deletePublisherCourse,
+          id,
+          label: 'Delete',
+          explanation: '',
+        );
+        Future<String?> run({
+          String word = '',
+          String pin = _pin,
+          bool override = true,
+        }) => actions.run(
+          remove,
+          actorProfileId: _alice,
+          pin: pin,
+          adminOverride: override,
+          typedWord: word,
+        );
+        Future<void> expectKept() async {
+          expect((await editor.listUserCourses()).single.courseId, id);
+          expect(await ProgressService().hasCourseProgress(_bob, id), isTrue);
+        }
+
+        final preview = (await actions.previewCourse(
+          remove,
+          actorProfileId: _alice,
+        ))!;
+        expect(preview.othersBlockRemoval, isTrue);
+        expect(preview.others, 'Bob and Carla');
+        expect(
+          preview.haveIt,
+          'Bob, Carla and you have this Course in your courses.',
+        );
+
+        // Without the override it is refused, as before.
+        await expectLater(
+          run(override: false),
+          throwsA(isA<InventoryActionException>()),
+        );
+        await expectKept();
+        // The override needs the word, exactly, and the PIN.
+        for (final wrong in ['', 'delete', 'DELETE IT', 'REMOVE']) {
+          await expectLater(
+            run(word: wrong),
+            throwsA(
+              isA<InventoryActionException>().having(
+                (e) => e.message,
+                'message',
+                contains('Type DELETE in capital letters'),
+              ),
+            ),
+            reason: wrong,
+          );
+        }
+        await expectLater(
+          run(word: 'DELETE', pin: '0000'),
+          throwsA(isA<InventoryActionException>()),
+        );
+        await expectKept();
+
+        expect(await run(word: ' DELETE '), isNull);
+
+        expect(await editor.listUserCourses(), isEmpty);
+        // Nothing else was asked: their progress stays for a reinstallation.
+        expect(await ProgressService().hasCourseProgress(_bob, id), isTrue);
+      },
+    );
+
+    test('the admin deletes another learner\'s Course, with DELETE', () async {
+      final editor = CourseEditorService();
+      // Bob's custom Course: the admin is neither its Maintainer nor in its
+      // Team.
+      final course = _course('bobs', title: 'Bob\'s course', maintainer: _bob);
+      await as(_bob, () async {
+        await editor.installImportedCustomCourse(course);
+        await complete('bobs');
+      });
+      await backUp(editor, course);
+      await setPin();
+      final actions = InventoryActionService(profiles: profiles);
+      Future<String?> run({String word = '', bool override = true}) =>
+          actions.run(
+            deleteCourse('bobs'),
+            actorProfileId: _alice,
+            pin: _pin,
+            adminOverride: override,
+            typedWord: word,
+          );
+
+      final preview = (await actions.previewCourse(
+        deleteCourse('bobs'),
+        actorProfileId: _alice,
+      ))!;
+      expect(preview.notYours, isTrue);
+      expect(preview.needsOverride, isTrue);
+      expect(preview.othersBlockRemoval, isFalse);
+      expect(preview.maintainer, 'Bob');
+      expect(
+        preview.overrideWarning,
+        'Bob maintains this Course, not you: deleting it removes their work '
+        'from this device. Its saved versions stay in Backups/Courses unless '
+        'you tick “Also delete all its backups” below, and the learners\' '
+        'progress on it stays unless you tick “Also reset everyone\'s '
+        'progress on this Course”.',
+      );
+      expect(preview.overrideTitle, 'Delete another learner\'s Course?');
+      expect(preview.overrideButton, 'Delete it anyway');
+      expect(
+        preview.overrideQuestion(
+          'Bob\'s course',
+          resetProgress: false,
+          deleteBackups: false,
+        ),
+        'Bob maintains “Bob\'s course”, not you. Deleting it removes their '
+        'work from this device. Its saved versions stay in Backups/Courses. '
+        'To delete them too, choose Keep the Course and tick “Also delete '
+        'all its backups”. The learners\' progress on it stays. To reset it '
+        'too, choose Keep the Course and tick “Also reset everyone\'s '
+        'progress on this Course”. This cannot be undone.',
+      );
+      expect(
+        preview.overrideQuestion(
+          'Bob\'s course',
+          resetProgress: true,
+          deleteBackups: true,
+        ),
+        allOf(
+          contains('Its backups will be deleted too, as you chose'),
+          contains('progress on it will be reset too, as you chose'),
+        ),
+      );
+      // The admin's own Course needs no override.
+      final own = _course('mine');
+      await editor.installImportedCustomCourse(own);
+      final ownPreview = (await actions.previewCourse(
+        deleteCourse('mine'),
+        actorProfileId: _alice,
+      ))!;
+      expect(ownPreview.needsOverride, isFalse);
+      expect(ownPreview.overrideWarning, isNull);
+
+      // Without the override it is refused, as before; with it, the word.
+      await expectLater(
+        run(override: false),
+        throwsA(isA<InventoryActionException>()),
+      );
+      await expectLater(
+        run(word: 'delete'),
+        throwsA(
+          isA<InventoryActionException>().having(
+            (e) => e.message,
+            'message',
+            contains('Type DELETE in capital letters'),
+          ),
+        ),
+      );
+      expect(
+        (await editor.listUserCourses()).map((c) => c.courseId),
+        contains('bobs'),
+      );
+
+      expect(await run(word: 'DELETE'), isNull);
+
+      expect((await editor.listUserCourses()).map((c) => c.courseId), ['mine']);
+      // Nothing else was asked: backups and progress stay.
+      expect((await editor.backupService.summaryOf('bobs')).versions, 1);
+      expect(await ProgressService().hasCourseProgress(_bob, 'bobs'), isTrue);
+    });
+
+    test('a learner who is not an admin cannot force a Delete', () async {
+      final editor = CourseEditorService();
+      final course = _course('mine');
+      await editor.installImportedCustomCourse(course);
+      // Bob tries the service's override on Alice's Course.
+      await profiles.setActiveProfileById(_bob);
+      await expectLater(
+        editor.deleteUserCourse('mine', adminOverride: true),
+        throwsA(isA<StateError>()),
+      );
+      await profiles.setActiveProfileById(_alice);
+      expect((await editor.listUserCourses()).single.courseId, 'mine');
+    });
+
+    test('only the Delete of a Course can be forced', () async {
+      await setPin();
+      final file = File(
+        '${testSupportDirectory.path}${Platform.pathSeparator}stray.txt',
+      )..writeAsStringSync('x');
+      await expectLater(
+        InventoryActionService(profiles: profiles).run(
+          InventoryAction(
+            InventoryActionKind.deleteFile,
+            file.path,
+            label: 'Delete',
+            explanation: '',
+          ),
+          actorProfileId: _alice,
+          pin: _pin,
+          adminOverride: true,
+          typedWord: 'DELETE',
+        ),
+        throwsA(
+          isA<InventoryActionException>().having(
+            (e) => e.message,
+            'message',
+            'Only the Delete of a Course can be forced here.',
+          ),
+        ),
+      );
+      expect(file.existsSync(), isTrue);
+    });
+
+    test(
+      'progress left by Courses no longer here is listed and reset',
+      () async {
+        final editor = CourseEditorService();
+        final course = _course('gone');
+        final kept = _course('kept', title: 'Still here');
+        await editor.installImportedCustomCourse(course);
+        await editor.installImportedCustomCourse(kept);
+        await complete('gone');
+        await complete('kept');
+        // A bundled Course is on this device.
+        await complete(CourseService.bundledCourseIds.first);
+        await XpService().addXp(40, courseCode: 'IT', courseId: 'gone');
+        await as(_bob, () async {
+          await ProgressService().recordRecentRound(
+            'gone',
+            'lesson-1',
+            'round-2',
+            errors: 0,
+          );
+          await complete('never-here');
+        });
+        await setPin();
+        final progress = ProgressService();
+        expect(await progress.courseIdsWithProgress(_alice), {
+          'gone',
+          'kept',
+          CourseService.bundledCourseIds.first,
+        });
+        expect(await progress.courseIdsWithProgress(_bob), {
+          'gone',
+          'never-here',
+        });
+        InventorySection left(List<InventorySection> sections) =>
+            sections.firstWhere(
+              (section) =>
+                  section.title ==
+                  'Progress on Courses no longer on this device',
+            );
+        final actions = InventoryActionService(profiles: profiles);
+
+        // While the Course is here its progress is not listed.
+        var section = left(await InventoryService(profiles: profiles).load());
+        expect(section.items.map((item) => item.name), [
+          'Course ID never-here',
+        ]);
+        // And the Reset refuses a Course that is on this device.
+        await expectLater(
+          actions.run(
+            const InventoryAction(
+              InventoryActionKind.resetCourseProgress,
+              'kept',
+              label: 'Reset',
+              explanation: '',
+            ),
+            actorProfileId: _alice,
+            pin: _pin,
+          ),
+          throwsA(
+            isA<InventoryActionException>().having(
+              (e) => e.message,
+              'message',
+              contains('This Course is on this device again'),
+            ),
+          ),
+        );
+        expect(await progress.hasCourseProgress(_alice, 'kept'), isTrue);
+
+        // The Course is deleted without the reset: its progress stays, and is
+        // now listed with the learners who have it.
+        await actions.run(
+          deleteCourse('gone'),
+          actorProfileId: _alice,
+          pin: _pin,
+        );
+        section = left(await InventoryService(profiles: profiles).load());
+        expect(section.items.map((item) => item.name), [
+          'Course ID gone',
+          'Course ID never-here',
+        ]);
+        final gone = section.items.first;
+        expect(gone.note, 'Progress kept by: Alice, Bob.');
+        expect(gone.action!.kind, InventoryActionKind.resetCourseProgress);
+        expect(gone.action!.label, 'Reset');
+        expect(gone.action!.target, 'gone');
+
+        await expectLater(
+          actions.run(gone.action!, actorProfileId: _alice, pin: '0000'),
+          throwsA(isA<InventoryActionException>()),
+        );
+        expect(await progress.hasCourseProgress(_bob, 'gone'), isTrue);
+
+        await actions.run(gone.action!, actorProfileId: _alice, pin: _pin);
+
+        expect(await progress.hasCourseProgress(_alice, 'gone'), isFalse);
+        expect(await progress.hasCourseProgress(_bob, 'gone'), isFalse);
+        // Everything else stays: the other Courses' progress, XP.
+        expect(await progress.hasCourseProgress(_alice, 'kept'), isTrue);
+        expect(await progress.hasCourseProgress(_bob, 'never-here'), isTrue);
+        expect(await XpService().getXp(courseCode: 'IT'), 40);
+        section = left(await InventoryService(profiles: profiles).load());
+        expect(section.items.map((item) => item.name), [
+          'Course ID never-here',
+        ]);
+      },
+    );
+
+    test('the Courses that come with the app are known by their IDs', () {
+      final ids = {
+        for (final asset in CourseService.courseAssets.values)
+          (jsonDecode(File(asset).readAsStringSync()) as Map)['courseId'],
+      };
+      expect(CourseService.bundledCourseIds, ids);
+    });
+
+    testWidgets(
+      'another learner\'s Course asks for DELETE and says whose it is',
+      (tester) async {
+        final editor = CourseEditorService();
+        final course = _course(
+          'bobs',
+          title: 'Bob\'s course',
+          maintainer: _bob,
+        );
+        await tester.runAsync(() async {
+          await as(_bob, () => editor.installImportedCustomCourse(course));
+          await backUp(editor, course);
+          await setPin();
+        });
+        FolderOpener.available = () => false;
+        addTearDown(() => FolderOpener.available = () => true);
+        tester.view.physicalSize = const Size(900, 6000);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          MaterialApp(home: InventoryScreen(profileService: profiles)),
+        );
+        final delete = find.byKey(
+          const Key('inventory-Custom and installed courses-0-action'),
+        );
+        await tester.pumpUntilFileIoState(() => delete.evaluate().isNotEmpty);
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(delete);
+        await tester.tap(delete);
+        const wordField = Key('inventory-course-override-word');
+        await tester.pumpUntilFileIoState(
+          () => find.byKey(wordField).evaluate().isNotEmpty,
+        );
+
+        expect(
+          tester
+              .widget<Text>(
+                find.byKey(const Key('inventory-course-override-warning')),
+              )
+              .data,
+          startsWith('Bob maintains this Course, not you'),
+        );
+        expect(find.text('To delete it anyway, type DELETE.'), findsOneWidget);
+        await tester.enterText(
+          find.byKey(const Key('inventory-action-pin')),
+          _pin,
+        );
+        await tester.enterText(find.byKey(wordField), 'DELETE');
+        await tester.tap(
+          find.byKey(const Key('inventory-course-delete-backups')),
+        );
+        await tester.pump();
+        await tester.tap(find.byKey(const Key('inventory-action-run')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Delete another learner\'s Course?'), findsOneWidget);
+        expect(
+          find.textContaining('Its backups will be deleted too, as you chose'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining(
+            'The learners\' progress on it stays. To reset it too, choose Keep '
+            'the Course and tick',
+          ),
+          findsOneWidget,
+        );
+        await tester.tap(find.text('Delete it anyway'));
+        await tester.pumpUntilFileIoState(
+          () => find
+              .byKey(const Key('inventory-action-dialog'))
+              .evaluate()
+              .isEmpty,
+        );
+        await tester.runAsync(() async {
+          expect(await editor.listUserCourses(), isEmpty);
+          expect(
+            (await editor.backupService.summaryOf('bobs')).isEmpty,
+            isTrue,
+          );
+        });
+      },
+    );
+
+    testWidgets('the override asks for DELETE, then confirms once more', (
+      tester,
+    ) async {
+      final publisher = Course.fromJson(
+        jsonDecode(
+              File(
+                'test/fixtures/publishers/dummy-signed-v1.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, dynamic>,
+      );
+      final id = publisher.courseId;
+      final editor = CourseEditorService(
+        publisherVerification: fixtureVerifier(
+          publisher.publisherId,
+          publisher.publisherName,
+        ),
+      );
+      await tester.runAsync(() async {
+        await editor.installExternalOfficialUpdate(publisher);
+        await as(_bob, () async {
+          await CourseLibraryService().add(publisher);
+          await complete(id);
+        });
+        await setPin();
+      });
+      FolderOpener.available = () => false;
+      addTearDown(() => FolderOpener.available = () => true);
+      tester.view.physicalSize = const Size(900, 6000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: InventoryScreen(
+            profileService: profiles,
+            actionService: InventoryActionService(
+              profiles: profiles,
+              courses: editor,
+            ),
+          ),
+        ),
+      );
+      final delete = find.byKey(
+        const Key('inventory-Custom and installed courses-0-action'),
+      );
+      await tester.pumpUntilFileIoState(() => delete.evaluate().isNotEmpty);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(delete);
+      await tester.tap(delete);
+      const wordField = Key('inventory-course-override-word');
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(wordField).evaluate().isNotEmpty,
+      );
+
+      expect(
+        find.text('Bob and you have this Course in your courses.'),
+        findsOneWidget,
+      );
+      // The warning says what they lose and where their progress is reset.
+      final warning = tester
+          .widget<Text>(
+            find.byKey(const Key('inventory-course-override-warning')),
+          )
+          .data!;
+      expect(warning, contains('takes it out of their courses'));
+      expect(
+        warning,
+        contains(
+          'to reset it too, tick “Also reset everyone\'s progress on this '
+          'Course” below',
+        ),
+      );
+      expect(find.text('To remove it anyway, type DELETE.'), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const Key('inventory-action-pin')),
+        _pin,
+      );
+
+      // Without the word nothing happens, whatever the PIN.
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('inventory-action-error')))
+            .data,
+        contains('Type DELETE in capital letters'),
+      );
+      expect(
+        find.byKey(const Key('inventory-course-override-confirm')),
+        findsNothing,
+      );
+
+      // With it, a second confirmation says where the progress goes.
+      await tester.enterText(find.byKey(wordField), 'DELETE');
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('inventory-course-override-confirm')),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          'The learners\' progress on it stays. To reset it too, choose '
+          'Keep the Course and tick “Also reset everyone\'s progress on '
+          'this Course”.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Keep the Course'));
+      await tester.pumpAndSettle();
+      expect(
+        (await tester.runAsync(editor.listUserCourses))!.single.courseId,
+        id,
+      );
+
+      // Ticked, the second confirmation says so, and the reset is confirmed.
+      await tester.tap(
+        find.byKey(const Key('inventory-course-reset-progress')),
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('progress on it will be reset too, as you chose'),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const Key('inventory-course-override-confirm-run')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('inventory-course-reset-confirm')),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.byKey(const Key('inventory-course-reset-confirm-run')),
+      );
+      final message = find.textContaining(
+        'Everyone\'s progress on it was reset.',
+      );
+      for (var i = 0; i < 300 && message.evaluate().isEmpty; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 1)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(message, findsOneWidget);
+      await tester.runAsync(() async {
+        expect(await editor.listUserCourses(), isEmpty);
+        expect(await ProgressService().hasCourseProgress(_bob, id), isFalse);
+      });
+    });
 
     testWidgets('the dialog names the learners and asks again before a reset', (
       tester,

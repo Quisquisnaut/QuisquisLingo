@@ -8,6 +8,7 @@ import 'course_backup_service.dart';
 import 'course_editor_service.dart';
 import 'course_learners.dart';
 import 'course_media_store.dart';
+import 'course_service.dart';
 import 'storage/course_storage_names.dart';
 import 'course_favorite_service.dart';
 import 'course_received_service.dart';
@@ -42,9 +43,19 @@ class InventoryCoursePreview {
     required this.includesYou,
     required this.keptProgress,
     required this.backups,
+    this.notYours = false,
+    this.maintainerName,
   });
 
   final String courseId;
+
+  /// A custom Course the admin may not delete without the override: they
+  /// are neither its Maintainer nor a member of its Team.
+  final bool notYours;
+
+  /// Its Maintainer's name when [notYours], or null when that learner is
+  /// no longer on this device.
+  final String? maintainerName;
 
   /// Remove Publisher Course from device: its progress, media and backups
   /// stay for a reinstallation unless the admin chooses otherwise.
@@ -68,6 +79,82 @@ class InventoryCoursePreview {
   static String _joined(List<String> names) => names.length == 1
       ? names.single
       : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
+
+  /// Whether removing it would be refused because other learners have it:
+  /// a Publisher Course in someone else's courses.
+  bool get othersBlockRemoval => publisher && inCourses.isNotEmpty;
+
+  /// Whether the Delete is one the service refuses to the admin, who may
+  /// still do it with the word [InventoryActionService.overrideWord] and a
+  /// second confirmation (Build 271 Revision 1 second follow-up, owner
+  /// decision of 11 October 2026: the admin can clean up anything, after a
+  /// warning): a Publisher Course other learners have, or a custom Course
+  /// the admin neither maintains nor shares through its Team.
+  bool get needsOverride => othersBlockRemoval || notYours;
+
+  /// "Anna and Marco", for the texts of the override.
+  String get others => _joined(inCourses);
+
+  /// Who maintains a Course that is not the admin's.
+  String get maintainer =>
+      maintainerName ?? 'A learner no longer on this device';
+
+  /// What the admin is told before overriding, with where each consequence
+  /// is decided; null when no override is needed.
+  String? get overrideWarning {
+    if (othersBlockRemoval) {
+      return 'Removing it takes it out of their courses until it is '
+          'installed again, and a learner studying it will find another '
+          'Course selected. Their progress on it stays; to reset it too, '
+          'tick “Also reset everyone\'s progress on this Course” below.';
+    }
+    if (notYours) {
+      return '$maintainer maintains this Course, not you: deleting it '
+          'removes their work from this device. Its saved versions stay in '
+          'Backups/Courses unless you tick “Also delete all its backups” '
+          'below, and the learners\' progress on it stays unless you tick '
+          '“Also reset everyone\'s progress on this Course”.';
+    }
+    return null;
+  }
+
+  /// The title of the second confirmation of an override.
+  String get overrideTitle => othersBlockRemoval
+      ? 'Remove it from everyone?'
+      : 'Delete another learner\'s Course?';
+
+  /// The button of the second confirmation of an override.
+  String get overrideButton =>
+      othersBlockRemoval ? 'Remove it anyway' : 'Delete it anyway';
+
+  /// The second confirmation of an override: what goes, and what the admin
+  /// chose for progress and backups, with where to change it.
+  String overrideQuestion(
+    String title, {
+    required bool resetProgress,
+    required bool deleteBackups,
+  }) {
+    final progress = resetProgress
+        ? 'The learners\' progress on it will be reset too, as you chose '
+              'with “Also reset everyone\'s progress on this Course”.'
+        : 'The learners\' progress on it stays. To reset it too, choose '
+              'Keep the Course and tick “Also reset everyone\'s progress '
+              'on this Course”.';
+    if (othersBlockRemoval) {
+      return '$others ${inCourses.length == 1 ? 'has' : 'have'} “$title” in '
+          'their courses. It will be gone for them until it is installed '
+          'again. $progress This cannot be undone.';
+    }
+    final backups = deleteBackups
+        ? 'Its backups will be deleted too, as you chose with “Also delete '
+              'all its backups”: nothing of it will be left on this device.'
+        : 'Its saved versions stay in Backups/Courses. To delete them too, '
+              'choose Keep the Course and tick “Also delete all its '
+              'backups”.';
+    return '$maintainer maintains “$title”, not you. Deleting it removes '
+        'their work from this device. $backups $progress This cannot be '
+        'undone.';
+  }
 
   /// "Anna, Marco and you have this Course in your courses.", or null when
   /// nobody has it.
@@ -153,7 +240,17 @@ class InventoryActionService {
     final learners = await CourseLearnersService(
       profiles: _profiles,
     ).of(courseId, course: course);
+    final notYours =
+        course != null &&
+        action.kind == InventoryActionKind.deleteCourse &&
+        !await courses.mayDeleteUserCourse(course);
+    final maintainerId = course?.maintainer?.profileId;
+    final maintainer = notYours && maintainerId != null
+        ? await _profiles.getProfileById(maintainerId)
+        : null;
     return InventoryCoursePreview(
+      notYours: notYours,
+      maintainerName: maintainer?.displayName,
       courseId: courseId,
       publisher: action.kind == InventoryActionKind.deletePublisherCourse,
       unopenable: course == null,
@@ -171,16 +268,27 @@ class InventoryActionService {
     );
   }
 
+  /// The word the admin types to go ahead with a Delete the service
+  /// refuses otherwise (owner decision of 11 October 2026).
+  static const overrideWord = 'DELETE';
+
   /// Runs [action]. For a Course, once it is gone, [resetEveryonesProgress]
   /// resets every learner's progress on it and [deleteBackups] deletes its
   /// backup folder (Build 271 Revision 1 follow-up); a refused Delete throws
   /// and neither happens. Returns what could not be done, or null.
+  ///
+  /// [adminOverride] goes ahead with a Delete that is otherwise refused: a
+  /// Publisher Course other learners have in their courses, or a custom
+  /// Course the admin neither maintains nor shares through its Team. It
+  /// needs [typedWord] to be [overrideWord], besides the PIN.
   Future<String?> run(
     InventoryAction action, {
     required String actorProfileId,
     required String pin,
     bool resetEveryonesProgress = false,
     bool deleteBackups = false,
+    bool adminOverride = false,
+    String typedWord = '',
   }) async {
     final problem = await AdminPinGate(
       _profiles,
@@ -192,9 +300,21 @@ class InventoryActionService {
         'Progress and backups go with a Course only.',
       );
     }
+    if (adminOverride) {
+      if (!course) {
+        throw const InventoryActionException(
+          'Only the Delete of a Course can be forced here.',
+        );
+      }
+      if (typedWord.trim() != overrideWord) {
+        throw const InventoryActionException(
+          'Type DELETE in capital letters to go ahead. Nothing was changed.',
+        );
+      }
+    }
     final courses = _courses;
     try {
-      await _run(action, actorProfileId);
+      await _run(action, actorProfileId, adminOverride: adminOverride);
     } on InventoryActionException {
       rethrow;
     } catch (error) {
@@ -219,13 +339,18 @@ class InventoryActionService {
     }
     await DiagnosticLogService().logInfo(
       'Inventory: ${action.label} ${action.kind.name} ${action.target}'
+      '${adminOverride ? ', with the admin override' : ''}'
       '${resetEveryonesProgress ? ', everyone\'s progress on it reset' : ''}'
       '${deleteBackups ? ', its backups deleted' : ''}',
     );
     return notes.isEmpty ? null : notes.join(' ');
   }
 
-  Future<void> _run(InventoryAction action, String actor) async {
+  Future<void> _run(
+    InventoryAction action,
+    String actor, {
+    bool adminOverride = false,
+  }) async {
     switch (action.kind) {
       case InventoryActionKind.deleteLearner:
         await _profiles.deleteProfileById(action.target, actorProfileId: actor);
@@ -237,7 +362,10 @@ class InventoryActionService {
         }
         await (await SharedPreferences.getInstance()).remove(action.target);
       case InventoryActionKind.deleteCourse:
-        await _courses.deleteUserCourse(action.target);
+        await _courses.deleteUserCourse(
+          action.target,
+          adminOverride: adminOverride,
+        );
       case InventoryActionKind.deletePublisherCourse:
         final course = (await _courses.listUserCourses())
             .where((candidate) => candidate.courseId == action.target)
@@ -247,7 +375,10 @@ class InventoryActionService {
             'This Publisher Course is no longer on this device.',
           );
         }
-        await _courses.removePublisherCourseFromDevice(course);
+        await _courses.removePublisherCourseFromDevice(
+          course,
+          evenIfOthersHaveIt: adminOverride,
+        );
       case InventoryActionKind.deleteFile:
         final file = File(action.target);
         await _requireOwnFile(file);
@@ -271,6 +402,24 @@ class InventoryActionService {
         if (await file.exists()) await file.delete();
       case InventoryActionKind.deleteCourseMediaFolder:
         await _deleteCourseMediaFolder(Directory(action.target));
+      case InventoryActionKind.resetCourseProgress:
+        final courses = _courses;
+        final onDevice = <String>{
+          ...CourseService.bundledCourseIds,
+          for (final course in await courses.listUserCourses()) course.courseId,
+          for (final file in courses.unreadableCourseFiles)
+            if (file.courseId case final id?) id,
+        };
+        if (onDevice.contains(action.target)) {
+          throw const InventoryActionException(
+            'This Course is on this device again. Its progress can be reset '
+            'when the Course is deleted here, or by each learner with '
+            'Remove from my courses.',
+          );
+        }
+        await CourseLearnersService(
+          profiles: _profiles,
+        ).resetEveryone(action.target);
       case InventoryActionKind.removeImageBank:
         final records = await _images.loadCatalog();
         final removed = await _banks.removeBank(action.target);

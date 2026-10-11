@@ -205,8 +205,7 @@ nothing is reset and no backup is deleted.
 **Remove Publisher Course from device** (Inventory) has the same two
 extras. Unticked it keeps progress, media and backups for a reinstallation,
 as before, and the texts say that learners may want their progress back
-when the Course is installed again. It is still refused while another
-learner has the Course in their courses; that rule was not changed.
+when the Course is installed again.
 
 **A Course this version cannot open.** Its removal in Course Studio offers
 **Also delete all its backups**, off, with a caution: its backups may be the
@@ -220,9 +219,61 @@ deleteBackups:)`, `InventoryCoursePreview`, the Inventory screen's
 `_CourseExtras` and `_confirmReset`, `CourseLibraryOperations.backupsOf`
 and `removeUnopenableCourse`.
 
+### Second follow-up in the same version (owner decisions of 11 October 2026)
+
+Owner's rule: the admin can clean up anything if necessary, whatever the
+problem is, but has to be warned when a destructive action can have
+undesired effects.
+
+**Two Deletes the Inventory refused are now possible for the admin.**
+
+- A Publisher Course that other learners have in their courses. Before:
+  "Another profile still has this course in My courses. Nothing was
+  removed."
+- Another learner's custom Course (the admin is neither its Maintainer nor
+  in its Team). Before: "Only the Course Maintainer or a member of the
+  assigned Team can delete this Course."
+
+Both now go through the same steps in the Inventory's dialog:
+
+1. A warning that says who is affected and what they lose, and where each
+   consequence is decided: "to reset it too, tick “Also reset everyone's
+   progress on this Course” below", and for a custom Course that its saved
+   versions stay in Backups/Courses unless "Also delete all its backups" is
+   ticked.
+2. The word **DELETE**, typed in capital letters.
+3. A second confirmation ("Remove it from everyone?" / "Delete another
+   learner's Course?") that repeats what was chosen for progress and
+   backups, and how to change it ("choose Keep the Course and tick …").
+4. The admin PIN. (Resetting everyone's progress still asks once more.)
+
+The service checks the word and the PIN again; a learner who is not an admin
+cannot use the override. Outside the Inventory both Deletes stay refused:
+Course Studio's Delete and Remove Publisher Course from device are
+unchanged.
+
+**Progress on Courses no longer on this device.** When a Course is deleted
+without the reset, its learners' progress stays (it comes back if the same
+Course is installed again), but the Course is no longer listed, so there was
+no place left to reset it: only installing the Course again, or resetting
+every Course for everyone. The Inventory now has a section that lists that
+progress by Course ID, names the learners who have it, and has **Reset**
+(admin PIN): every learner's progress on that Course, with XP, Weekly XP,
+study days and streaks kept. A Course that is on the device (bundled, stored,
+or stored but unreadable) is never listed, and the Reset refuses it.
+
+Code: `CourseEditorService.deleteUserCourse(adminOverride:)`,
+`mayDeleteUserCourse`, `removePublisherCourseFromDevice(evenIfOthersHaveIt:)`;
+`InventoryActionService.run(adminOverride:, typedWord:)`, `overrideWord`,
+`InventoryCoursePreview.needsOverride` / `overrideWarning` / `overrideTitle`
+/ `overrideQuestion`; `InventoryActionKind.resetCourseProgress`;
+`ProgressService.courseIdsWithProgress`; `CourseLearnersService.leftProgress`;
+`CourseService.bundledCourseIds`.
+
 ### Not changed
 
 Scoring, progression, Course files and the learner-data format. No new
 preference key and no new folder. Course Studio's Delete resets only the
 deleting learner's progress: resetting other learners' progress needs the
-admin's PIN, in the Inventory.
+admin's PIN, in the Inventory. Deleting a learner keeps its two refusals
+(the only admin; a learner who maintains a Course).
