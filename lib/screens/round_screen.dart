@@ -571,6 +571,7 @@ class _RoundScreenState extends State<RoundScreen> {
     // A Flashcard shown meaning first keeps the word's read-aloud for its
     // back (Build 268 Revision 0).
     if (FlashcardSides.isTwoSided(f) && _cardMeaningFirst) return null;
+    if (_gapAudioSilent(f)) return null;
     final automatic = f.automaticAudio;
     if (automatic != null) return automatic;
     if (f.kind != LearnerExerciseKind.dialogueLine) return null;
@@ -578,6 +579,16 @@ class _RoundScreenState extends State<RoundScreen> {
     if (audio == null || audio.playback != null) return null;
     final readAloud = widget.round.flow?.readAloud ?? FlowReadAloud.automatic;
     return readAloud == FlowReadAloud.automatic ? audio : null;
+  }
+
+  /// Typed gaps whose spoken text is optional (Missing letters since
+  /// Build 271 Revision 0) offer no audio while the learner's audio is off:
+  /// nothing plays by itself and there is no Play audio. Required audio is
+  /// offered as before.
+  bool _gapAudioSilent(ExerciseFeatures f) {
+    if (_optionalAudioEnabled || f.gapFieldTargets.isEmpty) return false;
+    final audio = f.automaticAudio ?? f.audioElements.firstOrNull;
+    return audio != null && !audio.isRequired;
   }
 
   /// Who says a dialogue line: its character, else the narrator (also for a
@@ -3482,7 +3493,9 @@ class _RoundScreenState extends State<RoundScreen> {
     final anyTyped = _missingWordControllers.any(
       (c) => c.text.trim().isNotEmpty,
     );
-    final audio = _features.primaryAudioText;
+    final audio = _gapAudioSilent(_features)
+        ? null
+        : _features.primaryAudioText;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -5550,6 +5563,7 @@ class _RoundScreenState extends State<RoundScreen> {
           // turned (Build 268 Revision 0).
           if (_features.primaryAudioText != null &&
               !_cardWordHidden &&
+              !_gapAudioSilent(_features) &&
               !(ex.primitive == ExercisePrimitive.select &&
                   _features.automaticAudio != null))
             IconButton(

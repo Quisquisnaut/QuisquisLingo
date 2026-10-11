@@ -3843,6 +3843,7 @@
                     "role": "primary",
                     "type": "audio",
                     "text": "Il treno parte alle nove.",
+                    "required": false,
                     "playback": "automatic"
                   }
                 ],
@@ -6081,7 +6082,7 @@
                     "id": "qql_lab254_sentence_order_story_item_0",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "line",
                         "type": "text",
                         "text": "Anna entra nel bar."
                       }
@@ -6091,7 +6092,7 @@
                     "id": "qql_lab254_sentence_order_story_item_1",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "line",
                         "type": "text",
                         "text": "Ordina un caffè."
                       }
@@ -6101,7 +6102,7 @@
                     "id": "qql_lab254_sentence_order_story_item_2",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "line",
                         "type": "text",
                         "text": "Paga e saluta."
                       }
@@ -6146,7 +6147,7 @@
                     "id": "qql_lab254_sentence_order_dialogue_item_0",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "line",
                         "type": "text",
                         "text": "Buongiorno, un caffè per favore."
                       }
@@ -6156,7 +6157,7 @@
                     "id": "qql_lab254_sentence_order_dialogue_item_1",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "line",
                         "type": "text",
                         "text": "Subito. Zucchero?"
                       }
@@ -6166,7 +6167,7 @@
                     "id": "qql_lab254_sentence_order_dialogue_item_2",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "line",
                         "type": "text",
                         "text": "No, grazie."
                       }
@@ -6176,7 +6177,7 @@
                     "id": "qql_lab254_sentence_order_dialogue_item_3",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "line",
                         "type": "text",
                         "text": "Ecco a lei."
                       }
@@ -6186,7 +6187,7 @@
                     "id": "qql_lab254_sentence_order_dialogue_item_4",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "line",
                         "type": "text",
                         "text": "Il treno parte alle nove."
                       }
@@ -9751,5 +9752,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "2fc10664b1ace1277b87e52eb7754d038af264a62f6f9f95e719ccfa9d3ee2c9"
+  "officialChecksum": "4dcb31b86d470b30fd6dc4a25735a6a14218ece5a8333a28f80be24d4e28b86d"
 }

@@ -307,6 +307,9 @@ abstract final class PresetVariants {
       case 'note_card':
         // A Note card is read and left with Continue: no review.
         return exercise.copyWith(options: PrimitiveOptions.empty);
+      case 'missing_letters':
+      case 'sentence_order':
+        return withSaveMarks(presetId, exercise);
       case 'picture_word_match':
         final leftIds = {
           for (final relation in exercise.canonicalEvaluation.relations)
@@ -321,6 +324,47 @@ abstract final class PresetVariants {
                 )
               else
                 item,
+          ],
+        );
+      default:
+        return exercise;
+    }
+  }
+
+  /// The marks saving adds to an exercise of [presetId] that no field of
+  /// its form shows (Build 271 Revision 0, owner decisions of 10 and
+  /// 11 October 2026): Missing letters' spoken text is an aid, so its audio
+  /// is optional and the exercise stays in the Round when the learner's
+  /// audio is off; Put the sentences in order marks its blocks as lines
+  /// (item role `line`), so `ExerciseFeatures.isLineOrder` no longer guesses
+  /// from their text. An exercise stored without them is still represented
+  /// by its preset (`PresetRecipes.represents` compares with the marks on
+  /// both sides) and takes them when its form next saves it.
+  static Exercise withSaveMarks(String presetId, Exercise exercise) {
+    switch (presetId) {
+      case 'missing_letters':
+        return exercise.copyWith(
+          promptElements: [
+            for (final element in exercise.promptElements)
+              if (element.isAudio)
+                element.copyWith(required: false)
+              else
+                element,
+          ],
+        );
+      case 'sentence_order':
+        return exercise.copyWith(
+          items: [
+            for (final item in exercise.items)
+              item.copyWith(
+                content: [
+                  for (final element in item.content)
+                    if (element.isText)
+                      element.copyWith(role: 'line')
+                    else
+                      element,
+                ],
+              ),
           ],
         );
       default:

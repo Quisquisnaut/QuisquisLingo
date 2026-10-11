@@ -233,6 +233,14 @@ class CourseHierarchyUpdateService {
     return _contentForEditedExercise(source, exercise);
   }
 
+  /// [round] with [content] in place of its own. The Round is copied whole
+  /// (Build 271 Revision 0), so a screen never rebuilds it field by field
+  /// and a future Round field cannot be dropped.
+  LearningRound roundWithContent(
+    LearningRound round,
+    List<LearningContent> content,
+  ) => _withContent(round, content);
+
   Course _updateLesson(
     Course course,
     String lessonId,

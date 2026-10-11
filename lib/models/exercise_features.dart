@@ -467,15 +467,24 @@ class ExerciseFeatures {
   ExerciseTarget? get revealTarget =>
       exercise.targets.where((t) => t.reveal != null).firstOrNull;
 
-  /// Arrange: whether the blocks are lines or sentences rather than words:
-  /// two or more, each with three words or more or ending a sentence.
-  bool get isLineOrder =>
-      items.length >= 2 &&
-      items.every((item) {
-        final text = item.text.trim();
-        return text.split(RegExp(r'\s+')).length >= 3 ||
-            RegExp(r'[.!?…]$').hasMatch(text);
-      });
+  /// Arrange: whether the blocks are lines or sentences rather than words.
+  /// Put the sentences in order marks its blocks with the item role `line`
+  /// (Build 271 Revision 0); an exercise without the mark is guessed from
+  /// its text: two blocks or more, each with three words or more or ending
+  /// a sentence.
+  bool get isLineOrder {
+    if (items.any(
+      (item) => item.content.any((e) => e.isText && e.role == 'line'),
+    )) {
+      return true;
+    }
+    return items.length >= 2 &&
+        items.every((item) {
+          final text = item.text.trim();
+          return text.split(RegExp(r'\s+')).length >= 3 ||
+              RegExp(r'[.!?…]$').hasMatch(text);
+        });
+  }
 
   /// Arrange: whether blocks join without a separator.
   bool get joinsWithoutSpaces =>
@@ -676,8 +685,10 @@ class ExerciseFeatures {
         if (hasInlineTargets) {
           // Gaps with audio are heard (Listen and fill the gaps); gaps
           // that reveal a letter are Type the missing word; other gaps are
-          // completed from the text alone.
-          if (automaticAudio != null) {
+          // completed from the text alone. Optional audio is an aid, not
+          // what the learner fills the gaps from (Build 271 Revision 0:
+          // Missing letters' spoken text).
+          if (automaticAudio?.isRequired ?? false) {
             return LearnerExerciseKind.inputListenGaps;
           }
           return revealTarget != null

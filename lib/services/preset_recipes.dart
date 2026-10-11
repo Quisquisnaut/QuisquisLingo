@@ -542,8 +542,12 @@ abstract final class PresetRecipes {
   static bool represents(Exercise exercise, String presetId) {
     if (!PresetVariants.fits(presetId, exercise)) return false;
     final rebuilt = rebuild(exercise, presetId);
+    // The marks saving adds are no difference (Build 271 Revision 0): an
+    // exercise stored before them still opens in its preset's form.
     return rebuilt != null &&
-        _comparable(rebuilt).semanticallyEquals(_comparable(exercise));
+        _comparable(rebuilt).semanticallyEquals(
+          _comparable(PresetVariants.withSaveMarks(presetId, exercise)),
+        );
   }
 
   /// [exercise] in the form recognition compares: items renamed `item_0`,

@@ -409,8 +409,11 @@ class Laboratory:
         separator = "" if preset in ("image_word", "spell_heard", "spell_word") else " "
         correct_orders = [{"text": separator.join(tokens[i] for i in order),
                            "itemIds": [f"item_{i}" for i in order]} for order in orders]
+        # Put the sentences in order marks its blocks as lines (Build 271
+        # Revision 0), as its form does on saving.
+        role = "line" if preset == "sentence_order" else "primary"
         self.add(key, preset, prompts,
-                 {"kind": "arrange", "items": [{"id": f"item_{i}", "content": [text(v, language=language)]}
+                 {"kind": "arrange", "items": [{"id": f"item_{i}", "content": [text(v, role, language=language)]}
                                                for i, v in enumerate(tokens)]},
                  {"kind": "ordered_items", "correctOrders": correct_orders},
                  capability, " / ".join(order["text"] for order in correct_orders), hint=hint)
@@ -661,7 +664,7 @@ def laboratory() -> Laboratory:
     lab.enter("complete_text", "complete_text", [text("Anna's morning before work.", "clue"), text("Anna beve un caffè al bar. Poi prende il treno.")], [], "Complete the text; two typed gaps, an instruction and a hint, no audio", hint="What Italians call an espresso; then a way to travel by rail between towns.", missing=["caffè", "treno"], answer="caffè / treno")
     lab.complete_text_canonical("complete_text_alternatives", "complete_text", "Luca prende ___ alle otto.", ["[il|un] treno"], "Complete the text; one gap with two accepted answers, [il|un] treno", "il treno / un treno", instruction="Luca goes to work.", hint="A way to travel by rail between towns, with its article.")
     lab.enter("missing_letters", "missing_letters", [text("Il gatto dorme sul divano.")], [], "Missing letters; letters inside two words", missing=["tt", "van"], answer="tt / van")
-    lab.enter("missing_letters_audio", "missing_letters", [text("Il treno parte alle nove."), audio("Il treno parte alle nove.")], [], "Missing letters; spoken text and two gaps", missing=["ren", "ove"], answer="ren / ove")
+    lab.enter("missing_letters_audio", "missing_letters", [text("Il treno parte alle nove."), audio("Il treno parte alle nove.", required=False)], [], "Missing letters; optional spoken text and two gaps", missing=["ren", "ove"], answer="ren / ove")
     lab.enter("picture_name", "picture_name", [text("What is this?"), image("bread", "Bread", "picture")], ["il pane", "pane"], "Type what you see; picture prompt, typed answers")
 
     lab.start_lesson("Arrange", "Build an Italian answer from words, phrases, letters or syllables. Ordinary Arrange consumes each block once; repeated words need repeated blocks. Inline Arrange fills fixed gaps with distinct blocks. Word order and Build the translation allow zero, one or two distractors; Image-prompt ordering allows none.")

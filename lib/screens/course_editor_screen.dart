@@ -3484,21 +3484,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         )
                       : item,
               ];
-              updatedRound = LearningRound(
-                id: currentRound.id,
-                publicationState: currentRound.publicationState,
-                provisionalDraft: currentRound.provisionalDraft,
-                updatedAt: currentRound.updatedAt,
-                title: currentRound.title,
-                visualType: currentRound.visualType,
-                roundType: currentRound.roundType,
-                testFixedOrder: currentRound.testFixedOrder,
-                testPassingPercent: currentRound.testPassingPercent,
-                timedLimitsSeconds: currentRound.timedLimitsSeconds,
-                content: content,
-                flow: currentRound.flow,
-                focusModuleId: currentRound.focusModuleId,
-                supportingModuleIds: currentRound.supportingModuleIds,
+              updatedRound = _hierarchyUpdates.roundWithContent(
+                currentRound,
+                content,
               );
             }
           }
@@ -12035,7 +12023,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _tts,
             'Spoken text (optional)',
             lines: 2,
-            helper: 'The complete text, read aloud before the learner types.',
+            helper:
+                'The complete text, read aloud as an aid. A learner with audio off gets the exercise without it.',
           ),
           _field(_hint, 'Hint (optional)'),
         ];

@@ -1,3 +1,34 @@
+# 2.0.71 (Build 271, Revision 0) - content that plays wrong - 2026-10-11
+
+Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).
+
+- **Missing letters is no longer skipped when a learner's audio is off.**
+  Its optional Spoken text was stored as audio the exercise needs, so with
+  Audio Exercises off the whole exercise left the Round. Saving now stores
+  it as an aid: with audio on it is read aloud as before and Play audio
+  repeats it; with audio off the exercise is shown without sound and without
+  a Play audio button. The line under the title is "Write the missing
+  letters." in both cases (before, with a spoken text: "Fill in the missing
+  word you hear."). Listen and fill the gaps is unchanged.
+- **Put the sentences in order knows its blocks are lines.** Saving marks
+  each block as a line, so two short lines ("Ciao Anna", "Ciao Marco") show
+  PUT THE SENTENCES IN ORDER with "Arrange the lines in a logical order."
+  Before, QQL guessed from the text (three words, or a closing . ! ?) and
+  showed "Arrange the words in the correct order." for short lines.
+- Exercises saved before this version are not converted: a Missing letters
+  with a spoken text is still skipped without audio, and an unmarked Put the
+  sentences in order is still guessed from its text. Each still opens in its
+  form, and saving it there stores the new shape.
+- The canonical editor's Role menu offers **line** for an item's text.
+- **The Audit flow copies the whole Round** after an exercise opened from a
+  finding is saved, instead of rebuilding the Round field by field, so a
+  Round field added later cannot be dropped there. Nothing changes on screen.
+- The bundled QQL Demo: Italian Exercise Lab is regenerated with both
+  corrections (its Missing letters example with a spoken text, its two Put
+  the sentences in order examples).
+- Help EN/IT/ES (Missing letters, Put the sentences in order).
+- Scoring, progression and learner data are unchanged.
+
 # 2.0.70 (Build 270, Revision 13) - which exercises play each recording - 2026-10-11
 
 Owner decisions of 10 October 2026.

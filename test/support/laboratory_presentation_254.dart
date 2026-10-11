@@ -39,6 +39,8 @@
 /// with Turn over beside Got it, and the instruction asks for the meaning;
 /// the meaning, the picture and the example are on the back. The two Note
 /// cards are unchanged.
+/// Build 271 Revision 0 changed 1 record: Missing letters with a spoken
+/// text asks for the missing letters; its spoken text is an aid.
 const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_arrange_gap_audio': {
     'before': {
@@ -8268,7 +8270,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_missing_letters_audio': {
     'before': {
       'heading': 'MISSING LETTERS',
-      'instruction': 'Fill in the missing word you hear.',
+      'instruction': 'Write the missing letters.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -8330,7 +8332,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'MISSING LETTERS',
-      'instruction': 'Fill in the missing word you hear.',
+      'instruction': 'Write the missing letters.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {

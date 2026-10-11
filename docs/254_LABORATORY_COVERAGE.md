@@ -129,7 +129,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Input / Source answers, texts and pictures | complete_text | complete_text | Complete the text; two typed gaps, an instruction and a hint, no audio | caffè / treno |
 | Input / Source answers, texts and pictures | complete_text_alternatives | complete_text | Complete the text; one gap with two accepted answers, [il\|un] treno | il treno / un treno |
 | Input / Source answers, texts and pictures | missing_letters | missing_letters | Missing letters; letters inside two words | tt / van |
-| Input / Source answers, texts and pictures | missing_letters_audio | missing_letters | Missing letters; spoken text and two gaps | ren / ove |
+| Input / Source answers, texts and pictures | missing_letters_audio | missing_letters | Missing letters; optional spoken text and two gaps | ren / ove |
 | Input / Source answers, texts and pictures | picture_name | picture_name | Type what you see; picture prompt, typed answers | il pane / pane |
 | Arrange / Word and phrase blocks | arrange_zero | word_order | Word order; zero distractors | Il gatto dorme |
 | Arrange / Word and phrase blocks | arrange_one | word_order | Word order; one distractor | Anna beve acqua |

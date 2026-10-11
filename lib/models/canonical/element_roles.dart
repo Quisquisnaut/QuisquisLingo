@@ -192,6 +192,13 @@ abstract final class ElementRoles {
       place: ElementPlace.item,
     ),
     ElementRole(
+      'line',
+      'A line or sentence of a text to put in order (Put the sentences in '
+          'order).',
+      types: {'text'},
+      place: ElementPlace.item,
+    ),
+    ElementRole(
       'icon',
       'An icon key drawn as a picture (Select the image).',
       types: {'text'},
