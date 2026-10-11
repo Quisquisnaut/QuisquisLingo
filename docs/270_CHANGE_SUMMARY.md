@@ -453,3 +453,24 @@ Owner reports and decisions of 10 October 2026; released 11 October 2026.
 - Tests: `save_now_270_test.dart`, `audio_library_letters_270_test.dart`;
   finders updated for the new Round rows, breadcrumbs, labels and buttons in
   about twenty files.
+
+## Revision 13 (2.0.70+270013): which exercises play each recording
+
+Owner decisions of 10 October 2026.
+
+- `lib/services/course_audio_usage.dart` (new, pure Dart):
+  `CourseAudioUsage.spokenTexts`, `usesByClip` (with playback's
+  `RecordedAudioService.segment`), `unused`; `AudioClipUse`.
+- `AudioLibraryScreen`: `_uses` (recomputed when the draft changes),
+  `_usesLine` under each recording with a text, `_showUses` (the list,
+  opening an exercise through `_openSearchResult`), `_usePlace`
+  (`LabelledText.all`); `_orphans` lists `CourseAudioUsage.unused` with
+  "Remove these recordings"; the missing-file line says "save the Course".
+- `CourseEditorScreen._checkOrphanAudio` (the weekly prompt) uses the same
+  rule and names the recordings; its text no longer says the files remain
+  on disk.
+- `RecordedAudioService.orphaned` removed (no caller left); `dart:io` no
+  longer imported by the Course Editor.
+- Help EN/IT/ES: `editorHelp.qa.addRecordings.a`.
+- Tests: `audio_usage_270_test.dart` (new, 7 cases on the Laboratory's
+  exercises); `qql_231_revision1_test`, `audio_library_media_248_test`.

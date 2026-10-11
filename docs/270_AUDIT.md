@@ -212,3 +212,4 @@ grading.
 | 10 | The Course Wizard's leave dialog names the steps; Android update reminder instead of the network check; Page links ask first | done |
 | 11 | Owner requests after the plan: the Course Wizard saves only with Save now or Finish; the shared-device notice not at a first access; developer documents toned down | done |
 | 12 | Owner requests: "Save" only where something is written (Apply inside the Course Editor, Save now on its main page); labels apart from titles; the Audio Library's A–Z jump, groups and import buttons | done |
+| 13 | Owner requests: each recording shows the exercises that play it; Check unused MP3 files finds the recordings no exercise plays | done |

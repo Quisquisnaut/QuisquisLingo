@@ -298,3 +298,16 @@ exercise plays. Then the Build 271 plan is discussed (questions in the
 session: Missing letters already in Courses, the Put the sentences in order
 marker, Course deletion backup, the Lesson label wording, Android signing,
 the order).
+
+## Revision 13 (2.0.70+270013), which exercises play each recording
+
+Owner decisions of 10 October 2026: per recording "Used in N exercises"
+with the list (opening an exercise), only texts the recordings cover from
+end to end; Check unused MP3 files lists the recordings no exercise plays
+(those without text are under #). The weekly prompt follows the same rule.
+
+State: see `docs/270_VALIDATION.md`. Next: the Build 271 plan, to discuss
+with the owner (questions: Missing letters already in Courses, the Put the
+sentences in order marker, the final backup on Course deletion, the Lesson
+label wording, Android signing, the order); merging `build-270` into `main`
+waits for the owner's go.

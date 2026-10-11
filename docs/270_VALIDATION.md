@@ -311,3 +311,19 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
   `official_hierarchy_id_order_226_02_test` (it read a Round row's second
   line as a subtitle); fixed in the test.
 - Complete suite: **4,152 passed, 1 skipped**, 37:17 (11 October 2026).
+
+## Revision 13 (2.0.70+270013), which exercises play each recording
+
+- `audio_usage_270_test` (new, 7 cases on the Laboratory's exercises):
+  recordings that say a text from end to end are used by its exercise, one
+  covering part of a text is not, `unused` leaves out recordings without
+  text, a dialogue read aloud line by line is spoken text, the rows say
+  Used in / Not used, the list opens the exercise in its editor, Check
+  unused MP3 files lists and removes the recordings no exercise plays:
+  passed.
+- `qql_231_revision1_test` (the weekly prompt's recording now has a text no
+  exercise says) and `audio_library_media_248_test` (the weekly prompt
+  marked as run): passed. The 25 other files that build an audio library,
+  the Audio Library and Help catalog tests: passed.
+- `flutter analyze`: no issues.
+- Complete suite: **4,159 passed, 1 skipped**, 34:40 (11 October 2026).

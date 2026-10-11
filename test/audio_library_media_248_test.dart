@@ -9,7 +9,9 @@ import 'package:quisquislingo_app/services/course_authoring_media.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
+import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
@@ -569,6 +571,11 @@ Future<void> _openEditor(
   tester.view.physicalSize = const Size(1200, 1800);
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
+  // The weekly unused-recordings prompt is not what these tests are about
+  // (since Build 270 Revision 13 it counts recordings no exercise plays).
+  await SettingsService().markAudioOrphanCheckRun(
+    CourseService.codeForCourse(course),
+  );
   await tester.pumpWidget(
     MaterialApp(
       home: Builder(

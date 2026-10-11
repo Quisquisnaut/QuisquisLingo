@@ -258,7 +258,9 @@ void main() {
       audioLibrary: const [
         CourseAudioClip(
           id: 'unused',
-          text: '',
+          // A text no exercise says (Build 270 Revision 13: recordings
+          // without text are not unused, they wait under # for one).
+          text: 'zzz',
           filePath:
               'media:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.mp3',
         ),
@@ -366,7 +368,9 @@ void main() {
       audioLibrary: const [
         CourseAudioClip(
           id: 'unused',
-          text: '',
+          // A text no exercise says (Build 270 Revision 13: recordings
+          // without text are not unused, they wait under # for one).
+          text: 'zzz',
           filePath:
               'media:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.mp3',
         ),
@@ -396,7 +400,9 @@ void main() {
       audioLibrary: const [
         CourseAudioClip(
           id: 'unused',
-          text: '',
+          // A text no exercise says (Build 270 Revision 13: recordings
+          // without text are not unused, they wait under # for one).
+          text: 'zzz',
           filePath:
               'media:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.mp3',
         ),

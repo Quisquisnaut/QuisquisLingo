@@ -1,7 +1,6 @@
 import '../widgets/editor_notes_field.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/answer_engine.dart';
@@ -106,6 +105,7 @@ import '../widgets/reported_action.dart';
 import '../services/course_backup_retention.dart';
 import '../widgets/course_backup_purge.dart';
 import '../widgets/labelled_text.dart';
+import '../services/course_audio_usage.dart';
 
 export 'guidebook_editor_screen.dart'
     show GuidebookEditorScreen, GuidebookModuleEditorScreen;
@@ -3344,7 +3344,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   }
 
   Future<void> _checkOrphanAudio({bool prompt = true}) async {
-    final orphans = _recordedAudio.orphaned(_course);
+    // Build 270 Revision 13 (owner decision): unused means no exercise plays
+    // the recording; those without text are under # in the Audio Library.
+    final orphans = CourseAudioUsage.unused(
+      _course,
+      CourseAudioUsage.usesByClip(
+        _course,
+        (text) => _recordedAudio.segment(text, _course.audioLibrary),
+      ),
+    );
     if (orphans.isEmpty || !mounted) return;
     if (!prompt) return;
     final remove = await showDialog<bool>(
@@ -3353,8 +3361,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         title: Text(
           '${orphans.length} unused MP3 file${orphans.length == 1 ? '' : 's'} found',
         ),
-        content: const Text(
-          'These recordings are not associated with any word, expression or exercise. Remove their references from the working copy? The files remain on disk.',
+        content: Text(
+          'No exercise plays these recordings: '
+          '${orphans.map((clip) => '“${clip.text.trim()}”').join(', ')}. '
+          'Remove them from this Course? Their files are deleted when the '
+          'Course is saved.',
         ),
         actions: [
           TextButton(
@@ -3363,7 +3374,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Remove references'),
+            child: const Text('Remove these recordings'),
           ),
         ],
       ),
@@ -13706,6 +13717,21 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   /// only sign would be a failed preview.
   Set<String> _missingClipIds = const {};
 
+  /// Which exercises play each recording (Build 270 Revision 13), worked
+  /// out again only when the draft changes.
+  Course? _usesCourse;
+  Map<String, List<AudioClipUse>> _usesCache = const {};
+  Map<String, List<AudioClipUse>> get _uses {
+    if (!identical(_usesCourse, _course)) {
+      _usesCourse = _course;
+      _usesCache = CourseAudioUsage.usesByClip(
+        _course,
+        (text) => _audio.segment(text, _course.audioLibrary),
+      );
+    }
+    return _usesCache;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -13907,19 +13933,25 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   }
 
   Future<void> _orphans() async {
-    final list = _audio.orphaned(_course);
+    // Build 270 Revision 13 (owner decision): the recordings no exercise
+    // plays; those without text are under # already.
+    final list = CourseAudioUsage.unused(_course, _uses);
     if (!mounted) return;
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('${list.length} orphan MP3 files'),
+        key: const Key('audio-unused-dialog'),
+        title: Text(
+          '${list.length} unused MP3 file${list.length == 1 ? '' : 's'}',
+        ),
         content: SingleChildScrollView(
           child: Text(
             list.isEmpty
-                ? 'No unused MP3 files.'
-                : list
-                      .map((e) => e.filePath.split(Platform.pathSeparator).last)
-                      .join('\n'),
+                ? 'Every recording with a text is played by an exercise.'
+                : 'No exercise plays these recordings. Removing them takes '
+                      'them out of this Course; their files are deleted when '
+                      'the Course is saved.\n\n'
+                      '${list.map((clip) => clip.text.trim()).join('\n')}',
           ),
         ),
         actions: [
@@ -13941,10 +13973,133 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                 );
                 unawaited(_refreshMissingClips());
               },
-              child: const Text('Remove references'),
+              child: const Text('Remove these recordings'),
             ),
         ],
       ),
+    );
+  }
+
+  /// "Used in N exercises", opening the list, or "Not used by any
+  /// exercise" (Build 270 Revision 13).
+  Widget _usesLine(CourseAudioClip clip) {
+    final uses = _uses[clip.id] ?? const <AudioClipUse>[];
+    final scheme = Theme.of(context).colorScheme;
+    if (uses.isEmpty) {
+      return Text(
+        'Not used by any exercise',
+        key: Key('audio-clip-unused-${clip.id}'),
+        style: TextStyle(color: scheme.onSurfaceVariant),
+      );
+    }
+    return InkWell(
+      key: Key('audio-clip-uses-${clip.id}'),
+      onTap: () => _showUses(clip, uses),
+      child: Text(
+        'Used in ${uses.length} exercise${uses.length == 1 ? '' : 's'}',
+        style: TextStyle(
+          color: scheme.primary,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+
+  /// The exercises that play [clip]; a tap opens one, as Search does, and
+  /// its changes stay in this draft.
+  Future<void> _showUses(CourseAudioClip clip, List<AudioClipUse> uses) async {
+    final chosen = await showDialog<AudioClipUse>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('audio-clip-uses-dialog'),
+        title: Text('“${clip.text.trim()}” is heard in'),
+        content: SizedBox(
+          width: 520,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Only texts that recordings say from beginning to end '
+                  'count. Tap an exercise to open it.',
+                ),
+              ),
+              for (final (index, use) in uses.indexed)
+                ListTile(
+                  key: Key('audio-clip-use-$index'),
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    _exerciseSummary(use.exercise),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: _usePlace(use),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.pop(ctx, use),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+    if (chosen == null || !mounted) return;
+    final lesson = _course.lessons[chosen.lessonIndex];
+    final round = lesson.rounds[chosen.roundIndex];
+    final changed = await _openSearchResult(
+      context,
+      course: _course,
+      result: ExerciseSearchResult(
+        lessonIndex: chosen.lessonIndex,
+        roundIndex: chosen.roundIndex,
+        exerciseIndex: chosen.exerciseIndex,
+        lessonId: lesson.lessonId,
+        roundId: round.id,
+        exerciseId: chosen.exercise.id,
+        exerciseType: chosen.exercise.primitive.serialized,
+        exerciseDisplayName: _exerciseSummary(chosen.exercise),
+        matchingExcerpt: '',
+        matchedFieldLabel: '',
+        idMatch: false,
+      ),
+      readOnly: false,
+      initiallyInspecting: false,
+    );
+    if (changed != null && mounted) {
+      setState(() => _course = changed);
+      unawaited(_refreshMissingClips());
+    }
+  }
+
+  /// "Lesson 2: Food › Step 3 · Practice › Exercise 4", labels in the label
+  /// style (Build 270 Revision 12).
+  Widget _usePlace(AudioClipUse use) {
+    final identity = const LessonPresentationService().identity(
+      _course,
+      use.lessonIndex,
+    );
+    final round = _course.lessons[use.lessonIndex].rounds[use.roundIndex];
+    final roundPrefix = RoundTypePresentation.prefix(
+      round.roundType,
+      use.roundIndex + 1,
+      _course.roundNumberingMode,
+      customPrefix: _course.customRoundLabel,
+    );
+    final roundTitle = RoundTypePresentation.title(
+      round,
+      use.roundIndex + 1,
+      _course.roundNumberingMode,
+      customPrefix: _course.customRoundLabel,
+    );
+    return LabelledText.all(
+      '${identity.fullText} › $roundTitle › Exercise ${use.exerciseIndex + 1}',
+      labels: [identity.prefix, roundPrefix],
     );
   }
 
@@ -14054,9 +14209,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       if (_course.audioMode != 'tts')
         ListTile(
           title: const Text('Check unused MP3 files'),
-          subtitle: const Text(
-            'Find recordings not associated with any course text.',
-          ),
+          subtitle: const Text('Find recordings no exercise plays.'),
           trailing: const Icon(Icons.cleaning_services_outlined),
           onTap: _orphans,
         ),
@@ -14147,13 +14300,15 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           if (_missingClipIds.contains(clip.id))
             Text(
               'File missing. Delete this recording to remove its '
-              'reference, then confirm the Course.',
+              'reference, then save the Course.',
               key: Key('audio-clip-missing-${clip.id}'),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
+          if (clip.text.trim().isNotEmpty) _usesLine(clip),
         ],
       ),
-      isThreeLine: _missingClipIds.contains(clip.id),
+      isThreeLine:
+          _missingClipIds.contains(clip.id) || clip.text.trim().isNotEmpty,
       onTap: () => _editById(clip.id),
       trailing: IconButton(
         icon: const Icon(Icons.delete_outline),

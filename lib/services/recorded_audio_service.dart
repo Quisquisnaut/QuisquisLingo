@@ -296,9 +296,6 @@ class RecordedAudioService {
   static const String _tooLarge =
       'This MP3 is too large. Export or split it into smaller recordings and try again.';
 
-  List<CourseAudioClip> orphaned(Course course) =>
-      course.audioLibrary.where((c) => c.text.trim().isEmpty).toList();
-
   /// Longest-match segmentation prevents a single-word recording from taking
   /// precedence over an available multi-word expression.
   List<CourseAudioClip>? segment(String text, List<CourseAudioClip> library) {

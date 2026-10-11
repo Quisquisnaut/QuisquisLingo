@@ -1,3 +1,28 @@
+# 2.0.70 (Build 270, Revision 13) - which exercises play each recording - 2026-10-11
+
+Owner decisions of 10 October 2026.
+
+- **Each recording says where it is heard**: under a recording with a text,
+  the Audio Library shows **Used in N exercises**, which lists them
+  (Lesson › Round › Exercise, labels in the label style) and opens the one
+  you tap, or **Not used by any exercise**. Before, a recording was linked
+  only to its text and nothing showed which exercises played it.
+- Only texts that recordings say from beginning to end count, as playback
+  joins them: a text with a word no recording says plays no recording
+  (Recorded MP3 only stays silent, Hybrid uses the device voice).
+- What is counted is everything the Round screen speaks: an exercise's
+  audio, dialogue and Story lines, the answers' sounds in Listen and match,
+  Pick the translation's question or answer, the flashcard word and example,
+  and a Page's audio blocks and read-aloud text.
+- **Check unused MP3 files lists the recordings no exercise plays**; its
+  button is Remove these recordings. Before, it listed the recordings
+  without text, which now stand under # in the list, and a recording whose
+  text no exercise said was not reported.
+- The Course Editor's weekly unused-recordings prompt follows the same
+  rule. Its text said the files remained on disk; they are deleted when the
+  Course is saved.
+- Help EN/IT/ES (How do I add recordings?).
+
 # 2.0.70 (Build 270, Revision 12) - Save means saved; labels apart from titles; the Audio Library's A–Z - 2026-10-11
 
 Owner reports and decisions of 10 October 2026.
