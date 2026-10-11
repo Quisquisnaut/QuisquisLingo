@@ -314,7 +314,7 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
             FilledButton.icon(
               key: const Key('guidebook-save'),
               onPressed: () => _save(PublicationState.published),
-              icon: const Icon(Icons.save_outlined),
+              icon: const Icon(Icons.check),
               label: const Text('Apply'),
             ),
           ],

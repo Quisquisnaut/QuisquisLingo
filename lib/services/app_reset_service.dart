@@ -377,7 +377,7 @@ class AppResetService {
     );
     if (maintained.isNotEmpty) {
       throw AppResetException(
-        'These learners maintain ${maintained.join(', ')}. Change the Course Maintainer or delete those Courses first. Nothing was changed.',
+        'These learners maintain ${maintained.join(', ')}. Change the Course Maintainer or delete those Courses first, or delete these learners one by one in the Inventory, which warns you first. Nothing was changed.',
       );
     }
     for (final id in removed) {

@@ -19,6 +19,7 @@ import 'package:quisquislingo_app/services/inventory_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
+import 'package:quisquislingo_app/services/stored_course_reader.dart';
 import 'package:quisquislingo_app/services/xp_service.dart';
 import 'package:quisquislingo_app/widgets/folder_opener.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1283,7 +1284,7 @@ void main() {
           isA<InventoryActionException>().having(
             (e) => e.message,
             'message',
-            'Only the Delete of a Course can be forced here.',
+            'Only the Delete of a Course or of a learner can be forced here.',
           ),
         ),
       );
@@ -1744,6 +1745,360 @@ void main() {
         expect(
           (await editor.backupService.summaryOf('shared')).isEmpty,
           isTrue,
+        );
+      });
+    });
+
+    // Build 271 Revision 2 follow-up (owner decision of 11 October 2026):
+    // the admin may delete a learner who maintains Courses, after the
+    // warning, the word DELETE, a second confirmation and the PIN. Their
+    // Courses stay on the device without a Maintainer.
+    InventoryAction deleteLearner(String id) => InventoryAction(
+      InventoryActionKind.deleteLearner,
+      id,
+      label: 'Delete',
+      explanation: '',
+    );
+
+    Future<void> bobMaintainsTwo(CourseEditorService editor) => as(
+      _bob,
+      () async {
+        await editor.installImportedCustomCourse(
+          _course('bobs', title: 'Verbi', maintainer: _bob),
+        );
+        await editor.installImportedCustomCourse(
+          _course('secret', title: 'Segreto', maintainer: _bob, private: true),
+        );
+        await complete('bobs');
+      },
+    );
+
+    test('the admin deletes a learner who maintains Courses, with DELETE; '
+        'the Courses stay without a Maintainer', () async {
+      final editor = CourseEditorService();
+      await bobMaintainsTwo(editor);
+      await editor.installImportedCustomCourse(_course('mine'));
+      await setPin();
+      final actions = InventoryActionService(profiles: profiles);
+      Future<String?> run({
+        String word = '',
+        bool override = true,
+        String pin = _pin,
+      }) => actions.run(
+        deleteLearner(_bob),
+        actorProfileId: _alice,
+        pin: pin,
+        adminOverride: override,
+        typedWord: word,
+      );
+
+      final preview = (await actions.previewLearner(deleteLearner(_bob)))!;
+      expect(preview.name, 'Bob');
+      expect(preview.needsOverride, isTrue);
+      expect(
+        preview.maintained.map((course) => course.courseId),
+        unorderedEquals(['bobs', 'secret']),
+      );
+      expect(
+        preview.overrideWarning,
+        allOf(
+          startsWith('Bob maintains '),
+          contains('“Verbi”'),
+          contains('“Segreto” (a Private course)'),
+          contains(
+            'Deleting Bob leaves these Courses on this device without a '
+            'Maintainer.',
+          ),
+          contains(
+            'Without a Maintainer, a Course can be edited only by the '
+            'members of a Team already assigned to it, nobody can change '
+            'its Maintainer or its Team, and a Private course is seen only '
+            'by that Team.',
+          ),
+          contains(
+            'These Courses stay under Custom and installed courses in this '
+            'Inventory, where you can delete them.',
+          ),
+          contains(
+            'Bob can first change the Course Maintainer in Course Info '
+            'Editor.',
+          ),
+        ),
+      );
+      expect(preview.overrideTitle, 'Delete a learner who maintains Courses?');
+      expect(
+        preview.overrideQuestion,
+        allOf(
+          contains(
+            'These Courses will stay on this device without a Maintainer.',
+          ),
+          contains('Bob\'s progress and settings will be deleted.'),
+          endsWith('This cannot be undone.'),
+        ),
+      );
+
+      // A learner who maintains nothing needs no warning and no word.
+      final carla = (await actions.previewLearner(deleteLearner(_carla)))!;
+      expect(carla.needsOverride, isFalse);
+      expect(carla.overrideWarning, isNull);
+      expect(await actions.previewLearner(deleteCourse('mine')), isNull);
+
+      // Without the override the Delete is refused as before, and the
+      // refusal says where an admin can go on.
+      await expectLater(
+        run(override: false),
+        throwsA(
+          isA<InventoryActionException>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('This profile maintains'),
+              contains(
+                'An admin can delete the profile anyway in Advanced '
+                '(Admin) › Inventory, after a warning.',
+              ),
+            ),
+          ),
+        ),
+      );
+      for (final word in ['', 'delete', 'DELETE BOB']) {
+        await expectLater(
+          run(word: word),
+          throwsA(isA<InventoryActionException>()),
+          reason: 'word "$word"',
+        );
+      }
+      await expectLater(
+        run(word: 'DELETE', pin: '0000'),
+        throwsA(isA<InventoryActionException>()),
+      );
+      expect(await profiles.getProfileById(_bob), isNotNull);
+
+      expect(await run(word: 'DELETE'), isNull);
+      expect(await profiles.getProfileById(_bob), isNull);
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.getKeys().where(
+          (key) => key.startsWith(ProfileService.prefixForProfileId(_bob)),
+        ),
+        isEmpty,
+        reason: 'his progress and settings went with him',
+      );
+      // His Courses stay, still naming him; the others are untouched.
+      final stored = {
+        for (final entry in (await CourseFileStore().readAll(
+          CourseStoreKind.custom,
+        )).entries)
+          StoredCourseReader.open(
+            entry.key,
+            entry.value,
+          ).course!.courseId: StoredCourseReader.open(
+            entry.key,
+            entry.value,
+          ).course!.maintainer!.profileId,
+      };
+      expect(stored, {'bobs': _bob, 'secret': _bob, 'mine': _alice});
+      expect(await profiles.getProfileById(_carla), isNotNull);
+
+      // The Inventory still deletes such a Course, with its own override.
+      final orphan = (await actions.previewCourse(
+        deleteCourse('bobs'),
+        actorProfileId: _alice,
+      ))!;
+      expect(orphan.notYours, isTrue);
+      expect(orphan.maintainer, 'A learner no longer on this device');
+      await actions.run(
+        deleteCourse('bobs'),
+        actorProfileId: _alice,
+        pin: _pin,
+        adminOverride: true,
+        typedWord: 'DELETE',
+      );
+      expect(
+        (await CourseFileStore().readAll(CourseStoreKind.custom)).length,
+        2,
+      );
+    });
+
+    test('only an admin can force it, and the other rules stay', () async {
+      final editor = CourseEditorService();
+      await bobMaintainsTwo(editor);
+      await editor.installImportedCustomCourse(_course('mine'));
+      // Bob may delete his own profile, but not while he maintains Courses,
+      // and the override is the admin's.
+      await expectLater(
+        profiles.deleteProfileById(
+          _bob,
+          actorProfileId: _bob,
+          adminOverride: true,
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            'Only an admin may delete a learner who maintains Courses.',
+          ),
+        ),
+      );
+      await expectLater(
+        profiles.deleteProfileById(
+          _bob,
+          actorProfileId: _carla,
+          adminOverride: true,
+        ),
+        throwsA(isA<StateError>()),
+      );
+      // The only admin stays, override or not.
+      await expectLater(
+        profiles.deleteProfileById(
+          _alice,
+          actorProfileId: _alice,
+          adminOverride: true,
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            'QQL must always have at least one admin.',
+          ),
+        ),
+      );
+      expect(await profiles.getProfileById(_bob), isNotNull);
+      expect(await profiles.getProfileById(_alice), isNotNull);
+    });
+
+    test('a stored file nobody can read: the admin is told and may go '
+        'ahead', () async {
+      final editor = CourseEditorService();
+      await editor.installImportedCustomCourse(_course('mine'));
+      final folder = Directory(
+        '${testSupportDirectory.path}${Platform.pathSeparator}'
+        '${CourseFileStore.rootDirectoryName}${Platform.pathSeparator}'
+        '${CourseStoreKind.custom.directoryName}',
+      );
+      File(
+        '${folder.path}${Platform.pathSeparator}QQL_EN_IT_broken.json',
+      ).writeAsStringSync('{ this is not a Course record');
+      await setPin();
+      final actions = InventoryActionService(profiles: profiles);
+      final preview = (await actions.previewLearner(deleteLearner(_carla)))!;
+      expect(preview.maintained, isEmpty);
+      expect(preview.unknown, isTrue);
+      expect(preview.needsOverride, isTrue);
+      expect(
+        preview.overrideWarning,
+        'A stored Course file cannot be read, so QQL cannot tell whether '
+        'Carla maintains it. If so, deleting Carla leaves that Course on '
+        'this device without a Maintainer.',
+      );
+      expect(preview.overrideTitle, 'Delete this learner anyway?');
+      await expectLater(
+        actions.run(deleteLearner(_carla), actorProfileId: _alice, pin: _pin),
+        throwsA(isA<InventoryActionException>()),
+      );
+      await actions.run(
+        deleteLearner(_carla),
+        actorProfileId: _alice,
+        pin: _pin,
+        adminOverride: true,
+        typedWord: 'DELETE',
+      );
+      expect(await profiles.getProfileById(_carla), isNull);
+    });
+
+    testWidgets('the dialog warns about the Courses, asks for DELETE and '
+        'confirms once more', (tester) async {
+      final editor = CourseEditorService();
+      await tester.runAsync(() async {
+        await bobMaintainsTwo(editor);
+        await setPin();
+      });
+      FolderOpener.available = () => false;
+      addTearDown(() => FolderOpener.available = () => true);
+      tester.view.physicalSize = const Size(900, 6000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: InventoryScreen(
+            profileService: profiles,
+            actionService: InventoryActionService(
+              profiles: profiles,
+              courses: editor,
+            ),
+          ),
+        ),
+      );
+      // Alice, Bob, Carla: Bob is the second learner.
+      final delete = find.byKey(const Key('inventory-Learners-1-action'));
+      await tester.pumpUntilFileIoState(() => delete.evaluate().isNotEmpty);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(delete);
+      await tester.tap(delete);
+      const wordField = Key('inventory-learner-override-word');
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(wordField).evaluate().isNotEmpty,
+      );
+      final warning = tester
+          .widget<Text>(
+            find.byKey(const Key('inventory-learner-override-warning')),
+          )
+          .data!;
+      expect(warning, contains('Bob maintains'));
+      expect(warning, contains('without a Maintainer'));
+      expect(find.text('To delete Bob anyway, type DELETE.'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const Key('inventory-action-pin')),
+        _pin,
+      );
+      // Without the word nothing happens, whatever the PIN.
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('inventory-action-error')))
+            .data,
+        contains('Type DELETE in capital letters'),
+      );
+      const confirm = Key('inventory-learner-override-confirm');
+      expect(find.byKey(confirm), findsNothing);
+
+      // With it, a second confirmation; Keep the learner changes nothing.
+      await tester.enterText(find.byKey(wordField), 'DELETE');
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(confirm), findsOneWidget);
+      expect(
+        find.text('Delete a learner who maintains Courses?'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Keep the learner'));
+      await tester.pumpAndSettle();
+      expect(
+        await tester.runAsync(() => profiles.getProfileById(_bob)),
+        isNotNull,
+      );
+
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('inventory-learner-override-confirm-run')),
+      );
+      final message = find.textContaining('Delete: “Bob” done.');
+      for (var i = 0; i < 300 && message.evaluate().isEmpty; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 1)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(message, findsOneWidget);
+      await tester.runAsync(() async {
+        expect(await profiles.getProfileById(_bob), isNull);
+        expect(
+          (await CourseFileStore().readAll(CourseStoreKind.custom)).length,
+          2,
+          reason: 'his two Courses stay on the device',
         );
       });
     });

@@ -707,6 +707,43 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     Navigator.pop(context, result ?? _lastSaved);
   }
 
+  /// Writes the Course while a small window says so and nothing else can be
+  /// pressed (Build 271 Revision 2 follow-up, owner report of 11 October
+  /// 2026). A save takes a moment (its backup comes first). Until now the
+  /// Editor stayed in use meanwhile with no sign of it: Back found the
+  /// changes still unsaved and asked about them as if Save had not written
+  /// anything, and a change applied during the save was lost when the save
+  /// finished.
+  Future<CourseConfirmationResult> _writeCourse(String versionNotes) async {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final progress = DialogRoute<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: AlertDialog(
+          key: Key('course-saving'),
+          content: Row(
+            children: [
+              Icon(Icons.save_outlined),
+              SizedBox(width: 16),
+              Expanded(child: Text('Saving the Course…')),
+            ],
+          ),
+        ),
+      ),
+    );
+    unawaited(navigator.push(progress));
+    try {
+      return await _session.confirm(
+        languageCode: _code,
+        versionNotes: versionNotes,
+      );
+    } finally {
+      if (progress.isActive) navigator.removeRoute(progress);
+    }
+  }
+
   /// Save now (Build 270 Revision 12, owner decision of 10 October 2026):
   /// writes the Course as a new version, with its version notes, and stays
   /// in the Editor, as Save now does in the Course Wizard.
@@ -750,10 +787,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     );
     if (save != true || !mounted) return;
     try {
-      final result = await _session.confirm(
-        languageCode: _code,
-        versionNotes: versionNotes,
-      );
+      final result = await _writeCourse(versionNotes);
       if (!mounted) return;
       setState(() => _lastSaved = result);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -844,10 +878,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
     if (choice != 'confirm') return;
     try {
-      final result = await _session.confirm(
-        languageCode: _code,
-        versionNotes: versionNotes,
-      );
+      final result = await _writeCourse(versionNotes);
       if (!mounted) return;
       await CourseBackupPurge.offer(
         context,
@@ -2602,10 +2633,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       return true;
     }
     try {
-      final result = await _session.confirm(
-        languageCode: _code,
-        versionNotes: versionNotes,
-      );
+      final result = await _writeCourse(versionNotes);
       if (!mounted) return false;
       setState(() => _lastSaved = result);
       await CourseBackupPurge.offer(
@@ -5475,7 +5503,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
               child: ListTile(
                 key: const Key('lesson-guidebook-navigation'),
                 leading: const Icon(Icons.menu_book_outlined),
-                title: const Text('Lesson Guidebook'),
+                title: const Text('GuideBook', style: _hierarchyLinkStyle),
                 // Build 266: the GuideBook is a list of modules.
                 subtitle: Text(
                   '${switch (_lesson.guidebook.modules.length) {
@@ -13690,7 +13718,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 onPressed: widget.readOnly || _inspection || _unrepresentable
                     ? null
                     : () => _save(PublicationState.draft),
-                icon: const Icon(Icons.save_outlined),
+                icon: const Icon(Icons.edit_note_outlined),
                 label: const Text('Apply as draft'),
               ),
               FilledButton.icon(
@@ -13698,7 +13726,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 onPressed: widget.readOnly || _inspection || _unrepresentable
                     ? null
                     : () => _save(PublicationState.published),
-                icon: const Icon(Icons.save_outlined),
+                // The disk icon is Save now's: it writes the Course. Apply
+                // only changes the working copy (Build 271 Revision 2
+                // follow-up).
+                icon: const Icon(Icons.check),
                 label: const Text('Apply'),
               ),
             ],
@@ -14424,6 +14455,10 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   Widget _clipCard(CourseAudioClip clip) {
     final hasText = clip.text.trim().isNotEmpty;
     final missing = _missingClipIds.contains(clip.id);
+    // Follow-up (owner decision of 11 October 2026): a recording without
+    // text shows the name its file came with, in grey, so freshly imported
+    // recordings can be told apart without opening each one.
+    final original = hasText ? '' : clip.originalFileName;
     final scheme = Theme.of(context).colorScheme;
     return Card(
       child: ListTile(
@@ -14441,7 +14476,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           ),
         ),
         // The stored file name says nothing to an author; Associate
-        // recording shows it, with the name the file came with.
+        // recording shows it. A recording with a text shows no file name.
         title: hasText
             ? Text(clip.text)
             : Text(
@@ -14451,11 +14486,19 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                   fontStyle: FontStyle.italic,
                 ),
               ),
-        subtitle: hasText || missing
+        subtitle: hasText || missing || original.isNotEmpty
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (original.isNotEmpty)
+                    Text(
+                      original,
+                      key: Key('audio-clip-original-${clip.id}'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: scheme.onSurfaceVariant),
+                    ),
                   if (missing)
                     Text(
                       'File missing. Delete this recording to remove its '

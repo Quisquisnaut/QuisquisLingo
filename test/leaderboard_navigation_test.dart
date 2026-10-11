@@ -1854,6 +1854,33 @@ void main() {
     expect(await ProfileService().getActiveProfile(), isNull);
   });
 
+  // Build 271 Revision 2 follow-up (owner report of 11 October 2026): a
+  // learner deleted in the Inventory was still listed here.
+  testWidgets('Learner Profiles lists the learners there are now, not those '
+      'Home loaded', (tester) async {
+    final profiles = ProfileService();
+    final gone = await profiles.createProfile(
+      'Gone Learner',
+      generateScreenNameSuffix: false,
+    );
+    await profiles.setActiveProfile('Navigation Learner');
+    final admin = (await profiles.getActiveProfileId())!;
+    await _openHome(tester, scrollToActions: false);
+    await _pumpUntil(tester, find.byKey(const Key('unified-bottom-controls')));
+
+    // As the Inventory's Delete does, while Home is already on screen.
+    await tester.runAsync(
+      () => profiles.deleteProfileById(
+        gone.learnerProfileId,
+        actorProfileId: admin,
+      ),
+    );
+    await _openLearnerChooserFromHome(tester);
+
+    expect(find.text('Navigation Learner (admin)'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Gone Learner'), findsNothing);
+  });
+
   testWidgets(
     'Learner Profiles shows admin and Discord while PIN gates switching',
     (tester) async {

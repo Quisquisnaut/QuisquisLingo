@@ -1128,6 +1128,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showLearners(BuildContext overlayContext) async {
+    // Build 271 Revision 2 follow-up (owner report of 11 October 2026): the
+    // list Home loaded may be out of date, because the Inventory and the
+    // resets delete learners too. A learner deleted there was still listed
+    // here, without an avatar, and choosing them said "Unknown learner
+    // profile".
+    try {
+      final learners = await _profiles.getProfileRecords();
+      final adminProfileIds = await _profiles.getAdminProfileIds();
+      if (!mounted || !overlayContext.mounted) return;
+      setState(() {
+        _learners = learners;
+        _adminProfileIds = adminProfileIds;
+      });
+    } catch (_) {
+      // The list Home has is shown; choosing a learner reports any problem.
+      if (!mounted || !overlayContext.mounted) return;
+    }
     final action = await showModalBottomSheet<String>(
       context: overlayContext,
       showDragHandle: true,

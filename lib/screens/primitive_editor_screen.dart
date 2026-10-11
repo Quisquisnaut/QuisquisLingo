@@ -755,7 +755,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
                   onPressed: _locked
                       ? null
                       : () => _save(PublicationState.published),
-                  icon: const Icon(Icons.save),
+                  icon: const Icon(Icons.check),
                   label: const Text('Apply'),
                 ),
               ],

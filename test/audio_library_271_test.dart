@@ -559,14 +559,37 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('rows show no file name; a recording without text asks for '
-        'it', (tester) async {
+    testWidgets('a recording with a text shows no file name; one without '
+        'asks for its text and shows the name its file came with', (
+      tester,
+    ) async {
       await open(tester, _course(_library));
       expect(find.text(AudioLibraryScreen.noTextLabel), findsOneWidget);
       expect(find.text('Tap to give it its text'), findsOneWidget);
-      expect(find.textContaining('.mp3'), findsNothing);
+      // Follow-up (owner decision of 11 October 2026): the original name in
+      // grey on the row without text, and only there.
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('audio-clip-original-new')))
+            .data,
+        'grazie mille.mp3',
+      );
+      expect(find.textContaining('.mp3'), findsOneWidget);
+      expect(
+        find.byKey(const Key('audio-clip-original-giorno')),
+        findsNothing,
+        reason: 'buongiorno has a text, so its file name stays in the dialog',
+      );
       expect(find.textContaining('assets/'), findsNothing);
       expect(find.text('Unassigned MP3'), findsNothing);
+    });
+
+    testWidgets('a recording without text and without a known original name '
+        'shows only the request', (tester) async {
+      await open(tester, _course([_clip('old', '')]));
+      expect(find.text(AudioLibraryScreen.noTextLabel), findsOneWidget);
+      expect(find.byKey(const Key('audio-clip-original-old')), findsNothing);
+      expect(find.textContaining('.mp3'), findsNothing);
     });
 
     testWidgets('an empty library in a recorded mode says how to add', (

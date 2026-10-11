@@ -356,3 +356,76 @@ Mock-ups of the four screens were shown before the work.
   who may not edit turns the IDs on from the Lessons page.
 - The Shared Image Library (it saves each change at once and shows no
   notice).
+
+## Revision 2 follow-up (2.0.71+271002, same version)
+
+Owner decisions and report of 11 October 2026.
+
+### Fixed: Save now, then the Editor still asked about unsaved changes
+
+Save now always wrote the Course (a test reads the stored file after it).
+What went wrong is the moment in between: a save first makes its backup and
+then writes, which takes a moment on a Course with many pictures and
+recordings, and during that time the Editor stayed in use with nothing on
+the screen saying so. Pressing Back then found the changes not yet saved and
+showed "Unsaved course changes", as if Save had only applied them. Choosing
+Save course there started a second save beside the first, and a change
+applied while a save was running was lost when it finished.
+
+Now every save from the Editor (Save now, Save course on leaving, the save
+when the access mode changes) goes through one function that shows a small
+window, **Saving the Course…**, until the Course is written; nothing else
+can be pressed meanwhile, Back included.
+
+Not proven: that this is what happened on the owner's PC. It is the one way
+found in the code to get that question after pressing Save, and a test now
+reproduces it and passes with the fix. If the question still appears after
+the message "Saved as version N.", the steps are needed.
+
+### The disk icon only where the Course is written
+
+Since Build 270 Revision 12 "Save" writes to the device and "Apply" changes
+the working copy. Four Apply buttons still showed a disk, the icon Save now
+got in this revision: the exercise form's Apply and Apply as draft, the
+canonical editor's Apply and the GuideBook page's Apply. Apply now shows a
+check mark, Apply as draft the note with a pencil the other pages already
+used.
+
+### Audio Library: the original file name on a row without text
+
+A recording without text shows, under "Tap to give it its text", the name
+its file came with, in grey. A recording with a text still shows no file
+name.
+
+### The admin may delete a learner who maintains Courses
+
+In the Inventory, Delete on such a learner shows which Courses they
+maintain (a Private course and one this version cannot open are marked) and
+what becomes of them, asks for the word DELETE, then a second confirmation,
+then the PIN. The learner's progress and settings go; the Courses stay on
+the device without a Maintainer. Without a Maintainer a Course can be edited
+only by the members of a Team already assigned to it, nobody can change its
+Maintainer or its Team, and a Private course is seen only by that Team; the
+admin can delete such a Course in the Inventory (its own override).
+
+Unchanged: the only admin cannot be deleted; the last Team Leader of a Team
+cannot be deleted; Profile's own Delete and the reset "Remove all learners
+except admins" still refuse a learner who maintains a Course, and now say
+that the Inventory can delete them. When a stored Course file cannot be read
+at all, QQL cannot tell who maintains it: the Inventory says so and the
+admin may still go ahead.
+
+### Fixed: a deleted learner still listed under Learner profiles
+
+Home keeps a copy of the learner list for its Learners sheet, loaded when
+Home loads. A learner deleted in the Inventory (or by the reset that removes
+learners) was gone from QQL's settings but not from that copy, so Profile ›
+Learner profiles still showed them, without an avatar, and choosing them
+answered "Unknown learner profile". The sheet now reads the learners and
+the admins afresh each time it opens.
+
+### The Lesson screen's GuideBook tile
+
+In the Course Editor's Lesson screen the tile that opens the GuideBook reads
+**GuideBook** (it said "Lesson Guidebook") and is bold like the Rounds tile
+above it.

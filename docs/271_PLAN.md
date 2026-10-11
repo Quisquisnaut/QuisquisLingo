@@ -59,7 +59,9 @@ EN/IT/ES wherever a screen changes.
   others have and another learner's custom Course can be deleted from the
   Inventory with the word DELETE, a second confirmation and the PIN; the
   Inventory lists and resets the progress left by Courses no longer on the
-  device.
+  device. The same for a learner who maintains Courses (owner decision of
+  11 October 2026, delivered with Revision 2's follow-up): their Courses
+  stay on the device without a Maintainer, as when a Maintainer leaves.
 
 ## Revision 2: the Audio Library like the Image Library; the Course Editor's top bar
 
@@ -84,7 +86,8 @@ Audio Library:
     are joined, how to give a recording its text, where Quick Import reads,
     Discard changes also removes recordings imported since the last save.
 - **Rows** no longer show the file name; a recording without text says "Tap
-  to give it its text".
+  to give it its text". Added on 11 October 2026 (owner decision): under it,
+  in grey, the name its file came with, when known.
 - **Associate recording**: the original file name (when known) and the stored
   file name in full; **Play**; **Open folder** where the system allows it
   (Windows, Linux, macOS; `FolderOpener`); Word or expression; **Texts in

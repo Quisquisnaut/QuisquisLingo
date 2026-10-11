@@ -299,3 +299,45 @@ Next: Revision 3, speed (`docs/271_PLAN.md`): the Course Editor's main page
 audits once per change of the working copy; Lesson and Round Audits check
 only their own part; a Course save reads the stored Courses once (measure
 first); the image library search uses precomputed keys and a short pause.
+
+## Revision 2 follow-up (same version 2.0.71+271002)
+
+State: done and committed (11 October 2026, night), the branch pushed. Analyzer clean; complete suite 4,250 passed, 1 skipped (45:52).
+
+Owner decisions and reports of 11 October 2026, after Revision 2
+(`e594e6e3`):
+
+1. **Decision**: the original file name in grey on a recording without text
+   (`audio-clip-original-<id>`; a recording with a text shows none).
+2. **Decision**: the admin may delete a learner who maintains Courses, with
+   the warning, the word DELETE, a second confirmation and the PIN; "their
+   courses will therefore be orphaned, but the same would happen if the
+   maintainer left". In the Inventory only
+   (`InventoryActionService.previewLearner`, `run(adminOverride:)`,
+   `ProfileService.deleteProfileById(adminOverride:)`,
+   `CourseMaintainerGuard.maintainedBy`). Profile's own Delete and the reset
+   that removes non-admin learners still refuse and point to the Inventory.
+   The last admin and the last Team Leader of a Team are still refused.
+3. **Report**: after Save now the Editor still asked to confirm changes on
+   exit. The owner's guess: Save only applied. Found: Save now writes (a test
+   reads the stored file), but a save takes a moment and the Editor stayed in
+   use meanwhile with no sign of it; Back in that moment asked "Unsaved
+   course changes". Fix: `CourseEditorScreen._writeCourse` shows the modal
+   `course-saving` for every save from the Editor. Not proven that this is
+   what the owner saw: if the question still comes after "Saved as version
+   N.", ask for the steps.
+4. Found while looking at 3: four Apply buttons showed the disk icon of Save
+   now. Apply now shows a check mark, Apply as draft the note with a pencil.
+5. **Request**: the Lesson screen's tile reads "GuideBook", bold like Rounds.
+6. **Report**: a learner deleted in the Inventory was still listed under
+   Profile › Learner profiles ("Unknown learner profile" on a tap). Home's
+   `_learners` is a copy; `_showLearners` now reads it afresh.
+7. The owner first said to skip the complete suite for this follow-up, then
+   to run it as usual at the end.
+
+Open questions for the owner: none new. Still to confirm from Revision 2:
+the two menus greyed in On-Device TTS, the header that scrolls in a very
+short window, Apply greyed while the text is empty, no Show internal IDs
+switch on the read-only Course Info page.
+
+Next: Revision 3, speed (`docs/271_PLAN.md`).

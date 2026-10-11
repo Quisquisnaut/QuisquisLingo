@@ -254,3 +254,44 @@ Not checked: the dialogs by hand (no Windows release build was made).
 Not checked: the screens by hand (no Windows release build was made); Open
 folder on Linux and macOS; the Audio Library on an Android phone (the short
 window rule was checked only in tests).
+
+## Revision 2 follow-up (2.0.71+271002, same version)
+
+11 October 2026, owner's Windows 10 PC, `build-271`.
+
+- `test/course_editor_top_bar_271_test.dart`, one new case: with a change
+  applied, Save now and its confirmation show `course-saving` ("Saving the
+  Course…") while the file work has not run; the system Back and the Back
+  button then neither leave nor ask about unsaved changes; once the save is
+  done the window is gone, the stored Course is version 2 with the change,
+  and leaving asks nothing and returns the save. Before the fix the same
+  steps showed "Unsaved course changes".
+- `test/editor_diagnostics_226_02_revision3_test.dart`: the exercise form's
+  Apply has a check mark and no disk icon.
+- `test/audio_library_271_test.dart`: a row without text shows the original
+  file name, one with a text does not, one without a known name shows only
+  the request.
+- `test/deleting_a_course_271_test.dart`, four new cases: the learner
+  preview (the Courses, a Private one marked, the warning and the second
+  confirmation in their parts); refused without the override, with a wrong
+  word and with a wrong PIN; with DELETE the learner and their settings are
+  gone, their two Courses and the admin's stay with the same Maintainer IDs,
+  and the Inventory then deletes such a Course ("A learner no longer on this
+  device"); only an admin can force it and the only admin stays; a stored
+  file nobody can read gives the "cannot tell" warning and the admin may go
+  ahead; the dialog (warning, word, Keep the learner, Delete anyway, the
+  result).
+- `test/leaderboard_navigation_test.dart`, one new case: a learner deleted
+  while Home is on screen is not listed when Learner profiles opens.
+- `test/official_course_ui_226_01_test.dart`,
+  `test/official_hierarchy_id_order_226_02_test.dart` and
+  `test/production_course_transaction_225_04_test.dart` follow the Lesson
+  screen's tile, now "GuideBook".
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,250 passed, 1 skipped**, 45:52 (11 October 2026, 20:57–21:43).
+
+Not checked: the screens by hand; how long a save takes on the owner's
+Courses, so whether the save in progress is what made the Editor ask after
+Save now on the owner's PC (it is the one way found in the code, and the
+test above reproduces it).

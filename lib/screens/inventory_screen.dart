@@ -81,6 +81,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final preview = isCourse ? _coursePreview(action, actor) : null;
     InventoryCoursePreview? loaded;
     unawaited(preview?.then((value) => loaded = value));
+    // Build 271 Revision 2 follow-up: a learner who maintains Courses.
+    final learnerPreview = action.kind == InventoryActionKind.deleteLearner
+        ? _learnerPreview(action, item)
+        : null;
+    InventoryLearnerPreview? loadedLearner;
+    unawaited(learnerPreview?.then((value) => loadedLearner = value));
     final pin = TextEditingController();
     final word = TextEditingController();
     String? error;
@@ -119,6 +125,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                     setLocal(() => deleteBackups = value),
                         ),
                       ),
+                    if (learnerPreview != null)
+                      FutureBuilder<InventoryLearnerPreview?>(
+                        future: learnerPreview,
+                        builder: (context, snapshot) =>
+                            _LearnerExtras(preview: snapshot.data, word: word),
+                      ),
                     const SizedBox(height: 8),
                     const Text('This cannot be undone. Enter your admin PIN.'),
                     const SizedBox(height: 8),
@@ -156,7 +168,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   onPressed: running
                       ? null
                       : () async {
-                          final override = loaded?.needsOverride ?? false;
+                          final learner = loadedLearner;
+                          final override =
+                              (loaded?.needsOverride ?? false) ||
+                              (learner?.needsOverride ?? false);
                           if (override) {
                             if (word.text.trim() !=
                                 InventoryActionService.overrideWord) {
@@ -167,13 +182,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
                               );
                               return;
                             }
-                            if (!await _confirmOverride(
-                              dialogContext,
-                              item,
-                              loaded!,
-                              resetProgress: resetProgress,
-                              deleteBackups: deleteBackups,
-                            )) {
+                            if (learner != null && learner.needsOverride
+                                ? !await _confirmLearnerOverride(
+                                    dialogContext,
+                                    learner,
+                                  )
+                                : !await _confirmOverride(
+                                    dialogContext,
+                                    item,
+                                    loaded!,
+                                    resetProgress: resetProgress,
+                                    deleteBackups: deleteBackups,
+                                  )) {
                               return;
                             }
                           }
@@ -251,6 +271,54 @@ class _InventoryScreenState extends State<InventoryScreen> {
       return null;
     }
   }
+
+  /// What the learner dialog shows. A check that fails is treated as "QQL
+  /// cannot tell", so the admin is still warned and can go ahead.
+  Future<InventoryLearnerPreview?> _learnerPreview(
+    InventoryAction action,
+    InventoryItem item,
+  ) async {
+    try {
+      return await _actions.previewLearner(action);
+    } catch (_) {
+      return InventoryLearnerPreview(
+        name: item.name,
+        maintained: const [],
+        unknown: true,
+      );
+    }
+  }
+
+  /// The second confirmation before a learner who maintains Courses is
+  /// deleted (Build 271 Revision 2 follow-up).
+  Future<bool> _confirmLearnerOverride(
+    BuildContext context,
+    InventoryLearnerPreview preview,
+  ) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          key: const Key('inventory-learner-override-confirm'),
+          title: Text(preview.overrideTitle),
+          content: Text(preview.overrideQuestion),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Keep the learner'),
+            ),
+            FilledButton(
+              key: const Key('inventory-learner-override-confirm-run'),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(ctx).colorScheme.error,
+                foregroundColor: Theme.of(ctx).colorScheme.onError,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text(InventoryLearnerPreview.overrideButton),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 
   /// The second confirmation before a Delete the service refuses otherwise:
   /// a Publisher Course other learners have in their courses, or another
@@ -641,6 +709,68 @@ class _CourseExtras extends StatelessWidget {
                 : '${CourseLibraryReports.backupsHeld(held)}, with the '
                       'pictures and recordings only they hold.'
                       '${data!.unopenable ? ' ${CourseLibraryReports.unopenableBackupsCaution}' : ''}',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The learner part of the Inventory's Delete dialog (Build 271 Revision 2
+/// follow-up, owner decision of 11 October 2026): for a learner who
+/// maintains Courses, what becomes of them and the word DELETE. Nothing
+/// shows for any other learner.
+class _LearnerExtras extends StatelessWidget {
+  const _LearnerExtras({required this.preview, required this.word});
+
+  final InventoryLearnerPreview? preview;
+
+  /// Where the admin types DELETE.
+  final TextEditingController word;
+
+  @override
+  Widget build(BuildContext context) {
+    final data = preview;
+    final warning = data?.overrideWarning;
+    if (data == null || warning == null) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: scheme.errorContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.edit_off_outlined, color: scheme.onErrorContainer),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  warning,
+                  key: const Key('inventory-learner-override-warning'),
+                  style: TextStyle(color: scheme.onErrorContainer),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text('To delete ${data.name} anyway, type DELETE.'),
+        const SizedBox(height: 8),
+        TextField(
+          key: const Key('inventory-learner-override-word'),
+          controller: word,
+          textCapitalization: TextCapitalization.characters,
+          autocorrect: false,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Type DELETE to confirm',
           ),
         ),
       ],

@@ -85,6 +85,101 @@ void main() {
     );
     expect(EditorDisplayPreferences.showInternalIds.value, isFalse);
   });
+
+  // Follow-up (owner report of 11 October 2026): after Save now the Editor
+  // still asked about unsaved changes on leaving. A save takes a moment, and
+  // until it finished the Editor stayed in use with no sign of it, so Back
+  // found the changes still unsaved.
+  testWidgets('a save in progress is shown and waited for; leaving after it '
+      'asks nothing', (tester) async {
+    final course = _course();
+    final profiles = ProfileService();
+    await profiles.createProfile('Author', learnerProfileId: _profileId);
+    await profiles.setActiveProfileById(_profileId);
+    await SettingsService().markAudioOrphanCheckRun('IT');
+    await SettingsService().setCourseEditorMode(
+      course.courseId,
+      CourseEditorMode.edit,
+    );
+    await tester.runAsync(() => CourseEditorService().saveUserCourse(course));
+    CourseConfirmationResult? returned;
+    var popped = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => FilledButton(
+            onPressed: () async {
+              returned = await Navigator.of(context)
+                  .push<CourseConfirmationResult>(
+                    MaterialPageRoute(
+                      builder: (_) => CourseEditorScreen(
+                        course: course,
+                        access: CourseAccessPolicy.evaluate(
+                          course,
+                          profileId: _profileId,
+                        ),
+                      ),
+                    ),
+                  );
+              popped = true;
+            },
+            child: const Text('Open Course'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open Course'));
+    await tester.pumpAndSettle();
+
+    // A change applied in the Editor: Create Duels.
+    await tester.tap(find.byKey(const Key('course-lesson-options')));
+    await tester.pumpAndSettle();
+    final duels = find.byKey(const Key('course-create-duels'));
+    await tester.ensureVisible(duels);
+    await tester.tap(duels);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('course-editor-unsaved')), findsOneWidget);
+
+    final saveNow = find.byKey(const Key('course-editor-save-now'));
+    await tester.ensureVisible(saveNow);
+    await tester.tap(saveNow);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('course-save-now-confirm')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // The file work has not run yet: the save is in progress, and says so.
+    const saving = Key('course-saving');
+    const question = Key('course-transaction-confirmation');
+    expect(find.byKey(saving), findsOneWidget);
+    expect(find.text('Saving the Course…'), findsOneWidget);
+    // Back meanwhile neither leaves nor asks about changes being written.
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    await tester.tap(find.byType(BackButton).last, warnIfMissed: false);
+    await tester.pump();
+    expect(find.byKey(question), findsNothing);
+    expect(find.byKey(saving), findsOneWidget);
+    expect(find.byType(CourseEditorScreen), findsOneWidget);
+    expect(popped, isFalse);
+
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-editor-saved')).evaluate().isNotEmpty,
+    );
+    expect(find.byKey(saving), findsNothing);
+    expect(find.byKey(const Key('course-editor-unsaved')), findsNothing);
+    final stored = (await tester.runAsync(
+      () => CourseEditorService().listUserCourses(),
+    ))!.single;
+    expect(stored.courseVersion, '2', reason: 'Save now wrote the Course');
+    expect(stored.createDuels, isNot(course.createDuels));
+
+    // Nothing unsaved: leaving asks nothing and hands back the save.
+    await tester.tap(find.byType(BackButton).last);
+    await tester.pumpUntilFileIoState(() => popped);
+    expect(find.byKey(question), findsNothing);
+    expect(returned?.course.courseVersion, '2');
+  });
 }
 
 Course _course() => Course(

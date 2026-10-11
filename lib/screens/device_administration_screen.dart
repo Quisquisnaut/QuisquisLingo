@@ -747,7 +747,7 @@ class _ResetSection extends StatelessWidget {
             preview.coursesMaintainedByNonAdmins.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
-            'These learners maintain ${preview.coursesMaintainedByNonAdmins.join(', ')}. Change the Course Maintainer or delete those Courses first: until then this reset is refused.',
+            'These learners maintain ${preview.coursesMaintainedByNonAdmins.join(', ')}. Change the Course Maintainer or delete those Courses first, or delete these learners one by one in the Inventory, which warns you first: until then this reset is refused.',
             key: const Key('reset-maintained-courses'),
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),

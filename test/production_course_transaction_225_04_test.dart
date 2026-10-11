@@ -416,7 +416,7 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('lesson')));
       await _settle(tester);
-      await tester.tap(find.text('Lesson Guidebook'));
+      await tester.tap(find.byKey(const Key('lesson-guidebook-navigation')));
       await _settle(tester);
       await addGuidebookModule(
         tester,

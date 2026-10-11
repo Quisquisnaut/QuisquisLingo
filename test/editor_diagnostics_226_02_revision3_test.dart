@@ -55,6 +55,19 @@ void main() {
         await tester.pumpAndSettle();
       }
       expect(find.byTooltip('Editor Help'), findsOneWidget, reason: '$page');
+      // Build 271 Revision 2 follow-up: the disk icon is Save now's (it
+      // writes the Course); Apply, which only changes the working copy, has
+      // a check mark.
+      if (page is ExerciseEditorScreen) {
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('exercise-save')),
+            matching: find.byIcon(Icons.check),
+          ),
+          findsOneWidget,
+        );
+        expect(find.byIcon(Icons.save_outlined), findsNothing);
+      }
       // Build 271 Revision 2: the Course Editor's main page keeps the
       // toggle in Course Info Editor (three icons in its top bar).
       expect(

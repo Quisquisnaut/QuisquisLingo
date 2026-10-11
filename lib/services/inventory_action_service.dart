@@ -7,6 +7,7 @@ import 'admin_pin_gate.dart';
 import 'course_backup_service.dart';
 import 'course_editor_service.dart';
 import 'course_learners.dart';
+import 'course_maintainer_guard.dart';
 import 'course_media_store.dart';
 import 'course_service.dart';
 import 'storage/course_storage_names.dart';
@@ -174,6 +175,93 @@ class InventoryCoursePreview {
             'their progress on it.';
 }
 
+/// What the Inventory shows before it deletes a learner who maintains
+/// Courses (Build 271 Revision 2 follow-up, owner decision of 11 October
+/// 2026: the admin may delete such a learner after a warning, the word
+/// DELETE, a second confirmation and the PIN; the Courses stay on the
+/// device without a Maintainer).
+class InventoryLearnerPreview {
+  const InventoryLearnerPreview({
+    required this.name,
+    required this.maintained,
+    this.unknown = false,
+  });
+
+  /// The learner's name.
+  final String name;
+
+  /// The custom Courses the learner maintains.
+  final List<MaintainedCourse> maintained;
+
+  /// Whether QQL cannot tell what the learner maintains (a stored Course
+  /// file that cannot be read at all).
+  final bool unknown;
+
+  /// Whether deleting the learner is refused without the override.
+  bool get needsOverride => maintained.isNotEmpty || unknown;
+
+  static String _named(MaintainedCourse course) =>
+      '“${course.title}”'
+      '${course.unopenable
+          ? ' (which this version cannot open)'
+          : course.private
+          ? ' (a Private course)'
+          : ''}';
+
+  /// "“Italiano al bar” and “Verbi” (a Private course)".
+  String get courses {
+    final names = [for (final course in maintained) _named(course)];
+    return names.length == 1
+        ? names.single
+        : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
+  }
+
+  String get _these => maintained.length == 1 ? 'this Course' : 'these Courses';
+
+  String get _what => maintained.length == 1 ? 'This Course' : 'These Courses';
+
+  /// What the admin is told before overriding; null when no override is
+  /// needed.
+  String? get overrideWarning {
+    if (!needsOverride) return null;
+    if (maintained.isEmpty) {
+      return 'A stored Course file cannot be read, so QQL cannot tell '
+          'whether $name maintains it. If so, deleting $name leaves that '
+          'Course on this device without a Maintainer.';
+    }
+    final stays = maintained.length == 1 ? 'stays' : 'stay';
+    final them = maintained.length == 1 ? 'it' : 'them';
+    return '$name maintains $courses. Deleting $name leaves $_these on '
+        'this device without a Maintainer. '
+        'Without a Maintainer, a Course can be edited only by the members '
+        'of a Team already assigned to it, nobody can change its Maintainer '
+        'or its Team, and a Private course is seen only by that Team. '
+        '$_what $stays under Custom and installed courses in this '
+        'Inventory, where you can delete $them. To avoid this, $name can '
+        'first change the Course Maintainer in Course Info Editor.'
+        '${unknown ? ' Another stored Course file cannot be read, so QQL cannot tell whether $name maintains it too.' : ''}';
+  }
+
+  /// The title of the second confirmation.
+  String get overrideTitle => maintained.isEmpty
+      ? 'Delete this learner anyway?'
+      : 'Delete a learner who maintains Courses?';
+
+  /// The button of the second confirmation.
+  static const overrideButton = 'Delete anyway';
+
+  /// The second confirmation: what stays and what goes.
+  String get overrideQuestion {
+    final courses = maintained.isEmpty
+        ? 'A Course $name may maintain will stay on this device without a '
+              'Maintainer.'
+        : '$name maintains ${this.courses}. $_what will stay on this '
+              'device without a Maintainer.';
+    return '$courses $name\'s progress and settings will be deleted. This '
+        'cannot be undone.';
+  }
+}
+
 /// Runs an Inventory item's Delete or Forget (Build 266 Revision 2, owner
 /// decisions of 8 October 2026: "yes to all"). Every action needs the
 /// admin's PIN, like the resets, and goes through the rules the rest of QQL
@@ -268,6 +356,29 @@ class InventoryActionService {
     );
   }
 
+  /// What the dialog shows before a learner goes (Build 271 Revision 2
+  /// follow-up): the Courses they maintain; null for any other action.
+  Future<InventoryLearnerPreview?> previewLearner(
+    InventoryAction action,
+  ) async {
+    if (action.kind != InventoryActionKind.deleteLearner) return null;
+    final name =
+        (await _profiles.getProfileById(action.target))?.displayName ??
+        'This learner';
+    try {
+      return InventoryLearnerPreview(
+        name: name,
+        maintained: await CourseMaintainerGuard.maintainedBy(action.target),
+      );
+    } on FormatException {
+      return InventoryLearnerPreview(
+        name: name,
+        maintained: const [],
+        unknown: true,
+      );
+    }
+  }
+
   /// The word the admin types to go ahead with a Delete the service
   /// refuses otherwise (owner decision of 11 October 2026).
   static const overrideWord = 'DELETE';
@@ -278,8 +389,9 @@ class InventoryActionService {
   /// and neither happens. Returns what could not be done, or null.
   ///
   /// [adminOverride] goes ahead with a Delete that is otherwise refused: a
-  /// Publisher Course other learners have in their courses, or a custom
-  /// Course the admin neither maintains nor shares through its Team. It
+  /// Publisher Course other learners have in their courses, a custom
+  /// Course the admin neither maintains nor shares through its Team, or a
+  /// learner who maintains Courses (which stay, without a Maintainer). It
   /// needs [typedWord] to be [overrideWord], besides the PIN.
   Future<String?> run(
     InventoryAction action, {
@@ -301,9 +413,9 @@ class InventoryActionService {
       );
     }
     if (adminOverride) {
-      if (!course) {
+      if (!course && action.kind != InventoryActionKind.deleteLearner) {
         throw const InventoryActionException(
-          'Only the Delete of a Course can be forced here.',
+          'Only the Delete of a Course or of a learner can be forced here.',
         );
       }
       if (typedWord.trim() != overrideWord) {
@@ -353,7 +465,11 @@ class InventoryActionService {
   }) async {
     switch (action.kind) {
       case InventoryActionKind.deleteLearner:
-        await _profiles.deleteProfileById(action.target, actorProfileId: actor);
+        await _profiles.deleteProfileById(
+          action.target,
+          actorProfileId: actor,
+          adminOverride: adminOverride,
+        );
       case InventoryActionKind.forget:
         if (!isForgettable(action.target)) {
           throw const InventoryActionException(

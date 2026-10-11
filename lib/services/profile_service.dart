@@ -597,9 +597,18 @@ class ProfileService {
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
+  /// Deletes a learner with their progress and settings.
+  ///
+  /// [adminOverride] (Build 271 Revision 2 follow-up, owner decision of 11
+  /// October 2026: the admin can clean up anything, after a warning) lets
+  /// an admin delete a learner who maintains custom Courses; those Courses
+  /// stay on the device without a Maintainer, as when their Maintainer no
+  /// longer uses it. The other rules stay: an admin remains, and a Team
+  /// keeps a Team Leader.
   Future<void> deleteProfileById(
     String learnerProfileId, {
     String? actorProfileId,
+    bool adminOverride = false,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final profiles = await getProfileRecords();
@@ -618,9 +627,17 @@ class ProfileService {
     if (admins.contains(learnerProfileId) && admins.length == 1) {
       throw StateError('QQL must always have at least one admin.');
     }
-    await CourseMaintainerGuard.ensureProfileDoesNotMaintainCourses(
-      learnerProfileId,
-    );
+    if (adminOverride) {
+      if (!await isAdmin(actor)) {
+        throw StateError(
+          'Only an admin may delete a learner who maintains Courses.',
+        );
+      }
+    } else {
+      await CourseMaintainerGuard.ensureProfileDoesNotMaintainCourses(
+        learnerProfileId,
+      );
+    }
     await _removeProfileFromAuthoringTeams(prefs, learnerProfileId);
     final remaining = profiles
         .where((profile) => profile.learnerProfileId != learnerProfileId)

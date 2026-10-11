@@ -30,7 +30,13 @@ Course, the list of every text the Course speaks with what is recorded and
 what is still missing; a Course's Image Library opens with the same one-line
 notice and its Help is part of the Editor Help; and the Course Editor's main
 page has three icons, with Save now as a disk icon and Show internal IDs in
-Course Info Editor.
+Course Info Editor. A follow-up shows "Saving the Course…" while a save is
+being written (before, leaving in that moment still asked about unsaved
+changes), keeps the disk icon for Save alone, shows the original file name on
+a recording without text, lets the admin delete a learner who maintains
+Courses after a warning, the word DELETE, a second confirmation and the PIN,
+and no longer lists under Learner profiles a learner deleted in the
+Inventory.
 
 Build 270 fixes the weaknesses found by the audit of 10 October 2026
 ([audit](docs/270_AUDIT.md), [change summary](docs/270_CHANGE_SUMMARY.md)).

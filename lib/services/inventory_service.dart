@@ -262,9 +262,10 @@ class InventoryService {
                 label: 'Delete',
                 explanation:
                     'Delete the learner ${learner.displayName} with their '
-                    'progress and settings. The usual rules apply: the only '
-                    'admin cannot be deleted, nor a learner who maintains a '
-                    'Course.',
+                    'progress and settings. The only admin cannot be '
+                    'deleted, nor the last Team Leader of a Team. A learner '
+                    'who maintains a Course can be deleted after the '
+                    'warning shown below.',
               ),
             ),
         ],

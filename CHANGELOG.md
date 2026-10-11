@@ -48,6 +48,43 @@ list uses the same rule. Scoring, progression and learner data are
 unchanged. The Course format gains only the optional `originalFileName` of a
 recording.
 
+Follow-up in the same version (owner decisions and report of 11 October
+2026):
+
+- **Fixed: after Save now the Course Editor could still ask about unsaved
+  changes.** A save takes a moment (its backup comes first), and until it
+  finished the Editor stayed in use with no sign that it was still writing:
+  pressing Back in that moment found the changes not yet saved and asked
+  "Unsaved course changes", as if Save had not written anything, and a
+  change applied during the save was lost when the save finished. Now a
+  small window says **Saving the Course…** until the Course is written, and
+  nothing else can be pressed meanwhile. The same holds for Save course on
+  leaving and when the access mode changes.
+- **The disk icon only where the Course is written.** The Apply buttons of
+  the exercise forms, the canonical editor and the GuideBook page showed the
+  same disk icon as Save now, although they only change the working copy;
+  they now show a check mark (Apply as draft a note with a pencil).
+- **Audio Library**: a recording without text shows the name its file came
+  with, in grey, under "Tap to give it its text", so freshly imported
+  recordings can be told apart without opening each one.
+- **The admin may delete a learner who maintains Courses**, from the
+  Inventory: a warning names the Courses and says what becomes of them, then
+  the word DELETE, a second confirmation and the PIN. The Courses stay on
+  the device without a Maintainer, as when their Maintainer stops using it:
+  only the members of a Team already assigned can still edit them, a Private
+  one is seen only by that Team, and the admin can delete them in the
+  Inventory. Deleting a profile elsewhere, and the reset that removes the
+  learners who are not admins, still refuse such a learner and now say that
+  the Inventory can do it. The only admin still cannot be deleted, nor the
+  last Team Leader of a Team.
+- **Fixed: a learner deleted in the Inventory was still listed under
+  Profile › Learner profiles**, without an avatar, and choosing them said
+  "Unknown learner profile". The list was the one Home had loaded earlier;
+  it is now read afresh each time the Learners sheet opens (also after the
+  reset that removes learners).
+- **Lesson screen of the Course Editor**: the tile reads **GuideBook**
+  (it said "Lesson Guidebook"), in bold like Rounds.
+
 # 2.0.71 (Build 271, Revision 1) - deleting a Course; saves never blocked - 2026-10-11
 
 Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).

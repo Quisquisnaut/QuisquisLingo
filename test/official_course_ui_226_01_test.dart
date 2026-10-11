@@ -113,7 +113,13 @@ void main() {
       before = await _preferences();
       await tester.tap(find.byKey(const ValueKey('lesson-entry-lesson')));
       await _settle(tester);
-      expect(find.text('Lesson Guidebook'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('lesson-guidebook-navigation')),
+          matching: find.text('GuideBook'),
+        ),
+        findsOneWidget,
+      );
       expect(find.byKey(const Key('lesson-preview')), findsOneWidget);
       _expectNoAuthoring();
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
