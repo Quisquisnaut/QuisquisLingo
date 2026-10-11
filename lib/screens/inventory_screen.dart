@@ -298,6 +298,13 @@ class _SectionCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 8),
+            for (final (index, group) in section.groups.indexed)
+              _ItemRow(
+                item: group,
+                keyPrefix: 'inventory-${section.title}-group-$index',
+                onAction: onAction,
+                onOpenFolder: onOpenFolder,
+              ),
             if (count == 0)
               const Text('Nothing found.')
             else

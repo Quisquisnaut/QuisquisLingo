@@ -15,6 +15,7 @@ import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -575,6 +576,116 @@ void main() {
         ),
         isNull,
       );
+    });
+
+    // Build 271 Revision 1 (owner decisions of 10 and 11 October 2026).
+    testWidgets(
+      'names the other learners and, when asked, deletes progress and backups',
+      (tester) async {
+        await setUpDevice(tester);
+        final course = _course('mine', title: 'Mine');
+        await install(tester, course);
+        await addToLibrary(tester, course, profileId: _bob);
+        await tester.runAsync(() async {
+          await editor.backupService.createBackup(
+            course,
+            backedUpAt: DateTime.utc(2026, 10, 11, 10),
+            reason: 'Pre-change Course Editor transaction backup',
+          );
+          await ProgressService().completeRound(
+            'round-1',
+            courseId: 'mine',
+            courseCode: 'IT',
+          );
+        });
+        await pumpManager(tester);
+
+        await openMenu(tester, actionsOf('mine'));
+        await choose(tester, 'Delete course');
+        await tester.pumpUntilFileIoState(
+          () => find
+              .byKey(const Key('course-delete-other-learners'))
+              .evaluate()
+              .isNotEmpty,
+        );
+        expect(
+          find.text('Bob has this Course in their courses. Delete it anyway?'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('1 saved version in Backups/Courses ('),
+          findsOneWidget,
+        );
+        // Both are off until the learner ticks them.
+        CheckboxListTile box(String key) =>
+            tester.widget<CheckboxListTile>(find.byKey(Key(key)));
+        expect(box('course-delete-reset-progress').value, isFalse);
+        expect(box('course-delete-backups').value, isFalse);
+        await tester.tap(find.byKey(const Key('course-delete-reset-progress')));
+        await tester.tap(find.byKey(const Key('course-delete-backups')));
+        await tester.pump();
+        expect(box('course-delete-reset-progress').value, isTrue);
+        expect(box('course-delete-backups').value, isTrue);
+
+        await choose(tester, 'Continue');
+        expect(find.text('• the Course “Mine”'), findsOneWidget);
+        expect(find.text('• your progress on it'), findsOneWidget);
+        expect(find.textContaining('• its 1 backup ('), findsOneWidget);
+        await choose(tester, 'Delete permanently');
+        await tester.pumpUntilFileIoState(
+          () => find.byKey(const Key('course-deleted')).evaluate().isNotEmpty,
+        );
+
+        expect(
+          find.text('Deleted “Mine”, your progress on it and its 1 backup.'),
+          findsOneWidget,
+        );
+        expect(await stored(tester), isEmpty);
+        await tester.runAsync(() async {
+          expect(
+            await ProgressService().getCompletedRounds(courseId: 'mine'),
+            isEmpty,
+          );
+          expect(
+            (await editor.backupService.summaryOf('mine')).isEmpty,
+            isTrue,
+          );
+        });
+      },
+    );
+
+    testWidgets('a Course without backups offers none to delete', (
+      tester,
+    ) async {
+      await setUpDevice(tester);
+      await install(tester, _course('mine', title: 'Mine'));
+      await pumpManager(tester);
+
+      await openMenu(tester, actionsOf('mine'));
+      await choose(tester, 'Delete course');
+      await tester.pumpUntilFileIoState(
+        () => find.text('It has no backups.').evaluate().isNotEmpty,
+      );
+      expect(
+        find.byKey(const Key('course-delete-other-learners')),
+        findsNothing,
+      );
+      expect(
+        tester
+            .widget<CheckboxListTile>(
+              find.byKey(const Key('course-delete-backups')),
+            )
+            .onChanged,
+        isNull,
+      );
+      await choose(tester, 'Continue');
+      expect(find.text('• the Course “Mine”'), findsOneWidget);
+      expect(find.text('• your progress on it'), findsNothing);
+      await choose(tester, 'Delete permanently');
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(const Key('course-deleted')).evaluate().isNotEmpty,
+      );
+      expect(find.text('Deleted “Mine”.'), findsOneWidget);
     });
 
     testWidgets(

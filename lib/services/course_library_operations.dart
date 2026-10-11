@@ -29,6 +29,7 @@ import 'settings_service.dart';
 import 'team_service.dart';
 import 'stored_course_reader.dart';
 import 'course_backup_retention.dart';
+import 'course_backup_service.dart';
 
 /// The Course Manager menu entries, in menu order. [study] and [review]
 /// (Build 261 Revision 1) come from [CourseManagerLibrary.studyEntriesFor],
@@ -745,11 +746,70 @@ class CourseLibraryOperations {
     );
   }
 
-  Future<void> deleteCourse(Course course) async {
+  /// What Delete shows before it asks (Build 271 Revision 1, owner decisions
+  /// of 10 and 11 October 2026): the other learners on this device whose
+  /// Course list shows [course] (they added it, or have progress on it), and
+  /// what its backup folder holds.
+  Future<CourseDeletePreview> previewDelete(Course course) async {
+    final active = await profiles.getActiveProfileId();
+    final others = <String>[];
+    for (final profile in await profiles.getProfileRecords()) {
+      if (profile.learnerProfileId == active) continue;
+      if (await _membership.contains(
+        course,
+        profileId: profile.learnerProfileId,
+      )) {
+        others.add(profile.displayName);
+      }
+    }
+    return CourseDeletePreview(
+      otherLearners: List.unmodifiable(others),
+      backups: await editor.backupService.summaryOf(course.courseId),
+    );
+  }
+
+  /// Deletes [course]. Only once it is gone: [resetMyProgress] resets the
+  /// active learner's progress on it (the reset of Remove from my courses:
+  /// XP, Weekly XP, study days and streaks stay), and [deleteBackups] deletes
+  /// its backup folder. A failure of the Delete itself throws and changes
+  /// nothing else; the two extras never throw and report what they did.
+  Future<CourseDeleteResult> deleteCourse(
+    Course course, {
+    bool resetMyProgress = false,
+    bool deleteBackups = false,
+  }) async {
     await editor.deleteUserCourse(course.courseId);
     await publisherMemory.forget(course.courseId);
     await wizardMemory.forget(course.courseId);
     await CourseBackupRetention().forget(course.courseId);
+    var progressReset = false;
+    if (resetMyProgress) {
+      try {
+        await ProgressService().resetCourse(course.courseId);
+        progressReset = true;
+      } catch (_) {
+        // Reported by the result: the Course is already deleted.
+      }
+    }
+    var backupsDeleted = 0;
+    var backupsLeft = false;
+    if (deleteBackups) {
+      final before = await editor.backupService.summaryOf(course.courseId);
+      backupsLeft = !await editor.backupService.deleteAllBackups(
+        course.courseId,
+      );
+      final after = backupsLeft
+          ? await editor.backupService.summaryOf(course.courseId)
+          : CourseBackupsSummary.none;
+      backupsDeleted = before.versions - after.versions;
+    }
+    return CourseDeleteResult(
+      progressResetAsked: resetMyProgress,
+      progressReset: progressReset,
+      backupsAsked: deleteBackups,
+      backupsDeleted: backupsDeleted,
+      backupsLeft: backupsLeft,
+    );
   }
 
   Future<void> removePublisherCourse(Course course) =>
@@ -958,6 +1018,42 @@ class CourseLibraryOperations {
 }
 
 /// The result messages Course Manager shows. Nothing here is stored.
+/// What Delete shows before it asks (Build 271 Revision 1).
+class CourseDeletePreview {
+  const CourseDeletePreview({
+    required this.otherLearners,
+    required this.backups,
+  });
+
+  /// The display names of the other learners on this device whose Course
+  /// list shows the Course.
+  final List<String> otherLearners;
+
+  /// What the Course's backup folder holds.
+  final CourseBackupsSummary backups;
+}
+
+/// What a Delete did beyond the Course itself (Build 271 Revision 1).
+class CourseDeleteResult {
+  const CourseDeleteResult({
+    this.progressResetAsked = false,
+    this.progressReset = false,
+    this.backupsAsked = false,
+    this.backupsDeleted = 0,
+    this.backupsLeft = false,
+  });
+
+  final bool progressResetAsked;
+  final bool progressReset;
+  final bool backupsAsked;
+
+  /// How many saved versions went.
+  final int backupsDeleted;
+
+  /// Whether something in the backup folder could not be deleted.
+  final bool backupsLeft;
+}
+
 abstract final class CourseLibraryReports {
   static String confirmed(CourseConfirmationResult result) {
     final version = 'New course version: ${result.course.courseVersion}';
@@ -1018,6 +1114,47 @@ abstract final class CourseLibraryReports {
 
   static String importBlocked(int errors) =>
       'Course Audit found $errors error${errors == 1 ? '' : 's'}. Fix these errors before importing the course.';
+
+  /// "Anna and Marco have this Course in their courses." (Build 271
+  /// Revision 1), or null when no other learner has it.
+  static String? otherLearnersHave(List<String> names) {
+    if (names.isEmpty) return null;
+    final who = names.length == 1
+        ? names.single
+        : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
+    return '$who ${names.length == 1 ? 'has' : 'have'} this Course in '
+        'their courses. Delete it anyway?';
+  }
+
+  /// "12 saved versions in Backups/Courses (37 MB)".
+  static String backupsHeld(CourseBackupsSummary backups) =>
+      '${backups.versions} saved version${backups.versions == 1 ? '' : 's'} '
+      'in Backups/Courses (${sizeText(backups.bytes)})';
+
+  /// A size people read: bytes below 1 KB, then KB, then MB with one
+  /// decimal below 10.
+  static String sizeText(int bytes) {
+    if (bytes < 1024) return '$bytes bytes';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).round()} KB';
+    final mb = bytes / (1024 * 1024);
+    return '${mb < 10 ? mb.toStringAsFixed(1) : mb.round()} MB';
+  }
+
+  /// What a Delete removed, and what it could not.
+  static String deleted(Course course, CourseDeleteResult result) {
+    final parts = <String>[
+      '“${course.title}”',
+      if (result.progressReset) 'your progress on it',
+      if (result.backupsDeleted > 0)
+        'its ${result.backupsDeleted} backup${result.backupsDeleted == 1 ? '' : 's'}',
+    ];
+    final what = parts.length == 1
+        ? parts.single
+        : '${parts.sublist(0, parts.length - 1).join(', ')} and ${parts.last}';
+    return 'Deleted $what.'
+        '${result.progressResetAsked && !result.progressReset ? ' Your progress on it could not be reset.' : ''}'
+        '${result.backupsLeft ? ' Some of its backup files could not be deleted; they are still in Backups/Courses.' : ''}';
+  }
 
   /// A failed Delete, with the storage error's own message.
   static String deleteFailed(Course course, Object error) {

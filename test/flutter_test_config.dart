@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/widgets/exercise_editor_intro.dart';
 import 'package:quisquislingo_app/widgets/exercise_mascot.dart';
 import 'package:quisquislingo_app/widgets/primitive_intro.dart';
@@ -48,6 +49,10 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Round of a Course with GuideBook vocabulary; its test turns it on.
   WordLookupNotice.enabled = false;
   SharedDeviceNotice.enabled = false;
+  // A Course save flushes its folder through the system's `sync` on Linux
+  // and macOS (Build 271 Revision 1): no test starts a process for it; the
+  // Course store's own test uses a recording one.
+  CourseFileStore.syncDirectory = (_) async {};
   const pathProvider = MethodChannel('plugins.flutter.io/path_provider');
   late Directory root;
   var installedHandler = false;

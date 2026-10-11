@@ -28,6 +28,7 @@ import 'services/storage/atomic_preferences_store.dart';
 import 'widgets/learner_data_notices.dart';
 import 'widgets/course_backup_notice.dart';
 import 'services/course_editor_service.dart';
+import 'services/course_file_store.dart';
 import 'services/update_reminder.dart';
 
 Future<void> main() async {
@@ -74,6 +75,8 @@ Future<void> main() async {
       StartupDiagnosticService.checkpoint('DART_RUNAPP_RETURNED');
       // Staging files left by an interrupted import; never throws.
       unawaited(ImportStager().removeLeftovers());
+      // Temporary files left by an interrupted Course save; never throws.
+      unawaited(CourseFileStore().removeLeftoverTemporaryFiles());
     },
     (error, stackTrace) {
       StartupDiagnosticService.recordError(

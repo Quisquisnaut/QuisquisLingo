@@ -98,3 +98,17 @@ A Course's cover is ordinary Course media in `QQL_CourseMedia`, so the scopes th
 - Remove custom courses and Wipe out everything remove Private courses with
   every other custom Course; the explanation counts those the admin cannot
   see. No new key or folder: the flag is the Course's own `temporarySample`.
+
+## Build 271 Revision 1: deleting a Course; the Inventory's Delete all
+
+- No new key or folder.
+- Delete course in Course Studio can also delete the Course's backup folder
+  (`Backups/Courses/QQL_bkp_<pair>_<id>`), on request.
+- A stored Course record a Publisher update replaced because this version
+  could not open it is kept in that same backup folder
+  (`…_vunreadable_<stamp>.json`); the scopes and Inventory section that
+  cover Course Backups cover it.
+- Temporary files of an interrupted Course save (`*.json.<pid>.<time>.<n>.tmp`
+  in `QQL_Courses_v12/Custom|Publisher`) are removed at start-up.
+- Inventory, Course media: one row per folder of a Course no longer on this
+  device, with Delete all (the whole folder, admin PIN).

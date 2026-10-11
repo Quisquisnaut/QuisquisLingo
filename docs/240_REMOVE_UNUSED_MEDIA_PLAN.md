@@ -1,6 +1,21 @@
 # QQL 240 follow-up: "Remove unused media" tool
 
-Status: **PLAN ONLY. Not started. Do not implement until the owner says so.**
+Status: **SUPERSEDED (owner decision of 11 October 2026). Not implemented and not to be
+implemented.** Kept for the record only.
+
+Why: this plan was written on 20 September 2026 for the storage of Build 240, where
+Courses shared media files by path. Build 243 replaced that storage a few days later:
+each Course has its own media folder (`QQL_CourseMedia`), backups keep their own
+copies and the Shared Image Library keeps its own files. The two folders this plan
+scans are no longer used and `MediaReferenceIndex` no longer exists. What can still
+leave a file behind is handled where it happens: a confirmed save removes what its
+Course no longer names, a cancelled editing session removes what it added, deleting
+a Course deletes its folder (and, since Build 271 Revision 1, its backups on
+request), and the Inventory deletes the media of a Course no longer on the device
+(since Build 271 Revision 1 the whole folder with one PIN). A check of the owner's
+PC on 11 October 2026 found no orphan Course media. See `docs/271_CHANGE_SUMMARY.md`.
+
+Original status: PLAN ONLY. Not started. Do not implement until the owner says so.
 Written 2026-09-20. Parent document: `docs/240_FILE_DIALOGS_PLAN.md` (section 8.3
 lists the orphan cases, section 8.4 holds the decisions and findings this plan is
 built on). Read `AGENTS.md` first: its rules bind this work (smallest change, no

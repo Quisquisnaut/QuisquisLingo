@@ -1,3 +1,41 @@
+# 2.0.71 (Build 271, Revision 1) - deleting a Course; saves never blocked - 2026-10-11
+
+Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).
+
+- **Delete course names the other learners first.** When other learners on
+  this device have the Course in their courses (they added it, or have
+  progress on it), the first confirmation says so: "Anna and Marco have this
+  Course in their courses. Delete it anyway?"
+- **Delete course offers two extras, both off**: **Also reset my progress on
+  this Course** (completed Rounds and Lessons, Laurels, Duels, GuideBooks
+  read and recent Rounds; XP, Weekly XP, study days and streaks are kept)
+  and **Also delete all its backups** (its saved versions in Backups/Courses,
+  with their count and size, and the pictures and recordings only they
+  hold). The second confirmation lists everything that will go, and a
+  message afterwards says what was deleted. Before, Delete always kept the
+  backups, and the only way to remove them was by hand.
+- **A backup never blocks a save.** A stored picture or recording whose
+  bytes no longer match its name (a disk fault, or a file changed outside
+  QQL) is recorded as a gap in the backup, like a missing file, and noted in
+  the Diagnostic Log. Before, every later save of that Course failed, also
+  the one replacing the damaged file.
+- **Temporary files of an interrupted Course save are removed at start-up.**
+  On Linux and macOS the Course folder is flushed after a save, so a power
+  cut right after it cannot bring the earlier version back.
+- **A Publisher update over a stored copy this version cannot open keeps
+  that copy** in the Course's backup folder (Version History names it among
+  the files it cannot read). Before, the update replaced it without a copy.
+- **Inventory: Delete all** for the media of a Course no longer on this
+  device: its whole folder with one admin PIN. Before, each file needed its
+  own Delete and PIN.
+- The "Remove unused media" tool planned in September
+  (`docs/240_REMOVE_UNUSED_MEDIA_PLAN.md`) is superseded: it described the
+  storage before Build 243, and each of its cases is now handled where it
+  happens.
+- Help EN/IT/ES (Course Studio Help, Advanced (Admin) Help).
+- Scoring, progression, Course files and the learner-data format are
+  unchanged.
+
 # 2.0.71 (Build 271, Revision 0) - content that plays wrong - 2026-10-11
 
 Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).

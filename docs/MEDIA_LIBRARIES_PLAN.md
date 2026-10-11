@@ -532,9 +532,9 @@ non-bundled media, and signed Publisher ZIPs deliver and verify those files.
 Publisher updates archive the previous media and remove files no longer used.
 The audit findings and proposals above describe the Build 242 baseline.
 
-- **Remove unused media** (F6) — build against
-  `docs/240_REMOVE_UNUSED_MEDIA_PLAN.md` unchanged; its decisions are already the
-  owner's.
+- **Remove unused media** (F6) — superseded (owner decision of 11 October 2026):
+  `docs/240_REMOVE_UNUSED_MEDIA_PLAN.md` describes the storage before Build 243 and
+  is not to be built; its header says what covers each case now.
 - **Per-asset attribution linkage.** `lessonIconAssets` have stable `assetId`s and
   `audioLibrary` clips have `id`s, but embedded `data:` images and the course flag
   have no identity at all, so no uniform reference scheme exists. `appliesTo` as

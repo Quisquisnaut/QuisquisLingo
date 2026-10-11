@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/course_models.dart';
 import 'course_media_store.dart';
+import 'diagnostic_log_service.dart';
 import 'storage/course_storage_names.dart';
 import 'storage/qql_storage.dart';
 import 'custom_course_transfer_service.dart';
@@ -36,6 +37,19 @@ class CourseBackupRecord {
       course.originType.isOfficial ? null : int.tryParse(course.courseVersion);
 }
 
+/// A Course's backup folder in two numbers (Build 271 Revision 1): its saved
+/// versions and the size of everything in the folder.
+class CourseBackupsSummary {
+  const CourseBackupsSummary({required this.versions, required this.bytes});
+
+  static const none = CourseBackupsSummary(versions: 0, bytes: 0);
+
+  final int versions;
+  final int bytes;
+
+  bool get isEmpty => versions == 0 && bytes == 0;
+}
+
 /// Durable, course-scoped backups for final Course Editor transactions.
 ///
 /// Backups live in the public Backups folder beside Import and Export on
@@ -52,16 +66,21 @@ class CourseBackupService {
     Future<bool> Function(Uri uri)? uriLauncher,
     PublisherVerificationService? publisherVerification,
     CourseMediaStore? mediaStore,
+    Future<void> Function(String message)? log,
   }) : _backupsDirectoryProvider =
            backupsDirectoryProvider ??
            (() => QqlStorage().courseBackupsDirectory()),
        _fileWriter = fileWriter,
        _uriLauncher = uriLauncher,
        _media = mediaStore ?? CourseMediaStore(),
+       _log = log ?? DiagnosticLogService().logInfo,
        _publisherVerification =
            publisherVerification ?? PublisherVerificationService();
 
   final CourseMediaStore _media;
+
+  /// Where a backup says what it could not copy (the Diagnostic Log).
+  final Future<void> Function(String message) _log;
 
   final PublisherVerificationService _publisherVerification;
 
@@ -291,9 +310,22 @@ class CourseBackupService {
         final bytes = await source.readAsBytes();
         final digest = sha256.convert(bytes).toString();
         if (digest != CourseMediaStore.digestOf(reference)) {
-          throw StateError(
-            'Course media ${CourseMediaStore.fileNameOf(reference)} does not match its reference.',
+          // Build 271 Revision 1: a stored file whose bytes no longer match
+          // its name (a disk fault, or a file changed outside QQL) is a gap
+          // too. Refusing here stopped every later save of the Course, even
+          // the one replacing the picture or recording. Its bytes are not
+          // what the Course names, so they are not copied.
+          assetRecords.add({
+            'reference': reference,
+            'missing': 'true',
+            'damaged': 'true',
+          });
+          await _log(
+            'Course backup: ${CourseMediaStore.fileNameOf(reference)} of '
+            'Course ${course.courseId} no longer matches its name; recorded '
+            'as a gap, the backup went on.',
           );
+          continue;
         }
         final backupName = CourseMediaStore.fileNameOf(reference);
         final target = File(
@@ -505,6 +537,119 @@ class CourseBackupService {
     await removeOrphanMedia(directory);
     return deleted;
   }
+
+  /// What deleting every backup of [courseId] would remove (Build 271
+  /// Revision 1): the saved versions in its backup folder and the size of
+  /// everything there. Nothing when the folder is missing or cannot be read.
+  Future<CourseBackupsSummary> summaryOf(String courseId) async {
+    try {
+      final directory = await courseBackupDirectory(courseId);
+      if (!await directory.exists()) return CourseBackupsSummary.none;
+      var versions = 0;
+      var bytes = 0;
+      await for (final entity in directory.list(
+        recursive: true,
+        followLinks: false,
+      )) {
+        if (entity is! File) continue;
+        bytes += await entity.length();
+        if (entity.parent.path == directory.path &&
+            entity.path.toLowerCase().endsWith('.json')) {
+          versions++;
+        }
+      }
+      return CourseBackupsSummary(versions: versions, bytes: bytes);
+    } catch (_) {
+      return CourseBackupsSummary.none;
+    }
+  }
+
+  /// Deletes the whole backup folder of [courseId] (Build 271 Revision 1,
+  /// owner decision of 11 October 2026: asked when the Course itself is
+  /// deleted): every saved version, also the ones this version cannot read,
+  /// and the media they hold. Returns whether nothing is left. Never
+  /// throws: the Course is already gone, and what could not be deleted (on
+  /// Android, files of an earlier installation) stays where it was.
+  Future<bool> deleteAllBackups(String courseId) async {
+    try {
+      final directory = await courseBackupDirectory(courseId);
+      if (!await directory.exists()) return true;
+      try {
+        await directory.delete(recursive: true);
+      } on FileSystemException {
+        // File by file, so one that cannot go does not keep the others.
+        final entities = await directory
+            .list(recursive: true, followLinks: false)
+            .toList();
+        for (final entity in entities.reversed) {
+          try {
+            await entity.delete();
+          } on FileSystemException {
+            // Left in place.
+          }
+        }
+        try {
+          await directory.delete();
+        } on FileSystemException {
+          // Not empty: something stayed.
+        }
+      }
+      return !await directory.exists();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Keeps [record], a stored Course record this version cannot open, in the
+  /// Course's backup folder before it is replaced (Build 271 Revision 1): the
+  /// record as stored, in a file named like a saved version with
+  /// `unreadable` for its version. Version History names it among the files
+  /// it cannot read. Its media is not copied: QQL cannot tell which files an
+  /// unreadable Course uses.
+  Future<File> keepUnreadableCopy(
+    String courseId,
+    Object? record, {
+    required DateTime when,
+    required String pair,
+    required String reason,
+  }) async {
+    final directory = await courseBackupDirectory(
+      courseId,
+      create: true,
+      pair: pair,
+    );
+    final base = CourseStorageNames.backupVersionName(
+      courseId,
+      pair,
+      version: 'unreadable',
+      stamp: _filenameStamp(when),
+    );
+    var file = File('${directory.path}${Platform.pathSeparator}$base.json');
+    var suffix = 2;
+    while (await file.exists()) {
+      file = File(
+        '${directory.path}${Platform.pathSeparator}${base}_$suffix.json',
+      );
+      suffix += 1;
+    }
+    _requireChildPath(directory, file);
+    await _write(
+      file,
+      utf8.encode(
+        jsonEncode({
+          'format': unreadableCopyFormat,
+          'courseId': courseId,
+          'keptAtUtc': when.toUtc().toIso8601String(),
+          'reason': reason,
+          'record': record,
+        }),
+      ),
+    );
+    return file;
+  }
+
+  /// The `format` of a stored Course record kept by [keepUnreadableCopy].
+  static const unreadableCopyFormat = 'QuisquisLingo unreadable Course copy';
 
   /// Removes the files of [directory]'s shared media folder that no backup
   /// manifest there names any more (Build 270 Revision 9, owner decision:

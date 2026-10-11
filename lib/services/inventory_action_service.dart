@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'admin_pin_gate.dart';
 import 'course_editor_service.dart';
+import 'course_media_store.dart';
+import 'storage/course_storage_names.dart';
 import 'course_favorite_service.dart';
 import 'course_received_service.dart';
 import 'diagnostic_log_service.dart';
@@ -136,6 +138,8 @@ class InventoryActionService {
           );
         }
         if (await file.exists()) await file.delete();
+      case InventoryActionKind.deleteCourseMediaFolder:
+        await _deleteCourseMediaFolder(Directory(action.target));
       case InventoryActionKind.removeImageBank:
         final records = await _images.loadCatalog();
         final removed = await _banks.removeBank(action.target);
@@ -152,6 +156,45 @@ class InventoryActionService {
           );
         }
     }
+  }
+
+  /// Build 271 Revision 1: the whole media folder of a Course no longer on
+  /// this device. The folder must be one of the Course media folders and no
+  /// stored Course, readable or not, may own it: both are checked again
+  /// here, because the Inventory may have been read a while ago.
+  Future<void> _deleteCourseMediaFolder(Directory folder) async {
+    final root = await CourseMediaStore(
+      supportDirectory: _support,
+    ).rootDirectory();
+    final name = folder.absolute.uri.pathSegments.lastWhere(
+      (segment) => segment.isNotEmpty,
+    );
+    final hash = CourseStorageNames.hashOfMediaFolder(name);
+    final expected = Directory(
+      '${root.absolute.path}${Platform.pathSeparator}$name',
+    );
+    bool same(String a, String b) =>
+        Platform.isWindows ? a.toLowerCase() == b.toLowerCase() : a == b;
+    if (hash == null ||
+        !same(folder.absolute.path, expected.absolute.path) ||
+        await FileSystemEntity.isLink(folder.path)) {
+      throw const InventoryActionException(
+        'Only a Course media folder can be deleted here.',
+      );
+    }
+    final courses = _courses;
+    final owners = <String>{
+      for (final course in await courses.listUserCourses())
+        CourseStorageNames.hashOf(course.courseId),
+      for (final file in courses.unreadableCourseFiles)
+        if (file.courseId case final id?) CourseStorageNames.hashOf(id),
+    };
+    if (owners.contains(hash)) {
+      throw const InventoryActionException(
+        'A Course on this device uses this folder. Nothing was deleted.',
+      );
+    }
+    if (await folder.exists()) await folder.delete(recursive: true);
   }
 
   /// A file inside QQL's own folders, never the live Crash Log or session

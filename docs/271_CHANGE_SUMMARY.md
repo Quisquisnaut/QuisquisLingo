@@ -94,3 +94,100 @@ text helper says the same.
 Scoring, progression, Review, the Duel, learner data and the Course format
 (roles are free strings; `required` already existed). No `minimumAppBuild`
 is raised: an earlier app version plays both exercises as it did before.
+
+## Revision 1 (2.0.71+271001): deleting a Course; saves never blocked
+
+Owner decisions of 10 and 11 October 2026.
+
+### Delete course
+
+Before: Delete asked twice and removed the Course and its media. It said
+nothing about other learners, kept the deleting learner's progress and
+always kept the Course's backups, which then stayed in `Backups/Courses`
+with no Course (on the owner's PC, five of nine backup folders).
+
+Now, in Course Studio:
+
+- **Other learners are named.** The first confirmation shows, when it
+  applies, "Anna and Marco have this Course in their courses. Delete it
+  anyway?" A learner counts when their Course list shows the Course
+  (`CourseLibraryService.contains`: they added it, or have progress on it).
+  A Private course is in nobody else's courses.
+- **Two extras, both off:**
+  - **Also reset my progress on this Course**: the reset of Remove from my
+    courses (completed Rounds and Lessons, Laurels, Duels, GuideBooks read,
+    recent Rounds). XP, Weekly XP, study days and streaks are kept. Only the
+    deleting learner's progress; other learners keep theirs.
+  - **Also delete all its backups**: the Course's whole backup folder, with
+    the count and size shown ("12 saved versions in Backups/Courses
+    (37 MB)"). Greyed with "It has no backups." when there are none.
+- **The second confirmation lists what will go** (the Course, your progress
+  on it, its N backups) and its button is red.
+- **A message afterwards** says what was deleted, and what could not be
+  ("Some of its backup files could not be deleted; they are still in
+  Backups/Courses.").
+- The Delete comes first: when it fails (rights, storage), nothing else
+  changes. The two extras never undo a Delete that succeeded.
+
+Code: `CourseLibraryOperations.previewDelete` and
+`deleteCourse(resetMyProgress:, deleteBackups:)`,
+`CourseBackupService.summaryOf` and `deleteAllBackups`, texts in
+`CourseLibraryReports`.
+
+### A backup never blocks a save
+
+Every save of a custom Course first backs up the stored version. A stored
+picture or recording whose bytes did not match its name made that backup
+throw "Course media … does not match its reference", so no later save of the
+Course could succeed, not even the one replacing the damaged file.
+
+Now such a file is recorded as a gap (`missing: true`, `damaged: true`), as
+a missing file already was, and the Diagnostic Log gets a line naming it.
+The damaged bytes are not copied into the backup. Restoring that version
+puts back everything else.
+
+### The Course store after an interrupted save
+
+- A save stages the Course in a temporary file and renames it. A crash in
+  between left the temporary file for good. Start-up now removes them
+  (`CourseFileStore.removeLeftoverTemporaryFiles`): only files with the
+  staging name in the two Course folders, never one the running QQL made.
+- On Linux and macOS a renamed file's new name is part of its folder, which
+  the system writes later. After each rename QQL now asks the system to
+  flush that folder (`sync <folder>`), so a power cut right after a save
+  cannot bring the earlier version back. Windows needs nothing. This could
+  not be run here (no Linux or macOS build on this PC); it is best effort
+  and a failure changes nothing else.
+
+### A Publisher update over a copy this version cannot open
+
+Since Build 266 Revision 2 the publisher's signed update may replace a
+stored source this version cannot open. It did so without keeping anything.
+The stored record is now kept first, as it is, in the Course's backup
+folder (`CourseBackupService.keepUnreadableCopy`, a file named like a
+version with `unreadable`). Version History names it among the files it
+cannot read. Its media is not copied: QQL cannot tell which files an
+unreadable Course uses.
+
+### Inventory: Delete all
+
+The Inventory already deleted the media of a Course no longer on the device
+one file at a time, asking the admin PIN for each. Above those files it now
+shows one row per such folder with **Delete all** (the file count and size),
+which removes the whole folder with one PIN. The action checks again that
+the folder is a Course media folder and that no stored Course, readable or
+not, owns it.
+
+### The "Remove unused media" idea
+
+Examined on 11 October 2026 and closed (owner decision): the plan of
+20 September (`docs/240_REMOVE_UNUSED_MEDIA_PLAN.md`) described the storage
+before Build 243. Its header now says what handles each case. The owner's PC
+had no orphan Course media.
+
+### Not changed
+
+Scoring, progression, Course files and the learner-data format. No new
+preference key and no new folder. The Inventory's own Delete of a Course and
+the removal of a Course this version cannot open keep their behaviour (no
+extras).

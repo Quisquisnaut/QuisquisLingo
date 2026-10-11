@@ -54,6 +54,10 @@ enum InventoryActionKind {
 
   /// An imported Image Bank with its images.
   removeImageBank,
+
+  /// The whole media folder of a Course no longer on this device (Build 271
+  /// Revision 1): every picture and recording in it, with one PIN.
+  deleteCourseMediaFolder,
 }
 
 class InventoryAction {
@@ -120,6 +124,10 @@ class InventorySection {
   final int hiddenCount;
   final int totalBytes;
 
+  /// Whole folders one action applies to, shown above [items] and not
+  /// counted: their files are the items (Build 271 Revision 1).
+  final List<InventoryItem> groups;
+
   const InventorySection({
     required this.title,
     required this.description,
@@ -127,6 +135,7 @@ class InventorySection {
     this.location,
     this.hiddenCount = 0,
     this.totalBytes = 0,
+    this.groups = const [],
   });
 
   int get count => items.length + hiddenCount;
@@ -1071,31 +1080,92 @@ class InventoryService {
         },
       ),
     );
+    final courseMedia = await folder(
+      title: 'Course media',
+      description:
+          'Images and recorded MP3s that courses use, copied into QQL\'s own storage and named by content, one folder per course.',
+      directory: Directory(
+        '$supportRoot$sep${CourseMediaStore.rootDirectoryName}',
+      ),
+      describe: (file, root) async {
+        final rel = _relative(file, root);
+        final courseFolder = rel.split(RegExp(r'[\\/]')).first;
+        final owner =
+            mediaOwners[CourseStorageNames.hashOfMediaFolder(courseFolder)];
+        // Media a stored Course uses has no Delete (Build 266 Revision 2):
+        // only the folders no Course on this device uses can go.
+        return plain(
+          file,
+          root,
+          note: file.path.toLowerCase().endsWith('.mp3')
+              ? 'Course recording (MP3).'
+              : 'Course image.',
+          owner: owner ?? 'A course no longer on this device',
+          deletable: owner == null && !unopenableMedia.contains(courseFolder),
+        );
+      },
+    );
+    // Build 271 Revision 1: the whole folder of a Course no longer on this
+    // device goes with one action; file by file needed the PIN each time.
+    final orphanFolders = <InventoryItem>[];
+    final mediaRoot = Directory(
+      '$supportRoot$sep${CourseMediaStore.rootDirectoryName}',
+    );
+    if (await mediaRoot.exists()) {
+      await for (final entity in mediaRoot.list(followLinks: false)) {
+        if (entity is! Directory) continue;
+        final name = entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
+        final hash = CourseStorageNames.hashOfMediaFolder(name);
+        if (hash == null ||
+            mediaOwners.containsKey(hash) ||
+            unopenableMedia.contains(name)) {
+          continue;
+        }
+        final files = await _files(entity);
+        if (files.isEmpty) continue;
+        var bytes = 0;
+        DateTime? newest;
+        for (final file in files) {
+          final stat = await file.stat();
+          bytes += stat.size;
+          if (newest == null || stat.modified.isAfter(newest)) {
+            newest = stat.modified;
+          }
+        }
+        final count = '${files.length} file${files.length == 1 ? '' : 's'}';
+        orphanFolders.add(
+          InventoryItem(
+            name: '$name (whole folder)',
+            path: entity.path,
+            sizeBytes: bytes,
+            modified: newest,
+            owner: 'A course no longer on this device',
+            note: '$count: every picture and recording stored for it.',
+            folder: entity.path,
+            action: InventoryAction(
+              InventoryActionKind.deleteCourseMediaFolder,
+              entity.path,
+              label: 'Delete all',
+              explanation:
+                  'Delete the $count in $name: every picture and recording '
+                  'stored for a Course that is no longer on this device. '
+                  'Reinstalling that Course brings its media back with its '
+                  'package.',
+            ),
+          ),
+        );
+      }
+    }
+    orphanFolders.sort((a, b) => a.name.compareTo(b.name));
     sections.add(
-      await folder(
-        title: 'Course media',
-        description:
-            'Images and recorded MP3s that courses use, copied into QQL\'s own storage and named by content, one folder per course.',
-        directory: Directory(
-          '$supportRoot$sep${CourseMediaStore.rootDirectoryName}',
-        ),
-        describe: (file, root) async {
-          final rel = _relative(file, root);
-          final courseFolder = rel.split(RegExp(r'[\\/]')).first;
-          final owner =
-              mediaOwners[CourseStorageNames.hashOfMediaFolder(courseFolder)];
-          // Media a stored Course uses has no Delete (Build 266 Revision 2):
-          // only the folders no Course on this device uses can go.
-          return plain(
-            file,
-            root,
-            note: file.path.toLowerCase().endsWith('.mp3')
-                ? 'Course recording (MP3).'
-                : 'Course image.',
-            owner: owner ?? 'A course no longer on this device',
-            deletable: owner == null && !unopenableMedia.contains(courseFolder),
-          );
-        },
+      InventorySection(
+        title: courseMedia.title,
+        description: courseMedia.description,
+        location: courseMedia.location,
+        items: courseMedia.items,
+        hiddenCount: courseMedia.hiddenCount,
+        totalBytes: courseMedia.totalBytes,
+        groups: orphanFolders,
       ),
     );
 

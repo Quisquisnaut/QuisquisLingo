@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
+import '../services/course_backup_service.dart';
 import '../services/course_editor_service.dart';
+import '../services/diagnostic_log_service.dart';
 import '../services/course_file_store.dart' show SkippedCourseFile;
 import '../services/course_favorite_service.dart';
 import '../services/course_library_view_service.dart';
@@ -2846,25 +2848,121 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     await _reload();
   }
 
+  /// Delete (Build 271 Revision 1, owner decisions of 10 and 11 October
+  /// 2026): the first dialog names the other learners who have the Course in
+  /// their courses and offers, both off, to reset the learner's own progress
+  /// on it and to delete all its backups; the second names everything that
+  /// will go. The two confirmations are the established ones.
   Future<void> _delete(Course course) async {
+    final preview = _deletePreview(course);
+    var resetProgress = false;
+    var deleteBackups = false;
+    var backups = CourseBackupsSummary.none;
     final first =
         await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Delete course?'),
-            content: Text(
-              'Delete “${course.title}” from local authoring storage?',
+          builder: (ctx) => StatefulBuilder(
+            builder: (ctx, update) => AlertDialog(
+              title: const Text('Delete course?'),
+              content: SingleChildScrollView(
+                child: FutureBuilder<CourseDeletePreview>(
+                  future: preview,
+                  builder: (ctx, snapshot) {
+                    final data = snapshot.data;
+                    final others = CourseLibraryReports.otherLearnersHave(
+                      data?.otherLearners ?? const [],
+                    );
+                    final held = data?.backups;
+                    if (held != null) backups = held;
+                    final scheme = Theme.of(ctx).colorScheme;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Delete “${course.title}” from this device?'),
+                        if (others != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            key: const Key('course-delete-other-learners'),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: scheme.errorContainer,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.group_outlined,
+                                  color: scheme.onErrorContainer,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    others,
+                                    style: TextStyle(
+                                      color: scheme.onErrorContainer,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        CheckboxListTile(
+                          key: const Key('course-delete-reset-progress'),
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          value: resetProgress,
+                          onChanged: (value) =>
+                              update(() => resetProgress = value ?? false),
+                          title: const Text(
+                            'Also reset my progress on this Course',
+                          ),
+                          subtitle: const Text(
+                            'Completed Rounds and Lessons, Laurels, Duels, '
+                            'GuideBooks read and recent Rounds. XP, Weekly '
+                            'XP, study days and streaks are kept.',
+                          ),
+                        ),
+                        CheckboxListTile(
+                          key: const Key('course-delete-backups'),
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          value: deleteBackups,
+                          onChanged: held == null || held.isEmpty
+                              ? null
+                              : (value) => update(
+                                  () => deleteBackups = value ?? false,
+                                ),
+                          title: const Text('Also delete all its backups'),
+                          subtitle: Text(
+                            held == null
+                                ? 'Looking for its backups…'
+                                : held.isEmpty
+                                ? 'It has no backups.'
+                                : '${CourseLibraryReports.backupsHeld(held)}, '
+                                      'with the pictures and recordings only '
+                                      'they hold.',
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Continue'),
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Continue'),
-              ),
-            ],
           ),
         ) ??
         false;
@@ -2874,8 +2972,26 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Confirm permanent deletion'),
-            content: Text(
-              'This will permanently delete “${course.title}” from this device. This action cannot be undone.',
+            content: SingleChildScrollView(
+              child: Column(
+                key: const Key('course-delete-summary'),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('This will permanently delete from this device:'),
+                  const SizedBox(height: 8),
+                  Text('• the Course “${course.title}”'),
+                  if (resetProgress) const Text('• your progress on it'),
+                  if (deleteBackups)
+                    Text(
+                      '• its ${backups.versions} '
+                      'backup${backups.versions == 1 ? '' : 's'} '
+                      '(${CourseLibraryReports.sizeText(backups.bytes)})',
+                    ),
+                  const SizedBox(height: 8),
+                  const Text('This action cannot be undone.'),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -2883,6 +2999,10 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                 child: const Text('Keep course'),
               ),
               FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(ctx).colorScheme.error,
+                  foregroundColor: Theme.of(ctx).colorScheme.onError,
+                ),
                 onPressed: () => Navigator.pop(ctx, true),
                 child: const Text('Delete permanently'),
               ),
@@ -2892,7 +3012,20 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         false;
     if (!second) return;
     try {
-      await _ops.deleteCourse(course);
+      final result = await _ops.deleteCourse(
+        course,
+        resetMyProgress: resetProgress,
+        deleteBackups: deleteBackups,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            key: const Key('course-deleted'),
+            duration: const Duration(seconds: 6),
+            content: Text(CourseLibraryReports.deleted(course, result)),
+          ),
+        );
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2906,6 +3039,22 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     }
     // Either way, list what storage now holds.
     await _reload();
+  }
+
+  /// What Delete shows first; a check that fails is logged and shows
+  /// nothing extra, so it never stops a Delete.
+  Future<CourseDeletePreview> _deletePreview(Course course) async {
+    try {
+      return await _ops.previewDelete(course);
+    } catch (error) {
+      await DiagnosticLogService().logInfo(
+        'Course Studio: the check before deleting a Course failed: $error',
+      );
+      return const CourseDeletePreview(
+        otherLearners: [],
+        backups: CourseBackupsSummary.none,
+      );
+    }
   }
 
   String _managerMaintainer(Course course) {

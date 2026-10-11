@@ -215,6 +215,60 @@ class CourseFileStore {
     if (_samePath(found, target)) return;
     await _refuseTaken(target);
     await found.rename(target.path);
+    await syncDirectory(target.parent);
+  }
+
+  /// Makes a rename in [directory] last through a power cut (Build 271
+  /// Revision 1). On Linux and macOS a file's new name is part of its folder,
+  /// which the system writes later, so the folder is flushed too; Windows
+  /// needs nothing. A seam: tests replace it (the suite turns it off).
+  static Future<void> Function(Directory directory) syncDirectory =
+      flushDirectory;
+
+  /// The default [syncDirectory]: the system's `sync` on the folder (Linux
+  /// flushes that folder, macOS everything pending). Best effort: the Course
+  /// is already written, so a failure or a slow system changes nothing else.
+  static Future<void> flushDirectory(Directory directory) async {
+    if (!Platform.isLinux && !Platform.isMacOS) return;
+    try {
+      await Process.run('sync', [
+        directory.path,
+      ]).timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Only durability through a power cut is at stake.
+    }
+  }
+
+  /// A write stages a Course in `<file>.json.<pid>.<time>.<n>.tmp`.
+  static final RegExp _temporaryName = RegExp(r'\.json\.(\d+)\.\d+\.\d+\.tmp$');
+
+  /// Removes the temporary files a write left when QQL stopped before
+  /// renaming them (Build 271 Revision 1); called once at start-up. Only
+  /// regular files with a staging name in the two Course folders go, never
+  /// one this run of QQL may still be writing. Returns how many; never
+  /// throws.
+  Future<int> removeLeftoverTemporaryFiles() async {
+    var removed = 0;
+    for (final kind in CourseStoreKind.values) {
+      try {
+        final directory = await directoryFor(kind);
+        if (!await directory.exists()) continue;
+        await for (final entity in directory.list(followLinks: false)) {
+          if (entity is! File) continue;
+          final match = _temporaryName.firstMatch(_name(entity));
+          if (match == null || match.group(1) == '$pid') continue;
+          try {
+            await entity.delete();
+            removed++;
+          } on FileSystemException {
+            // Left for the next start.
+          }
+        }
+      } catch (_) {
+        // A folder that cannot be listed is left as it is.
+      }
+    }
+    return removed;
   }
 
   /// Refuses [target] when another file has its name already: one holding
@@ -524,6 +578,7 @@ class CourseFileStore {
         }
       }
       await temporary.rename(target.path);
+      await syncDirectory(target.parent);
     } catch (error) {
       try {
         if (await temporary.exists()) await temporary.delete();
