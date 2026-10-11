@@ -150,10 +150,12 @@ void main() {
       );
     });
 
-    testWidgets('Check unused MP3 files lists the recordings no exercise '
+    testWidgets('Check › Unused MP3 files lists the recordings no exercise '
         'plays', (tester) async {
       await open(tester);
-      await tester.tap(find.text('Check unused MP3 files'));
+      await tester.tap(find.byKey(const Key('audio-library-check')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('audio-check-unused')));
       await tester.pumpAndSettle();
       final dialog = find.byKey(const Key('audio-unused-dialog'));
       expect(dialog, findsOneWidget);
@@ -173,7 +175,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('audio-clip-unused-nothing')), findsNothing);
       expect(find.byKey(const Key('audio-clip-uses-maria')), findsOneWidget);
-      expect(find.text('Unassigned MP3'), findsOneWidget);
+      expect(find.text(AudioLibraryScreen.noTextLabel), findsOneWidget);
     });
   });
 }

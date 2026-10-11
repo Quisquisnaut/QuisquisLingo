@@ -106,6 +106,11 @@ import '../services/course_backup_retention.dart';
 import '../widgets/course_backup_purge.dart';
 import '../widgets/labelled_text.dart';
 import '../services/course_audio_usage.dart';
+import '../services/course_audio_texts.dart';
+import '../services/course_media_store.dart';
+import '../widgets/folder_opener.dart';
+import '../widgets/library_save_notice.dart';
+import 'audio_texts_screen.dart';
 
 export 'guidebook_editor_screen.dart'
     show GuidebookEditorScreen, GuidebookModuleEditorScreen;
@@ -1152,6 +1157,24 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       border: OutlineInputBorder(),
                       labelText: 'Course name',
                       helper: Text('Renaming keeps the same Course ID.'),
+                    ),
+                  ),
+                  // Build 271 Revision 2: the switch for the IDs of this
+                  // dialog (Course, User, Team) and of every Editor page.
+                  ValueListenableBuilder<bool>(
+                    valueListenable: EditorDisplayPreferences.showInternalIds,
+                    builder: (context, showInternalIds, _) => SwitchListTile(
+                      key: const Key('course-info-internal-ids'),
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      title: const Text('Show internal IDs'),
+                      subtitle: const Text(
+                        'The Course ID here, the User and Team IDs below, and '
+                        'the IDs on the other Editor pages.',
+                      ),
+                      value: showInternalIds,
+                      onChanged: (_) =>
+                          EditorDisplayPreferences.toggleInternalIds(),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -3594,16 +3617,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             ),
           ),
           actions: [
+            // Build 271 Revision 2 (owner rule: at most three icons in a
+            // top bar): Save now, the access mode, Help.
             if (_editorMode == CourseEditorMode.edit)
-              Tooltip(
-                message:
-                    'Write the changes applied so far as a new course version '
-                    'and keep editing.',
-                child: TextButton(
-                  key: const Key('course-editor-save-now'),
-                  onPressed: _dirty ? _saveNow : null,
-                  child: const Text('Save now'),
-                ),
+              IconButton(
+                key: const Key('course-editor-save-now'),
+                tooltip: 'Save now: write a new version and keep editing',
+                onPressed: _dirty ? _saveNow : null,
+                icon: const Icon(Icons.save_outlined),
               ),
             PopupMenuButton<CourseEditorMode>(
               key: const Key('course-editor-lock'),
@@ -3661,7 +3682,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   ),
               ],
             ),
-            const EditorAppBarActions(),
+            // Show internal IDs is in Course Info Editor, whose IDs it
+            // controls; the other Editor pages keep their toggle.
+            const EditorAppBarActions(showInternalIdsToggle: false),
           ],
         ),
         body: ListView(
@@ -13689,6 +13712,31 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
 class AudioLibraryScreen extends StatefulWidget {
   final Course course;
   const AudioLibraryScreen({super.key, required this.course});
+
+  /// The Editor Help question the screen's Help opens at: the first of its
+  /// sound questions (audio modes, adding recordings, the texts to record,
+  /// how recordings travel).
+  static const helpQuestion = 'audioModes';
+
+  /// What a recording without a text says in the list.
+  static const noTextLabel = 'Tap to give it its text';
+
+  /// The body height from which the notice, the audio source and the A–Z
+  /// bar stay in place; a shorter window scrolls them with the recordings.
+  static const fixedHeaderMinimumHeight = 420.0;
+
+  /// The one line under the audio source (Build 271 Revision 2, the owner's
+  /// wording); the rest is in the Editor Help.
+  static String sourceLine(String audioMode) => switch (audioMode) {
+    'recorded' =>
+      'Only your recordings play; a text without a complete recording stays '
+          'silent.',
+    'hybrid' =>
+      'Your recordings play first; the device’s voice reads a text they '
+          'don’t fully cover.',
+    _ => 'The device’s voice reads every text; no recordings are needed.',
+  };
+
   @override
   State<AudioLibraryScreen> createState() => _AudioLibraryScreenState();
 }
@@ -13698,7 +13746,10 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   final AudioPlayer _previewPlayer = AudioPlayer();
   late Course _course;
   bool _routeMayPop = false;
-  String? _playingId;
+
+  /// The recording whose preview plays; its row and Associate recording
+  /// both show it.
+  final _playing = ValueNotifier<String?>(null);
   final Map<String, GlobalKey> _letterKeys = {};
 
   /// Clips whose file no longer resolves. A clip that still carries its word
@@ -13726,7 +13777,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     super.initState();
     _course = widget.course;
     _previewPlayer.onPlayerComplete.listen((_) {
-      if (mounted) setState(() => _playingId = null);
+      if (mounted) _playing.value = null;
     });
     _refreshMissingClips();
   }
@@ -13747,6 +13798,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   @override
   void dispose() {
     _previewPlayer.dispose();
+    _playing.dispose();
     super.dispose();
   }
 
@@ -13842,53 +13894,69 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     }
   }
 
+  /// Whether Open folder can show where this recording is stored: only for
+  /// a recording in the Course's own folder, on a system that opens folders.
+  bool _canOpenFolder(CourseAudioClip clip) =>
+      FolderOpener.available() && CourseMediaStore.isReference(clip.filePath);
+
+  /// Opens the Course's media folder; false when it could not be shown.
+  Future<bool> _openMediaFolder() async {
+    try {
+      final folder = await CourseMediaStore().courseDirectory(_course.courseId);
+      if (!await folder.exists()) return false;
+      return await FolderOpener.open(folder.path);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Associate recording (Build 271 Revision 2): the file's names, Play,
+  /// Open folder, the text and Texts in this Course. A text that another
+  /// recording already says by itself takes that recording's place, after
+  /// the author agrees; the other one then waits under #.
   Future<void> _editById(String id) async {
     final i = _course.audioLibrary.indexWhere((e) => e.id == id);
     if (i < 0) return;
-    final c = TextEditingController(text: _course.audioLibrary[i].text);
-    final text = await showDialog<String>(
+    final clip = _course.audioLibrary[i];
+    final result = await showDialog<({String text, String? replaced})>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Associate recording'),
-        content: TextField(
-          controller: c,
-          autofocus: true,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Word or expression',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, c.text.trim()),
-            child: const Text('Apply'),
-          ),
+      builder: (ctx) => _AssociateRecordingDialog(
+        course: _course,
+        clip: clip,
+        missing: _missingClipIds.contains(clip.id),
+        playing: _playing,
+        onPlay: () => _preview(clip),
+        onOpenFolder: _canOpenFolder(clip) ? _openMediaFolder : null,
+      ),
+    );
+    if (result == null || !mounted) return;
+    setState(
+      () => _course = _copy(
+        clips: [
+          for (final entry in _course.audioLibrary)
+            if (entry.id == id)
+              entry.withText(result.text)
+            else if (entry.id == result.replaced)
+              entry.withText('')
+            else
+              entry,
         ],
       ),
     );
-    Future<void>.delayed(const Duration(milliseconds: 300), c.dispose);
-    if (text != null && text.trim().isNotEmpty && mounted) {
-      final list = [..._course.audioLibrary];
-      final old = list[i];
-      list[i] = CourseAudioClip(
-        id: old.id,
-        text: text.trim(),
-        filePath: old.filePath,
-      );
-      setState(() => _course = _copy(clips: list));
-    }
+  }
+
+  void _showTexts() {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute(builder: (_) => AudioTextsScreen(course: _course)),
+    );
   }
 
   Future<void> _deleteById(String id) async {
     final i = _course.audioLibrary.indexWhere((e) => e.id == id);
     if (i < 0) return;
-    if (_playingId == id) {
+    if (_playing.value == id) {
       await _previewPlayer.stop();
-      _playingId = null;
+      _playing.value = null;
     }
     final list = [..._course.audioLibrary]..removeAt(i);
     setState(() => _course = _copy(clips: list));
@@ -13896,9 +13964,9 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   }
 
   Future<void> _preview(CourseAudioClip clip) async {
-    if (_playingId == clip.id) {
+    if (_playing.value == clip.id) {
       await _previewPlayer.stop();
-      if (mounted) setState(() => _playingId = null);
+      if (mounted) _playing.value = null;
       return;
     }
     try {
@@ -13909,7 +13977,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       if (source == null) throw StateError('MP3 source is missing');
       await _previewPlayer.stop();
       await _previewPlayer.play(source);
-      if (mounted) setState(() => _playingId = clip.id);
+      if (mounted) _playing.value = clip.id;
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -14109,123 +14177,115 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     }
   }
 
+  PopupMenuItem<String> _menuItem({
+    required String value,
+    required Key key,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) => PopupMenuItem<String>(
+    key: key,
+    value: value,
+    child: ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(subtitle),
+    ),
+  );
+
+  /// Build 271 Revision 2 (owner decisions of 10 and 11 October 2026): what
+  /// stays in place above the recordings. The one-line notice, the audio
+  /// source with its one line and the A–Z bar.
+  Widget _header(List<AudioLibraryGroup> groups) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const LibrarySaveNotice(key: Key('audio-library-save-notice')),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            key: const Key('audio-source'),
+            initialValue: _course.audioMode,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              isDense: true,
+              labelText: 'Course audio source',
+            ),
+            items: const [
+              DropdownMenuItem(value: 'tts', child: Text('On-Device TTS')),
+              DropdownMenuItem(
+                value: 'recorded',
+                child: Text('Recorded MP3 only'),
+              ),
+              DropdownMenuItem(
+                value: 'hybrid',
+                child: Text('Hybrid: MP3 + TTS fallback'),
+              ),
+            ],
+            onChanged: (v) {
+              if (v != null) setState(() => _course = _copy(mode: v));
+            },
+          ),
+          const SizedBox(height: 6),
+          Text(
+            AudioLibraryScreen.sourceLine(_course.audioMode),
+            key: const Key('audio-source-line'),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (groups.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            SizedBox(
+              height: 46,
+              child: ListView(
+                key: const Key('audio-library-letters'),
+                scrollDirection: Axis.horizontal,
+                children: [
+                  for (final group in groups)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: ActionChip(
+                        label: Text(group.key),
+                        onPressed: () => _jump(group.key),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+          const Divider(height: 12),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Build 270 Revision 12 (owner decisions): # (no text), 0–9, the
     // letters without accents, other scripts; AudioLibraryIndex owns the rule.
     final groups = AudioLibraryIndex.groups(_course.audioLibrary);
-    final children = <Widget>[
-      Card(
-        key: const Key('audio-library-save-notice'),
-        child: const Padding(
-          padding: EdgeInsets.all(12),
-          child: Text(
-            'Changes here are kept as you make them and are applied to the '
-            'Course when you leave this screen. They are written to the '
-            'device only by Save now or Save course in the Course Editor. '
-            'Discard changes drops them, and any recordings imported since '
-            'the last save are removed again.',
-          ),
-        ),
-      ),
-      const SizedBox(height: 8),
-      DropdownButtonFormField<String>(
-        initialValue: _course.audioMode,
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          labelText: 'Course audio source',
-        ),
-        items: const [
-          DropdownMenuItem(value: 'tts', child: Text('On-Device TTS')),
-          DropdownMenuItem(value: 'recorded', child: Text('Recorded MP3 only')),
-          DropdownMenuItem(
-            value: 'hybrid',
-            child: Text('Hybrid: MP3 + TTS fallback'),
-          ),
-        ],
-        onChanged: (v) {
-          if (v != null) setState(() => _course = _copy(mode: v));
-        },
-      ),
-      const SizedBox(height: 8),
-      Text(switch (_course.audioMode) {
-        'recorded' =>
-          'Recorded MP3 only: learners hear recordings associated with the exact words or expressions in this Course. QQL joins the longest matching clips. Add and associate MP3 files below; if no complete recording is available, there is no TTS fallback.',
-        'hybrid' =>
-          'Hybrid: MP3 + TTS fallback: QQL first joins matching Course recordings. When it cannot build a complete recording, it uses this device’s text-to-speech voice instead. Add and associate MP3 files below.',
-        _ =>
-          'On-Device TTS: this device reads the Course text aloud with its own text-to-speech voice. No MP3 files are needed. Choose Recorded MP3 only or Hybrid to manage Course recordings.',
-      }),
-      const SizedBox(height: 8),
-      if (_course.audioMode != 'tts')
-        Card(
+    // Recordings are managed only where the Course plays them.
+    final recorded = _course.audioMode != 'tts';
+    const chooseFirst = 'choose Recorded MP3 only or Hybrid first';
+    final slivers = <Widget>[
+      if (groups.isEmpty && recorded)
+        const SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Copy the MP3 files you want to import to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, then press Quick Import: every MP3 file in that folder is imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.'
-                  '${_audio.fileDialogsAvailable ? ' Open from… chooses MP3 files with the system file dialog.' : ''}',
-                ),
-                const SizedBox(height: 8),
-                // Build 270 Revision 12 (owner report): the two imports side
-                // by side, as on Course Import, instead of a floating button
-                // and an app-bar icon at opposite ends of the screen.
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    FilledButton.icon(
-                      key: const Key('audio-quick-import'),
-                      onPressed: _import,
-                      icon: const Icon(Icons.library_music_outlined),
-                      label: const Text('Quick Import'),
-                    ),
-                    if (_audio.fileDialogsAvailable)
-                      OutlinedButton.icon(
-                        key: const Key('open-mp3-from'),
-                        onPressed: _importFromDialog,
-                        icon: const Icon(Icons.folder_open_outlined),
-                        label: const Text('Open from…'),
-                      ),
-                  ],
-                ),
-              ],
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'No recordings yet. Add to the Course, at the top, imports '
+              'MP3 files.',
+              key: Key('audio-library-empty'),
+              textAlign: TextAlign.center,
             ),
           ),
         ),
-      if (_course.audioMode != 'tts')
-        ListTile(
-          title: const Text('Check unused MP3 files'),
-          subtitle: const Text('Find recordings no exercise plays.'),
-          trailing: const Icon(Icons.cleaning_services_outlined),
-          onTap: _orphans,
-        ),
-      if (groups.isNotEmpty)
-        SizedBox(
-          height: 46,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              for (final group in groups)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: ActionChip(
-                    label: Text(group.key),
-                    onPressed: () => _jump(group.key),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      const Divider(),
-    ];
-    final slivers = <Widget>[
-      SliverPadding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-        sliver: SliverList(delegate: SliverChildListDelegate(children)),
-      ),
       for (final group in groups) ...[
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -14263,48 +14323,160 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
             course: _course,
             title: const Text('Audio Library'),
           ),
+          // Three icons (owner rule): Help, Add to the Course, Check.
+          actions: [
+            IconButton(
+              key: const Key('audio-library-help'),
+              tooltip: 'Help: sound',
+              icon: const Icon(Icons.help_outline),
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute(
+                  builder: (_) => const EditorHelpScreen(
+                    question: AudioLibraryScreen.helpQuestion,
+                  ),
+                ),
+              ),
+            ),
+            PopupMenuButton<String>(
+              key: const Key('audio-library-add'),
+              enabled: recorded,
+              tooltip: recorded
+                  ? 'Add to the Course'
+                  : 'Add to the Course: $chooseFirst',
+              icon: const Icon(Icons.library_add_outlined),
+              onSelected: (value) =>
+                  value == 'open' ? _importFromDialog() : _import(),
+              itemBuilder: (_) => [
+                _menuItem(
+                  value: 'quick',
+                  key: const Key('audio-quick-import'),
+                  icon: Icons.library_music_outlined,
+                  title: 'Quick Import',
+                  subtitle:
+                      'Every MP3 in '
+                      '${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}',
+                ),
+                if (_audio.fileDialogsAvailable)
+                  _menuItem(
+                    value: 'open',
+                    key: const Key('open-mp3-from'),
+                    icon: Icons.folder_open_outlined,
+                    title: 'Open from…',
+                    subtitle: 'Choose MP3 files',
+                  ),
+              ],
+            ),
+            PopupMenuButton<String>(
+              key: const Key('audio-library-check'),
+              enabled: recorded,
+              tooltip: recorded ? 'Check' : 'Check: $chooseFirst',
+              icon: const Icon(Icons.fact_check_outlined),
+              onSelected: (value) =>
+                  value == 'texts' ? _showTexts() : _orphans(),
+              itemBuilder: (_) => [
+                _menuItem(
+                  value: 'texts',
+                  key: const Key('audio-check-texts'),
+                  icon: Icons.format_list_bulleted,
+                  title: 'Texts in this Course',
+                  subtitle: 'What is recorded and what is missing',
+                ),
+                _menuItem(
+                  value: 'unused',
+                  key: const Key('audio-check-unused'),
+                  icon: Icons.cleaning_services_outlined,
+                  title: 'Unused MP3 files',
+                  subtitle: 'Recordings no exercise plays',
+                ),
+              ],
+            ),
+          ],
         ),
-        body: CustomScrollView(slivers: slivers),
+        // Only the groups and recordings scroll; a window too short for
+        // that scrolls everything, so the recordings always have room.
+        body: LayoutBuilder(
+          builder: (context, constraints) =>
+              constraints.maxHeight >=
+                  AudioLibraryScreen.fixedHeaderMinimumHeight
+              ? Column(
+                  children: [
+                    _header(groups),
+                    Expanded(
+                      child: CustomScrollView(
+                        key: const Key('audio-library-list'),
+                        slivers: slivers,
+                      ),
+                    ),
+                  ],
+                )
+              : CustomScrollView(
+                  key: const Key('audio-library-list'),
+                  slivers: [
+                    SliverToBoxAdapter(child: _header(groups)),
+                    ...slivers,
+                  ],
+                ),
+        ),
       ),
     );
   }
 
-  Widget _clipCard(CourseAudioClip clip) => Card(
-    child: ListTile(
-      leading: IconButton(
-        tooltip: _playingId == clip.id ? 'Stop preview' : 'Play preview',
-        icon: Icon(
-          _playingId == clip.id
-              ? Icons.stop_circle_outlined
-              : Icons.play_circle_outline,
-        ),
-        onPressed: () => _preview(clip),
-      ),
-      title: Text(clip.text.trim().isEmpty ? 'Unassigned MP3' : clip.text),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(clip.filePath, maxLines: 1, overflow: TextOverflow.ellipsis),
-          if (_missingClipIds.contains(clip.id))
-            Text(
-              'File missing. Delete this recording to remove its '
-              'reference, then save the Course.',
-              key: Key('audio-clip-missing-${clip.id}'),
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+  Widget _clipCard(CourseAudioClip clip) {
+    final hasText = clip.text.trim().isNotEmpty;
+    final missing = _missingClipIds.contains(clip.id);
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      child: ListTile(
+        key: Key('audio-clip-row-${clip.id}'),
+        leading: ValueListenableBuilder<String?>(
+          valueListenable: _playing,
+          builder: (context, playing, _) => IconButton(
+            tooltip: playing == clip.id ? 'Stop preview' : 'Play preview',
+            icon: Icon(
+              playing == clip.id
+                  ? Icons.stop_circle_outlined
+                  : Icons.play_circle_outline,
             ),
-          if (clip.text.trim().isNotEmpty) _usesLine(clip),
-        ],
+            onPressed: () => _preview(clip),
+          ),
+        ),
+        // The stored file name says nothing to an author; Associate
+        // recording shows it, with the name the file came with.
+        title: hasText
+            ? Text(clip.text)
+            : Text(
+                AudioLibraryScreen.noTextLabel,
+                style: TextStyle(
+                  color: scheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+        subtitle: hasText || missing
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (missing)
+                    Text(
+                      'File missing. Delete this recording to remove its '
+                      'reference, then save the Course.',
+                      key: Key('audio-clip-missing-${clip.id}'),
+                      style: TextStyle(color: scheme.error),
+                    ),
+                  if (hasText) _usesLine(clip),
+                ],
+              )
+            : null,
+        isThreeLine: hasText && missing,
+        onTap: () => _editById(clip.id),
+        trailing: IconButton(
+          tooltip: 'Delete this recording',
+          icon: const Icon(Icons.delete_outline),
+          onPressed: () => _deleteById(clip.id),
+        ),
       ),
-      isThreeLine:
-          _missingClipIds.contains(clip.id) || clip.text.trim().isNotEmpty,
-      onTap: () => _editById(clip.id),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
-        onPressed: () => _deleteById(clip.id),
-      ),
-    ),
-  );
+    );
+  }
 
   /// Leaving the screen returns the draft, so there is no Save button. The
   /// Course Editor stages it in the working copy; the single top-level Course
@@ -14314,6 +14486,240 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     setState(() => _routeMayPop = true);
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context, _course);
+  }
+}
+
+/// Associate recording (Build 271 Revision 2, owner decisions of 10 and 11
+/// October 2026): what the author needs to say which text a recording
+/// speaks. It returns the text and, when another recording already said it
+/// by itself and the author agreed to replace it, that recording's ID.
+class _AssociateRecordingDialog extends StatefulWidget {
+  const _AssociateRecordingDialog({
+    required this.course,
+    required this.clip,
+    required this.missing,
+    required this.playing,
+    required this.onPlay,
+    required this.onOpenFolder,
+  });
+
+  final Course course;
+  final CourseAudioClip clip;
+
+  /// Whether the recording's file is no longer on the device.
+  final bool missing;
+
+  /// The ID of the recording whose preview plays.
+  final ValueNotifier<String?> playing;
+  final VoidCallback onPlay;
+
+  /// Opens the folder that stores the file; null where it is not offered.
+  final Future<bool> Function()? onOpenFolder;
+
+  @override
+  State<_AssociateRecordingDialog> createState() =>
+      _AssociateRecordingDialogState();
+}
+
+class _AssociateRecordingDialogState extends State<_AssociateRecordingDialog> {
+  late final _text = TextEditingController(text: widget.clip.text);
+  String? _folderMessage;
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  /// The file's name in the Course's folder, in full.
+  String get _storedName => CourseMediaStore.isReference(widget.clip.filePath)
+      ? CourseMediaStore.fileNameOf(widget.clip.filePath)
+      : widget.clip.filePath;
+
+  Future<void> _openFolder() async {
+    final opened = await widget.onOpenFolder!();
+    if (!mounted) return;
+    setState(
+      () => _folderMessage = opened ? null : 'The folder could not be opened.',
+    );
+  }
+
+  Future<void> _pickText() async {
+    final picked = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => AudioTextsScreen(course: widget.course, pick: true),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    // A text of several lines is one text for a recording.
+    final oneLine = picked.trim().split(RegExp(r'\s*\n\s*')).join(' ');
+    setState(() {
+      _text.text = oneLine;
+      _text.selection = TextSelection.collapsed(offset: oneLine.length);
+    });
+  }
+
+  Future<void> _apply() async {
+    final text = _text.text.trim();
+    if (text.isEmpty) return;
+    final other = CourseAudioTexts.ownRecordingOf(
+      text,
+      widget.course.audioLibrary,
+      except: widget.clip.id,
+    );
+    if (other != null) {
+      final replace = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          key: const Key('audio-replace-dialog'),
+          title: const Text('Replace the recording?'),
+          content: Text(
+            '“$text” already has a recording. Replace it? The old one '
+            'loses its text and moves under #.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('audio-replace-confirm'),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Replace'),
+            ),
+          ],
+        ),
+      );
+      if (replace != true || !mounted) return;
+    }
+    Navigator.pop(context, (text: text, replaced: other?.id));
+  }
+
+  Widget _fileLine(String label, String name, Key key) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SelectableText(name, key: key, style: theme.textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AlertDialog(
+      key: const Key('audio-associate-dialog'),
+      title: const Text('Associate recording'),
+      content: SizedBox(
+        width: 480,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.clip.originalFileName.isNotEmpty)
+                _fileLine(
+                  'Original file',
+                  widget.clip.originalFileName,
+                  const Key('audio-associate-original'),
+                ),
+              _fileLine(
+                'Stored as',
+                _storedName,
+                const Key('audio-associate-stored'),
+              ),
+              if (widget.missing)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    'This file is no longer on the device.',
+                    key: const Key('audio-associate-missing'),
+                    style: TextStyle(color: scheme.error),
+                  ),
+                ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ValueListenableBuilder<String?>(
+                    valueListenable: widget.playing,
+                    builder: (context, playing, _) => OutlinedButton.icon(
+                      key: const Key('audio-associate-play'),
+                      onPressed: widget.onPlay,
+                      icon: Icon(
+                        playing == widget.clip.id
+                            ? Icons.stop_circle_outlined
+                            : Icons.play_circle_outline,
+                      ),
+                      label: Text(playing == widget.clip.id ? 'Stop' : 'Play'),
+                    ),
+                  ),
+                  if (widget.onOpenFolder != null)
+                    OutlinedButton.icon(
+                      key: const Key('audio-associate-open-folder'),
+                      onPressed: _openFolder,
+                      icon: const Icon(Icons.folder_open_outlined),
+                      label: const Text('Open folder'),
+                    ),
+                ],
+              ),
+              if (_folderMessage case final message?)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    message,
+                    key: const Key('audio-associate-folder-error'),
+                    style: TextStyle(color: scheme.error),
+                  ),
+                ),
+              const SizedBox(height: 14),
+              TextField(
+                key: const Key('audio-associate-text'),
+                controller: _text,
+                autofocus: true,
+                onChanged: (_) => setState(() {}),
+                onSubmitted: (_) => _apply(),
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Word or expression',
+                  helperText: 'Exactly what the recording says.',
+                ),
+              ),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  key: const Key('audio-associate-texts'),
+                  onPressed: _pickText,
+                  icon: const Icon(Icons.format_list_bulleted),
+                  label: const Text('Texts in this Course'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          key: const Key('audio-associate-apply'),
+          onPressed: _text.text.trim().isEmpty ? null : _apply,
+          child: const Text('Apply'),
+        ),
+      ],
+    );
   }
 }
 

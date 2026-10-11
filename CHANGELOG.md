@@ -1,3 +1,53 @@
+# 2.0.71 (Build 271, Revision 2) - the Audio Library like the Image Library; the Course Editor's top bar - 2026-10-11
+
+Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).
+
+- **Audio Library, three icons in the top bar**: **Help** (the Editor Help at
+  its sound questions), **Add to the Course** (Quick Import, Open from…) and
+  **Check** (Texts in this Course, Unused MP3 files). Both menus are greyed
+  out, with the reason in their tooltip, while the Course uses On-Device TTS.
+- **A fixed header.** The one-line notice, the audio source with one line of
+  explanation and the A–Z bar stay in place; only the recordings scroll. A
+  window too short for that scrolls everything.
+- **Rows without file names.** The stored name, a long code, is gone from the
+  list; a recording without text says "Tap to give it its text".
+- **Associate recording** shows the name the file had when it was imported
+  (when known) and the stored name in full, plays the recording, opens its
+  folder on Windows, Linux and macOS, and has **Texts in this Course**, where
+  a tap fills the field. A text that already has its own recording asks
+  first: replacing gives the text to this recording and moves the old one
+  under #. Apply waits for a text.
+- **Texts in this Course** (Check menu, and Associate recording): every text
+  the Course speaks, Draft exercises included and marked Draft, in
+  alphabetical order, with how many exercises say it and one of four states:
+  Its own recording, All parts recorded, Some parts recorded (with the words
+  still missing), No recording. Search, the switch **Only texts without a
+  complete recording**, **Copy** and **Save as…** (one text per line with
+  its state and Draft mark).
+- **The original file name** is kept with every recording imported from now
+  on: a label, never a path (no folders, no control characters, at most 120
+  characters). Export as Publisher Course leaves it out, as it does Editor
+  Notes. Recordings imported earlier show only the stored name.
+- **One notice, word for word**, in the Audio Library and in a Course's
+  Image Library: "Changes are applied to the Course when you leave; Save now
+  or Save course writes them."
+- **The Image Library's Help is the Editor Help.** Its question mark opens
+  the picture questions; a new question explains the badges (QQL, DEVICE,
+  COURSE, IN USE); the answer on adding pictures explains saving. The
+  separate Image Library Help page and its QQL Guide entry are removed.
+- **Course Editor main page, three icons**: **Save now** is a disk icon
+  (greyed when there is nothing to save), then the access mode and Help.
+  **Show internal IDs** is a switch in Course Info Editor, whose IDs it
+  controls; the Lessons, Rounds and exercise pages keep their toggle.
+- Editor Help (EN/IT/ES): the sound answers rewritten, two new questions
+  ("Which texts still need a recording?", "What do the badges on a picture
+  mean?"), 90 questions in all.
+
+How recordings are matched to a text when a Course plays is unchanged: the
+list uses the same rule. Scoring, progression and learner data are
+unchanged. The Course format gains only the optional `originalFileName` of a
+recording.
+
 # 2.0.71 (Build 271, Revision 1) - deleting a Course; saves never blocked - 2026-10-11
 
 Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).

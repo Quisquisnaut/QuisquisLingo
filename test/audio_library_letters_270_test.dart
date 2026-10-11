@@ -61,9 +61,12 @@ void main() {
     await jump(tester, 'X');
     final row = find.text('xword 1');
     expect(row, findsOneWidget);
-    final top = tester.getTopLeft(row).dy;
+    // Build 271 Revision 2: the list starts under the fixed header.
+    final top =
+        tester.getTopLeft(row).dy -
+        tester.getTopLeft(find.byKey(const Key('audio-library-list'))).dy;
     expect(top, greaterThan(0));
-    expect(top, lessThan(300), reason: 'X is near the top of the list');
+    expect(top, lessThan(120), reason: 'X is near the top of the list');
     expect(find.text('wword 1'), findsNothing, reason: 'W is above X');
   });
 
@@ -98,7 +101,7 @@ void main() {
     double top(String text) => tester.getTopLeft(find.text(text).last).dy;
     final ordered = [
       '# (MP3s with no assigned text)',
-      'Unassigned MP3',
+      AudioLibraryScreen.noTextLabel,
       '0–9',
       '1 uno',
       '€ 5',
@@ -114,7 +117,7 @@ void main() {
         reason: '${ordered[i]} comes after ${ordered[i - 1]}',
       );
     }
-    expect(find.text('Unassigned MP3'), findsNWidgets(2));
+    expect(find.text(AudioLibraryScreen.noTextLabel), findsNWidgets(2));
   });
 
   group('the filing rule', () {
@@ -186,29 +189,27 @@ void main() {
     });
   });
 
-  testWidgets('Quick Import and Open from… sit side by side in the import '
-      'card', (tester) async {
+  // Build 271 Revision 2: the two imports are the Add to the Course menu of
+  // the top bar, one under the other.
+  testWidgets('Quick Import and Open from… are in the Add to the Course '
+      'menu', (tester) async {
     await open(tester, const ['bello']);
+    expect(find.byKey(const Key('audio-quick-import')), findsNothing);
+    expect(find.byType(FloatingActionButton), findsNothing);
+    await tester.tap(find.byKey(const Key('audio-library-add')));
+    await tester.pumpAndSettle();
     final quick = find.byKey(const Key('audio-quick-import'));
     expect(quick, findsOneWidget);
     expect(
       find.descendant(of: quick, matching: find.text('Quick Import')),
       findsOneWidget,
     );
-    expect(find.byType(FloatingActionButton), findsNothing);
-    expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.byKey(const Key('open-mp3-from')),
-      ),
-      findsNothing,
-    );
     final openFrom = find.byKey(const Key('open-mp3-from'));
     if (openFrom.evaluate().isNotEmpty) {
       expect(
-        (tester.getTopLeft(openFrom).dy - tester.getTopLeft(quick).dy).abs(),
-        lessThan(1),
-        reason: 'the two imports share a row',
+        tester.getTopLeft(openFrom).dy,
+        greaterThan(tester.getTopLeft(quick).dy),
+        reason: 'Open from… follows Quick Import',
       );
     }
   });

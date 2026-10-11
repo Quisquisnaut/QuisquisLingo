@@ -1866,21 +1866,73 @@ class CourseAudioClip {
   final String id;
   final String text;
   final String filePath;
+
+  /// Build 271 Revision 2 (owner decision of 11 October 2026): the name of
+  /// the file the recording was imported from, a label for authors and
+  /// never a path: the base name only, without control characters, at most
+  /// [maxOriginalFileNameLength] characters; empty when it is not known.
+  /// Stored only when not empty; Export as Publisher Course removes it.
+  final String originalFileName;
+
+  static const maxOriginalFileNameLength = 120;
+
+  static final RegExp _controlCharacters = RegExp(r'[\u0000-\u001F\u007F]');
+
   const CourseAudioClip({
     required this.id,
     required this.text,
     required this.filePath,
+    this.originalFileName = '',
   });
+
+  /// The label kept for a file chosen as [name] (its name or its path): the
+  /// part after the last slash, control characters removed, cut at
+  /// [maxOriginalFileNameLength] characters.
+  static String labelOf(String name) {
+    final base = name
+        .split(RegExp(r'[\\/]'))
+        .last
+        .replaceAll(_controlCharacters, '')
+        .trim();
+    return base.length <= maxOriginalFileNameLength
+        ? base
+        : base.substring(0, maxOriginalFileNameLength).trimRight();
+  }
+
+  /// This recording with another text; everything else stays.
+  CourseAudioClip withText(String text) => CourseAudioClip(
+    id: id,
+    text: text,
+    filePath: filePath,
+    originalFileName: originalFileName,
+  );
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'text': text,
     'filePath': filePath,
+    if (originalFileName.isNotEmpty) 'originalFileName': originalFileName,
   };
-  factory CourseAudioClip.fromJson(Map<String, dynamic> j) => CourseAudioClip(
-    id: _requiredString(j, 'id', 'audio clip'),
-    text: _optionalString(j, 'text', ''),
-    filePath: _requiredString(j, 'filePath', 'audio clip'),
-  );
+  factory CourseAudioClip.fromJson(Map<String, dynamic> j) {
+    final original = j['originalFileName'];
+    if (j.containsKey('originalFileName') &&
+        (original is! String ||
+            original.length > maxOriginalFileNameLength ||
+            original.contains('/') ||
+            original.contains(r'\') ||
+            _controlCharacters.hasMatch(original))) {
+      throw const FormatException(
+        'audio clip.originalFileName must be a file name of at most 120 '
+        'characters, without folders.',
+      );
+    }
+    return CourseAudioClip(
+      id: _requiredString(j, 'id', 'audio clip'),
+      text: _optionalString(j, 'text', ''),
+      filePath: _requiredString(j, 'filePath', 'audio clip'),
+      originalFileName: original is String ? original.trim() : '',
+    );
+  }
 }
 
 List<Lesson> _parseLessons(Map<String, dynamic> j) {

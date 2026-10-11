@@ -29,7 +29,8 @@ import '../services/course_package_service.dart';
 import '../services/import/image_validator.dart';
 import '../widgets/quick_import_access.dart';
 import '../widgets/course_preview_flag.dart';
-import 'image_library_help_screen.dart';
+import 'editor_help_screen.dart';
+import '../widgets/library_save_notice.dart';
 import '../widgets/reported_action.dart';
 
 class FlatImageLibraryScreen extends StatefulWidget {
@@ -63,6 +64,10 @@ class FlatImageLibraryScreen extends StatefulWidget {
   /// matching pictures" opens the library searched for the word). The
   /// person can change it.
   final String? initialSearch;
+
+  /// The Editor Help question the library's Help opens at: the first of
+  /// its picture questions (Build 271 Revision 2).
+  static const helpQuestion = 'findPicture';
 
   const FlatImageLibraryScreen({
     super.key,
@@ -2023,15 +2028,17 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           title: Text(_course == null ? 'Shared Images' : 'Image Library'),
         ),
         actions: [
-          // Build 264 Revision 10: the library's explanations, which no
-          // longer fill the top of the page.
+          // Build 271 Revision 2: the library's explanations are the Editor
+          // Help's picture questions (its own Help page is gone).
           IconButton(
             key: const Key('image-library-help'),
-            tooltip: 'Help',
+            tooltip: 'Help: pictures',
             icon: const Icon(Icons.help_outline),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => const ImageLibraryHelpScreen(),
+                builder: (_) => const EditorHelpScreen(
+                  question: FlatImageLibraryScreen.helpQuestion,
+                ),
               ),
             ),
           ),
@@ -2130,20 +2137,12 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                 // confirmation; the device-wide Shared Images library writes
                 // straight away and must not claim otherwise.
                 if (widget.onCourseChanged != null && _course != null)
+                  // Build 271 Revision 2: the Audio Library's line, word for
+                  // word; the rest of the explanation is in the Editor Help.
                   const Padding(
-                    padding: EdgeInsets.fromLTRB(12, 12, 12, 4),
-                    child: Card(
+                    padding: EdgeInsets.fromLTRB(12, 10, 12, 2),
+                    child: LibrarySaveNotice(
                       key: Key('course-image-save-notice'),
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        // The rest of the explanation is in the Help (owner
-                        // request, Build 264 Revision 10).
-                        child: Text(
-                          'Changes here are kept as you make them and are '
-                          'applied to the Course when you leave this screen; '
-                          'Save course, in the Course Editor, writes them.',
-                        ),
-                      ),
                     ),
                   ),
                 if (_canManageMetadata)

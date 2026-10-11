@@ -5,7 +5,6 @@ import '../../screens/available_courses_screen.dart';
 import '../../screens/debug_screen.dart';
 import '../../screens/device_administration_help_screen.dart';
 import '../../screens/editor_help_screen.dart';
-import '../../screens/image_library_help_screen.dart';
 import '../../screens/publisher_signing_help_screen.dart';
 import '../locale_service.dart';
 import 'help_text.dart';
@@ -84,11 +83,6 @@ abstract final class QqlGuideHelpDestinations {
       id: 'exercise-primitives',
       titleKey: 'technical.exercisePrimitives.title',
       build: (_) => const ExercisePrimitivesHelpScreen(),
-    ),
-    QqlGuideHelpDestination(
-      id: 'image-library',
-      titleKey: 'imageLibraryHelp.title',
-      build: (_) => const ImageLibraryHelpScreen(),
     ),
     QqlGuideHelpDestination(
       id: 'json-structure',

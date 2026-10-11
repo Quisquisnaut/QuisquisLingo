@@ -114,12 +114,14 @@ abstract final class AudioLibraryIndex {
   /// Alphabetical, ignoring capitals, accents and leading punctuation;
   /// recordings with no text keep the library's order.
   static int _compareClips((int, CourseAudioClip) a, (int, CourseAudioClip) b) {
-    final byText = _sortKey(a.$2.text).compareTo(_sortKey(b.$2.text));
+    final byText = sortKey(a.$2.text).compareTo(sortKey(b.$2.text));
     if (byText != 0) return byText;
     final written = a.$2.text.compareTo(b.$2.text);
     return written != 0 ? written : a.$1.compareTo(b.$1);
   }
 
-  static String _sortKey(String text) =>
+  /// What texts are put in order by: no capitals, accents or punctuation
+  /// (also the order of Texts in this Course, Build 271 Revision 2).
+  static String sortKey(String text) =>
       unorm.nfd(ExerciseSearchService.normalize(text)).replaceAll(_mark, '');
 }

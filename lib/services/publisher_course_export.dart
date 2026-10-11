@@ -183,6 +183,11 @@ abstract final class PublisherCourseExport {
       ..remove('restoredFromVersion')
       ..remove('lastVersionEditorProfileId')
       ..remove('lastVersionEditorDisplayName');
+    // Build 271 Revision 2: the name a recording's file had on the author's
+    // device is the author's own label, like the notes.
+    for (final clip in json['audioLibrary'] as List? ?? const []) {
+      (clip as Map).remove('originalFileName');
+    }
     final unsigned = Course.fromJson({
       ...json,
       // Build 270 Revision 8 (owner decision): a published Course has its

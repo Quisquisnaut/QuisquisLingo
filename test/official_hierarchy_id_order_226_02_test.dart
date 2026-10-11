@@ -34,14 +34,17 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(
-          find.byTooltip('Internal IDs shown. Tap to hide'),
-          findsOneWidget,
-        );
+        // Build 271 Revision 2: the main page keeps the toggle in Course
+        // Info Editor; the Lessons page has its own.
+        expect(find.byTooltip('Internal IDs shown. Tap to hide'), findsNothing);
         await tester.tap(
           find.byKey(const Key('course-editor-lessons-navigation')),
         );
         await tester.pumpAndSettle();
+        expect(
+          find.byTooltip('Internal IDs shown. Tap to hide'),
+          findsOneWidget,
+        );
 
         await _checkEntryAndFollowBothLines(
           tester,

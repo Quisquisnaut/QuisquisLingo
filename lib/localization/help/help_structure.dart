@@ -114,9 +114,13 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
   'picturesAndSound': [
     'audioModes',
     'addRecordings',
+    // Build 271 Revision 2.
+    'textsToRecord',
     'recordingsTravel',
     'addPictures',
     'findPicture',
+    // Build 271 Revision 2: from the image library's own Help.
+    'pictureBadges',
     'pictureRules',
     'imageBank',
     'pictureDetails',
@@ -230,22 +234,6 @@ const jsonStructureHelpSectionIds = <String>[
   'duel',
   'compatibility',
 ];
-
-/// The image library's Help (Build 264 Revision 10): its sections and how
-/// many paragraphs each has.
-const imageLibraryHelpSectionIds = <String>[
-  'saving',
-  'finding',
-  'badges',
-  'details',
-];
-
-const imageLibraryHelpParagraphs = <String, int>{
-  'saving': 2,
-  'finding': 4,
-  'badges': 2,
-  'details': 1,
-};
 
 const deviceAdminHelpSectionIds = <String>[
   'whatThisPageIs',

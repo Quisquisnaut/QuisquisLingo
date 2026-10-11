@@ -96,7 +96,7 @@ void main() {
         // difficulty questions. Build 265 adds Word Lookup, Build 266
         // Revision 1 the GuideBook entries and module length, Build 267 the
         // Course Wizard and Editor notes.
-        expect(ids(english), hasLength(88));
+        expect(ids(english), hasLength(90));
         expect(ids(italian), ids(english));
         expect(ids(spanish), ids(english));
         // Build 262 Revision 2 adds Export as Publisher Course.

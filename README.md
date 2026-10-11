@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.71+271001 · Build 271, Revision 1 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.71+271002 · Build 271, Revision 2 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.71 Beta — QQL 271 open findings and the Audio Library (Course Model v12)**
 
@@ -22,7 +22,15 @@ can also reset everyone's progress on it and delete its backups; as admin
 you can delete a Publisher Course others still have, or another learner's
 Course, after a warning, the word DELETE, a second confirmation and your
 PIN; and the Inventory lists and resets the progress left by Courses that
-are no longer on the device.
+are no longer on the device. Revision 2 arranges the Audio Library like the
+Image Library: three icons at the top (Help, Add to the Course, Check), a
+header that stays in place, rows without file names, Associate recording
+with the name the file came with, Play and Open folder, and Texts in this
+Course, the list of every text the Course speaks with what is recorded and
+what is still missing; a Course's Image Library opens with the same one-line
+notice and its Help is part of the Editor Help; and the Course Editor's main
+page has three icons, with Save now as a disk icon and Show internal IDs in
+Course Info Editor.
 
 Build 270 fixes the weaknesses found by the audit of 10 October 2026
 ([audit](docs/270_AUDIT.md), [change summary](docs/270_CHANGE_SUMMARY.md)).

@@ -183,3 +183,74 @@ same day: the admin can clean up anything, after a warning.
   16:46–17:32).
 
 Not checked: the dialogs by hand (no Windows release build was made).
+
+## Revision 2 (2.0.71+271002), the Audio Library like the Image Library
+
+11 October 2026, owner's Windows 10 PC, `build-271`.
+
+- `test/audio_library_271_test.dart`, new, **29 passed**:
+  - the original file name: `labelOf` keeps the base name (Windows and
+    other paths), removes control characters and cuts at 120 characters; it
+    is stored only when known and read back; a path, a control character, a
+    longer name, a number or null is a format error; `withText` keeps it; a
+    copy of the Course keeps it; Export as Publisher Course leaves it out;
+  - how far recordings go in a text: for a text they say whole, `coverage`
+    gives the recordings playback joins (`RecordedAudioService.segment`);
+    for "Il treno per Roma parte alle nove." with only "per Roma" recorded
+    it names "Il treno" and "parte alle nove"; capitals and the punctuation
+    around a text do not count;
+  - Texts in this Course: the four states on the Laboratory's texts; the
+    order ignores accents (È among the E's); a text only Draft content says
+    is marked Draft; the search ignores capitals and accents; the switch
+    keeps the texts without a complete recording; the export has one text
+    per line with its state, a text of several lines on one line, and the
+    file name `QQL_EN_IT_…_texts.txt`; `ownRecordingOf`;
+  - the Texts screen: the count, the search, Copy (the clipboard holds the
+    export of the texts shown), Save as… (the suggested name and the bytes),
+    the switch, the empty message with Copy greyed;
+  - the Audio Library: three actions in the top bar and Help opening the
+    Editor Help at `audioModes`; On-Device TTS greys the two menus and says
+    why; the notice is the shared line and the header keeps its place while
+    the list scrolls (900 × 900); a 440-pixel-high window scrolls the header
+    away; rows show no file name and "Tap to give it its text"; the empty
+    message; a 360 × 640 window (the screen, both menus, Associate
+    recording, Texts in this Course) without overflow;
+  - Associate recording: the original and the stored name in full, the
+    missing-file line, Apply greyed while empty, a recording imported
+    earlier with only its stored name; applying a text; a text that already
+    has its own recording asks, Cancel returns to the dialog, Replace moves
+    the old recording under # with its original name still shown; Texts in
+    this Course fills the field; Open folder is not offered for a recording
+    outside the Course's folder or where the system opens no folders, says
+    "The folder could not be opened." when the folder does not exist, and
+    opens the Course's media folder when it does;
+  - the three lines under the audio source, word for word; the Editor Help
+    has `textsToRecord` and `pictureBadges` in EN/IT/ES with the on-screen
+    names, no `imageLibraryHelp.` key is left, and the QQL Guide has no
+    Image Library entry.
+- `test/course_editor_top_bar_271_test.dart`, new, **1 passed**: three
+  icons in the Course Editor's top bar (Save now with its tooltip, greyed
+  when nothing is unsaved; the access mode; Help), no IDs toggle and no
+  "Save now" text; Course Info Editor's Show internal IDs shows and hides
+  the Course ID and stores the preference.
+- Existing tests changed for the new layout: `media_messages_revision17`
+  (the modes and the menus), `audio_library_media_248` (Quick Import through
+  the menu), `audio_usage_270` (Check › Unused MP3 files),
+  `audio_library_letters_270` (the jump measured from the list's top; the
+  two imports in the menu), `image_library_namesake_264` (Help opens the
+  Editor Help), `save_now_270` (an icon), `editor_diagnostics_226_02_revision3`
+  and `official_hierarchy_id_order_226_02` (no IDs toggle on the main page),
+  `qql_guide_screen` (no Image Library entry), `editor_help_qa_256` and
+  `editor_help_translation` (90 questions).
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,243 passed, 1 skipped**, 48:19 (11 October 2026,
+  19:26–20:14). The first run of the suite had two failures, both fixed
+  before this one: the new 360-pixel test tapped a row that the test font's
+  wide letters push below the window, and the answer on adding recordings
+  had lost two phrases that `exercise_field_help_226_02_test` reads
+  (restored in EN/IT/ES).
+
+Not checked: the screens by hand (no Windows release build was made); Open
+folder on Linux and macOS; the Audio Library on an Android phone (the short
+window rule was checked only in tests).

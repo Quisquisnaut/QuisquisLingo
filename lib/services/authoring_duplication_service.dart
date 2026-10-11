@@ -242,6 +242,7 @@ class AuthoringDuplicationService {
             id: remap[clip.id]!,
             text: clip.text,
             filePath: clip.filePath,
+            originalFileName: clip.originalFileName,
           ),
       ],
       lessons: [

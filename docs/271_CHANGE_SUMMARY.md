@@ -277,3 +277,82 @@ preference key and no new folder. Course Studio's Delete resets only the
 deleting learner's progress: resetting other learners' progress needs the
 admin's PIN, in the Inventory. Deleting a learner keeps its two refusals
 (the only admin; a learner who maintains a Course).
+
+## Revision 2 (2.0.71+271002): the Audio Library like the Image Library; the Course Editor's top bar
+
+Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`, Revision 2).
+Mock-ups of the four screens were shown before the work.
+
+### What changes for an author
+
+- **Audio Library.** The top bar has three icons: **Help** (the Editor Help
+  at its sound questions), **Add to the Course** (Quick Import, Open from…)
+  and **Check** (Texts in this Course, Unused MP3 files). Before, the two
+  imports sat in a card and the check in a list row, all scrolling away with
+  a long explanation above them. With On-Device TTS the two menus are greyed
+  out and their tooltip says to choose Recorded MP3 only or Hybrid first.
+- **A fixed header**: the one-line notice, the audio source with one line of
+  explanation and the A–Z bar stay in place; only the recordings scroll.
+  When the window is too short (under 420 pixels of body), everything
+  scrolls, so the recordings always have room.
+- **Rows** no longer show the stored file name (a 64-character code); a
+  recording without text says "Tap to give it its text". An empty library in
+  a recorded mode says where to add recordings.
+- **Associate recording** shows **Original file** (the name the file had
+  when it was imported, when known) and **Stored as** (the name in the
+  Course's folder, in full, selectable), **Play**, **Open folder** on
+  Windows, Linux and macOS, the text field and **Texts in this Course**.
+  Apply is greyed while the field is empty. A text that already has its own
+  recording asks: "“Buongiorno.” already has a recording. Replace it? The
+  old one loses its text and moves under #."
+- **Texts in this Course** lists every text the Course speaks, with how many
+  exercises say it, a Draft mark and one of four states (Its own recording,
+  All parts recorded, Some parts recorded with the words still missing, No
+  recording); Search; **Only texts without a complete recording**; **Copy**
+  and **Save as…**.
+- **The original file name** is kept with every recording imported from now
+  on and removed by Export as Publisher Course.
+- **A Course's Image Library** opens with the same one-line notice, and its
+  Help is the Editor Help's picture questions.
+- **Course Editor main page**: Save now is a disk icon; Show internal IDs is
+  a switch in Course Info Editor.
+
+### How it is built
+
+- `CourseAudioClip.originalFileName`, `labelOf`, `withText`
+  (`lib/models/course_models.dart`); strict parse.
+- `AudioSegmenter` (`lib/services/audio_segmenter.dart`): the one matching
+  rule; `RecordedAudioService.segment` delegates to it; `coverage` goes on
+  past a word without a recording and names what is missing.
+- `CourseAudioTexts` (`lib/services/course_audio_texts.dart`): the list, its
+  states, the filter and the export.
+- `AudioTextsScreen` (`lib/screens/audio_texts_screen.dart`), a new file;
+  the Audio Library screen and its dialog stay in
+  `course_editor_screen.dart`.
+- `LibrarySaveNotice` (`lib/widgets/library_save_notice.dart`): one text for
+  both libraries.
+- `ImageLibraryHelpScreen` is deleted; its content is in the Editor Help
+  answers `findPicture`, `pictureBadges` (new), `addPictures` and
+  `pictureDetails`.
+
+### Decisions taken while building
+
+- **The two menus are greyed in On-Device TTS**, as the import card and the
+  check row were hidden there since Build 243 Revision 17.
+- **The header scrolls in a very short window** (a phone held sideways):
+  the plan asks for a fixed header; with about 200 pixels of header a short
+  window would leave no room for the recordings.
+- **Apply is greyed while the text is empty.** Before, Apply with an empty
+  field closed the dialog and changed nothing.
+- **A new Editor Help question**, "Which texts still need a recording?", so
+  that the answer on adding recordings does not grow further.
+- **The field Help of the audio fields** says "choose Add to the Course ›
+  Quick Import" where it said "press Quick Import" (EN, IT).
+
+### Not changed
+
+- Which recordings a Course plays for a text.
+- The read-only Course Info page: it has no Show internal IDs switch; someone
+  who may not edit turns the IDs on from the Lessons page.
+- The Shared Image Library (it saves each change at once and shows no
+  notice).

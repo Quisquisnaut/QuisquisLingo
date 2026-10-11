@@ -64,7 +64,12 @@ void main() {
 
     final saveNow = find.byKey(const Key('course-editor-save-now'));
     expect(saveNow, findsOneWidget);
-    expect(tester.widget<TextButton>(saveNow).onPressed, isNull);
+    // Build 271 Revision 2: Save now is an icon of the top bar.
+    expect(tester.widget<IconButton>(saveNow).onPressed, isNull);
+    expect(
+      tester.widget<IconButton>(saveNow).tooltip,
+      'Save now: write a new version and keep editing',
+    );
     expect(find.byKey(const Key('course-editor-unsaved')), findsNothing);
 
     // Course Info's button applies; nothing is written yet.
@@ -83,7 +88,7 @@ void main() {
     await tester.tap(apply);
     await tester.pumpUntilFileIoState(() => apply.evaluate().isEmpty);
     expect(find.byKey(const Key('course-editor-unsaved')), findsOneWidget);
-    expect(tester.widget<TextButton>(saveNow).onPressed, isNotNull);
+    expect(tester.widget<IconButton>(saveNow).onPressed, isNotNull);
     var stored = (await tester.runAsync(
       () => CourseEditorService().listUserCourses(),
     ))!.single;

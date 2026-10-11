@@ -52,32 +52,47 @@ void main() {
     );
   });
 
-  testWidgets('Audio Library shows MP3 actions only in recorded modes', (tester) async {
+  // Build 271 Revision 2: the MP3 actions are the top bar's Add to the Course
+  // and Check menus, greyed out while the device's voice reads everything.
+  testWidgets('Audio Library offers MP3 actions only in recorded modes', (tester) async {
     await tester.pumpWidget(MaterialApp(home: AudioLibraryScreen(course: dialogTestCourse())));
     await tester.pump();
+    bool enabled(String key) =>
+        tester.widget<PopupMenuButton<String>>(find.byKey(Key(key))).enabled;
+    String line() => tester.widget<Text>(find.byKey(const Key('audio-source-line'))).data!;
+
     expect(find.text('On-Device TTS'), findsOneWidget);
-    expect(find.textContaining('No MP3 files are needed'), findsOneWidget);
-    expect(find.text('Quick Import'), findsNothing);
-    expect(find.text('Check unused MP3 files', skipOffstage: false), findsNothing);
-    expect(find.byKey(const Key('open-mp3-from')), findsNothing);
+    expect(line(), 'The device’s voice reads every text; no recordings are needed.');
+    expect(enabled('audio-library-add'), isFalse);
+    expect(enabled('audio-library-check'), isFalse);
 
     await tester.tap(find.text('On-Device TTS'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Recorded MP3 only').last);
     await tester.pumpAndSettle();
-    expect(find.textContaining('there is no TTS fallback'), findsOneWidget);
+    expect(line(), 'Only your recordings play; a text without a complete recording stays silent.');
+    expect(enabled('audio-library-add'), isTrue);
+    expect(enabled('audio-library-check'), isTrue);
+    await tester.tap(find.byKey(const Key('audio-library-add')));
+    await tester.pumpAndSettle();
     expect(find.text('Quick Import'), findsOneWidget);
-    expect(find.text('Check unused MP3 files', skipOffstage: false), findsOneWidget);
     expect(find.byKey(const Key('open-mp3-from')), findsOneWidget);
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('audio-library-check')));
+    await tester.pumpAndSettle();
+    expect(find.text('Texts in this Course'), findsOneWidget);
+    expect(find.text('Unused MP3 files'), findsOneWidget);
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Recorded MP3 only'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Hybrid: MP3 + TTS fallback').last);
     await tester.pumpAndSettle();
-    expect(find.textContaining('this device’s text-to-speech voice'), findsOneWidget);
-    expect(find.text('Quick Import'), findsOneWidget);
-    expect(find.text('Check unused MP3 files', skipOffstage: false), findsOneWidget);
-    expect(find.byKey(const Key('open-mp3-from')), findsOneWidget);
+    expect(line(), 'Your recordings play first; the device’s voice reads a text they don’t fully cover.');
+    expect(enabled('audio-library-add'), isTrue);
+    expect(enabled('audio-library-check'), isTrue);
   });
 
   test('missing Image Bank manifest explains how to create it and where to read more', () async {

@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import '../models/course_models.dart';
 import 'audio_diagnostic_service.dart';
+import 'audio_segmenter.dart';
 import 'course_media_store.dart';
 import 'file_dialog_service.dart';
 import 'import/import_result.dart';
@@ -55,17 +56,6 @@ class RecordedAudioService {
 
   /// False when the system dialog is unsupported; hide Open from….
   bool get fileDialogsAvailable => _fileDialogs.isAvailable;
-
-  static final RegExp _nonWordBoundary = RegExp(
-    r'^[^\p{L}\p{M}\p{N}]+|[^\p{L}\p{M}\p{N}]+$',
-    unicode: true,
-  );
-
-  static String _segmentKey(String value) => value
-      .trim()
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .replaceAll(_nonWordBoundary, '')
-      .toLowerCase();
 
   /// Imports every MP3 in the Quick Import folder for audio. Each is staged under the 50 MB
   /// limit and checked by [Mp3Validator] before any is stored, so one bad
@@ -121,6 +111,10 @@ class RecordedAudioService {
             id: _clipId(batchStamp, index),
             text: '',
             filePath: reference,
+            // Build 271 Revision 2: a label for the author, never a path.
+            originalFileName: CourseAudioClip.labelOf(
+              checked[index].displayName,
+            ),
           ),
         );
       }
@@ -165,6 +159,7 @@ class RecordedAudioService {
         id: _clipId(DateTime.now().microsecondsSinceEpoch, 0),
         text: '',
         filePath: reference,
+        originalFileName: CourseAudioClip.labelOf(name),
       ),
     );
   }
@@ -248,6 +243,7 @@ class RecordedAudioService {
               id: _clipId(batchStamp, clips.length),
               text: '',
               filePath: reference,
+              originalFileName: CourseAudioClip.labelOf(item.displayName),
             ),
           );
           results.add(
@@ -297,33 +293,10 @@ class RecordedAudioService {
       'This MP3 is too large. Export or split it into smaller recordings and try again.';
 
   /// Longest-match segmentation prevents a single-word recording from taking
-  /// precedence over an available multi-word expression.
-  List<CourseAudioClip>? segment(String text, List<CourseAudioClip> library) {
-    final words = text.trim().split(RegExp(r'\s+'));
-    if (words.isEmpty) return const [];
-    final byText = {
-      for (final c in library)
-        if (_segmentKey(c.text).isNotEmpty) _segmentKey(c.text): c,
-    };
-    final out = <CourseAudioClip>[];
-    var i = 0;
-    while (i < words.length) {
-      CourseAudioClip? found;
-      int foundLen = 0;
-      for (var len = words.length - i; len >= 1; len--) {
-        final raw = _segmentKey(words.sublist(i, i + len).join(' '));
-        if (byText.containsKey(raw)) {
-          found = byText[raw];
-          foundLen = len;
-          break;
-        }
-      }
-      if (found == null) return null;
-      out.add(found);
-      i += foundLen;
-    }
-    return out;
-  }
+  /// precedence over an available multi-word expression. The rule itself is
+  /// [AudioSegmenter.segment] (pure Dart since Build 271 Revision 2).
+  List<CourseAudioClip>? segment(String text, List<CourseAudioClip> library) =>
+      AudioSegmenter.segment(text, library);
 
   /// Resolves only sources that exist, without creating an audio player.
   /// Course media is looked up in [courseId]'s folder.

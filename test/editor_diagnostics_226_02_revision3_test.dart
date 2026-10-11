@@ -55,9 +55,13 @@ void main() {
         await tester.pumpAndSettle();
       }
       expect(find.byTooltip('Editor Help'), findsOneWidget, reason: '$page');
+      // Build 271 Revision 2: the Course Editor's main page keeps the
+      // toggle in Course Info Editor (three icons in its top bar).
       expect(
         find.byTooltip('Internal IDs hidden. Tap to show'),
-        page is CourseProjectsScreen ? findsNothing : findsOneWidget,
+        page is CourseProjectsScreen || page is CourseEditorScreen
+            ? findsNothing
+            : findsOneWidget,
         reason: '$page',
       );
     }

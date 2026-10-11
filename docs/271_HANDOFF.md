@@ -241,3 +241,61 @@ Decisions taken while working (say so in the report):
 Gotcha: `CourseService.bundledCourseIds` must change with `courseAssets`
 (a test in `deleting_a_course_271_test` fails otherwise); without it the
 Inventory would offer to reset progress on a bundled Course.
+
+## Revision 2 (2.0.71+271002), the Audio Library like the Image Library
+
+State: done and committed (11 October 2026). Version 2.0.71+271002, Beta expiry 2026-11-10 23:59:59. Analyzer clean; complete suite 4,243 passed, 1 skipped (48:19).
+
+Plan: `docs/271_PLAN.md`, Revision 2. Mock-ups of the Audio Library,
+Associate recording, Texts in this Course and the Course Editor's top bar
+were shown in the chat on 11 October 2026; the owner answered "go on with
+next revision".
+
+What it holds (details in `docs/271_CHANGE_SUMMARY.md` and the `AGENTS.md`
+release entry):
+
+- Model: `CourseAudioClip.originalFileName` (`labelOf`, `withText`, strict
+  parse); kept by copies, removed by Export as Publisher Course; documented
+  in `docs/COURSE_JSON_FORMAT.md`.
+- Pure Dart: `lib/services/audio_segmenter.dart` (the one matching rule,
+  `coverage`), `lib/services/course_audio_texts.dart` (the texts, their
+  states, the filter, the export).
+- Screens: the Audio Library and `_AssociateRecordingDialog` in
+  `lib/screens/course_editor_screen.dart`; `lib/screens/audio_texts_screen.dart`
+  (new); `lib/widgets/library_save_notice.dart` (new, also in a Course's
+  Image Library); the Course Editor's top bar (Save now icon; Show internal
+  IDs in Course Info Editor).
+- Help EN/IT/ES: Editor Help 90 questions (`textsToRecord`, `pictureBadges`
+  new; the sound answers, `findPicture`, `addPictures`, `internalIds`,
+  `workingCopy`, `leaveEditor`, `courseInfo` changed); the field Help of the
+  audio fields (EN, IT); `ImageLibraryHelpScreen`, `imageLibraryHelp.*` and
+  the QQL Guide entry removed.
+- Documents: `docs/AUDIO_LIBRARY.md`, `docs/COURSE_EDITOR.md`.
+- Tests: `test/audio_library_271_test.dart`,
+  `test/course_editor_top_bar_271_test.dart`, and eleven existing files
+  changed for the new layout (listed in `docs/271_VALIDATION.md`).
+
+Decisions taken while building, for the owner to confirm or change:
+
+1. Add to the Course and Check are greyed in On-Device TTS (tooltip says
+   why), as their actions were hidden there before.
+2. Under 420 pixels of body height the header scrolls with the list.
+3. Apply in Associate recording is greyed while the text is empty.
+4. The read-only Course Info page has no Show internal IDs switch.
+5. Suggested, not built: the original file name in grey on a row without
+   text.
+
+What the first complete suite found (fixed before the second run): the new
+360-pixel test tapped a row that the test font's wide letters push below the
+window (it now opens the first row); the answer on adding recordings had lost
+"derived from the stable Course ID" and "the metadata and references belong
+to the Course", which `exercise_field_help_226_02_test` reads (restored in
+EN/IT/ES).
+
+Open, unchanged: the override for deleting a learner who maintains a Course
+(the owner has to decide what happens to that learner's Courses).
+
+Next: Revision 3, speed (`docs/271_PLAN.md`): the Course Editor's main page
+audits once per change of the working copy; Lesson and Round Audits check
+only their own part; a Course save reads the stored Courses once (measure
+first); the image library search uses precomputed keys and a short pause.

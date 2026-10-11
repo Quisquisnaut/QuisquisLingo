@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/exercise_image_metadata.dart';
+import 'package:quisquislingo_app/screens/editor_help_screen.dart';
 import 'package:quisquislingo_app/screens/flat_image_library_screen.dart';
 import 'package:quisquislingo_app/services/image_library_rules.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -157,12 +158,20 @@ void main() {
       expect(count(tester), '$restaurant images');
     });
 
-    testWidgets('the question mark opens the library Help', (tester) async {
+    // Build 271 Revision 2: the library's Help is the Editor Help, opened
+    // at its picture questions.
+    testWidgets('the question mark opens the Editor Help at the pictures', (
+      tester,
+    ) async {
       await open(tester);
       await tester.tap(find.byKey(const Key('image-library-help')));
       await tester.pumpAndSettle();
-      expect(find.text('Image Library Help'), findsOneWidget);
-      expect(find.textContaining('there is no Apply button'), findsOneWidget);
+      expect(find.byType(EditorHelpScreen), findsOneWidget);
+      expect(
+        find.byKey(const Key('editor-help-question-findPicture')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('“dogs” finds the dogs'), findsOneWidget);
     });
   });
 }

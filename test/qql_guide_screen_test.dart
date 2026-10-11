@@ -28,7 +28,6 @@ void main() {
           'editor',
           'exercise',
           'exercise-primitives',
-          'image-library',
           'json-structure',
           'publisher-signing',
           'course-model',

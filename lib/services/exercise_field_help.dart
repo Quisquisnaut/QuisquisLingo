@@ -322,7 +322,7 @@ abstract final class ExerciseFieldHelpRegistry {
         purpose:
             'Enter exactly what the learner should hear. On-Device TTS sends this text to the device’s native text-to-speech engine; no audio file is required in that mode. Example: Buongiorno, come stai?',
         entryRules:
-            'Playback follows the Course Audio Library mode. Recorded MP3 resolves this text against Course recordings; Hybrid tries a complete recording sequence before native TTS. Enter spoken words, not an MP3 filename or path. For MP3, open Course Editor > Audio Library, place files in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Quick Import, then Associate recording and enter its Word or expression. Select Recorded MP3 only or Hybrid. Exercises use these text mappings; there is no per-exercise file attachment.',
+            'Playback follows the Course Audio Library mode. Recorded MP3 resolves this text against Course recordings; Hybrid tries a complete recording sequence before native TTS. Enter spoken words, not an MP3 filename or path. For MP3, open Course Editor > Audio Library, place files in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, choose Add to the Course › Quick Import, then tap the recording (Associate recording) and enter its Word or expression. Select Recorded MP3 only or Hybrid. Exercises use these text mappings; there is no per-exercise file attachment.',
         validation:
             'Recordings are stored physically by learning language; metadata and references belong to the Course. Verified Course backups copy referenced recordings. Course JSON does not contain MP3 bytes and JSON alone does not transfer recordings.',
         example: 'Buongiorno, come stai?',

@@ -139,12 +139,12 @@ void main() {
 
     await _openEditor(tester, service, stored);
     await _openAudioLibrary(tester);
-    await tester.tap(find.byKey(const Key('audio-quick-import')));
+    await _tapQuickImport(tester);
     await tester.pumpUntilFileIoState(
       () => find.byType(SnackBar).evaluate().isNotEmpty,
     );
     // The batch threw, so no clip reached the draft, but two files were stored.
-    expect(find.text('Unassigned MP3'), findsNothing);
+    expect(find.text(AudioLibraryScreen.noTextLabel), findsNothing);
     expect(await _storedMp3s(tester), hasLength(2));
 
     await tester.pageBack();
@@ -262,7 +262,7 @@ void main() {
     // Leaving hands the draft to the Editor, so the Course is now changed.
     await tester.pageBack();
     await tester.pumpUntilFileIoState(
-      () => find.byKey(const Key('audio-quick-import')).evaluate().isEmpty,
+      () => find.byKey(const Key('audio-library-add')).evaluate().isEmpty,
     );
     await tester.tap(find.byType(BackButton).last);
     await _settle(tester);
@@ -611,17 +611,29 @@ Future<void> _openAudioLibrary(WidgetTester tester) async {
   );
   await tester.tap(find.text('Audio Library'));
   await tester.pumpUntilFileIoState(
+    () => find.byKey(const Key('audio-library-add')).evaluate().isNotEmpty,
+  );
+}
+
+/// Build 271 Revision 2: Quick Import is in the top bar's Add to the Course
+/// menu.
+Future<void> _tapQuickImport(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('audio-library-add')));
+  await tester.pumpUntilFileIoState(
     () => find.byKey(const Key('audio-quick-import')).evaluate().isNotEmpty,
   );
+  await tester.tap(find.byKey(const Key('audio-quick-import')));
 }
 
 Future<void> _importFromFolder(
   WidgetTester tester, {
   required int expectedClips,
 }) async {
-  await tester.tap(find.byKey(const Key('audio-quick-import')));
+  await _tapQuickImport(tester);
   await tester.pumpUntilFileIoState(
-    () => find.text('Unassigned MP3').evaluate().length == expectedClips,
+    () =>
+        find.text(AudioLibraryScreen.noTextLabel).evaluate().length ==
+        expectedClips,
   );
 }
 
@@ -629,7 +641,7 @@ Future<void> _importFromFolder(
 Future<void> _saveAudioLibrary(WidgetTester tester) async {
   await tester.pageBack();
   await tester.pumpUntilFileIoState(
-    () => find.byKey(const Key('audio-quick-import')).evaluate().isEmpty,
+    () => find.byKey(const Key('audio-library-add')).evaluate().isEmpty,
   );
 }
 
