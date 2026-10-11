@@ -36,7 +36,10 @@ changes), keeps the disk icon for Save alone, shows the original file name on
 a recording without text, lets the admin delete a learner who maintains
 Courses after a warning, the word DELETE, a second confirmation and the PIN,
 and no longer lists under Learner profiles a learner deleted in the
-Inventory.
+Inventory. A second follow-up puts the steps of every admin action in one
+order (the warnings, then the PIN, then the typed word), and lets the admin
+delete the last Team Leader of a Team (the member added first takes over)
+and delete a Team from the Inventory's new Teams section.
 
 Build 270 fixes the weaknesses found by the audit of 10 October 2026
 ([audit](docs/270_AUDIT.md), [change summary](docs/270_CHANGE_SUMMARY.md)).

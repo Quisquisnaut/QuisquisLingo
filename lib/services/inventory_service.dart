@@ -64,6 +64,10 @@ enum InventoryActionKind {
   /// Every learner's progress on a Course that is no longer on this device
   /// (Build 271 Revision 1 second follow-up).
   resetCourseProgress,
+
+  /// A Team (Build 271 Revision 2 second follow-up): only the admin, after
+  /// the warning, a second confirmation, the PIN and the word DELETE.
+  deleteTeam,
 }
 
 class InventoryAction {
@@ -207,10 +211,13 @@ class InventoryService {
       courseProblem = 'The stored courses could not be read: $error';
     }
     var teams = <AuthoringTeam>[];
+    var teamsUnreadable = false;
     try {
       teams = await _teams();
     } catch (_) {
-      // Team names are only decoration on the course rows.
+      // On the course rows Team names are only decoration; the Teams
+      // section says that the list could not be read.
+      teamsUnreadable = true;
     }
     final teamNames = {for (final t in teams) t.teamId: t.displayName};
 
@@ -266,6 +273,46 @@ class InventoryService {
                     'deleted, nor the last Team Leader of a Team. A learner '
                     'who maintains a Course can be deleted after the '
                     'warning shown below.',
+              ),
+            ),
+        ],
+      ),
+    );
+
+    // ---- Teams (Build 271 Revision 2 second follow-up, owner decision of
+    // 11 October 2026): until now nobody could delete a Team.
+    sections.add(
+      InventorySection(
+        title: 'Teams',
+        description:
+            'Teams of learners who share the editing of the Courses '
+            'assigned to them. They are stored inside QQL’s own settings '
+            'storage, so they have no file of their own.'
+            '${teamsUnreadable ? ' The list of Teams could not be read.' : ''}',
+        items: [
+          for (final team in teams)
+            InventoryItem(
+              name: team.displayName,
+              owner:
+                  'Team Leader: '
+                  '${team.leadProfileIds.map((id) => names[id] ?? 'a learner no longer on this device').join(', ')}',
+              note:
+                  '${team.memberProfileIds.length} '
+                  '${team.memberProfileIds.length == 1 ? 'member' : 'members'}'
+                  ' · assigned to '
+                  '${switch (courses.where((course) => course.assignedTeamId == team.teamId).length) {
+                    0 => 'no Course',
+                    1 => '1 Course',
+                    final n => '$n Courses',
+                  }}. Stored inside QQL settings (no file).',
+              action: InventoryAction(
+                InventoryActionKind.deleteTeam,
+                team.teamId,
+                label: 'Delete',
+                explanation:
+                    'Delete the Team “${team.displayName}”. Its members '
+                    'stay as learners; they lose the access the Team gave '
+                    'them to the Courses assigned to it.',
               ),
             ),
         ],

@@ -58,86 +58,189 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  /// Delete or Forget: what it removes, then the admin's PIN. The service
-  /// applies the same rules as the rest of QQL and says why it refuses.
+  /// Delete, Forget or Reset, in three steps (Build 271 Revision 2 second
+  /// follow-up, owner decision of 11 October 2026: 1. the warnings, 2. the
+  /// PIN, 3. the word DELETE, everywhere a warning and a PIN meet):
   ///
-  /// For a Course (Build 271 Revision 1 follow-up, owner decisions of
-  /// 11 October 2026) the dialog also names the learners who have it and
-  /// those who kept progress on it, and offers, both off, to reset
-  /// everyone's progress on it and to delete all its backups; resetting
-  /// progress is confirmed once more.
+  /// 1. What the action removes, with its warnings and choices. For a
+  ///    Course: who has it, who kept progress on it, and the two options,
+  ///    both off (reset everyone's progress, asked once more; delete its
+  ///    backups). For a Delete the service refuses otherwise, a second
+  ///    confirmation: a Publisher Course others have, another learner's
+  ///    Course, a learner who maintains Courses or is the last Team Leader
+  ///    of a Team, and a Team.
+  /// 2. The admin's PIN.
+  /// 3. For those Deletes, the word DELETE, typed after the PIN.
   ///
-  /// A Publisher Course that other learners have in their courses is
-  /// refused by the service. The admin may remove it anyway (second
-  /// follow-up, owner decision: the admin can clean up anything, after a
-  /// warning): the dialog says who loses it, asks for the word DELETE, and
-  /// a second confirmation follows before the PIN is used.
+  /// The service applies the same rules as the rest of QQL and says why it
+  /// refuses; nothing is changed before the last step.
   Future<void> _runAction(InventoryItem item) async {
     final action = item.action;
     if (action == null) return;
     final actor = await _profiles.getActiveProfileId();
     if (actor == null || !mounted) return;
-    final isCourse = InventoryActionService.isCourseAction(action);
-    final preview = isCourse ? _coursePreview(action, actor) : null;
-    InventoryCoursePreview? loaded;
-    unawaited(preview?.then((value) => loaded = value));
-    // Build 271 Revision 2 follow-up: a learner who maintains Courses.
+    final coursePreview = InventoryActionService.isCourseAction(action)
+        ? _coursePreview(action, actor)
+        : null;
     final learnerPreview = action.kind == InventoryActionKind.deleteLearner
         ? _learnerPreview(action, item)
         : null;
-    InventoryLearnerPreview? loadedLearner;
-    unawaited(learnerPreview?.then((value) => loadedLearner = value));
+    final teamPreview = action.kind == InventoryActionKind.deleteTeam
+        ? _teamPreview(action, item)
+        : null;
+
+    // ---- 1. What it removes, the warnings and the choices.
+    var resetProgress = false;
+    var deleteBackups = false;
+    var checking = false;
+    final choices = await showDialog<_ActionChoices>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setLocal) => AlertDialog(
+          key: const Key('inventory-action-dialog'),
+          title: Text('${action.label} “${item.name}”?'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(action.explanation),
+                if (coursePreview != null)
+                  FutureBuilder<InventoryCoursePreview?>(
+                    future: coursePreview,
+                    builder: (context, snapshot) => _CourseExtras(
+                      preview: snapshot.data,
+                      resetProgress: resetProgress,
+                      deleteBackups: deleteBackups,
+                      onResetProgress: checking
+                          ? null
+                          : (value) => setLocal(() => resetProgress = value),
+                      onDeleteBackups: checking
+                          ? null
+                          : (value) => setLocal(() => deleteBackups = value),
+                    ),
+                  ),
+                if (learnerPreview != null)
+                  FutureBuilder<InventoryLearnerPreview?>(
+                    future: learnerPreview,
+                    builder: (context, snapshot) => _WarningBox(
+                      warning: snapshot.data?.overrideWarning,
+                      warningKey: const Key(
+                        'inventory-learner-override-warning',
+                      ),
+                      icon: Icons.edit_off_outlined,
+                    ),
+                  ),
+                if (teamPreview != null)
+                  FutureBuilder<InventoryTeamPreview?>(
+                    future: teamPreview,
+                    builder: (context, snapshot) => _WarningBox(
+                      warning: snapshot.data?.overrideWarning,
+                      warningKey: const Key('inventory-team-override-warning'),
+                      icon: Icons.groups_outlined,
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                const Text(
+                  'This cannot be undone. Your admin PIN is asked next.',
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: checking ? null : () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('inventory-action-continue'),
+              onPressed: checking
+                  ? null
+                  : () async {
+                      setLocal(() => checking = true);
+                      // Never throw: a check that fails gives null, or for
+                      // a learner "QQL cannot tell".
+                      final course = await coursePreview;
+                      final learner = await learnerPreview;
+                      final team = await teamPreview;
+                      if (!dialogContext.mounted) return;
+                      final override = _Override.of(
+                        item,
+                        course: course,
+                        learner: learner,
+                        team: team,
+                        teamAction:
+                            action.kind == InventoryActionKind.deleteTeam,
+                        resetProgress: resetProgress,
+                        deleteBackups: deleteBackups,
+                      );
+                      var goOn = true;
+                      if (override != null) {
+                        goOn = await _confirmOverride(dialogContext, override);
+                      }
+                      if (goOn && resetProgress && dialogContext.mounted) {
+                        goOn = await _confirmReset(
+                          dialogContext,
+                          item,
+                          publisher:
+                              action.kind ==
+                              InventoryActionKind.deletePublisherCourse,
+                        );
+                      }
+                      if (!dialogContext.mounted) return;
+                      if (!goOn) {
+                        setLocal(() => checking = false);
+                        return;
+                      }
+                      Navigator.pop(
+                        dialogContext,
+                        _ActionChoices(
+                          resetProgress: resetProgress,
+                          deleteBackups: deleteBackups,
+                          wordPrompt: override?.wordPrompt,
+                        ),
+                      );
+                    },
+              child: Text(action.label),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choices == null || !mounted) return;
+
+    // ---- 2. The PIN, and 3. the word DELETE where the warning asked.
     final pin = TextEditingController();
     final word = TextEditingController();
     String? error;
     String? note;
     var running = false;
-    var resetProgress = false;
-    var deleteBackups = false;
+    final override = choices.wordPrompt != null;
     final done =
         await showDialog<bool>(
           context: context,
+          barrierDismissible: false,
           builder: (dialogContext) => StatefulBuilder(
             builder: (dialogContext, setLocal) => AlertDialog(
-              key: const Key('inventory-action-dialog'),
-              title: Text('${action.label} “${item.name}”?'),
+              key: const Key('inventory-action-pin-dialog'),
+              title: const Text('Enter your admin PIN'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(action.explanation),
-                    if (preview != null)
-                      FutureBuilder<InventoryCoursePreview?>(
-                        future: preview,
-                        builder: (context, snapshot) => _CourseExtras(
-                          preview: snapshot.data,
-                          word: word,
-                          resetProgress: resetProgress,
-                          deleteBackups: deleteBackups,
-                          onResetProgress: running
-                              ? null
-                              : (value) =>
-                                    setLocal(() => resetProgress = value),
-                          onDeleteBackups: running
-                              ? null
-                              : (value) =>
-                                    setLocal(() => deleteBackups = value),
-                        ),
-                      ),
-                    if (learnerPreview != null)
-                      FutureBuilder<InventoryLearnerPreview?>(
-                        future: learnerPreview,
-                        builder: (context, snapshot) =>
-                            _LearnerExtras(preview: snapshot.data, word: word),
-                      ),
-                    const SizedBox(height: 8),
-                    const Text('This cannot be undone. Enter your admin PIN.'),
-                    const SizedBox(height: 8),
+                    Text(
+                      '${override ? 'Last steps' : 'Last step'}: '
+                      '${action.label} “${item.name}”. Nothing has been '
+                      'changed so far.',
+                    ),
+                    const SizedBox(height: 12),
                     TextField(
                       key: const Key('inventory-action-pin'),
                       controller: pin,
                       obscureText: true,
+                      autofocus: true,
+                      enabled: !running,
                       keyboardType: TextInputType.number,
                       maxLength: 4,
                       decoration: const InputDecoration(
@@ -145,12 +248,30 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         labelText: 'Admin PIN',
                       ),
                     ),
+                    if (override) ...[
+                      Text(choices.wordPrompt!),
+                      const SizedBox(height: 8),
+                      TextField(
+                        key: const Key('inventory-action-word'),
+                        controller: word,
+                        enabled: !running,
+                        textCapitalization: TextCapitalization.characters,
+                        autocorrect: false,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: 'Type DELETE to confirm',
+                        ),
+                      ),
+                    ],
                     if (error != null)
-                      Text(
-                        error!,
-                        key: const Key('inventory-action-error'),
-                        style: TextStyle(
-                          color: Theme.of(dialogContext).colorScheme.error,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          error!,
+                          key: const Key('inventory-action-error'),
+                          style: TextStyle(
+                            color: Theme.of(dialogContext).colorScheme.error,
+                          ),
                         ),
                       ),
                   ],
@@ -168,44 +289,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   onPressed: running
                       ? null
                       : () async {
-                          final learner = loadedLearner;
-                          final override =
-                              (loaded?.needsOverride ?? false) ||
-                              (learner?.needsOverride ?? false);
-                          if (override) {
-                            if (word.text.trim() !=
-                                InventoryActionService.overrideWord) {
-                              setLocal(
-                                () => error =
-                                    'Type DELETE in capital letters to go '
-                                    'ahead.',
-                              );
-                              return;
-                            }
-                            if (learner != null && learner.needsOverride
-                                ? !await _confirmLearnerOverride(
-                                    dialogContext,
-                                    learner,
-                                  )
-                                : !await _confirmOverride(
-                                    dialogContext,
-                                    item,
-                                    loaded!,
-                                    resetProgress: resetProgress,
-                                    deleteBackups: deleteBackups,
-                                  )) {
-                              return;
-                            }
-                          }
-                          if (!dialogContext.mounted) return;
-                          if (resetProgress &&
-                              !await _confirmReset(
-                                dialogContext,
-                                item,
-                                publisher:
-                                    action.kind ==
-                                    InventoryActionKind.deletePublisherCourse,
-                              )) {
+                          if (override &&
+                              word.text.trim() !=
+                                  InventoryActionService.overrideWord) {
+                            setLocal(
+                              () => error =
+                                  'Type DELETE in capital letters to go '
+                                  'ahead.',
+                            );
                             return;
                           }
                           setLocal(() {
@@ -217,8 +308,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                               action,
                               actorProfileId: actor,
                               pin: pin.text,
-                              resetEveryonesProgress: resetProgress,
-                              deleteBackups: deleteBackups,
+                              resetEveryonesProgress: choices.resetProgress,
+                              deleteBackups: choices.deleteBackups,
                               adminOverride: override,
                               typedWord: word.text,
                             );
@@ -251,8 +342,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
         duration: Duration(seconds: note == null ? 4 : 8),
         content: Text(
           '${action.label}: “${item.name}” done.'
-          '${resetProgress ? ' Everyone\'s progress on it was reset.' : ''}'
-          '${deleteBackups ? ' Its backups were deleted.' : ''}'
+          '${choices.resetProgress ? ' Everyone\'s progress on it was reset.' : ''}'
+          '${choices.deleteBackups ? ' Its backups were deleted.' : ''}'
           '${note == null ? '' : ' $note'}',
         ),
       ),
@@ -289,76 +380,54 @@ class _InventoryScreenState extends State<InventoryScreen> {
     }
   }
 
-  /// The second confirmation before a learner who maintains Courses is
-  /// deleted (Build 271 Revision 2 follow-up).
-  Future<bool> _confirmLearnerOverride(
+  /// What the Team dialog shows. A check that fails still warns, without
+  /// the names.
+  Future<InventoryTeamPreview?> _teamPreview(
+    InventoryAction action,
+    InventoryItem item,
+  ) async {
+    try {
+      return await _actions.previewTeam(action) ??
+          InventoryTeamPreview(
+            name: item.name,
+            members: const [],
+            courses: const [],
+          );
+    } catch (_) {
+      return InventoryTeamPreview(
+        name: item.name,
+        members: const [],
+        courses: const [],
+      );
+    }
+  }
+
+  /// The second confirmation before a Delete the service refuses otherwise.
+  /// It says what goes and what stays, and where the admin decided it (owner
+  /// request of 11 October 2026): the boxes in the first dialog.
+  Future<bool> _confirmOverride(
     BuildContext context,
-    InventoryLearnerPreview preview,
+    _Override override,
   ) async =>
       await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          key: const Key('inventory-learner-override-confirm'),
-          title: Text(preview.overrideTitle),
-          content: Text(preview.overrideQuestion),
+          key: const Key('inventory-override-confirm'),
+          title: Text(override.title),
+          content: Text(override.question),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Keep the learner'),
+              child: Text(override.keep),
             ),
             FilledButton(
-              key: const Key('inventory-learner-override-confirm-run'),
+              key: const Key('inventory-override-confirm-run'),
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(ctx).colorScheme.error,
                 foregroundColor: Theme.of(ctx).colorScheme.onError,
               ),
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text(InventoryLearnerPreview.overrideButton),
-            ),
-          ],
-        ),
-      ) ??
-      false;
-
-  /// The second confirmation before a Delete the service refuses otherwise:
-  /// a Publisher Course other learners have in their courses, or another
-  /// learner's custom Course.
-  ///
-  /// It says what happens to the learners' progress, and for a custom
-  /// Course to its backups, and where the admin decides that (owner request
-  /// of 11 October 2026): the boxes in the first dialog.
-  Future<bool> _confirmOverride(
-    BuildContext context,
-    InventoryItem item,
-    InventoryCoursePreview preview, {
-    required bool resetProgress,
-    required bool deleteBackups,
-  }) async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          key: const Key('inventory-course-override-confirm'),
-          title: Text(preview.overrideTitle),
-          content: Text(
-            preview.overrideQuestion(
-              item.name,
-              resetProgress: resetProgress,
-              deleteBackups: deleteBackups,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Keep the Course'),
-            ),
-            FilledButton(
-              key: const Key('inventory-course-override-confirm-run'),
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(ctx).colorScheme.error,
-                foregroundColor: Theme.of(ctx).colorScheme.onError,
-              ),
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(preview.overrideButton),
+              child: Text(override.button),
             ),
           ],
         ),
@@ -583,7 +652,6 @@ class _SectionCard extends StatelessWidget {
 class _CourseExtras extends StatelessWidget {
   const _CourseExtras({
     required this.preview,
-    required this.word,
     required this.resetProgress,
     required this.deleteBackups,
     required this.onResetProgress,
@@ -591,10 +659,6 @@ class _CourseExtras extends StatelessWidget {
   });
 
   final InventoryCoursePreview? preview;
-
-  /// Where the admin types DELETE to remove a Publisher Course that other
-  /// learners have.
-  final TextEditingController word;
   final bool resetProgress;
   final bool deleteBackups;
   final ValueChanged<bool>? onResetProgress;
@@ -655,25 +719,6 @@ class _CourseExtras extends StatelessWidget {
             ),
           ),
         ],
-        if (data?.needsOverride ?? false) ...[
-          const SizedBox(height: 12),
-          Text(
-            data!.othersBlockRemoval
-                ? 'To remove it anyway, type DELETE.'
-                : 'To delete it anyway, type DELETE.',
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            key: const Key('inventory-course-override-word'),
-            controller: word,
-            textCapitalization: TextCapitalization.characters,
-            autocorrect: false,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Type DELETE to confirm',
-            ),
-          ),
-        ],
         const SizedBox(height: 8),
         CheckboxListTile(
           key: const Key('inventory-course-reset-progress'),
@@ -716,64 +761,129 @@ class _CourseExtras extends StatelessWidget {
   }
 }
 
-/// The learner part of the Inventory's Delete dialog (Build 271 Revision 2
-/// follow-up, owner decision of 11 October 2026): for a learner who
-/// maintains Courses, what becomes of them and the word DELETE. Nothing
-/// shows for any other learner.
-class _LearnerExtras extends StatelessWidget {
-  const _LearnerExtras({required this.preview, required this.word});
+/// What the first dialog of an Inventory action hands to the PIN dialog.
+class _ActionChoices {
+  const _ActionChoices({
+    required this.resetProgress,
+    required this.deleteBackups,
+    required this.wordPrompt,
+  });
 
-  final InventoryLearnerPreview? preview;
+  final bool resetProgress;
+  final bool deleteBackups;
 
-  /// Where the admin types DELETE.
-  final TextEditingController word;
+  /// What asks for the word DELETE after the PIN; null when the action
+  /// needs no override.
+  final String? wordPrompt;
+}
+
+/// The second confirmation of a Delete the service refuses otherwise, and
+/// what asks for the word DELETE after the PIN.
+class _Override {
+  const _Override({
+    required this.title,
+    required this.question,
+    required this.button,
+    required this.keep,
+    required this.wordPrompt,
+  });
+
+  final String title;
+  final String question;
+  final String button;
+
+  /// The button that goes back: "Keep the Course".
+  final String keep;
+  final String wordPrompt;
+
+  /// The override [item]'s Delete needs, or null when it needs none.
+  static _Override? of(
+    InventoryItem item, {
+    required InventoryCoursePreview? course,
+    required InventoryLearnerPreview? learner,
+    required InventoryTeamPreview? team,
+    required bool teamAction,
+    required bool resetProgress,
+    required bool deleteBackups,
+  }) {
+    if (course != null && course.needsOverride) {
+      return _Override(
+        title: course.overrideTitle,
+        question: course.overrideQuestion(
+          item.name,
+          resetProgress: resetProgress,
+          deleteBackups: deleteBackups,
+        ),
+        button: course.overrideButton,
+        keep: 'Keep the Course',
+        wordPrompt: course.othersBlockRemoval
+            ? 'Then, to remove it anyway, type DELETE.'
+            : 'Then, to delete it anyway, type DELETE.',
+      );
+    }
+    if (learner != null && learner.needsOverride) {
+      return _Override(
+        title: learner.overrideTitle,
+        question: learner.overrideQuestion,
+        button: InventoryLearnerPreview.overrideButton,
+        keep: 'Keep the learner',
+        wordPrompt: 'Then, to delete ${learner.name} anyway, type DELETE.',
+      );
+    }
+    if (teamAction && team != null) {
+      return _Override(
+        title: team.overrideTitle,
+        question: team.overrideQuestion,
+        button: InventoryTeamPreview.overrideButton,
+        keep: 'Keep the Team',
+        wordPrompt: 'Then, to delete the Team, type DELETE.',
+      );
+    }
+    return null;
+  }
+}
+
+/// A warning in the first dialog of an Inventory action; nothing while
+/// there is none.
+class _WarningBox extends StatelessWidget {
+  const _WarningBox({
+    required this.warning,
+    required this.warningKey,
+    required this.icon,
+  });
+
+  final String? warning;
+  final Key warningKey;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    final data = preview;
-    final warning = data?.overrideWarning;
-    if (data == null || warning == null) return const SizedBox.shrink();
+    final text = warning;
+    if (text == null) return const SizedBox.shrink();
     final scheme = Theme.of(context).colorScheme;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: scheme.errorContainer,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.edit_off_outlined, color: scheme.onErrorContainer),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  warning,
-                  key: const Key('inventory-learner-override-warning'),
-                  style: TextStyle(color: scheme.onErrorContainer),
-                ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: scheme.errorContainer,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: scheme.onErrorContainer),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                text,
+                key: warningKey,
+                style: TextStyle(color: scheme.onErrorContainer),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        Text('To delete ${data.name} anyway, type DELETE.'),
-        const SizedBox(height: 8),
-        TextField(
-          key: const Key('inventory-learner-override-word'),
-          controller: word,
-          textCapitalization: TextCapitalization.characters,
-          autocorrect: false,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Type DELETE to confirm',
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

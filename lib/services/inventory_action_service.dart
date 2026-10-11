@@ -19,6 +19,7 @@ import 'image_bank_service.dart';
 import 'inventory_service.dart';
 import 'profile_service.dart';
 import 'publisher_export_memory.dart';
+import 'team_service.dart';
 import 'course_wizard_memory.dart';
 import 'course_backup_retention.dart';
 
@@ -184,6 +185,7 @@ class InventoryLearnerPreview {
   const InventoryLearnerPreview({
     required this.name,
     required this.maintained,
+    this.teams = const [],
     this.unknown = false,
   });
 
@@ -193,12 +195,35 @@ class InventoryLearnerPreview {
   /// The custom Courses the learner maintains.
   final List<MaintainedCourse> maintained;
 
+  /// The Teams whose last Team Leader the learner is (second follow-up).
+  final List<LedTeam> teams;
+
   /// Whether QQL cannot tell what the learner maintains (a stored Course
   /// file that cannot be read at all).
   final bool unknown;
 
   /// Whether deleting the learner is refused without the override.
-  bool get needsOverride => maintained.isNotEmpty || unknown;
+  bool get needsOverride =>
+      maintained.isNotEmpty || teams.isNotEmpty || unknown;
+
+  /// What becomes of the Teams the learner alone leads.
+  String get _teamsWarning => [
+    for (final team in teams)
+      team.successor == null
+          ? '$name is the only member of the Team “${team.name}”: the Team '
+                'is removed, and the Courses assigned to it are no longer '
+                'shared through it.'
+          : '$name is the last Team Leader of “${team.name}”: '
+                '${team.successor}, the member who was added first, becomes '
+                'its Team Leader.',
+  ].join(' ');
+
+  String get _teamsQuestion => [
+    for (final team in teams)
+      team.successor == null
+          ? 'The Team “${team.name}” will be removed.'
+          : '${team.successor} will become Team Leader of “${team.name}”.',
+  ].join(' ');
 
   static String _named(MaintainedCourse course) =>
       '“${course.title}”'
@@ -224,42 +249,124 @@ class InventoryLearnerPreview {
   /// needed.
   String? get overrideWarning {
     if (!needsOverride) return null;
-    if (maintained.isEmpty) {
-      return 'A stored Course file cannot be read, so QQL cannot tell '
-          'whether $name maintains it. If so, deleting $name leaves that '
-          'Course on this device without a Maintainer.';
-    }
     final stays = maintained.length == 1 ? 'stays' : 'stay';
     final them = maintained.length == 1 ? 'it' : 'them';
-    return '$name maintains $courses. Deleting $name leaves $_these on '
-        'this device without a Maintainer. '
-        'Without a Maintainer, a Course can be edited only by the members '
-        'of a Team already assigned to it, nobody can change its Maintainer '
-        'or its Team, and a Private course is seen only by that Team. '
-        '$_what $stays under Custom and installed courses in this '
-        'Inventory, where you can delete $them. To avoid this, $name can '
-        'first change the Course Maintainer in Course Info Editor.'
-        '${unknown ? ' Another stored Course file cannot be read, so QQL cannot tell whether $name maintains it too.' : ''}';
+    return [
+      if (maintained.isNotEmpty)
+        '$name maintains $courses. Deleting $name leaves $_these on '
+            'this device without a Maintainer. '
+            'Without a Maintainer, a Course can be edited only by the '
+            'members of a Team already assigned to it, nobody can change '
+            'its Maintainer or its Team, and a Private course is seen only '
+            'by that Team. '
+            '$_what $stays under Custom and installed courses in this '
+            'Inventory, where you can delete $them. To avoid this, $name '
+            'can first change the Course Maintainer in Course Info Editor.',
+      if (teams.isNotEmpty) _teamsWarning,
+      if (unknown)
+        maintained.isEmpty
+            ? 'A stored Course file cannot be read, so QQL cannot tell '
+                  'whether $name maintains it. If so, deleting $name leaves '
+                  'that Course on this device without a Maintainer.'
+            : 'Another stored Course file cannot be read, so QQL cannot '
+                  'tell whether $name maintains it too.',
+    ].join(' ');
   }
 
   /// The title of the second confirmation.
-  String get overrideTitle => maintained.isEmpty
-      ? 'Delete this learner anyway?'
-      : 'Delete a learner who maintains Courses?';
+  String get overrideTitle => maintained.isNotEmpty
+      ? 'Delete a learner who maintains Courses?'
+      : teams.isNotEmpty
+      ? 'Delete the last Team Leader?'
+      : 'Delete this learner anyway?';
 
   /// The button of the second confirmation.
   static const overrideButton = 'Delete anyway';
 
   /// The second confirmation: what stays and what goes.
-  String get overrideQuestion {
-    final courses = maintained.isEmpty
-        ? 'A Course $name may maintain will stay on this device without a '
-              'Maintainer.'
-        : '$name maintains ${this.courses}. $_what will stay on this '
-              'device without a Maintainer.';
-    return '$courses $name\'s progress and settings will be deleted. This '
-        'cannot be undone.';
-  }
+  String get overrideQuestion => [
+    if (maintained.isNotEmpty)
+      '$name maintains $courses. $_what will stay on this device without a '
+          'Maintainer.'
+    else if (unknown)
+      'A Course $name may maintain will stay on this device without a '
+          'Maintainer.',
+    if (teams.isNotEmpty) _teamsQuestion,
+    '$name\'s progress and settings will be deleted. This cannot be undone.',
+  ].join(' ');
+}
+
+/// A Team whose last Team Leader the admin is about to delete (Build 271
+/// Revision 2 second follow-up).
+class LedTeam {
+  const LedTeam({required this.name, required this.successor});
+
+  /// The Team's name.
+  final String name;
+
+  /// Who becomes its Team Leader: the member added first; null when the
+  /// learner is its only member, so the Team goes.
+  final String? successor;
+}
+
+/// What the Inventory shows before it deletes a Team (Build 271 Revision 2
+/// second follow-up, owner decisions of 11 October 2026: the admin can
+/// delete a Team, with the usual strong warning).
+class InventoryTeamPreview {
+  const InventoryTeamPreview({
+    required this.name,
+    required this.members,
+    required this.courses,
+  });
+
+  /// The Team's name.
+  final String name;
+
+  /// Its members, by name; a member no longer on this device is left out.
+  final List<String> members;
+
+  /// The titles of the Courses assigned to it.
+  final List<String> courses;
+
+  static String _joined(List<String> names) => names.length == 1
+      ? names.single
+      : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
+
+  /// "Its members (Anna and Marco)", "Its only member (Anna)".
+  String get _itsMembers => members.isEmpty
+      ? 'Its members'
+      : members.length == 1
+      ? 'Its only member (${members.single})'
+      : 'Its members (${_joined(members)})';
+
+  String get _lose => members.length == 1 ? 'loses' : 'lose';
+
+  /// What the admin is told first.
+  String get overrideWarning => courses.isEmpty
+      ? 'Deleting this Team cannot be undone. No Course is assigned to it, '
+            'so nobody loses access to a Course. $_itsMembers '
+            '${members.length == 1 ? 'stays as a learner' : 'stay as learners'}.'
+      : 'Deleting this Team cannot be undone. $_itsMembers $_lose the '
+            'access it gave them to '
+            '${courses.length == 1 ? 'the Course assigned to it' : 'the ${courses.length} Courses assigned to it'}: '
+            '${_joined([for (final title in courses) '“$title”'])}. '
+            'The Courses stay with their Maintainers, who can assign '
+            'another Team in Course Info Editor; until then only their '
+            'Maintainers can edit them. The learners themselves stay.';
+
+  /// The title of the second confirmation.
+  String get overrideTitle => 'Delete the Team “$name”?';
+
+  /// The button of the second confirmation.
+  static const overrideButton = 'Delete the Team';
+
+  /// The second confirmation.
+  String get overrideQuestion => courses.isEmpty
+      ? 'The Team “$name” will be deleted. Its members stay as learners. '
+            'This cannot be undone.'
+      : 'The Team “$name” will be deleted. $_itsMembers $_lose the access '
+            'it gave them to the Courses assigned to it; the Courses stay '
+            'with their Maintainers. This cannot be undone.';
 }
 
 /// Runs an Inventory item's Delete or Forget (Build 266 Revision 2, owner
@@ -365,18 +472,57 @@ class InventoryActionService {
     final name =
         (await _profiles.getProfileById(action.target))?.displayName ??
         'This learner';
+    final teams = <LedTeam>[];
+    for (final team in await _profiles.teamsLedOnlyBy(action.target)) {
+      final successor = team.successorOf(action.target);
+      teams.add(
+        LedTeam(
+          name: team.displayName,
+          successor: successor == null
+              ? null
+              : (await _profiles.getProfileById(successor))?.displayName ??
+                    'A learner no longer on this device',
+        ),
+      );
+    }
     try {
       return InventoryLearnerPreview(
         name: name,
         maintained: await CourseMaintainerGuard.maintainedBy(action.target),
+        teams: teams,
       );
     } on FormatException {
       return InventoryLearnerPreview(
         name: name,
         maintained: const [],
+        teams: teams,
         unknown: true,
       );
     }
+  }
+
+  /// What the dialog shows before a Team goes (Build 271 Revision 2 second
+  /// follow-up); null for any other action or a Team that is gone.
+  Future<InventoryTeamPreview?> previewTeam(InventoryAction action) async {
+    if (action.kind != InventoryActionKind.deleteTeam) return null;
+    final team = await TeamService(
+      profileService: _profiles,
+    ).teamById(action.target);
+    if (team == null) return null;
+    final members = <String>[];
+    for (final id in team.memberProfileIds) {
+      final name = (await _profiles.getProfileById(id))?.displayName;
+      if (name != null) members.add(name);
+    }
+    return InventoryTeamPreview(
+      name: team.displayName,
+      members: members,
+      courses: [
+        for (final course in await _courses.listUserCourses())
+          if (course.assignedTeamId == team.teamId)
+            course.title.trim().isEmpty ? course.courseId : course.title,
+      ],
+    );
   }
 
   /// The word the admin types to go ahead with a Delete the service
@@ -390,9 +536,11 @@ class InventoryActionService {
   ///
   /// [adminOverride] goes ahead with a Delete that is otherwise refused: a
   /// Publisher Course other learners have in their courses, a custom
-  /// Course the admin neither maintains nor shares through its Team, or a
-  /// learner who maintains Courses (which stay, without a Maintainer). It
-  /// needs [typedWord] to be [overrideWord], besides the PIN.
+  /// Course the admin neither maintains nor shares through its Team, a
+  /// learner who maintains Courses (which stay, without a Maintainer) or is
+  /// the last Team Leader of a Team (its first other member takes over),
+  /// and a Team, which nobody can delete otherwise. It needs [typedWord] to
+  /// be [overrideWord], besides the PIN.
   Future<String?> run(
     InventoryAction action, {
     required String actorProfileId,
@@ -412,10 +560,20 @@ class InventoryActionService {
         'Progress and backups go with a Course only.',
       );
     }
+    final team = action.kind == InventoryActionKind.deleteTeam;
+    if (team && !adminOverride) {
+      throw const InventoryActionException(
+        'A Team is deleted only with the word DELETE, after its warning. '
+        'Nothing was changed.',
+      );
+    }
     if (adminOverride) {
-      if (!course && action.kind != InventoryActionKind.deleteLearner) {
+      if (!course &&
+          !team &&
+          action.kind != InventoryActionKind.deleteLearner) {
         throw const InventoryActionException(
-          'Only the Delete of a Course or of a learner can be forced here.',
+          'Only the Delete of a Course, of a learner or of a Team can be '
+          'forced here.',
         );
       }
       if (typedWord.trim() != overrideWord) {
@@ -470,6 +628,10 @@ class InventoryActionService {
           actorProfileId: actor,
           adminOverride: adminOverride,
         );
+      case InventoryActionKind.deleteTeam:
+        await TeamService(
+          profileService: _profiles,
+        ).deleteTeamAsAdmin(teamId: action.target, actorProfileId: actor);
       case InventoryActionKind.forget:
         if (!isForgettable(action.target)) {
           throw const InventoryActionException(

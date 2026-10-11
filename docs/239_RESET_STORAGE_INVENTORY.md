@@ -118,3 +118,11 @@ A Course's cover is ordinary Course media in `QQL_CourseMedia`, so the scopes th
   in `QQL_Courses_v12/Custom|Publisher`) are removed at start-up.
 - Inventory, Course media: one row per folder of a Course no longer on this
   device, with Delete all (the whole folder, admin PIN).
+- Inventory, **Teams** (Build 271 Revision 2 second follow-up): the Teams of
+  `quisquislingo_authoring_teams_v1_2291`, each with Delete (admin only: the
+  warning, a second confirmation, the PIN, the word DELETE), which removes
+  the Team from that registry. No Course file changes: a Course assigned to
+  it keeps the Team's ID, which then names no Team. Deleting a learner who
+  is the last Team Leader of a Team (admin override) makes the member added
+  first its Team Leader in the same registry, or removes the Team when
+  nobody is left. No new key or folder.

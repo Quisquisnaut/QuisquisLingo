@@ -429,3 +429,52 @@ the admins afresh each time it opens.
 In the Course Editor's Lesson screen the tile that opens the GuideBook reads
 **GuideBook** (it said "Lesson Guidebook") and is bold like the Rounds tile
 above it.
+
+## Revision 2 second follow-up (2.0.71+271002, same version)
+
+Owner decisions of 11 October 2026.
+
+### One order: the warnings, the PIN, the typed word
+
+Wherever a warning and a PIN meet, the warnings now come first, then the
+PIN, then the typed word.
+
+- **Inventory.** Every Delete, Forget and Reset has two dialogs. The first
+  says what goes and shows the warnings and the choices; its button opens the
+  second confirmations (a Delete the service refuses otherwise, and the reset
+  of everyone's progress). The second dialog asks for the admin PIN and, for
+  a Delete that needs it, the word DELETE under the PIN. Before, the PIN and
+  the word were typed in the first dialog, above or beside the warning, and
+  the second confirmations came after them.
+- **Wipe out everything.** The reminder of what is deleted no longer asks
+  for the words; the last dialog asks for the PIN and then, under it, for
+  NUKE EVERYTHING, and its button waits for the words. Before, the words
+  were typed before the PIN.
+
+### The last Team Leader of a Team
+
+In the Inventory the admin can delete a learner who is the last Team Leader
+of a Team, with the warning, a second confirmation, the PIN and the word
+DELETE. A Team always has a Team Leader, so the member who was added first
+takes over, and the warning names them. When the learner is the Team's only
+member, the Team is removed. Profile's own Delete still refuses and says
+that the Inventory can do it.
+
+### Deleting a Team
+
+Until now nobody could delete a Team, not even its Team Leader: a Team only
+went with the reset that removes learners, or with Wipe out everything. The
+Inventory has a **Teams** section (each Team with its Team Leaders, how many
+members it has and how many Courses are assigned to it) and Delete, for the
+admin: the warning names the members and the Courses assigned to it, then a
+second confirmation, the PIN and the word DELETE. The members stay as
+learners; they lose the access the Team gave them to those Courses, which
+stay with their Maintainers and keep the Team's ID until another Team is
+assigned. The service refuses a Team's Delete without the word.
+
+### Not changed
+
+- Team Leaders still cannot delete their own Team from the Team Manager
+  (owner's choice: the Inventory only).
+- The only admin still cannot be deleted.
+- Course files: deleting a Team rewrites none.

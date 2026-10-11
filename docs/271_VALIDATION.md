@@ -295,3 +295,39 @@ Not checked: the screens by hand; how long a save takes on the owner's
 Courses, so whether the save in progress is what made the Editor ask after
 Save now on the owner's PC (it is the one way found in the code, and the
 test above reproduces it).
+
+## Revision 2 second follow-up (2.0.71+271002, same version)
+
+11 October 2026, owner's Windows 10 PC, `build-271`.
+
+- `test/deleting_a_course_271_test.dart`:
+  - the four dialog tests follow the new order: the first dialog shows the
+    warning and no PIN or word field; its button opens the second
+    confirmation (Keep the Course / Keep the learner goes back to it) and
+    the reset confirmation; only then the PIN dialog, where the word field
+    is below the PIN field, a run without the word says "Type DELETE in
+    capital letters" and changes nothing, and a Delete that needs no
+    override asks for the PIN alone;
+  - four new cases for Teams: `AuthoringTeam.without`, `successorOf` and
+    `isLastLead` (the member added first leads; nobody left, no Team); the
+    admin deletes the last Team Leader (the preview names "Carla" for
+    “Editors” and the removal of “Solo”; refused without the override; with
+    DELETE the Team has Carla as its only member and Team Leader and “Solo”
+    is gone); the admin deletes a Team (the Teams section's row, the warning
+    and the second confirmation word for word, refused without the word,
+    with a wrong word, with a wrong PIN and for a learner who is not an
+    admin; with DELETE the Team is gone, its members stay and the Course
+    still names the Team's ID; a Team with no Course says nobody loses
+    access); the Team dialog (warning, Keep the Team, Delete the Team, the
+    PIN, the word, the result).
+- `test/device_administration_239_test.dart`: the wipe's reminder has no
+  field for the words; the last dialog has the words' field below the PIN
+  field, and its button stays greyed for five wrong spellings.
+- `test/stored_course_edge_cases_266_test.dart`: Forget shows what it
+  removes first, then the PIN in its own dialog, with no word field.
+- Help, localization, Inventory and Team tests (16 files): 156 passed.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,254 passed, 1 skipped**, 57:49 (11 October 2026, 22:53–23:51).
+
+Not checked: the dialogs by hand.

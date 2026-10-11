@@ -582,8 +582,24 @@ void main() {
     await tester.tap(find.byKey(const Key('admin-reset-skip-backup')));
     await tester.pumpAndSettle();
 
-    final proceed = find.byKey(const Key('admin-nuke-continue'));
-    expect(tester.widget<FilledButton>(proceed).onPressed, isNull);
+    // Build 271 Revision 2 second follow-up (owner decision of 11 October
+    // 2026): the warnings first, then the PIN, then the typed words. The
+    // reminder only reminds; the words are typed after the PIN.
+    expect(find.byKey(const Key('admin-nuke-phrase')), findsNothing);
+    await tester.tap(find.byKey(const Key('admin-nuke-continue')));
+    await tester.pumpAndSettle();
+
+    final pinField = find.byKey(const Key('admin-reset-pin'));
+    final phraseField = find.byKey(const Key('admin-nuke-phrase'));
+    expect(
+      tester.getTopLeft(phraseField).dy,
+      greaterThan(tester.getTopLeft(pinField).dy),
+      reason: 'the words are typed after the PIN',
+    );
+    final run = find.byKey(const Key('admin-reset-run'));
+    await tester.enterText(pinField, '1234');
+    await tester.pump();
+    expect(tester.widget<FilledButton>(run).onPressed, isNull);
     for (final wrong in [
       'nuke',
       'NUKE',
@@ -591,24 +607,13 @@ void main() {
       'NUKEEVERYTHING',
       'NUKE  EVERYTHING',
     ]) {
-      await tester.enterText(find.byKey(const Key('admin-nuke-phrase')), wrong);
+      await tester.enterText(phraseField, wrong);
       await tester.pump();
-      expect(
-        tester.widget<FilledButton>(proceed).onPressed,
-        isNull,
-        reason: wrong,
-      );
+      expect(tester.widget<FilledButton>(run).onPressed, isNull, reason: wrong);
     }
-    await tester.enterText(
-      find.byKey(const Key('admin-nuke-phrase')),
-      'NUKE EVERYTHING',
-    );
+    await tester.enterText(phraseField, 'NUKE EVERYTHING');
     await tester.pump();
-    await tester.tap(proceed);
-    await tester.pumpAndSettle();
-
-    await tester.enterText(find.byKey(const Key('admin-reset-pin')), '1234');
-    await tester.tap(find.byKey(const Key('admin-reset-run')));
+    await tester.tap(run);
     await settle(tester);
 
     expect(await profiles.getProfileRecords(), isEmpty);
@@ -617,7 +622,9 @@ void main() {
 
   // Build 255 Revision 6: the page is called Advanced (Admin) and comes
   // right after Do Not Disturb.
-  testWidgets('Settings opens Advanced (Admin) only for admins', (tester) async {
+  testWidgets('Settings opens Advanced (Admin) only for admins', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(900, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

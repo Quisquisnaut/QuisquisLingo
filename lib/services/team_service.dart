@@ -244,6 +244,25 @@ class TeamService {
     );
   });
 
+  /// Deletes a Team (Build 271 Revision 2 second follow-up, owner decision
+  /// of 11 October 2026: the admin can clean up anything, after a warning).
+  /// Only an admin may, from the Inventory. Its members lose the access it
+  /// gave them to the Courses assigned to it; those Courses keep the Team's
+  /// ID, which then names no Team, until their Maintainers assign another.
+  Future<void> deleteTeamAsAdmin({
+    required String teamId,
+    required String actorProfileId,
+  }) async {
+    if (!await _profiles.isAdmin(actorProfileId)) {
+      throw StateError('Only an admin may delete a Team.');
+    }
+    final teams = await listTeams();
+    final index = teams.indexWhere((team) => team.teamId == teamId);
+    if (index < 0) throw StateError('The Team is unavailable.');
+    teams.removeAt(index);
+    await _save(teams);
+  }
+
   Future<AuthoringTeam> _update(
     String teamId,
     String actorProfileId,

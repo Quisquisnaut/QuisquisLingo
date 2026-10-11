@@ -85,6 +85,29 @@ Follow-up in the same version (owner decisions and report of 11 October
 - **Lesson screen of the Course Editor**: the tile reads **GuideBook**
   (it said "Lesson Guidebook"), in bold like Rounds.
 
+Second follow-up in the same version (owner decisions of 11 October 2026):
+
+- **Warnings first, then the PIN, then the typed word**, wherever a warning
+  and a PIN meet. In the Inventory every Delete, Forget and Reset now has two
+  dialogs: the first says what goes, with its warnings, its choices and the
+  second confirmations; the second asks for the admin PIN and, for a Delete
+  that needs it, the word DELETE under the PIN. Before, the PIN and the word
+  were typed in the first dialog and the confirmations came after them. In
+  Wipe out everything the words NUKE EVERYTHING are typed after the PIN, in
+  the same dialog; before, they were typed before it.
+- **The admin may delete the last Team Leader of a Team**, in the Inventory,
+  with the same warning, second confirmation, PIN and word DELETE. The
+  member who was added first becomes the Team's Team Leader, and the warning
+  names them; a Team whose only member is deleted is removed. A Team is
+  never left without a Team Leader.
+- **The admin may delete a Team**: the Inventory has a **Teams** section
+  with Delete. Until now nobody could delete a Team, not even its Team
+  Leader. The warning names its members and the Courses assigned to it; the
+  members stay as learners and lose the access the Team gave them to those
+  Courses, which stay with their Maintainers.
+- Help (EN/IT/ES): what admins cannot do no longer lists what the Inventory
+  now lets them do after a warning.
+
 # 2.0.71 (Build 271, Revision 1) - deleting a Course; saves never blocked - 2026-10-11
 
 Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).

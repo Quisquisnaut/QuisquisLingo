@@ -20,6 +20,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 import 'package:quisquislingo_app/services/stored_course_reader.dart';
+import 'package:quisquislingo_app/services/team_service.dart';
 import 'package:quisquislingo_app/services/xp_service.dart';
 import 'package:quisquislingo_app/widgets/folder_opener.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1284,7 +1285,8 @@ void main() {
           isA<InventoryActionException>().having(
             (e) => e.message,
             'message',
-            'Only the Delete of a Course or of a learner can be forced here.',
+            'Only the Delete of a Course, of a learner or of a Team can be '
+                'forced here.',
           ),
         ),
       );
@@ -1435,30 +1437,25 @@ void main() {
         await tester.pumpAndSettle();
         await tester.ensureVisible(delete);
         await tester.tap(delete);
-        const wordField = Key('inventory-course-override-word');
+        const warning = Key('inventory-course-override-warning');
         await tester.pumpUntilFileIoState(
-          () => find.byKey(wordField).evaluate().isNotEmpty,
+          () => find.byKey(warning).evaluate().isNotEmpty,
         );
 
+        // 1. The warning and the choices: no PIN and no word yet.
         expect(
-          tester
-              .widget<Text>(
-                find.byKey(const Key('inventory-course-override-warning')),
-              )
-              .data,
+          tester.widget<Text>(find.byKey(warning)).data,
           startsWith('Bob maintains this Course, not you'),
         );
-        expect(find.text('To delete it anyway, type DELETE.'), findsOneWidget);
-        await tester.enterText(
-          find.byKey(const Key('inventory-action-pin')),
-          _pin,
-        );
-        await tester.enterText(find.byKey(wordField), 'DELETE');
+        const pinField = Key('inventory-action-pin');
+        const wordField = Key('inventory-action-word');
+        expect(find.byKey(pinField), findsNothing);
+        expect(find.byKey(wordField), findsNothing);
         await tester.tap(
           find.byKey(const Key('inventory-course-delete-backups')),
         );
         await tester.pump();
-        await tester.tap(find.byKey(const Key('inventory-action-run')));
+        await tester.tap(find.byKey(const Key('inventory-action-continue')));
         await tester.pumpAndSettle();
 
         expect(find.text('Delete another learner\'s Course?'), findsOneWidget);
@@ -1474,11 +1471,26 @@ void main() {
           findsOneWidget,
         );
         await tester.tap(find.text('Delete it anyway'));
+        await tester.pumpAndSettle();
+
+        // 2. The PIN, then 3. the word DELETE.
+        const pinDialog = Key('inventory-action-pin-dialog');
+        expect(find.byKey(pinDialog), findsOneWidget);
+        expect(find.byKey(const Key('inventory-action-dialog')), findsNothing);
+        expect(
+          find.text('Then, to delete it anyway, type DELETE.'),
+          findsOneWidget,
+        );
+        expect(
+          tester.getTopLeft(find.byKey(wordField)).dy,
+          greaterThan(tester.getTopLeft(find.byKey(pinField)).dy),
+          reason: 'the word is typed after the PIN',
+        );
+        await tester.enterText(find.byKey(pinField), _pin);
+        await tester.enterText(find.byKey(wordField), 'DELETE');
+        await tester.tap(find.byKey(const Key('inventory-action-run')));
         await tester.pumpUntilFileIoState(
-          () => find
-              .byKey(const Key('inventory-action-dialog'))
-              .evaluate()
-              .isEmpty,
+          () => find.byKey(pinDialog).evaluate().isEmpty,
         );
         await tester.runAsync(() async {
           expect(await editor.listUserCourses(), isEmpty);
@@ -1539,21 +1551,18 @@ void main() {
       await tester.pumpAndSettle();
       await tester.ensureVisible(delete);
       await tester.tap(delete);
-      const wordField = Key('inventory-course-override-word');
+      const warningKey = Key('inventory-course-override-warning');
       await tester.pumpUntilFileIoState(
-        () => find.byKey(wordField).evaluate().isNotEmpty,
+        () => find.byKey(warningKey).evaluate().isNotEmpty,
       );
 
       expect(
         find.text('Bob and you have this Course in your courses.'),
         findsOneWidget,
       );
-      // The warning says what they lose and where their progress is reset.
-      final warning = tester
-          .widget<Text>(
-            find.byKey(const Key('inventory-course-override-warning')),
-          )
-          .data!;
+      // 1. The warning says what they lose and where their progress is
+      // reset; the PIN and the word come afterwards.
+      final warning = tester.widget<Text>(find.byKey(warningKey)).data!;
       expect(warning, contains('takes it out of their courses'));
       expect(
         warning,
@@ -1562,32 +1571,16 @@ void main() {
           'Course” below',
         ),
       );
-      expect(find.text('To remove it anyway, type DELETE.'), findsOneWidget);
-      await tester.enterText(
-        find.byKey(const Key('inventory-action-pin')),
-        _pin,
-      );
+      const pinDialog = Key('inventory-action-pin-dialog');
+      const pinField = Key('inventory-action-pin');
+      expect(find.byKey(pinField), findsNothing);
 
-      // Without the word nothing happens, whatever the PIN.
-      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      // A second confirmation says where the progress goes; Keep the Course
+      // goes back to the choices.
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
       await tester.pumpAndSettle();
       expect(
-        tester
-            .widget<Text>(find.byKey(const Key('inventory-action-error')))
-            .data,
-        contains('Type DELETE in capital letters'),
-      );
-      expect(
-        find.byKey(const Key('inventory-course-override-confirm')),
-        findsNothing,
-      );
-
-      // With it, a second confirmation says where the progress goes.
-      await tester.enterText(find.byKey(wordField), 'DELETE');
-      await tester.tap(find.byKey(const Key('inventory-action-run')));
-      await tester.pumpAndSettle();
-      expect(
-        find.byKey(const Key('inventory-course-override-confirm')),
+        find.byKey(const Key('inventory-override-confirm')),
         findsOneWidget,
       );
       expect(
@@ -1600,6 +1593,8 @@ void main() {
       );
       await tester.tap(find.text('Keep the Course'));
       await tester.pumpAndSettle();
+      expect(find.byKey(const Key('inventory-action-dialog')), findsOneWidget);
+      expect(find.byKey(pinDialog), findsNothing);
       expect(
         (await tester.runAsync(editor.listUserCourses))!.single.courseId,
         id,
@@ -1610,15 +1605,13 @@ void main() {
         find.byKey(const Key('inventory-course-reset-progress')),
       );
       await tester.pump();
-      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
       await tester.pumpAndSettle();
       expect(
         find.textContaining('progress on it will be reset too, as you chose'),
         findsOneWidget,
       );
-      await tester.tap(
-        find.byKey(const Key('inventory-course-override-confirm-run')),
-      );
+      await tester.tap(find.byKey(const Key('inventory-override-confirm-run')));
       await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('inventory-course-reset-confirm')),
@@ -1627,6 +1620,33 @@ void main() {
       await tester.tap(
         find.byKey(const Key('inventory-course-reset-confirm-run')),
       );
+      await tester.pumpAndSettle();
+
+      // 2. The PIN, then 3. the word: without the word nothing happens,
+      // whatever the PIN.
+      expect(find.byKey(pinDialog), findsOneWidget);
+      expect(
+        find.text('Then, to remove it anyway, type DELETE.'),
+        findsOneWidget,
+      );
+      await tester.enterText(find.byKey(pinField), _pin);
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('inventory-action-error')))
+            .data,
+        contains('Type DELETE in capital letters'),
+      );
+      expect(
+        (await tester.runAsync(editor.listUserCourses))!.single.courseId,
+        id,
+      );
+      await tester.enterText(
+        find.byKey(const Key('inventory-action-word')),
+        'DELETE',
+      );
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
       final message = find.textContaining(
         'Everyone\'s progress on it was reset.',
       );
@@ -1698,13 +1718,11 @@ void main() {
         find.byKey(const Key('inventory-course-delete-backups')),
       );
       await tester.pump();
-      await tester.enterText(
-        find.byKey(const Key('inventory-action-pin')),
-        _pin,
-      );
 
-      // Resetting everyone's progress is confirmed once more.
-      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      // Resetting everyone's progress is confirmed once more, before the
+      // PIN is asked.
+      const pinDialog = Key('inventory-action-pin-dialog');
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
       await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('inventory-course-reset-confirm')),
@@ -1713,16 +1731,26 @@ void main() {
       await tester.tap(find.text('Keep their progress'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('inventory-action-dialog')), findsOneWidget);
+      expect(find.byKey(pinDialog), findsNothing);
       expect(
         (await tester.runAsync(editor.listUserCourses))!.single.courseId,
         'shared',
       );
 
-      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
       await tester.pumpAndSettle();
       await tester.tap(
         find.byKey(const Key('inventory-course-reset-confirm-run')),
       );
+      await tester.pumpAndSettle();
+      // Nothing the service refuses: the PIN alone, no word.
+      expect(find.byKey(pinDialog), findsOneWidget);
+      expect(find.byKey(const Key('inventory-action-word')), findsNothing);
+      await tester.enterText(
+        find.byKey(const Key('inventory-action-pin')),
+        _pin,
+      );
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
       // The message stays a few seconds, so it is looked for while the
       // files are being written and the list read again.
       final message = find.textContaining(
@@ -2035,24 +2063,49 @@ void main() {
       await tester.pumpAndSettle();
       await tester.ensureVisible(delete);
       await tester.tap(delete);
-      const wordField = Key('inventory-learner-override-word');
+      const warningKey = Key('inventory-learner-override-warning');
       await tester.pumpUntilFileIoState(
-        () => find.byKey(wordField).evaluate().isNotEmpty,
+        () => find.byKey(warningKey).evaluate().isNotEmpty,
       );
-      final warning = tester
-          .widget<Text>(
-            find.byKey(const Key('inventory-learner-override-warning')),
-          )
-          .data!;
+      final warning = tester.widget<Text>(find.byKey(warningKey)).data!;
       expect(warning, contains('Bob maintains'));
       expect(warning, contains('without a Maintainer'));
-      expect(find.text('To delete Bob anyway, type DELETE.'), findsOneWidget);
+      const pinDialog = Key('inventory-action-pin-dialog');
+      const pinField = Key('inventory-action-pin');
+      expect(find.byKey(pinField), findsNothing);
 
-      await tester.enterText(
-        find.byKey(const Key('inventory-action-pin')),
-        _pin,
+      // 1. The warning, then a second confirmation; Keep the learner goes
+      // back to it.
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('inventory-override-confirm')),
+        findsOneWidget,
       );
-      // Without the word nothing happens, whatever the PIN.
+      expect(
+        find.text('Delete a learner who maintains Courses?'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Keep the learner'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(pinDialog), findsNothing);
+      expect(
+        await tester.runAsync(() => profiles.getProfileById(_bob)),
+        isNotNull,
+      );
+
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('inventory-override-confirm-run')));
+      await tester.pumpAndSettle();
+
+      // 2. The PIN, then 3. the word DELETE: without it nothing happens.
+      expect(find.byKey(pinDialog), findsOneWidget);
+      expect(
+        find.text('Then, to delete Bob anyway, type DELETE.'),
+        findsOneWidget,
+      );
+      await tester.enterText(find.byKey(pinField), _pin);
       await tester.tap(find.byKey(const Key('inventory-action-run')));
       await tester.pumpAndSettle();
       expect(
@@ -2061,30 +2114,15 @@ void main() {
             .data,
         contains('Type DELETE in capital letters'),
       );
-      const confirm = Key('inventory-learner-override-confirm');
-      expect(find.byKey(confirm), findsNothing);
-
-      // With it, a second confirmation; Keep the learner changes nothing.
-      await tester.enterText(find.byKey(wordField), 'DELETE');
-      await tester.tap(find.byKey(const Key('inventory-action-run')));
-      await tester.pumpAndSettle();
-      expect(find.byKey(confirm), findsOneWidget);
-      expect(
-        find.text('Delete a learner who maintains Courses?'),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('Keep the learner'));
-      await tester.pumpAndSettle();
       expect(
         await tester.runAsync(() => profiles.getProfileById(_bob)),
         isNotNull,
       );
-
-      await tester.tap(find.byKey(const Key('inventory-action-run')));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find.byKey(const Key('inventory-learner-override-confirm-run')),
+      await tester.enterText(
+        find.byKey(const Key('inventory-action-word')),
+        'DELETE',
       );
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
       final message = find.textContaining('Delete: “Bob” done.');
       for (var i = 0; i < 300 && message.evaluate().isEmpty; i++) {
         await tester.runAsync(
@@ -2101,6 +2139,382 @@ void main() {
           reason: 'his two Courses stay on the device',
         );
       });
+    });
+
+    // Build 271 Revision 2 second follow-up (owner decisions of 11 October
+    // 2026): the admin may delete the last Team Leader of a Team (the member
+    // added first takes over; a Team with nobody left goes) and may delete a
+    // Team, both with the usual strong warning: a second confirmation, the
+    // PIN, then the word DELETE.
+    InventoryAction deleteTeam(String teamId) => InventoryAction(
+      InventoryActionKind.deleteTeam,
+      teamId,
+      label: 'Delete',
+      explanation: '',
+    );
+
+    test('a Team without one of its members: the first other member leads '
+        'when its last Team Leader goes', () async {
+      final teams = TeamService(profileService: profiles);
+      final team = await teams.createTeam(
+        creatorProfileId: _bob,
+        displayName: 'Editors',
+      );
+      final three = await teams.addMember(
+        teamId: team.teamId,
+        actorProfileId: _bob,
+        memberProfileId: _carla,
+      );
+      final all = await teams.addMember(
+        teamId: three.teamId,
+        actorProfileId: _bob,
+        memberProfileId: _alice,
+      );
+      expect(all.isLastLead(_bob), isTrue);
+      expect(all.isLastLead(_carla), isFalse);
+      expect(all.successorOf(_bob), _carla, reason: 'Carla was added first');
+      expect(all.successorOf(_carla), isNull);
+      final withoutBob = all.without(_bob)!;
+      expect(withoutBob.memberProfileIds, [_carla, _alice]);
+      expect(withoutBob.leadProfileIds, [_carla]);
+      // A member who is not its last Team Leader just leaves.
+      final withoutCarla = all.without(_carla)!;
+      expect(withoutCarla.memberProfileIds, [_bob, _alice]);
+      expect(withoutCarla.leadProfileIds, [_bob]);
+      // Nobody left: no Team.
+      expect(team.without(_bob), isNull);
+      expect(team.successorOf(_bob), isNull);
+    });
+
+    test('the admin deletes the last Team Leader, with DELETE; the Team '
+        'gets a new one, or goes when nobody is left', () async {
+      final teams = TeamService(profileService: profiles);
+      final editors = await teams.createTeam(
+        creatorProfileId: _bob,
+        displayName: 'Editors',
+      );
+      await teams.addMember(
+        teamId: editors.teamId,
+        actorProfileId: _bob,
+        memberProfileId: _carla,
+      );
+      final solo = await teams.createTeam(
+        creatorProfileId: _bob,
+        displayName: 'Solo',
+      );
+      await setPin();
+      final actions = InventoryActionService(profiles: profiles);
+      final delete = InventoryAction(
+        InventoryActionKind.deleteLearner,
+        _bob,
+        label: 'Delete',
+        explanation: '',
+      );
+
+      final preview = (await actions.previewLearner(delete))!;
+      expect(preview.maintained, isEmpty);
+      expect(preview.needsOverride, isTrue);
+      expect(
+        {for (final team in preview.teams) team.name: team.successor},
+        {'Editors': 'Carla', 'Solo': null},
+      );
+      expect(
+        preview.overrideWarning,
+        allOf(
+          contains(
+            'Bob is the last Team Leader of “Editors”: Carla, the member '
+            'who was added first, becomes its Team Leader.',
+          ),
+          contains(
+            'Bob is the only member of the Team “Solo”: the Team is '
+            'removed, and the Courses assigned to it are no longer shared '
+            'through it.',
+          ),
+        ),
+      );
+      expect(preview.overrideTitle, 'Delete the last Team Leader?');
+      expect(
+        preview.overrideQuestion,
+        allOf(
+          contains('Carla will become Team Leader of “Editors”.'),
+          contains('The Team “Solo” will be removed.'),
+          endsWith(
+            'Bob\'s progress and settings will be deleted. This cannot be '
+            'undone.',
+          ),
+        ),
+      );
+
+      // Refused without the override, with where an admin can go on.
+      await expectLater(
+        actions.run(delete, actorProfileId: _alice, pin: _pin),
+        throwsA(
+          isA<InventoryActionException>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('final Team Leader of'),
+              contains('An admin can delete the profile anyway'),
+            ),
+          ),
+        ),
+      );
+      expect((await teams.listTeams()).length, 2);
+
+      await actions.run(
+        delete,
+        actorProfileId: _alice,
+        pin: _pin,
+        adminOverride: true,
+        typedWord: 'DELETE',
+      );
+      expect(await profiles.getProfileById(_bob), isNull);
+      final left = await teams.listTeams();
+      expect(left.map((team) => team.displayName), ['Editors']);
+      expect(left.single.memberProfileIds, [_carla]);
+      expect(left.single.leadProfileIds, [_carla]);
+      expect(await teams.teamById(solo.teamId), isNull);
+    });
+
+    test('the admin deletes a Team, with DELETE; its members and the '
+        'Courses assigned to it stay', () async {
+      final teams = TeamService(profileService: profiles);
+      final team = await teams.createTeam(
+        creatorProfileId: _bob,
+        displayName: 'Editors',
+      );
+      await teams.addMember(
+        teamId: team.teamId,
+        actorProfileId: _bob,
+        memberProfileId: _carla,
+      );
+      final editor = CourseEditorService();
+      await as(
+        _bob,
+        () => editor.installImportedCustomCourse(
+          Course.fromJson({
+            ..._course('shared', title: 'Verbi', maintainer: _bob).toJson(),
+            'assignedTeamId': team.teamId,
+          }),
+        ),
+      );
+      await setPin();
+      final actions = InventoryActionService(profiles: profiles);
+
+      // The Inventory lists it, with its Delete.
+      final section = (await InventoryService(
+        profiles: profiles,
+      ).load()).firstWhere((section) => section.title == 'Teams');
+      final item = section.items.single;
+      expect(item.name, 'Editors');
+      expect(item.owner, 'Team Leader: Bob');
+      expect(item.note, startsWith('2 members · assigned to 1 Course.'));
+      expect(item.action!.kind, InventoryActionKind.deleteTeam);
+      expect(item.action!.target, team.teamId);
+
+      final preview = (await actions.previewTeam(deleteTeam(team.teamId)))!;
+      expect(preview.members, ['Bob', 'Carla']);
+      expect(preview.courses, ['Verbi']);
+      expect(
+        preview.overrideWarning,
+        'Deleting this Team cannot be undone. Its members (Bob and Carla) '
+        'lose the access it gave them to the Course assigned to it: '
+        '“Verbi”. The Courses stay with their Maintainers, who can assign '
+        'another Team in Course Info Editor; until then only their '
+        'Maintainers can edit them. The learners themselves stay.',
+      );
+      expect(preview.overrideTitle, 'Delete the Team “Editors”?');
+      expect(
+        preview.overrideQuestion,
+        'The Team “Editors” will be deleted. Its members (Bob and Carla) '
+        'lose the access it gave them to the Courses assigned to it; the '
+        'Courses stay with their Maintainers. This cannot be undone.',
+      );
+      expect(await actions.previewTeam(deleteCourse('shared')), isNull);
+
+      // Never without the word, whatever the PIN; never with a wrong PIN.
+      await expectLater(
+        actions.run(deleteTeam(team.teamId), actorProfileId: _alice, pin: _pin),
+        throwsA(
+          isA<InventoryActionException>().having(
+            (e) => e.message,
+            'message',
+            startsWith('A Team is deleted only with the word DELETE'),
+          ),
+        ),
+      );
+      for (final word in ['', 'delete', 'DELETE TEAM']) {
+        await expectLater(
+          actions.run(
+            deleteTeam(team.teamId),
+            actorProfileId: _alice,
+            pin: _pin,
+            adminOverride: true,
+            typedWord: word,
+          ),
+          throwsA(isA<InventoryActionException>()),
+          reason: 'word "$word"',
+        );
+      }
+      await expectLater(
+        actions.run(
+          deleteTeam(team.teamId),
+          actorProfileId: _alice,
+          pin: '0000',
+          adminOverride: true,
+          typedWord: 'DELETE',
+        ),
+        throwsA(isA<InventoryActionException>()),
+      );
+      // Only an admin may, also through the service.
+      await expectLater(
+        teams.deleteTeamAsAdmin(teamId: team.teamId, actorProfileId: _bob),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            'Only an admin may delete a Team.',
+          ),
+        ),
+      );
+      expect((await teams.listTeams()).single.teamId, team.teamId);
+
+      await actions.run(
+        deleteTeam(team.teamId),
+        actorProfileId: _alice,
+        pin: _pin,
+        adminOverride: true,
+        typedWord: 'DELETE',
+      );
+      expect(await teams.listTeams(), isEmpty);
+      expect(await profiles.getProfileById(_bob), isNotNull);
+      expect(await profiles.getProfileById(_carla), isNotNull);
+      final stored = (await CourseFileStore().readAll(
+        CourseStoreKind.custom,
+      )).entries.single;
+      expect(
+        StoredCourseReader.open(
+          stored.key,
+          stored.value,
+        ).course!.assignedTeamId,
+        team.teamId,
+        reason: 'the Course is not rewritten; the ID names no Team now',
+      );
+      // A Team no Course is assigned to: nobody loses access to a Course.
+      final empty = await teams.createTeam(
+        creatorProfileId: _carla,
+        displayName: 'Readers',
+      );
+      expect(
+        (await actions.previewTeam(deleteTeam(empty.teamId)))!.overrideWarning,
+        'Deleting this Team cannot be undone. No Course is assigned to it, '
+        'so nobody loses access to a Course. Its only member (Carla) stays '
+        'as a learner.',
+      );
+    });
+
+    testWidgets('deleting a Team: the warning, a second confirmation, the '
+        'PIN, then the word DELETE', (tester) async {
+      late final String teamId;
+      await tester.runAsync(() async {
+        final teams = TeamService(profileService: profiles);
+        final team = await teams.createTeam(
+          creatorProfileId: _bob,
+          displayName: 'Editors',
+        );
+        await teams.addMember(
+          teamId: team.teamId,
+          actorProfileId: _bob,
+          memberProfileId: _carla,
+        );
+        teamId = team.teamId;
+        await setPin();
+      });
+      FolderOpener.available = () => false;
+      addTearDown(() => FolderOpener.available = () => true);
+      tester.view.physicalSize = const Size(900, 6000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(home: InventoryScreen(profileService: profiles)),
+      );
+      final delete = find.byKey(const Key('inventory-Teams-0-action'));
+      await tester.pumpUntilFileIoState(() => delete.evaluate().isNotEmpty);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(delete);
+      await tester.tap(delete);
+      const warningKey = Key('inventory-team-override-warning');
+      await tester.pumpUntilFileIoState(
+        () => find.byKey(warningKey).evaluate().isNotEmpty,
+      );
+
+      // 1. The warning; no PIN and no word yet.
+      expect(
+        tester.widget<Text>(find.byKey(warningKey)).data,
+        allOf(
+          startsWith('Deleting this Team cannot be undone.'),
+          contains('Its members (Bob and Carla) stay as learners.'),
+        ),
+      );
+      const pinDialog = Key('inventory-action-pin-dialog');
+      const pinField = Key('inventory-action-pin');
+      const wordField = Key('inventory-action-word');
+      expect(find.byKey(pinField), findsNothing);
+      expect(find.byKey(wordField), findsNothing);
+
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
+      await tester.pumpAndSettle();
+      expect(find.text('Delete the Team “Editors”?'), findsOneWidget);
+      await tester.tap(find.text('Keep the Team'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(pinDialog), findsNothing);
+
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('inventory-override-confirm-run')));
+      await tester.pumpAndSettle();
+
+      // 2. The PIN, then 3. the word.
+      expect(find.byKey(pinDialog), findsOneWidget);
+      expect(
+        find.text('Then, to delete the Team, type DELETE.'),
+        findsOneWidget,
+      );
+      expect(
+        tester.getTopLeft(find.byKey(wordField)).dy,
+        greaterThan(tester.getTopLeft(find.byKey(pinField)).dy),
+      );
+      await tester.enterText(find.byKey(pinField), _pin);
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('inventory-action-error')))
+            .data,
+        contains('Type DELETE in capital letters'),
+      );
+      expect(
+        (await tester.runAsync(
+          () => TeamService(profileService: profiles).listTeams(),
+        ))!.single.teamId,
+        teamId,
+      );
+      await tester.enterText(find.byKey(wordField), 'DELETE');
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      final message = find.textContaining('Delete: “Editors” done.');
+      for (var i = 0; i < 300 && message.evaluate().isEmpty; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 1)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(message, findsOneWidget);
+      expect(
+        await tester.runAsync(
+          () => TeamService(profileService: profiles).listTeams(),
+        ),
+        isEmpty,
+      );
     });
 
     test('offers the whole folder of a Course no longer here', () async {

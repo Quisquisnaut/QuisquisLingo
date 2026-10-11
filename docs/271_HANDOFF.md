@@ -341,3 +341,39 @@ short window, Apply greyed while the text is empty, no Show internal IDs
 switch on the read-only Course Info page.
 
 Next: Revision 3, speed (`docs/271_PLAN.md`).
+
+## Revision 2 second follow-up (same version 2.0.71+271002)
+
+State: done and committed (11 October 2026, night), the branch pushed. Analyzer clean; complete suite 4,254 passed, 1 skipped (57:49).
+
+Owner decisions of 11 October 2026, after the first follow-up (`7b6638c0`):
+
+1. "Last Team Leader too, with warnings": the admin may delete a learner
+   who is the last Team Leader of a Team. Asked what becomes of the Team
+   (a Team without a Team Leader is invalid data): the owner chose **the
+   first other member leads**; a Team with nobody left is removed.
+2. "The warning should come before the PIN, in all the cases where there are
+   warnings and PIN requests. 1. Warnings, 2. PIN, 3. Type in DELETE."
+   Applied to the Inventory (two dialogs) and to Wipe out everything (the
+   words after the PIN). This is now a standing rule (AGENTS.md).
+3. "Can Admin also delete a team": nobody could. Asked; the owner chose
+   **yes, in the Inventory** (not for Team Leaders in the Team Manager), and
+   added "but usual strong warning for such actions".
+
+Where: `AuthoringTeam.isLastLead/successorOf/without`;
+`ProfileService.deleteProfileById(adminOverride:)`, `teamsLedOnlyBy`;
+`TeamService.deleteTeamAsAdmin`; `InventoryActionKind.deleteTeam`, the
+Inventory's Teams section; `InventoryActionService.previewTeam`,
+`InventoryLearnerPreview.teams`; `InventoryScreen._runAction` (dialogs
+`inventory-action-dialog` then `inventory-action-pin-dialog`);
+`DeviceAdministrationScreen._askPinAndRun` (`admin-nuke-phrase` under the
+PIN).
+
+Still refused, for everyone: deleting the only admin.
+
+Open with the owner: the Save now report (is the save in progress what they
+saw?); the four choices of Revision 2 (greyed menus in On-Device TTS, the
+header that scrolls in a very short window, Apply greyed while empty, no
+Show internal IDs switch on the read-only Course Info page).
+
+Next: Revision 3, speed (`docs/271_PLAN.md`).

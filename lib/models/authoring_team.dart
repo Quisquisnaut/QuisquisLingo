@@ -49,6 +49,31 @@ class AuthoringTeam {
   bool hasMember(String profileId) => memberProfileIds.contains(profileId);
   bool hasLead(String profileId) => leadProfileIds.contains(profileId);
 
+  /// Whether [profileId] is the Team's only Team Leader.
+  bool isLastLead(String profileId) =>
+      hasLead(profileId) && leadProfileIds.length == 1;
+
+  /// Who leads the Team once [profileId], its last Team Leader, is gone: the
+  /// member who was added first (Build 271 Revision 2 second follow-up,
+  /// owner decision of 11 October 2026). Null when [profileId] is not its
+  /// last Team Leader, or when no other member is left.
+  String? successorOf(String profileId) => isLastLead(profileId)
+      ? memberProfileIds.where((id) => id != profileId).firstOrNull
+      : null;
+
+  /// The Team without [profileId]. A Team always has a Team Leader, so when
+  /// its last one goes [successorOf] takes over. Null when nobody is left:
+  /// the Team goes too.
+  AuthoringTeam? without(String profileId) {
+    final members = memberProfileIds.where((id) => id != profileId).toList();
+    if (members.isEmpty) return null;
+    final leads = leadProfileIds.where((id) => id != profileId).toList();
+    return copyWith(
+      memberProfileIds: members,
+      leadProfileIds: leads.isEmpty ? [members.first] : leads,
+    );
+  }
+
   AuthoringTeam copyWith({
     String? displayName,
     Iterable<String>? memberProfileIds,

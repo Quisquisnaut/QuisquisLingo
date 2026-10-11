@@ -684,14 +684,16 @@ class _ResetSection extends StatelessWidget {
     final backup = await _backupOffer(context, plan, affected);
     if (backup != true || !context.mounted) return;
 
-    // Step 3 (everything only): a reminder of what is included, and the
-    // typed confirmation.
+    // Step 3 (everything only): a reminder of what is included.
     if (plan.scope == AppResetScope.everything) {
       final typed = await _nukeConfirmation(context, choices);
       if (typed != true || !context.mounted) return;
     }
 
-    // Step 4: PIN, checked by the service itself.
+    // Step 4: the PIN, checked by the service itself, and for everything,
+    // after it, the typed words (Build 271 Revision 2 second follow-up,
+    // owner decision of 11 October 2026: warnings, then the PIN, then the
+    // typed word).
     final done = await _askPinAndRun(context, plan, choices);
     if (done != true || !context.mounted) return;
     if (plan.scope == AppResetScope.everything) {
@@ -1040,7 +1042,6 @@ class _ResetSection extends StatelessWidget {
   static const _nukePhrase = 'NUKE EVERYTHING';
 
   Future<bool?> _nukeConfirmation(BuildContext context, _ResetChoices choices) {
-    final typed = TextEditingController();
     return showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
@@ -1086,14 +1087,9 @@ class _ResetSection extends StatelessWidget {
                 const SizedBox(height: 4),
                 const Text('To change this, cancel and start the reset again.'),
                 const SizedBox(height: 12),
-                Text(
-                  'To continue, type $_nukePhrase exactly, in capital letters, with a space between the two words:',
-                ),
-                TextField(
-                  key: const Key('admin-nuke-phrase'),
-                  controller: typed,
-                  onChanged: (_) => setLocal(() {}),
-                  decoration: InputDecoration(labelText: 'Type $_nukePhrase'),
+                const Text(
+                  'Next you enter your admin PIN and then type '
+                  '$_nukePhrase. Nothing is deleted before that.',
                 ),
               ],
             ),
@@ -1105,18 +1101,13 @@ class _ResetSection extends StatelessWidget {
             ),
             FilledButton(
               key: const Key('admin-nuke-continue'),
-              onPressed: typed.text == _nukePhrase
-                  ? () => Navigator.pop(dialogContext, true)
-                  : null,
+              onPressed: () => Navigator.pop(dialogContext, true),
               child: const Text('Continue to PIN'),
             ),
           ],
         ),
       ),
-    ).whenComplete(() async {
-      await Future<void>.delayed(const Duration(milliseconds: 250));
-      typed.dispose();
-    });
+    );
   }
 
   Future<bool?> _askPinAndRun(
@@ -1125,6 +1116,8 @@ class _ResetSection extends StatelessWidget {
     _ResetChoices choices,
   ) {
     final pin = TextEditingController();
+    final typed = TextEditingController();
+    final everything = plan.scope == AppResetScope.everything;
     String? error;
     var running = false;
     return showDialog<bool>(
@@ -1139,7 +1132,9 @@ class _ResetSection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Last step. Enter your admin PIN to run "${plan.title}". Nothing has been deleted so far.',
+                  everything
+                      ? 'Last steps. Enter your admin PIN, then type $_nukePhrase, to run "${plan.title}". Nothing has been deleted so far.'
+                      : 'Last step. Enter your admin PIN to run "${plan.title}". Nothing has been deleted so far.',
                 ),
                 if (plan.scope == AppResetScope.importedMedia) ...[
                   const SizedBox(height: 8),
@@ -1172,6 +1167,20 @@ class _ResetSection extends StatelessWidget {
                   maxLength: 4,
                   decoration: const InputDecoration(labelText: 'PIN'),
                 ),
+                if (everything) ...[
+                  const Text(
+                    'Then type $_nukePhrase exactly, in capital letters, with a space between the two words:',
+                  ),
+                  TextField(
+                    key: const Key('admin-nuke-phrase'),
+                    controller: typed,
+                    enabled: !running,
+                    onChanged: (_) => setLocal(() {}),
+                    decoration: const InputDecoration(
+                      labelText: 'Type $_nukePhrase',
+                    ),
+                  ),
+                ],
                 if (running) const LinearProgressIndicator(),
                 if (error != null)
                   Text(
@@ -1192,7 +1201,7 @@ class _ResetSection extends StatelessWidget {
             ),
             FilledButton(
               key: const Key('admin-reset-run'),
-              onPressed: running
+              onPressed: running || (everything && typed.text != _nukePhrase)
                   ? null
                   : () async {
                       setLocal(() {
@@ -1235,6 +1244,7 @@ class _ResetSection extends StatelessWidget {
     ).whenComplete(() async {
       await Future<void>.delayed(const Duration(milliseconds: 250));
       pin.dispose();
+      typed.dispose();
     });
   }
 }

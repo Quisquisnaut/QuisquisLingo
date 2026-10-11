@@ -62,6 +62,9 @@ EN/IT/ES wherever a screen changes.
   device. The same for a learner who maintains Courses (owner decision of
   11 October 2026, delivered with Revision 2's follow-up): their Courses
   stay on the device without a Maintainer, as when a Maintainer leaves.
+  Also the last Team Leader of a Team (the member added first takes over)
+  and a Team itself, from the Inventory's Teams section (second follow-up).
+  In every such flow the order is: the warnings, the PIN, the typed word.
 
 ## Revision 2: the Audio Library like the Image Library; the Course Editor's top bar
 

@@ -493,6 +493,14 @@ void main() {
       await tester.tap(forget);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('inventory-action-dialog')), findsOneWidget);
+      // Build 271 Revision 2 second follow-up: what it removes first, then
+      // the PIN in a dialog of its own.
+      expect(find.byKey(const Key('inventory-action-pin')), findsNothing);
+      await tester.tap(find.byKey(const Key('inventory-action-continue')));
+      await tester.pumpAndSettle();
+      const pinDialog = Key('inventory-action-pin-dialog');
+      expect(find.byKey(pinDialog), findsOneWidget);
+      expect(find.byKey(const Key('inventory-action-word')), findsNothing);
       await tester.enterText(
         find.byKey(const Key('inventory-action-pin')),
         '0000',
@@ -511,8 +519,7 @@ void main() {
       );
       await tester.tap(find.byKey(const Key('inventory-action-run')));
       await tester.pumpUntilFileIoState(
-        () =>
-            find.byKey(const Key('inventory-action-dialog')).evaluate().isEmpty,
+        () => find.byKey(pinDialog).evaluate().isEmpty,
       );
       await tester.pumpAndSettle();
       expect(prefs.containsKey(key), isFalse);

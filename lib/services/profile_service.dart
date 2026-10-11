@@ -603,8 +603,10 @@ class ProfileService {
   /// October 2026: the admin can clean up anything, after a warning) lets
   /// an admin delete a learner who maintains custom Courses; those Courses
   /// stay on the device without a Maintainer, as when their Maintainer no
-  /// longer uses it. The other rules stay: an admin remains, and a Team
-  /// keeps a Team Leader.
+  /// longer uses it. It also lets an admin delete the last Team Leader of a
+  /// Team (second follow-up): the member added first becomes its Team
+  /// Leader, and a Team with nobody left is removed. An admin always
+  /// remains.
   Future<void> deleteProfileById(
     String learnerProfileId, {
     String? actorProfileId,
@@ -638,7 +640,11 @@ class ProfileService {
         learnerProfileId,
       );
     }
-    await _removeProfileFromAuthoringTeams(prefs, learnerProfileId);
+    await _removeProfileFromAuthoringTeams(
+      prefs,
+      learnerProfileId,
+      adminOverride: adminOverride,
+    );
     final remaining = profiles
         .where((profile) => profile.learnerProfileId != learnerProfileId)
         .toList();
@@ -677,10 +683,30 @@ class ProfileService {
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
+  /// The Teams whose only Team Leader is [learnerProfileId], as an admin is
+  /// told before deleting that learner.
+  Future<List<AuthoringTeam>> teamsLedOnlyBy(String learnerProfileId) async {
+    final raw = (await SharedPreferences.getInstance()).getString(
+      AuthoringTeam.storageKey,
+    );
+    if (raw == null || raw.trim().isEmpty) return const [];
+    final decoded = jsonDecode(raw);
+    if (decoded is! List || decoded.any((item) => item is! Map)) {
+      throw const FormatException('Stored authoring-team registry is invalid.');
+    }
+    return [
+      for (final item in decoded)
+        if (AuthoringTeam.fromJson(Map<String, dynamic>.from(item as Map))
+            case final team when team.isLastLead(learnerProfileId))
+          team,
+    ];
+  }
+
   Future<void> _removeProfileFromAuthoringTeams(
     SharedPreferences prefs,
-    String learnerProfileId,
-  ) async {
+    String learnerProfileId, {
+    bool adminOverride = false,
+  }) async {
     final raw = prefs.getString(AuthoringTeam.storageKey);
     if (raw == null || raw.trim().isEmpty) return;
     final decoded = jsonDecode(raw);
@@ -688,27 +714,26 @@ class ProfileService {
       throw const FormatException('Stored authoring-team registry is invalid.');
     }
     var changed = false;
-    final teams = decoded.map((item) {
-      final team = AuthoringTeam.fromJson(
-        Map<String, dynamic>.from(item as Map),
-      );
-      if (!team.hasMember(learnerProfileId)) return team;
-      if (team.hasLead(learnerProfileId) && team.leadProfileIds.length == 1) {
-        throw StateError(
-          'This profile is the final Team Leader of ${team.displayName}. '
-          'Promote another member before deleting the profile.',
-        );
-      }
-      changed = true;
-      return team.copyWith(
-        memberProfileIds: team.memberProfileIds.where(
-          (id) => id != learnerProfileId,
-        ),
-        leadProfileIds: team.leadProfileIds.where(
-          (id) => id != learnerProfileId,
-        ),
-      );
-    }).toList();
+    final teams = decoded
+        .map((item) {
+          final team = AuthoringTeam.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          );
+          if (!team.hasMember(learnerProfileId)) return team;
+          if (team.isLastLead(learnerProfileId) && !adminOverride) {
+            throw StateError(
+              'This profile is the final Team Leader of ${team.displayName}. '
+              'Promote another member before deleting the profile. '
+              '${CourseMaintainerGuard.adminWayOut}',
+            );
+          }
+          changed = true;
+          // With the admin's override the member added first takes over,
+          // and a Team with nobody left goes.
+          return team.without(learnerProfileId);
+        })
+        .whereType<AuthoringTeam>()
+        .toList();
     if (!changed) return;
     final encoded = jsonEncode(teams.map((team) => team.toJson()).toList());
     if (!await prefs.setString(AuthoringTeam.storageKey, encoded) ||
