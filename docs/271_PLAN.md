@@ -168,16 +168,18 @@ Course Editor main page, three icons:
   `docs/LOCALIZATION_CURRENT_STATE.md` records the state.
 - The Audio Library index puts Cyrillic letters in alphabet order (Ukrainian
   Є, І, Ї after their neighbours, not before А).
+- The Round screen no longer writes state about its mascot during build.
+  Done in a follow-up of Revision 5, not "after the frame" as first written
+  here (the sentence would move one frame after it appears): the picture is
+  chosen when an exercise comes on the page or the window changes
+  (`ExerciseMascotCast`), and the room is measured on request without being
+  stored (`ExerciseMascotRoom`).
 - Test seams reset between tests (`RoundScreen.openLink`,
   `RoundScreen.lineStopwatch`, `SpokenLinePace.shared`).
 - Course Info disposes its controllers normally (no 300 ms delay).
 
 ## Not in Build 271
 
-- The Round screen placing its mascot after the frame instead of writing
-  state during build (set aside in Revision 5: the sentence would move one
-  frame after it is drawn, or the placement would have to pass through every
-  exercise page; what is written today is the same on every build).
 - Android release signing with the owner's key (later, owner decision).
 - The modularization (its own build, ownership first,
   `docs/272_MODULARIZATION_PLAN.md`), with the import cycle between

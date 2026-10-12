@@ -475,13 +475,11 @@ class _RoundScreenState extends State<RoundScreen> {
   final Map<String, String?> _selectGapFill = {};
   String? _selectArmedGapId;
 
-  // Mascots (Build 256 Revision 9): the Round's picture order, null when
-  // this Round shows none; the active exercise's picture, taken from the
-  // order the first time its mascot fits on screen; and where this build
-  // draws it.
-  ExerciseMascotSequence? _mascots;
-  String? _exerciseMascot;
-  ({ExerciseMascotAnchor anchor, String asset, double size})? _mascotPlacement;
+  // Mascots (Build 256 Revision 9): which picture the exercise on the page
+  // shows, null when this Round shows none. The page tells it what happens
+  // ([_prepareExercise], [_settleMascot]) and only reads it while it draws
+  // (Build 271 Revision 5).
+  ExerciseMascotCast? _mascotCast;
 
   static const _autumnBackgrounds = <Color>[
     Color(0xFFF4EBDD), // warm cream
@@ -553,6 +551,14 @@ class _RoundScreenState extends State<RoundScreen> {
     );
     _completion = LearningCompletionService(progressService: _progress);
     _initializeRound();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The window, the text size or the theme changed: the exercise on the
+    // page may have room for its mascot now (Build 271 Revision 5).
+    if (_ready) _settleMascot();
   }
 
   /// The speech language for text in [language]: the Course's source
@@ -782,12 +788,14 @@ class _RoundScreenState extends State<RoundScreen> {
         try {
           final assets =
               widget.mascotAssets ?? await loadProductionLearnerMascotAssets();
-          _mascots = ExerciseMascotSequence.build(
-            ExerciseMascotPolicy.exercisePool(assets),
-            widget.mascotRandom ?? _random,
+          _mascotCast = ExerciseMascotCast(
+            ExerciseMascotSequence.build(
+              ExerciseMascotPolicy.exercisePool(assets),
+              widget.mascotRandom ?? _random,
+            ),
           );
         } catch (error, stackTrace) {
-          _mascots = null;
+          _mascotCast = null;
           await CrashLogService.instance.record(
             error,
             stackTrace,
@@ -942,7 +950,8 @@ class _RoundScreenState extends State<RoundScreen> {
     final generation = ++_preparedExerciseGeneration;
     final ex = _exercise;
     final f = _features = ExerciseFeatures(ex);
-    _exerciseMascot = null;
+    _mascotCast?.startExercise();
+    _settleMascot();
     _answered = false;
     _lineAudioPlayed = false;
     _prepareLineHold(f, generation);
@@ -4707,77 +4716,45 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
-  /// Where this build draws the active exercise's mascot, or null (Build 256
-  /// Revision 9). [ExerciseMascotPolicy] names the sentence; the mascot is
-  /// drawn only when the sentence keeps room beside it on this screen. The
-  /// picture is taken from the Round's order the first time the mascot is
-  /// drawn, and kept until the next exercise: so the learner never sees a
-  /// picture twice in one Round, nor the same character twice in a row.
-  ({ExerciseMascotAnchor anchor, String asset, double size})? _placeMascot(
-    BuildContext context,
-    Exercise ex,
-  ) {
-    final mascots = _mascots;
-    if (mascots == null) return null;
-    final anchor = ExerciseMascotPolicy.anchorFor(ex);
-    if (anchor == ExerciseMascotAnchor.none) return null;
-    final media = MediaQuery.of(context);
-    // The Round body is a ListView with 20 pixels on each side.
-    final contentWidth = media.size.width - media.padding.horizontal - 40;
-    final size = ExerciseMascotPolicy.mascotSize(contentWidth);
-    final text = Theme.of(context).textTheme;
-    final (TextStyle? style, double reserved) = switch (anchor) {
-      // A translation question keeps room for its audio button.
-      ExerciseMascotAnchor.question => (
-        text.headlineSmall,
-        _features.isTranslationChoice ? 48.0 : 0.0,
-      ),
-      ExerciseMascotAnchor.prompt => (
-        _promptAsInstruction
-            ? text.bodyMedium?.copyWith(fontWeight: FontWeight.w600)
-            : text.titleMedium,
-        0.0,
-      ),
-      // The gapped sentence sits in a panel with padding on both sides.
-      ExerciseMascotAnchor.gappedText => (
-        ex.primitive == ExercisePrimitive.input
-            ? text.bodyLarge
-            : text.titleMedium,
-        28.0,
-      ),
-      ExerciseMascotAnchor.playButton ||
-      ExerciseMascotAnchor.none => (null, 0.0),
-    };
-    final textWidth = contentWidth - size - ExerciseMascotPolicy.gap - reserved;
-    int? lines;
-    final sentence = ExerciseMascotPolicy.sentenceAt(ex, anchor);
-    if (sentence != null) {
-      if (textWidth <= 0) return null;
-      final painter = TextPainter(
-        text: TextSpan(text: sentence, style: style),
-        textDirection: Directionality.of(context),
-        textScaler: media.textScaler,
-      )..layout(maxWidth: textWidth);
-      lines = painter.computeLineMetrics().length;
-      painter.dispose();
-    }
-    if (!ExerciseMascotPolicy.fits(
-      textWidth: textWidth,
-      lines: lines,
-      viewportHeight: media.size.height,
-    )) {
-      return null;
-    }
-    final asset = _exerciseMascot ??= mascots.next();
+  /// Tells the Round's mascots whether the exercise on the page has room
+  /// for one (Build 271 Revision 5). Called when another exercise comes on
+  /// the page and when the window, the text size or the theme changes
+  /// ([didChangeDependencies]): never while the page draws. Before, the
+  /// page took the exercise's picture in the middle of drawing.
+  void _settleMascot() {
+    final cast = _mascotCast;
+    if (cast == null || !mounted || _queue.isEmpty) return;
+    cast.settle(
+      hasRoom:
+          ExerciseMascotRoom.of(
+            context,
+            _exercise,
+            promptAsInstruction: _promptAsInstruction,
+          ) !=
+          null,
+    );
+  }
+
+  /// The mascot the page draws beside the sentence at [anchor], or null:
+  /// the picture the Round's mascots gave the exercise on the page and the
+  /// room the page has now. It reads and changes nothing.
+  ({String asset, double size})? _mascotAt(ExerciseMascotAnchor anchor) {
+    final asset = _mascotCast?.picture;
     if (asset == null) return null;
-    return (anchor: anchor, asset: asset, size: size);
+    final room = ExerciseMascotRoom.of(
+      context,
+      _exercise,
+      promptAsInstruction: _promptAsInstruction,
+      only: anchor,
+    );
+    return room == null ? null : (asset: asset, size: room.size);
   }
 
   /// [child] with the active exercise's mascot on its leading side when the
   /// mascot sits at [anchor]; else [child] alone.
   Widget _withMascot(ExerciseMascotAnchor anchor, Widget child) {
-    final placement = _mascotPlacement;
-    if (placement == null || placement.anchor != anchor) return child;
+    final placement = _mascotAt(anchor);
+    if (placement == null) return child;
     return ExerciseMascot.beside(
       asset: placement.asset,
       size: placement.size,
@@ -4787,8 +4764,8 @@ class _RoundScreenState extends State<RoundScreen> {
 
   /// A centred [child] (the replay button) with the mascot beside it.
   Widget _besideCentered(ExerciseMascotAnchor anchor, Widget child) {
-    final placement = _mascotPlacement;
-    if (placement == null || placement.anchor != anchor) return child;
+    final placement = _mascotAt(anchor);
+    if (placement == null) return child;
     return Row(
       key: const Key('exercise-mascot-row'),
       mainAxisSize: MainAxisSize.min,
@@ -5511,7 +5488,6 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     final ex = _exercise;
     final totalShown = _queue.length;
-    _mascotPlacement = _placeMascot(context, ex);
 
     return Scaffold(
       backgroundColor: background,

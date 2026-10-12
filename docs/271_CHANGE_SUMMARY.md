@@ -882,3 +882,62 @@ written by a script from the catalogs.
 No new key or folder. Course files, scoring, progression and learner data.
 The three removed catalog keys were only read by the two screens changed
 here.
+
+## Revision 5, follow-up (same version): the exercise mascot in its own module
+
+Owner request of 12 October 2026. The report on Revision 5 said the plan's
+mascot item was not done; the owner asked what it was about, whether
+splitting the Round screen would meet the same difficulty, and then: can it
+have a module now?
+
+### What was wrong
+
+Nothing a learner could see. The mascot is the picture beside the sentence
+of some exercises. While the Round screen drew a page, it also decided two
+things and wrote them down: which picture the exercise takes from the
+Round's order, and where the picture goes. A screen should only read while
+it draws; deciding belongs to the moments when something happens.
+
+### Why not as the plan worded it
+
+The plan said "after the frame". Then the sentence is drawn first without
+its mascot and moves a moment later to make room: a small jump at every
+exercise. The other way, deciding before and passing the result through
+every exercise page, is a wide change of a very large file.
+
+### What was done
+
+The two decisions were separated, and each has its own owner outside the
+screen.
+
+- **Which picture: `ExerciseMascotCast`** (plain Dart). The screen tells it
+  two things: another exercise came on the page; the page has room for a
+  mascot, or not. The first time an exercise has room it gets the Round's
+  next picture, and keeps it until the next exercise. An exercise that
+  never has room spends no picture.
+- **How much room: `ExerciseMascotRoom`**. The measure that was in the
+  Round screen, unchanged: the sentence in the text style and between the
+  margins the page gives it, 220 pixels of text at least, three lines at
+  most, a window at least 560 pixels high. It changes nothing: asked again
+  on the same page, it gives the same answer.
+- **The Round screen** tells the cast when an exercise comes on the page and
+  when the window, the text size or the theme changes. While it draws, it
+  reads the picture and asks for the room. It is 24 lines shorter.
+
+### What a learner sees
+
+The same as before. Three new tests of the Round screen were run against
+the code as it was and against the new code, and pass with both: a window
+made wider shows the mascot, a narrower one hides it and the same picture
+comes back; an exercise that never had room spends no picture; a page drawn
+again and again takes no other picture.
+
+One difference cannot be seen: an exercise waiting behind the Before you
+start page gets its picture when it is prepared instead of when its page is
+first drawn. It is the same picture.
+
+### Not changed
+
+Which exercises show a mascot and where (`ExerciseMascotPolicy`), the order
+of the pictures (`ExerciseMascotSequence`), the widget that draws one. No
+new key, folder or setting; nothing is stored.

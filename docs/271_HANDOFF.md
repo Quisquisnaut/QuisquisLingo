@@ -512,3 +512,18 @@ by earlier test runs (3,400 entries), which can be deleted.
 
 Build 271's plan is complete with this revision. `main` only on the owner's
 go.
+
+## Revision 5, follow-up (same version): the exercise mascot in its own module
+
+State: done and committed (12 October 2026), the branch pushed. Analyzer clean; focused 445 passed in 19 files; complete suite 4,327 passed, 1 skipped (91:50, the PC was in use).
+
+Owner request of 12 October 2026 ("can it have a module now?"). Where:
+
+- `ExerciseMascotCast` in `lib/services/exercise_mascot_policy.dart`.
+- `ExerciseMascotRoom` in `lib/widgets/exercise_mascot.dart` (the measure
+  that was `RoundScreen._placeMascot`).
+- `RoundScreen`: `_mascotCast`, `_settleMascot` (called by
+  `_prepareExercise` and `didChangeDependencies`), `_mascotAt`.
+- Seven cases added to `test/exercise_mascot_256_test.dart`.
+
+The mascot item is no longer under "Not in Build 271" in the plan.

@@ -540,3 +540,36 @@ dialogs by hand on Windows.
 Not checked: the screens by hand in the running app; the German, Portuguese,
 Dutch and French texts by a speaker of those languages (the articles are
 the AI's); Android.
+
+## Revision 5, follow-up (same version): the exercise mascot in its own module
+
+12 October 2026, owner's Windows 10 PC, `build-271`.
+
+- `test/exercise_mascot_256_test.dart`, seven cases added (18 in the file):
+  - `ExerciseMascotCast`: no picture without room, however often the page
+    says so; the Round's first picture the first time there is room, taken
+    once; kept while the room comes and goes; an exercise without room
+    spends none, so the next shows the second picture; none once the nine
+    are used;
+  - `ExerciseMascotRoom.of`, asked three times on each page with the same
+    answer: beside the question, 96 pixels from 600 pixels of content and
+    72 below; none without 220 pixels of text, in a window 540 pixels high,
+    beside one word, beside a sentence of more than three lines, and with
+    text three times larger; with `only`, an answer for the sentence asked
+    about and none for the three others;
+  - the Round screen: a window made wider shows the Round's first picture,
+    a narrower one hides it, wider again the same picture is back; an
+    exercise answered in a narrow window spends no picture, so the next
+    exercise shows the first and the one after it the second; a page drawn
+    again through six changes of the window keeps its picture, and the next
+    two exercises show the second and the third.
+- Before and after: a copy of the test file without the cases that name the
+  two new classes was run against the code as it was (the three files of
+  `lib/` put aside, then put back): 14 passed, the three Round screen cases
+  above among them. With the new code: 18 passed.
+- Focused (19 files that play Rounds): **445 passed**.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,327 passed, 1 skipped** (91:50; the PC was in use). The test that ran out of time in the run of Revision 5 passed.
+
+Not checked: by hand in the running app.

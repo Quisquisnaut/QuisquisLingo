@@ -438,6 +438,53 @@ void main() {
       expect(ExerciseMascotSequence.build(const [], Random(1)).next(), isNull);
     });
 
+    // Build 271 Revision 5: which picture an exercise shows has its own
+    // owner; the Round screen tells it what happens and reads it.
+    test('the cast gives an exercise its picture the first time it has room '
+        'and keeps it until the next exercise', () {
+      final sequence = ExerciseMascotSequence.build(
+        ExerciseMascotPolicy.exercisePool(_bundledMascots),
+        Random(7),
+      );
+      final order = sequence.order;
+      final cast = ExerciseMascotCast(sequence);
+      expect(cast.picture, isNull);
+      // No room: nothing is taken, however often the page says so.
+      cast.settle(hasRoom: false);
+      cast.settle(hasRoom: false);
+      expect(cast.picture, isNull);
+      expect(sequence.taken, 0);
+      // Room: the Round's first picture, taken once.
+      cast.settle(hasRoom: true);
+      expect(cast.picture, order[0]);
+      // The window gets narrower and wider again: the picture is its own.
+      cast.settle(hasRoom: false);
+      cast.settle(hasRoom: true);
+      cast.settle(hasRoom: true);
+      expect(cast.picture, order[0]);
+      expect(sequence.taken, 1);
+      // An exercise that never has room spends no picture.
+      cast.startExercise();
+      expect(cast.picture, isNull);
+      cast.settle(hasRoom: false);
+      expect(sequence.taken, 1);
+      // So the one after it shows the second picture, not the third.
+      cast.startExercise();
+      cast.settle(hasRoom: true);
+      expect(cast.picture, order[1]);
+      for (var i = 2; i < order.length; i++) {
+        cast.startExercise();
+        cast.settle(hasRoom: true);
+        expect(cast.picture, order[i]);
+      }
+      // The Round's pictures are used up: later exercises show none.
+      cast.startExercise();
+      cast.settle(hasRoom: true);
+      cast.settle(hasRoom: true);
+      expect(cast.picture, isNull);
+      expect(sequence.taken, order.length);
+    });
+
     for (final file in const [
       'exercise_laboratory_en_it.json',
       'edge_case_it_en.json',
@@ -481,6 +528,147 @@ void main() {
         }
       });
     }
+  });
+
+  // Build 271 Revision 5: the measure of rule 3 has its own owner. It reads
+  // the page and changes nothing.
+  group('the room a page has', () {
+    const sentence = 'Il gatto nero dorme sempre sul divano rosso?';
+
+    Future<List<ExerciseMascotRoom?>> rooms(
+      WidgetTester tester,
+      Size size,
+      Exercise exercise, {
+      ExerciseMascotAnchor? only,
+      double textScale = 1,
+    }) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final answers = <ExerciseMascotRoom?>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: Builder(
+                // A new page each time, so that it is asked again.
+                key: UniqueKey(),
+                builder: (context) {
+                  for (var asked = 0; asked < 3; asked++) {
+                    answers.add(
+                      ExerciseMascotRoom.of(
+                        context,
+                        exercise,
+                        promptAsInstruction: false,
+                        only: only,
+                      ),
+                    );
+                  }
+                  return const SizedBox();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      return answers;
+    }
+
+    Future<ExerciseMascotRoom?> room(
+      WidgetTester tester,
+      Size size,
+      Exercise exercise, {
+      ExerciseMascotAnchor? only,
+      double textScale = 1,
+    }) async {
+      final answers = await rooms(
+        tester,
+        size,
+        exercise,
+        only: only,
+        textScale: textScale,
+      );
+      // Asked again and again, the same page gives the same answer.
+      expect(answers, hasLength(greaterThanOrEqualTo(3)));
+      for (final answer in answers) {
+        expect(answer?.anchor, answers.first?.anchor);
+        expect(answer?.size, answers.first?.size);
+      }
+      return answers.first;
+    }
+
+    testWidgets('beside the question, larger from 600 pixels of content', (
+      tester,
+    ) async {
+      final exercise = _select('q', sentence);
+      final wide = await room(tester, const Size(1000, 1400), exercise);
+      expect(wide?.anchor, ExerciseMascotAnchor.question);
+      expect(wide?.size, 96);
+      // A sentence short enough for three lines beside the smaller mascot.
+      final narrower = await room(
+        tester,
+        const Size(500, 1000),
+        _select('short', 'Il gatto dorme?'),
+      );
+      expect(narrower?.anchor, ExerciseMascotAnchor.question);
+      expect(narrower?.size, 72);
+      // The longer one would take four lines there.
+      expect(await room(tester, const Size(500, 1000), exercise), isNull);
+    });
+
+    testWidgets('none without 220 pixels of text, in a low window, beside '
+        'one word, or when the sentence takes more than three lines', (
+      tester,
+    ) async {
+      final exercise = _select('q', sentence);
+      expect(await room(tester, const Size(330, 1000), exercise), isNull);
+      expect(await room(tester, const Size(1000, 540), exercise), isNull);
+      expect(
+        await room(tester, const Size(1000, 1400), _select('w', 'ciao')),
+        isNull,
+      );
+      expect(
+        await room(
+          tester,
+          const Size(1000, 1400),
+          _select('long', [for (var i = 0; i < 12; i++) sentence].join(' ')),
+        ),
+        isNull,
+      );
+      // Larger text takes more lines.
+      expect(
+        await room(tester, const Size(1000, 1400), exercise, textScale: 3),
+        isNull,
+      );
+    });
+
+    testWidgets('a renderer asks about the sentence it draws', (tester) async {
+      final exercise = _select('q', sentence);
+      expect(
+        (await room(
+          tester,
+          const Size(1000, 1400),
+          exercise,
+          only: ExerciseMascotAnchor.question,
+        ))?.anchor,
+        ExerciseMascotAnchor.question,
+      );
+      for (final other in [
+        ExerciseMascotAnchor.prompt,
+        ExerciseMascotAnchor.gappedText,
+        ExerciseMascotAnchor.playButton,
+      ]) {
+        expect(
+          await room(tester, const Size(1000, 1400), exercise, only: other),
+          isNull,
+          reason: '$other',
+        );
+      }
+    });
   });
 
   group('Round screen', () {
@@ -620,6 +808,91 @@ void main() {
           reason: '$pictures',
         );
       }
+      expect(tester.takeException(), isNull);
+    });
+
+    // Build 271 Revision 5: the picture is chosen when an exercise comes on
+    // the page or the window changes, never while the page draws. What the
+    // learner sees is what it was.
+    List<Exercise> sentences(int count) => [
+      for (var i = 1; i <= count; i++)
+        _select('s$i', 'Frase numero $i per il gatto.'),
+    ];
+
+    List<String> orderFor(int seed) => ExerciseMascotSequence.build(
+      ExerciseMascotPolicy.exercisePool(_bundledMascots),
+      Random(seed),
+    ).order;
+
+    Future<void> resize(WidgetTester tester, Size size) async {
+      tester.view.physicalSize = size;
+      await tester.pumpAndSettle();
+    }
+
+    /// Answers the exercise on the page and goes to the next one.
+    Future<void> answerAndContinue(WidgetTester tester, int count) async {
+      for (var i = 1; i <= count; i++) {
+        final right = find.text('Right s$i');
+        if (right.evaluate().isEmpty) continue;
+        await _tap(tester, right);
+        await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
+        return;
+      }
+      fail('No exercise on the page.');
+    }
+
+    testWidgets('a window made wider shows the mascot, a narrower one hides '
+        'it, and the same picture comes back', (tester) async {
+      const narrow = Size(330, 1000);
+      const wide = Size(1000, 1400);
+      await _show(tester, _round(sentences(2)), size: narrow, seed: 5);
+      expect(_mascotOnScreen(tester), isNull);
+      await resize(tester, wide);
+      // The Round's first picture: nothing was spent while there was no
+      // room.
+      expect(_mascotOnScreen(tester), orderFor(5)[0]);
+      await resize(tester, narrow);
+      expect(_mascotOnScreen(tester), isNull);
+      await resize(tester, wide);
+      expect(_mascotOnScreen(tester), orderFor(5)[0]);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('an exercise that never had room spends no picture', (
+      tester,
+    ) async {
+      await _show(
+        tester,
+        _round(sentences(3)),
+        size: const Size(330, 1000),
+        seed: 5,
+      );
+      expect(_mascotOnScreen(tester), isNull);
+      await answerAndContinue(tester, 3);
+      expect(_mascotOnScreen(tester), isNull);
+      await resize(tester, const Size(1000, 1400));
+      // The second exercise shows the Round's first picture.
+      expect(_mascotOnScreen(tester), orderFor(5)[0]);
+      await answerAndContinue(tester, 3);
+      expect(_mascotOnScreen(tester), orderFor(5)[1]);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the page is drawn again and again and takes no other '
+        'picture', (tester) async {
+      await _show(tester, _round(sentences(3)), seed: 5);
+      expect(_mascotOnScreen(tester), orderFor(5)[0]);
+      // Each change of the window draws the page again and tells the
+      // mascots again that there is room.
+      for (var step = 1; step <= 6; step++) {
+        await resize(tester, Size(1000 + step * 20, 1400));
+        expect(_mascotOnScreen(tester), orderFor(5)[0]);
+      }
+      await answerAndContinue(tester, 3);
+      // The next exercise shows the second picture: none was skipped.
+      expect(_mascotOnScreen(tester), orderFor(5)[1]);
+      await answerAndContinue(tester, 3);
+      expect(_mascotOnScreen(tester), orderFor(5)[2]);
       expect(tester.takeException(), isNull);
     });
   });

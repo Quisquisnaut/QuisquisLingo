@@ -62,7 +62,10 @@ English in every language, as proper names, also inside a translated
 sentence ("Termina il Round"), and a Round names its Lesson exactly as the
 learner path does; [Localization: current state](docs/LOCALIZATION_CURRENT_STATE.md)
 says what is shown in which language and lists the translated texts. The
-Audio Library puts Cyrillic letters in the order of their alphabets.
+Audio Library puts Cyrillic letters in the order of their alphabets. A
+follow-up gives the mascot beside an exercise's sentence its own module, so
+that the Round screen only reads it while it draws; nothing changes on
+screen.
 
 Build 270 fixes the weaknesses found by the audit of 10 October 2026
 ([audit](docs/270_AUDIT.md), [change summary](docs/270_CHANGE_SUMMARY.md)).

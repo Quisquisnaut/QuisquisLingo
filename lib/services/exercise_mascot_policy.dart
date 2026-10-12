@@ -292,3 +292,36 @@ class ExerciseMascotSequence {
   /// How many pictures have been taken.
   int get taken => _next;
 }
+
+/// Which picture the exercise on the page shows (Build 271 Revision 5).
+///
+/// The Round screen tells it what happens: another exercise came on the page
+/// ([startExercise]), the page has or lacks room for a mascot ([settle]).
+/// While it draws, the screen only reads [picture]. Before, the screen chose
+/// the picture and wrote it down in the middle of drawing.
+///
+/// A picture is taken from the Round's order the first time its exercise
+/// has room, and stays that exercise's own until the next one: the learner
+/// never sees a picture twice in a Round nor one character twice in a row,
+/// and an exercise that never has room spends no picture.
+class ExerciseMascotCast {
+  ExerciseMascotCast(this.sequence);
+
+  /// The Round's pictures, in the order they are shown.
+  final ExerciseMascotSequence sequence;
+
+  String? _picture;
+
+  /// The picture of the exercise on the page, or null: it has had no room
+  /// yet, or the Round's pictures are used up.
+  String? get picture => _picture;
+
+  /// Another exercise is on the page. It has no picture yet.
+  void startExercise() => _picture = null;
+
+  /// The exercise on the page has room for a mascot beside its sentence, or
+  /// not. The first time it has, the Round's next picture becomes its own.
+  void settle({required bool hasRoom}) {
+    if (hasRoom) _picture ??= sequence.next();
+  }
+}

@@ -34,10 +34,17 @@ Owner decisions of 12 October 2026; plan `docs/271_PLAN.md`, Revision 5.
 - **Tests**: the Round screen's replaceable parts (the link opener, the
   line stopwatch, the measured reading pace) are set back before every test
   of the suite, so one test can no longer change another.
-- **Not done**: the plan's "the Round screen places its mascot after the
-  frame". It would move the sentence one frame after it is drawn, or need
-  the placement passed through every exercise page; it is listed in the plan
-  under "Not in Build 271".
+- **Follow-up, same version: the exercise mascot has its own module**
+  (owner request of 12 October 2026). While the Round screen drew a page it
+  also chose the mascot's picture and wrote down where it goes. Now
+  `ExerciseMascotCast` owns which picture an exercise shows and
+  `ExerciseMascotRoom` measures the room beside the sentence; the screen
+  tells them when another exercise comes on the page and when the window,
+  the text size or the theme changes, and only reads while it draws. The
+  plan's own wording ("after the frame") was not followed: it would have
+  moved the sentence one frame after it appears. What a learner sees is
+  unchanged: three new tests of the Round screen pass with the code before
+  and after.
 - Help EN/IT/ES (the Course languages answer states the rule; a few
   "Storia"/"Lezione" and "Historia"/"Lección" in the Italian and Spanish
   Help now say Story and Lesson). Tests: `test/labels_in_english_271_test.dart`
