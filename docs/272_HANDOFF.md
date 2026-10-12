@@ -142,40 +142,77 @@ Decisions taken while working (say so in the report):
 Session scratchpad (drafts of the next revisions):
 `C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`
 
-## Revision 2 (the Course Info form), prepared (not in the repository yet)
+## Revision 2 (2.0.72+272002), the Course Info Editor's form and its own file
 
-Drafted in the scratchpad, folder `r1/`, and already adjusted to the five
-rules (`r1/adjust_for_u1.py`); regenerate the dialog file with
-`r1/gen_dialog.py` on Revision 1's code, run
-`course_info_editor_272_test.dart` on that code BEFORE the move, then
-`r1/apply_r1.py`. The shared credit rows are in their own draft file,
-`course_credit_rows.dart` (for `lib/controllers/`). A draft of Revision
-3's form is in `r3/new_course_form.dart`.
+State: done (12 October 2026). Analyzer clean; new tests 26 passed; 17
+related files 163 passed; complete suite 4,367 passed, 1 skipped (19:57 to
+20:45, 48 minutes). Committed on `build-272` and the branch pushed (hash
+in `git log`). Revision 1 is `4d0d708c`.
 
-- `lib/controllers/course_info_form.dart`: `CourseInfoForm` (the state of
-  the Course Info Editor: fields from a Course, `addAuthor` /
-  `removeAuthor`, `addRightsHolder` / `removeRightsHolder`,
-  `addMediaCredit` / `removeMediaCredit`, `chooseLicense`, `setCover` with
-  the cover-credit rule, `keepsLearningLanguage`, `validTitle`,
-  `titleTakenBy`, `submit` -> `CourseInfoAccepted` | `CourseInfoRefused`,
-  `dispose`) and the row classes `CourseCreditRow`,
-  `CourseRightsHolderRow`, `CourseMediaCreditRow`.
-- `lib/screens/course_info_editor.dart`: `showCourseInfoEditor` and the
-  widget `CourseInfoEditor`, generated from the dialog's present text by
-  `r1/gen_dialog.py` (exact text, only the names of what it reads change).
-- `CourseInfoUpdateService.keepsLearningLanguage` (static; the dialog and
-  `apply` share it).
-- `r1/apply_r1.py`: the Course Editor's `_editCourseInfo` becomes a call of
-  `showCourseInfoEditor`; `_closedCourseInfoEditors`, `_tagHelper`,
-  `_languageTagsFromList` and `_localCourseDateTime` leave the screen (the
-  dialog's State disposes its form).
-- Tests drafted: `course_info_editor_272_test.dart` (5 screen cases, to run
-  on the code BEFORE the move) and `course_info_form_272_test.dart` (the
-  form without its dialog).
-- To adapt: `course_editor_layout_regression_test` (two cases read the
-  dialog's source in `course_editor_screen.dart`) and
-  `qql_233_revision_platform_contract_test` ("Continue anyway" / "already
-  exists" in the Course Editor's source).
+The independent review of the move (a second reader comparing the old
+dialog with the new files line by line, before the suite) found one real
+mistake of the renaming script: inside a text, `$defaultLearnerLanguageName`
+had become `$_form.defaultLearnerLanguageName` (Dart reads `$_form` and then
+the rest as plain text). Fixed in the script (`r1/gen_dialog.py` braces a
+renamed interpolation and stops if one is left), in the comparison (it
+prints differing texts in full) and with a test on that help sentence. On
+its other remark the form is now made in `showCourseInfoEditor`, before the
+dialog opens, as the old code did. **Keep doing this review for every moved
+screen: the tests and my own comparison had both missed it.**
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/controllers/course_info_form.dart`: `CourseInfoForm`,
+  `CourseMediaCreditRow`, `CourseInfoSubmission` (`CourseInfoAccepted` |
+  `CourseInfoRefused`).
+- `lib/controllers/course_credit_rows.dart`: `CourseCreditRow`,
+  `CourseRightsHolderRow` (for Revision 3 and the Wizard too).
+- `lib/screens/course_info_editor.dart`: `showCourseInfoEditor`,
+  `CourseInfoEditor`, `CourseInfoEditorResult`; the layout generated from
+  the old text by `r1/gen_dialog.py` (scratchpad), then compared: all 186
+  texts and keys of the old dialog are in the new files
+  (`r1/compare_literals.py`).
+- `CourseEditorScreen._editCourseInfo` is 65 lines; the file went from
+  14,839 to 13,288 lines. `_closedCourseInfoEditors`, `_tagHelper`,
+  `_languageTagsFromList`, `_localCourseDateTime` and nine imports left.
+- `CourseInfoUpdateService.keepsLearningLanguage`.
+- Source-text tests follow the code: `course_editor_layout_regression_test`
+  (two cases), `qql_233_revision_platform_contract_test`.
+- Tests: `course_info_form_272_test` (21), `course_info_editor_272_test`
+  (5, passed on the code before the move).
+
+Gotchas:
+
+- `FormalNamePolicy.validatePresentationLabel` refuses a name with spaces
+  before or after; it does not trim.
+- A Course built without a policy has `DerivativeWorksPolicy.unspecified`.
+- Course Info's Apply reads the stored Courses (file I/O) before its other
+  checks: a test must wait for the message, not pump once.
+- "Version history" is on the Course Editor page and in the dialog: use
+  `.last`; the Version history page shows a spinner while it reads, so
+  `pumpAndSettle` times out: wait with `pumpUntilFileIoState`.
+
+Owner questions of 12 October, answered in chat: the exercise editor
+(`ExerciseEditorScreen`, 3,153 lines, five private helpers shared with the
+rest of the file, `labelForType` used by the Exercise Wizard) is not in
+the plan's free moves; I recommended moving it whole to its own file as
+the first free move (or as Revision 4 if the owner wants the big cut
+early). No answer yet.
+
+## Revision 3 (the New Course form), prepared
+
+In the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), folder `r3/`:
+`new_course_form.dart` (`NewCourseForm`, for `lib/controllers/`),
+`gen_dialog.py` + `dialog_head.txt` + `dialog_tail.txt` (they generate
+`lib/screens/new_course_dialog.dart`: `showNewCourseDialog`,
+`NewCourseDialog`). Still to write: the characterization tests on the
+code before the move (name another Course has, name refused, no
+languages, Buy a Coffee not HTTPS, a cancelled form deletes its cover),
+the form's own tests, the change of `CourseProjectsScreen._createCourse`,
+`_DisposeOnUnmount` removed if unused, the Wizard's `_CreditRow` /
+`_HolderRow` replaced by the shared rows, and the source-text tests that
+read `course_projects_screen.dart` (`course_editor_layout_regression_test`,
+`course_metadata_ui_v9_test`, `qql_233_revision_platform_contract_test`).
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

@@ -89,17 +89,23 @@ class CourseInfoUpdateService {
         );
       }
     }
-    final tagged = Course.fromJson({
-      ...course.toJson(),
-      if (change.targetLanguageTag.trim().isNotEmpty)
-        'targetLanguageTag': change.targetLanguageTag.trim(),
-    });
-    if (CourseService.codeForCourse(tagged) !=
-        CourseService.codeForCourse(course)) {
+    if (!keepsLearningLanguage(course, change.targetLanguageTag)) {
       throw ArgumentError(
         'That tag would move the learning language’s XP and streak: the learning language cannot change.',
       );
     }
+  }
+
+  /// Whether [course] with the learning language tag [tag] ('' for none)
+  /// still has the language code that language XP and streaks use. The
+  /// Course Info Editor asks before it offers a tag; [apply] checks again.
+  static bool keepsLearningLanguage(Course course, String tag) {
+    final tagged = Course.fromJson({
+      ...course.toJson(),
+      if (tag.trim().isNotEmpty) 'targetLanguageTag': tag.trim(),
+    });
+    return CourseService.codeForCourse(tagged) ==
+        CourseService.codeForCourse(course);
   }
 
   Future<CourseInfoUpdateResult> apply(

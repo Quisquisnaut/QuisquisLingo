@@ -1,3 +1,38 @@
+# 2.0.72 (Build 272, Revision 2) - modularization: the Course Info Editor's form and its own file - 2026-10-12
+
+Nothing an author or a learner sees changes in this revision.
+
+- **The Course Info Editor has an owner for its form**: `CourseInfoForm`
+  (`lib/controllers/course_info_form.dart`). It holds what the fields show,
+  starting from a Course, the rows of Authors, Rights Holders and Media
+  credits, the rule for the credit of a cover whose origin QQL knows, and
+  what Apply makes of the fields (the change for the Course, or why they
+  cannot be stored). It can be tested without opening any screen.
+- **The dialog is a widget in its own file**:
+  `lib/screens/course_info_editor.dart` (`showCourseInfoEditor`,
+  `CourseInfoEditor`). It was one method of about 1,530 lines inside the
+  Course Editor screen, whose file goes from 14,839 to 13,288 lines. The
+  layout was carried over by exact text: every label, help text and key is
+  the same (checked by comparing all of them before and after).
+- **Shared credit rows**: `CourseCreditRow` and `CourseRightsHolderRow`
+  (`lib/controllers/course_credit_rows.dart`), for the forms of the next
+  revisions too.
+- **One rule for a language tag**:
+  `CourseInfoUpdateService.keepsLearningLanguage` is used by the dialog
+  (before it offers a tag) and by the service (when the change is applied);
+  they each had their own copy.
+- The dialog releases its fields when it leaves the screen. The Course
+  Editor no longer keeps a list of closed dialogs to release later.
+- **Tests**: `test/course_info_form_272_test.dart` (21 cases, the form
+  alone) and `test/course_info_editor_272_test.dart` (5 cases through the
+  screen, written and passed on the code before the move: media credit
+  messages, the name another Course has, Private course, page sharing, the
+  learners' name of the language, Cancel, the language tags, Version
+  history).
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-11 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 1) - Course Info, New Course and the Course Wizard follow the same credits and licence rules - 2026-10-12
 
 Owner decision of 12 October 2026: the differences Revision 0 found between

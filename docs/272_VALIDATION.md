@@ -82,3 +82,53 @@
 - Not checked by hand in the running app: the three forms were driven by
   widget tests only.
 - Not run: the Windows package, the Android build.
+
+## Revision 2 (2.0.72+272002), the Course Info Editor's form and its own file
+
+12 October 2026, owner's Windows 10 PC, `build-272`.
+
+- Characterization, on the code **before** the move (Revision 1's commit
+  `4d0d708c` plus only the new test file):
+  `test/course_info_editor_272_test.dart`, **5 passed**. Two first runs
+  failed for reasons of the test alone (Apply reads the stored Courses
+  before its other checks, so the test must wait for the message; the words
+  "Version history" are on the page behind the dialog too; the Version
+  history page shows a spinner while it reads). After the review below the
+  test was widened (the help sentence that names QQL's own language name,
+  "Rights Holder 1", "Media credit 1", the build number in a help text) and
+  run again on the code before the move, with the moved files set aside:
+  **5 passed**.
+- Every text and key of the old dialog compared with the new files
+  (`compare_literals.py`): 186 before; none missing, none new besides file
+  imports and the empty defaults of the new row class; five messages differ
+  only by the renamed variable inside them (read in full).
+- **Independent review** (a second reader, read-only, old code against new
+  code, asked only for differences in what an author sees or what is
+  stored): one real mistake found and fixed before the commit (the help
+  sentence under "Learning language name for learners" would have shown
+  "Instance of 'CourseInfoForm'" instead of the language's name); one
+  remark taken (the form is made before the dialog opens, so a Course it
+  cannot read opens no dialog, as before); no other difference found in the
+  Apply path, the cover credit, the initial values, the language tags, the
+  fields' lifetime, the contexts and the new `_editCourseInfo`.
+- New tests after the move: `test/course_info_form_272_test.dart`, **21
+  passed** (two first failures were wrong expectations of the test: a name
+  with spaces before or after is refused, not trimmed; a Course without a
+  stored policy has "unspecified"); `test/course_info_editor_272_test.dart`,
+  **5 passed**.
+- Focused files (17): the two above, `course_credits_272_test`,
+  `course_cover_255_test`, `course_info_v11_fields_243_test`,
+  `course_backups_270_test`, `qql_233_identity_status_ui_test`,
+  `course_editor_top_bar_271_test`, `qql_229_revision2_test`,
+  `qql_229_revision3_test`, `official_course_ui_226_01_test`,
+  `course_ownership_team_229_r1_test`, `course_metadata_ui_v9_test`,
+  `course_editor_layout_regression_test`, `labels_in_english_271_test`,
+  `save_now_270_test`, `qql_233_revision_platform_contract_test`: **163
+  passed** (run again after the review's fix).
+- `flutter analyze --no-pub`: **No issues found** (77.5 s).
+- Complete suite, `flutter test --no-pub --concurrency=1` with the PC kept
+  awake and `TEMP` on `D:\QQL_test_temp`: **4,367 passed, 1 skipped, 0 failed** (19:57 to 20:45, 48 minutes).
+- Not checked by hand in the running app: the dialog was driven by widget
+  tests only. Worth a look by the owner: open Course Info Editor on a
+  Course, scroll through it once, change something, Apply.
+- Not run: the Windows package, the Android build.

@@ -30,19 +30,24 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('Course Info avoids intrinsic LayoutBuilder conflict', () {
-    final source = File(
-      'lib/screens/course_editor_screen.dart',
+    // Build 272 Revision 2: the Course Info Editor is a widget in its own
+    // file, and its form owns the fields.
+    final courseInfo = File(
+      'lib/screens/course_info_editor.dart',
     ).readAsStringSync().replaceAll(RegExp(r'\s+'), '');
-    final start = source.indexOf(
-      "finalnarrowCourseInfo=MediaQuery.sizeOf(context).width<560;",
+    expect(
+      courseInfo,
+      contains('finalnarrow=MediaQuery.sizeOf(context).width<560;'),
     );
-    final end = source.indexOf('Future<void>_openLessons()', start);
-    expect(start, greaterThanOrEqualTo(0));
-    expect(end, greaterThan(start));
-    final courseInfo = source.substring(start, end);
     expect(courseInfo.contains('LayoutBuilder('), isFalse);
-    expect(courseInfo.contains('for(finalcinnames){'), isTrue);
-    expect(courseInfo.contains('for(finalcincustomRoles){'), isTrue);
+    // The dialog releases its fields when it leaves the screen; that every
+    // field is released is checked on the form itself
+    // (course_info_form_272_test).
+    expect(courseInfo, contains('_form.dispose();'));
+    final form = File(
+      'lib/controllers/course_info_form.dart',
+    ).readAsStringSync().replaceAll(RegExp(r'\s+'), '');
+    expect(form, contains('for(finalrowinauthors){row.dispose();}'));
   });
 
   test('Course metadata helper text uses multiline field layouts', () {
@@ -59,13 +64,10 @@ void main() {
     expect(createDialog, contains('helper: Text('));
     expect(createDialog, isNot(contains('helperMaxLines: 3')));
 
-    final editorSource = File(
-      'lib/screens/course_editor_screen.dart',
+    // Build 272 Revision 2: the Course Info Editor has its own file.
+    final infoEditor = File(
+      'lib/screens/course_info_editor.dart',
     ).readAsStringSync();
-    final infoEditor = editorSource.substring(
-      editorSource.indexOf('final narrowCourseInfo ='),
-      editorSource.indexOf('Future<void> _openLessons()'),
-    );
     for (final label in [
       'Course name',
       'Course Maintainer',

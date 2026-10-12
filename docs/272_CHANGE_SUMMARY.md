@@ -144,3 +144,90 @@ more owner case covers the new owner members.
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 2 (2.0.72+272002): the Course Info Editor's form and its own file
+
+Nothing an author sees changes.
+
+### Before
+
+The Course Info Editor was one method of the Course Editor screen, about
+1,530 lines long. It held about forty variables at once: the text fields,
+the rows of Authors, Rights Holders and Media credits, the licence, the
+cover and its credit, the switches. The same method drew the dialog, kept
+the rule for the credit of a cover, checked the fields on Apply and
+assembled the change for the Course. None of that could be tested without
+opening the Course Editor and the dialog.
+
+### Now
+
+- **`CourseInfoForm`** (`lib/controllers/course_info_form.dart`) is the
+  owner of the form: what the fields show for a Course (with one blank row
+  where a list is empty), adding and removing rows, the licence choice, the
+  cover with the credit QQL knows for it, the checks of Apply and the change
+  it gives. It draws nothing and stores nothing.
+- **`CourseInfoEditor`** (`lib/screens/course_info_editor.dart`) is the
+  dialog: it draws the form, asks about a name another Course has, and
+  hands back the change. The Course Editor screen keeps what belongs to it:
+  it reads what the dialog needs, opens it, and stages the change in its
+  working copy.
+- `CourseCreditRow` and `CourseRightsHolderRow`
+  (`lib/controllers/course_credit_rows.dart`) are the credit rows any Course
+  form can use.
+- `CourseInfoUpdateService.keepsLearningLanguage` is the one rule that says
+  whether a learning language may take a tag (it must not move the
+  language's XP and streak). The dialog and the service had a copy each.
+
+### How the dialog was moved
+
+Its 1,000 lines of layout were not retyped. A script took the text as it
+was and changed only the names of what it reads (for example `names[i]`
+became `_form.authors[i].name`). Afterwards every text and key of the old
+dialog was compared with the new files: all 186 are there, as often as
+before. The differences are the renamed variables inside five messages, and
+"Contributor", which now comes from `CourseCredits.defaultRole`.
+
+### A mistake caught before the commit
+
+An independent review compared the old dialog with the new files line by
+line. It found one real mistake, made by the renaming script: the help text
+under "Learning language name for learners" would have ended with
+"Leave it empty for “Instance of 'CourseInfoForm'…”" instead of
+"“Italian”". Inside a text, the script had written
+`$_form.defaultLearnerLanguageName` where `${_form.defaultLearnerLanguageName}`
+is needed. My own comparison had listed that sentence as different and I
+took it for one of the plain renamings, because the list was cut at 110
+characters.
+
+What was done about it:
+
+- the script now puts the braces, and stops if a renamed name is left
+  without them;
+- the comparison prints every differing text in full;
+- the characterization test now reads that help sentence (and passes on the
+  code before the move as well as after);
+- the review found nothing else that changes what an author sees or what is
+  stored. On its remark that a Course the form cannot read would have opened
+  a broken dialog, the form is now made before the dialog opens, as the old
+  code did.
+
+### Small things that changed inside
+
+- The dialog releases its text fields when it has left the screen (its own
+  State does it). Before, the Course Editor kept a list of closed dialogs
+  and released them when the next one opened or the Editor closed.
+- The field "Learning language name for learners" is released too. Before
+  it never was.
+- Two test files that read the dialog's source text now read its new file.
+
+### Tests
+
+- `test/course_info_form_272_test.dart`, 21 cases on the form alone: the
+  values a Course opens with, rows, the eight cases of the cover's credit,
+  the licence, what Apply gives and refuses with its messages, the name,
+  the language tag, the release of every field.
+- `test/course_info_editor_272_test.dart`, 5 cases through the Course
+  Editor, written on the code before the move and passed there.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.
