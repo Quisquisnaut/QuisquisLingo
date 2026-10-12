@@ -26,6 +26,12 @@ Nothing an author or a learner sees changes in this revision.
   moved and removed, View only, and two cases found by the independent
   review: two changes made in the same instant are both kept, and a label
   typed while the list has let go of Lesson Options is still applied).
+- **Follow-up, same version: the Windows packaging script works again.**
+  `tools/package_windows_release.ps1` could not finish since Build 270
+  Revision 7: the line that finds `data\app.so` (for the check that a
+  package never trusts the Dummy publisher) held an invisible control
+  character in place of `\a`. Found when the package of this revision was
+  made for the owner. The app is not changed.
 
 Course files, scoring, progression and learner data are unchanged. The Beta
 expiry stays 2026-11-11 23:59:59 local time (same release day).

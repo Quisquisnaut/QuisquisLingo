@@ -218,3 +218,16 @@
   counted.
 - Not checked by hand in the running app; the Windows package below is for
   that.
+- **Windows package** (owner decision: after this revision, to try the
+  changed forms by hand). `flutter build windows --release --no-pub` built
+  in 143 s. `tools/package_windows_release.ps1` then stopped at its line 494
+  ("invalid characters in the path"): since Build 270 Revision 7 that line
+  held a BEL control character where `\a` of `data\app.so` belongs, so the
+  script could not have finished since 10 October 2026. With the one
+  character corrected the script ran through on the same build: the Dummy
+  publisher check passed, 24 launcher unit tests and 4 packaged-launcher
+  tests passed, 4,405 files frozen. Package:
+  `build\packages\quisquislingo_windows_beta_272004.zip` (and the folder
+  of the same name), version 2.0.72+272004. Not started by me: the owner
+  tries it.
+

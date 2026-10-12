@@ -267,11 +267,17 @@ What was done (details in `docs/272_CHANGE_SUMMARY.md`):
   what it wrote before), `lesson_options_panel_272_test` (2, passed on
   the code before the move).
 
-After the commit: build the Windows package for the owner
-(`tools/package_windows_release.ps1 -RebuildFlutterApplication`; it
-names the ZIP `quisquislingo_windows_beta_272004`) and tell them where it
-is and what to try: Course Info Editor, New Course's form, the Wizard's
-credits (Advanced on step 3), Lesson Options.
+Revision 4 is `b17ae621`. The Windows package for the owner is made
+(12 October, 23:30): `build\packages\quisquislingo_windows_beta_272004.zip`.
+To try: Course Info Editor, New Course's form, the Wizard's credits
+(Advanced on step 3), Lesson Options. Awaiting the owner's word on it.
+
+Follow-up commit, same version: `tools/package_windows_release.ps1` line 494
+held a BEL character instead of `\a` in `data\app.so` since Build 270
+Revision 7 (a shell heredoc had eaten the backslash), so the script could
+not finish; fixed, and the script then ran through. **Before a release
+check a script for control characters**:
+`python -c "import sys; print(sorted(set(b for b in open(sys.argv[1],'rb').read() if b < 32 and b not in (9,10,13))))" <file>`.
 
 ## Revision 5 (the exercise editor's own file), prepared
 

@@ -491,7 +491,7 @@ if ($childProductVersion -ne $qqlVersion) {
 # made with --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true carries its public
 # key, which a normal build leaves out.
 $dummyPublisherKey = 'gSmelpGZaX9VzzJY6IkKGheBAtn56oVtwH7I7mwLgMs='
-$applicationLibrary = Join-Path $releaseDirectory "datapp.so"
+$applicationLibrary = Join-Path $releaseDirectory "data\app.so"
 if (-not (Test-Path -LiteralPath $applicationLibrary -PathType Leaf)) {
     throw "The compiled application library is missing: $applicationLibrary"
 }
