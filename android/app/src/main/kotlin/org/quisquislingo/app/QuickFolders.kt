@@ -319,13 +319,23 @@ class QuickFolders(private val activity: Activity) {
 
     // ---------------------------------------------------------------- Exports
 
+    /**
+     * Added to a selection, with [activity]'s package name as its argument:
+     * the Download entries QQL itself made (Build 271 Revision 4). On
+     * Android 10 with the storage permission the Downloads collection also
+     * shows files other apps, or the user with a file manager, put in QQL's
+     * folders; a selection by folder alone would list, replace and delete
+     * them too.
+     */
+    private val ownedByQql = " AND ${MediaStore.MediaColumns.OWNER_PACKAGE_NAME}=?"
+
     private fun ownDownload(relative: String, name: String): Uri? {
         val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
         return resolver.query(
             collection,
             arrayOf(MediaStore.MediaColumns._ID),
-            "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.DISPLAY_NAME}=?",
-            arrayOf(relative, name),
+            "${MediaStore.MediaColumns.RELATIVE_PATH}=? AND ${MediaStore.MediaColumns.DISPLAY_NAME}=?$ownedByQql",
+            arrayOf(relative, name, activity.packageName),
             null,
         )?.use { if (it.moveToFirst()) ContentUris.withAppendedId(collection, it.getLong(0)) else null }
     }
@@ -403,8 +413,8 @@ class QuickFolders(private val activity: Activity) {
                 MediaStore.MediaColumns.SIZE,
                 MediaStore.MediaColumns.DATE_MODIFIED,
             ),
-            "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?",
-            arrayOf("$prefix%"),
+            "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?$ownedByQql",
+            arrayOf("$prefix%", activity.packageName),
             null,
         )?.use { cursor ->
             while (cursor.moveToNext()) {
@@ -426,8 +436,8 @@ class QuickFolders(private val activity: Activity) {
         val prefix = relativePrefix.trimEnd('/') + "/"
         return resolver.delete(
             MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-            "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?",
-            arrayOf("$prefix%"),
+            "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?$ownedByQql",
+            arrayOf("$prefix%", activity.packageName),
         )
     }
 

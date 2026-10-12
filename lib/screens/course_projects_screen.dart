@@ -2504,13 +2504,8 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      existing == null
-                          ? 'The stored Course ${unopenable!.shownName} with ID “${course.courseId}” cannot be opened by this version (${unopenable.reason}). Replace it with the Course you are importing, create an available Copy as New Course or Fork, or cancel?'
-                          : existing.originType.isOfficial
-                          ? 'Official Course “${existing.title}” already uses ID “${course.courseId}”. It cannot be replaced by custom content; create an available Copy as New Course or Fork, or cancel.'
-                          : review.receivedUpdate
-                          ? 'A newer version of the received Custom Course “${existing.title}” is available. Update to version ${course.courseVersion}, create an available Copy as New Course or Fork, or cancel?'
-                          : 'A custom Course with ID “${course.courseId}” already exists. Replace “${existing.title}”, create an available Copy as New Course or Fork, or cancel?',
+                      CourseLibraryReports.matchingCourseId(review),
+                      key: const Key('import-matching-course-id'),
                     ),
                     if (review.receivedUpdate) ...[
                       const SizedBox(height: 12),

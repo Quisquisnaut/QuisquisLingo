@@ -1613,18 +1613,31 @@ class CourseEditorService {
     );
   }
 
-  static int _compareOfficialVersions(String left, String right) {
-    final l = left.split('.').map((value) => int.tryParse(value) ?? 0).toList();
-    final r = right
-        .split('.')
-        .map((value) => int.tryParse(value) ?? 0)
-        .toList();
+  static int _compareOfficialVersions(String left, String right) =>
+      compareOfficialVersions(left, right);
+
+  /// Compares two official Course versions part by part, the parts being
+  /// what the dots separate. Two whole numbers compare as numbers (10 is
+  /// after 9); any other pair compares as text, and a missing part is 0
+  /// (Build 271 Revision 4). Before, a part that is not a whole number
+  /// counted as 0, so "1.0.beta" and "1.0.rc" were one version and an
+  /// update from one to the other was refused as not newer.
+  static int compareOfficialVersions(String left, String right) {
+    final l = left.split('.');
+    final r = right.split('.');
     final length = l.length > r.length ? l.length : r.length;
     for (var index = 0; index < length; index++) {
-      final lv = index < l.length ? l[index] : 0;
-      final rv = index < r.length ? r[index] : 0;
-      if (lv != rv) return lv.compareTo(rv);
+      final lp = index < l.length ? l[index].trim() : '0';
+      final rp = index < r.length ? r[index].trim() : '0';
+      final ln = _wholeNumber.hasMatch(lp) ? BigInt.parse(lp) : null;
+      final rn = _wholeNumber.hasMatch(rp) ? BigInt.parse(rp) : null;
+      final order = ln != null && rn != null
+          ? ln.compareTo(rn)
+          : lp.compareTo(rp);
+      if (order != 0) return order;
     }
     return 0;
   }
+
+  static final _wholeNumber = RegExp(r'^[0-9]+$');
 }

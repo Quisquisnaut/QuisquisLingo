@@ -1,3 +1,48 @@
+# 2.0.71 (Build 271, Revision 4) - imports check what they bring in; Android file safety - 2026-10-12
+
+Plan `docs/271_PLAN.md`, Revision 4.
+
+- **Pictures are opened once at import.** Of the pictures of a Course
+  package and of an Image Bank only the structure was read. A picture with
+  every part in place and data that no device can draw was imported, and
+  then shown as missing. Each picture is now opened once while the file is
+  read: one that cannot be drawn stops the import and is named, and nothing
+  is installed or added. Reading a large Image Bank takes longer for this.
+- **Every import action refuses what the import screen refuses.** Someone
+  else's Private course and a Course whose Audit has errors were refused by
+  the screen alone; the install, Copy as New Course, Fork and Publisher
+  install behind it accepted them from any other caller. They now refuse
+  them themselves, with the same words.
+- **A Course ID already in use.** The Matching Course ID dialog named the
+  stored Course by its title, also when it was someone else's Private
+  course. It now says "a Private course".
+- **Publisher versions.** A Publisher update must have a newer version than
+  the one installed. A part of a version that is not a whole number counted
+  as 0, so `1.0.beta` and `1.0.rc` were one version and an update from one
+  to the other was refused. Such parts now compare as text; whole numbers
+  compare as numbers, as before.
+- **Android, Save as….** When the file chosen in the system's screen could
+  not be opened for writing, QQL deleted it, although nothing of it had
+  been replaced: a file that was there before was lost. It is now left as
+  it is. A write that fails part-way still removes the incomplete file.
+- **Android 10, QQL's own files.** Quick Export, the Inventory and Wipe out
+  everything chose QQL's files in the Download folder by their folder
+  alone. On Android 10 with the storage permission that also matched files
+  put there by another app or by hand, which could be listed, replaced or
+  deleted. They are now chosen by who made them as well.
+- **The version shown in Settings.** Since Revision 2 Settings and the
+  Audit report still said "Build 271, Revision 1" (the build number was
+  right). They say Revision 4 now.
+- Checked on the Android 16 emulator: a repeated Quick Export of the Crash
+  Log replaces QQL's own file, the Inventory lists it, Save log copy as… writes
+  the chosen file. Not checked: Android 10, for which there is no emulator
+  image here; a file that cannot be opened, which cannot be provoked by
+  hand.
+- Help EN/IT/ES. Tests: `test/import_safety_271_test.dart` (12 cases), one
+  case in `android_storage_bridge_255_test`. Course files, scoring,
+  progression and learner data are unchanged. Beta expiry
+  `2026-11-11 23:59:59` local time.
+
 # 2.0.71 (Build 271, Revision 3) - a save is faster and shows where it is - 2026-10-12
 
 Owner report of 12 October 2026: Save works, but it is slow and nothing

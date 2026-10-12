@@ -442,3 +442,52 @@ pictures); Android.
 
 Not checked: the pages by hand in the running app; a Course much larger
 than the Laboratory; Android.
+
+## Revision 4 (2.0.71+271004), imports check what they bring in; Android file safety
+
+12 October 2026, owner's Windows 10 PC, `build-271`.
+
+- `test/import_safety_271_test.dart`, 12 cases:
+  - a PNG made for it (every part in place and checked, picture data that
+    is not a picture) passes the structure check and is refused when it is
+    opened; a real picture passes both;
+  - a Course package with that picture is refused, the message naming the
+    file and saying "The image is damaged"; with a real picture the package
+    is read;
+  - an Image Bank with that picture is refused ("Image Bank image
+    thing.png: The image is damaged…"); with a real picture it is read;
+  - someone else's Private course is refused by install, Copy as New Course
+    and Fork, nothing is stored, and its Maintainer imports it;
+  - a Course whose Audit has an error (no source language) is refused by
+    the three actions with the screen's sentence, nothing is stored, and
+    the same Course without the error is imported;
+  - a refused attempt has ended (a second use is a StateError);
+  - the two refusals word for word, and the screen's texts are these;
+  - a stored Private course of another learner with the same ID: the review
+    marks it hidden and the dialog's text is "A custom Course with ID
+    “shared” already exists: a Private course. …", without its title; a
+    Course the learner may see is named; a stored Course this version
+    cannot open, hidden and not;
+  - versions: 2 before 10, 1.10 after 1.9, 1.0 equal to 1, 1.02 equal to
+    1.2, numbers of 20 digits; 1.0.rc after 1.0.beta (before: equal),
+    2026-10 after 2026-09, 1.0b after 1.0a, 1.0.beta after 1.0, spaces
+    around the parts ignored.
+- `test/android_storage_bridge_255_test.dart`: a document that cannot be
+  opened is left as it is (nothing asks for it to be deleted, its content is
+  unchanged, the save is reported as failed).
+- The pinned version tests: the visible label "Build 271, Revision 4" (four
+  test files), `correctiveRevision` 4.
+- Focused, the Dart changes before the new tests (62 files around imports,
+  packages, Image Banks and Publisher versions): 797 passed. The two test
+  files above: 26 passed.
+- Android: `flutter build apk --debug` builds (the Kotlin changes compile).
+  On the Android 16 emulator, what `docs/271_CHANGE_SUMMARY.md` lists under
+  "Checked on the emulator, and not".
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,308 passed, 1 skipped (the usual one), none failed**, in
+  57:19.
+
+Not checked: Android 10; Wipe out everything on the emulator; a chosen file
+that cannot be opened; the time a large Image Bank now takes to read; the
+dialogs by hand on Windows.

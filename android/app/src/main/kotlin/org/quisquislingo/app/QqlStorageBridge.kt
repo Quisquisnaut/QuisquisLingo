@@ -268,12 +268,12 @@ class QqlStorageBridge(private val activity: Activity) {
                 }
                 "openWrite" -> {
                     val uri = Uri.parse(call.argument<String>("uri"))
-                    val stream = try {
-                        openTruncating(uri)
-                    } catch (error: Exception) {
-                        deleteQuietly(uri)
-                        throw error
-                    }
+                    // Build 271 Revision 4: a document that cannot be opened
+                    // is left as it is. Save as… may name a file that exists
+                    // already, and nothing of it has been replaced yet, so
+                    // deleting it here would lose the user's file for a
+                    // write that never started.
+                    val stream = openTruncating(uri)
                     val handle = nextHandle.getAndIncrement()
                     writers[handle] = Writer(uri, stream, null)
                     result.success(handle)
@@ -368,9 +368,10 @@ class QqlStorageBridge(private val activity: Activity) {
     }
 
     /**
-     * Closes a write. A picked document that failed or was abandoned is
-     * deleted; a Download entry is published or removed. Returns the Download
-     * entry's final name, or null for a picked document.
+     * Closes a write. A picked document whose write failed or was abandoned
+     * is deleted (it was emptied when it was opened, and holds a part of the
+     * new content at most); a Download entry is published or removed.
+     * Returns the Download entry's final name, or null for a picked document.
      */
     private fun finishWrite(writer: Writer, keep: Boolean): String? {
         var closed = false

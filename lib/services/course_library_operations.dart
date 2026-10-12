@@ -7,6 +7,7 @@ import 'course_audit_service.dart';
 import 'course_editor_service.dart';
 import 'course_file_store.dart';
 import 'course_flag_service.dart';
+import 'course_import_refusals.dart';
 import 'course_language_resolver.dart';
 import 'course_learner_visibility_service.dart';
 import 'course_library_service.dart';
@@ -281,6 +282,7 @@ class CourseImportReview {
     this.replaceUnavailableReason,
     this.notExecutableCount = 0,
     this.existingUnopenable,
+    this.existingHidden = false,
   });
 
   final Course course;
@@ -297,6 +299,10 @@ class CourseImportReview {
   /// The stored Course using this Course ID when this version cannot open
   /// it (Build 266 Revision 2): importing the Course again replaces it.
   final UnopenableStoredCourse? existingUnopenable;
+
+  /// Whether the stored Course is someone else's Private course (Build 271
+  /// Revision 4): the import names it "a Private course", never by title.
+  final bool existingHidden;
 
   /// Offered for a matching custom Course ID; Cancel is always offered.
   final List<CourseImportChoice> choices;
@@ -559,14 +565,8 @@ class CourseLibraryOperations {
   /// refused; the chosen action still runs through [attempt] itself.
   /// Someone else's Private course is neither imported nor merged (Build 259
   /// Revision 8, owner decision): it would stay hidden for this profile.
-  Future<void> _refuseHiddenPrivate(Course course) async {
-    if (CoursePrivacy.isPrivate(course) &&
-        !await CoursePrivacy(
-          accessPolicy: CourseAccessPolicy(profileService: profiles),
-        ).isVisible(course)) {
-      throw FormatException(CourseLibraryReports.privateCourseRefused(course));
-    }
-  }
+  Future<void> _refuseHiddenPrivate(Course course) =>
+      CourseImportRefusals.checkPrivate(course, profiles: profiles);
 
   Future<CourseImportReview> reviewImport(
     CoursePackageImport attempt,
@@ -625,6 +625,13 @@ class CourseLibraryOperations {
           .length,
       existing: existing,
       existingUnopenable: unopenable,
+      existingHidden: existing != null
+          ? !await CoursePrivacy(
+              accessPolicy: CourseAccessPolicy(profileService: profiles),
+            ).isVisibleTo(existing, library.activeProfileId)
+          : unopenable != null &&
+                unopenable.private &&
+                unopenable.maintainerProfileId != library.activeProfileId,
       receivedUpdate: receivedDecision?.allowed ?? false,
       replaceUnavailableReason: unopenable != null
           ? (mayReplaceUnopenable
@@ -1102,7 +1109,7 @@ abstract final class CourseLibraryReports {
   /// Revision 6, plan A.6), empty when there are none.
   /// Why someone else's Private course is refused (Build 259 Revision 8).
   static String privateCourseRefused(Course course) =>
-      '“${course.title}” is a Private course: only its Course Maintainer and the members of its assigned Team can import it or use it in a Merge. Ask its Maintainer for a copy that is not private.';
+      CourseImportRefusals.privateCourse(course);
 
   static String notExecutableNote(int count) => count == 0
       ? ''
@@ -1138,7 +1145,32 @@ abstract final class CourseLibraryReports {
       'to $where. It is not signed yet: sign it before distributing it.';
 
   static String importBlocked(int errors) =>
-      'Course Audit found $errors error${errors == 1 ? '' : 's'}. Fix these errors before importing the course.';
+      CourseImportRefusals.auditErrors(errors);
+
+  /// What the Matching Course ID dialog says about the stored Course an
+  /// import meets (Build 271 Revision 4: someone else's Private course is
+  /// "a Private course", never its title).
+  static String matchingCourseId(CourseImportReview review) {
+    final course = review.course;
+    final existing = review.existing;
+    final unopenable = review.existingUnopenable;
+    const choices = 'create an available Copy as New Course or Fork, or cancel';
+    if (existing == null) {
+      final reason = unopenable?.reason ?? '';
+      return review.existingHidden
+          ? 'A Private course stored with ID “${course.courseId}” cannot be opened by this version ($reason). Replace it with the Course you are importing, $choices?'
+          : 'The stored Course ${unopenable?.shownName ?? ''} with ID “${course.courseId}” cannot be opened by this version ($reason). Replace it with the Course you are importing, $choices?';
+    }
+    if (existing.originType.isOfficial) {
+      return 'Official Course “${existing.title}” already uses ID “${course.courseId}”. It cannot be replaced by custom content; $choices.';
+    }
+    if (review.existingHidden) {
+      return 'A custom Course with ID “${course.courseId}” already exists: a Private course. Replace it, $choices?';
+    }
+    return review.receivedUpdate
+        ? 'A newer version of the received Custom Course “${existing.title}” is available. Update to version ${course.courseVersion}, $choices?'
+        : 'A custom Course with ID “${course.courseId}” already exists. Replace “${existing.title}”, $choices?';
+  }
 
   /// "Anna and Marco have this Course in their courses." (Build 271
   /// Revision 1), or null when no other learner has it.

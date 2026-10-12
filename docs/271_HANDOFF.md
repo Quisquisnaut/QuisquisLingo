@@ -18,7 +18,7 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 1 | Deleting a Course (other learners named, reset my progress, delete its backups); saves never blocked by a backup; `*.tmp` cleanup; Publisher update over an unreadable copy keeps a backup; Inventory Delete all (added 11 October) |
 | 2 | The Audio Library like the Image Library; the Course Editor's top bar; Image Library Help into the Editor Help (mock-ups first: owner rule) |
 | 3 | Speed: a save that is faster and shows where it is (owner report of 12 October); follow-up, same version: one Audit per change, Lesson and Round Audits, image search keys |
-| 4 | Import and Android file safety |
+| 4 | Import and Android file safety (done, 12 October) |
 | 5 | Tidy-ups (labels never translated, Cyrillic order, mascot after the frame, test seams, Course Info controllers) |
 
 Owner rules for this Build: at most three icons in a top bar; show a
@@ -450,3 +450,32 @@ Course through JSON once for each build (15 to 19 ms on the Laboratory;
 modularization's subject (Build 272).
 
 Next: Revision 4, import and Android file safety (`docs/271_PLAN.md`).
+
+## Revision 4 (2.0.71+271004), imports check what they bring in; Android file safety
+
+State: done and committed (12 October 2026, morning), the branch pushed. Analyzer clean; complete suite 4,308 passed, 1 skipped (57:19).
+
+Where:
+
+- `CoursePackageService._checkImportedImage` (async, `validate` for every
+  picture but the cover), `ImageBankService._readBank` (`validate`).
+- `lib/services/course_import_refusals.dart` (`CourseImportRefusals`);
+  `CoursePackageImport._run` calls `check`; the operations and the reports
+  delegate.
+- `CourseImportReview.existingHidden`,
+  `CourseLibraryReports.matchingCourseId`; the dialog in
+  `CourseProjectsScreen._importCourse` (`import-matching-course-id`).
+- `CourseEditorService.compareOfficialVersions`.
+- Kotlin: `QqlStorageBridge` (`openWrite`), `QuickFolders` (`ownedByQql`).
+- `AppMetadata.correctiveRevision` 4, `publicBuildLabel` (they had stayed
+  at Revision 1 since Revision 2: my slip, found on the emulator).
+
+Emulator: Pixel_8 (Android 16). Built with `JAVA_HOME` = Android Studio's
+`jbr`; the Gradle and Kotlin daemons of the build were stopped before the
+emulator started (8 GB PC). The first Create Profile step drops typed
+letters on this slow emulator ("Tester" became "TT"): any name will do.
+
+To tell the owner: the label slip; Android 10 not checked (no image);
+reading a large Image Bank is slower (not measured).
+
+Next: Revision 5, tidy-ups (`docs/271_PLAN.md`).

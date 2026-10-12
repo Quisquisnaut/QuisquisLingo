@@ -673,3 +673,104 @@ tags and every category.
   folder.
 - The whole Audit of a Course still takes as long as before the first time
   a Course is shown.
+
+## Revision 4 (2.0.71+271004): imports check what they bring in; Android file safety
+
+Plan `docs/271_PLAN.md`, Revision 4.
+
+### Pictures are opened once at import
+
+A picture of a Course package or of an Image Bank had its structure read
+(its type, its size, its parts and their checksums), not its content. A
+picture with every part in place and data that is not a picture passed, was
+installed, and was then shown as "Image file missing" wherever it was used.
+
+Each picture is now opened once while the package or the ZIP is read, as a
+picture chosen by hand already was. One that cannot be drawn stops the
+import with its name and "The image is damaged. Export it again as a still
+PNG, JPEG or WebP image and retry." Nothing is installed or added.
+
+The cost: reading takes longer, in proportion to the number of pictures. It
+was not measured on a large Image Bank.
+
+### Every import action refuses what the screen refuses
+
+The import screen refuses someone else's Private course, and a Course whose
+Audit has errors ("Course import blocked"). The actions behind the screen
+(install, Copy as New Course, Fork, the Publisher install) did not check
+either: whatever else called them could bring such a Course in. They now
+refuse both themselves, before anything is written, with the same words.
+The screen is unchanged for the user.
+
+### A Course ID already in use
+
+When the Course being imported has the ID of a stored Course, the Matching
+Course ID dialog named the stored Course by its title. If that Course was
+someone else's Private course, its title was shown to a learner who must not
+see it. The dialog now says "a custom Course with ID … already exists: a
+Private course", or "A Private course stored with ID …" when this version
+cannot open it.
+
+### Publisher versions
+
+A Publisher update is accepted only with a version newer than the one
+installed. The comparison split the version at its dots and read each part
+as a whole number; a part that is not one counted as 0. So `1.0.beta` and
+`1.0.rc` were the same version, and so were `2026-09` and `2026-10`: the
+update was refused as "not newer".
+
+Two whole numbers still compare as numbers (10 is after 9, 1.0 equals 1).
+Any other pair of parts compares as text, and a missing part is 0.
+
+### Android: Save as…
+
+Save as… opens the system's screen, where the user names a new file or
+chooses one that exists. When QQL then could not open that file for
+writing, it deleted it. Nothing of it had been replaced yet, so a file that
+was there before was lost for a write that never started. QQL now leaves it
+as it is and reports the failure. A write that starts and fails part-way
+still removes the incomplete file, as before.
+
+### Android 10: QQL's own files in the Download folder
+
+Quick Export, the Inventory and Wipe out everything find QQL's files in
+`Download/QuisquisLingo` through Android's list of downloads, and chose
+them by their folder alone. From Android 11 an app sees only its own files
+there. On Android 10, where QQL holds the storage permission, the list also
+shows files that another app, or the user with a file manager, put in those
+folders: they could be listed as QQL's, replaced by an export of the same
+name, or deleted by Wipe out everything. QQL now also asks for the files it
+made itself.
+
+### The version shown in Settings
+
+Found while checking on the emulator: since Revision 2, Settings › Version
+and Build and the Audit report said "Build 271, Revision 1". The build
+number (271002, 271003) was right; the label and the tests that pin it had
+not been moved. They now say Revision 4.
+
+### Checked on the emulator, and not
+
+Android 16 emulator (the only image here), with the app built from this
+revision:
+
+- Quick Export Crash Log, repeated: still one file
+  `Download/QuisquisLingo/Logs/QQL_crash_log.txt`, replaced (its time
+  changes), and one entry for it in Android's list, with QQL as the one
+  that made it.
+- The Inventory lists it under Logs folder as "Written by QQL".
+- Android's list accepts a delete chosen by folder and maker: with another
+  maker nothing is removed, with QQL the file is removed (run from the
+  shell, not from the app).
+- Save log copy as… writes the file chosen in the system's screen.
+
+Not checked: Android 10, the version the last change is for (no emulator
+image here; the owner declined downloading older images); Wipe out
+everything from the app on the emulator; a chosen file that cannot be
+opened, which cannot be provoked by hand.
+
+### Not changed
+
+- Course files, the package format, scoring, progression and learner data.
+  No new key or folder.
+- What the import screen shows, apart from the dialog's sentence.

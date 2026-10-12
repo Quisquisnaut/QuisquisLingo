@@ -61,7 +61,9 @@ class CoursePackage {
     if (inMemory != null) return inMemory;
     final file = _staged[reference];
     if (file == null) {
-      throw FormatException('Course media $reference is not in the package. Export the Course package again with this file included.');
+      throw FormatException(
+        'Course media $reference is not in the package. Export the Course package again with this file included.',
+      );
     }
     return file.readAsBytes();
   }
@@ -97,7 +99,7 @@ class CoursePackage {
         if (sha256.convert(bytes).toString() !=
             CourseMediaStore.digestOf(reference)) {
           throw FormatException(
-          'Course media $reference has the wrong SHA-256. Replace it with the original file and export the package again.',
+            'Course media $reference has the wrong SHA-256. Replace it with the original file and export the package again.',
           );
         }
         final existing = await store.existingFile(targetCourseId, reference);
@@ -198,7 +200,9 @@ class CoursePackageService {
       ),
     );
     if (manifestBytes.length > maxManifestBytes) {
-      throw const FormatException('Course package manifest is too large. Remove unnecessary metadata and export again.');
+      throw const FormatException(
+        'Course package manifest is too large. Remove unnecessary metadata and export again.',
+      );
     }
     final archive = Archive()
       ..addFile(ArchiveFile.bytes(manifestName, manifestBytes))
@@ -222,7 +226,9 @@ class CoursePackageService {
       _checkMedia(reference, bytes, cover: reference == course.coverImage);
       total += bytes.length;
       if (total > sizeLimit) {
-        throw const FormatException('Course package exceeds the 300 MB limit. Remove or shrink media and export again.');
+        throw const FormatException(
+          'Course package exceeds the 300 MB limit. Remove or shrink media and export again.',
+        );
       }
       archive.addFile(
         ArchiveFile.bytes(
@@ -233,7 +239,9 @@ class CoursePackageService {
     }
     final zip = Uint8List.fromList(ZipEncoder().encode(archive));
     if (zip.length > sizeLimit) {
-      throw const FormatException('Course package exceeds the 300 MB limit. Remove or shrink media and export again.');
+      throw const FormatException(
+        'Course package exceeds the 300 MB limit. Remove or shrink media and export again.',
+      );
     }
     return zip;
   }
@@ -247,7 +255,9 @@ class CoursePackageService {
     String? archiveFileName,
   }) async {
     if (zip.length > sizeLimit) {
-      throw const FormatException('Course package exceeds the 300 MB limit. Remove or shrink media and export again.');
+      throw const FormatException(
+        'Course package exceeds the 300 MB limit. Remove or shrink media and export again.',
+      );
     }
     _checkArchiveKind(zip);
     return _parse(
@@ -266,7 +276,9 @@ class CoursePackageService {
     String? archiveFileName,
   }) async {
     if (await zip.length() > sizeLimit) {
-      throw const FormatException('Course package exceeds the 300 MB limit. Remove or shrink media and export again.');
+      throw const FormatException(
+        'Course package exceeds the 300 MB limit. Remove or shrink media and export again.',
+      );
     }
     final source = await zip.open();
     try {
@@ -346,13 +358,17 @@ class CoursePackageService {
           decoded.keys.any(
             (key) => key != 'packageFormat' && key != 'sharedImageSources',
           )) {
-        throw const FormatException('Unsupported Course package format. Export the Course with this QQL version and try again.');
+        throw const FormatException(
+          'Unsupported Course package format. Export the Course with this QQL version and try again.',
+        );
       }
       manifestData = Map<String, dynamic>.from(decoded);
     } on FormatException {
       rethrow;
     } catch (_) {
-      throw const FormatException('Invalid Course package manifest. Export a fresh Course package instead of editing the ZIP by hand.');
+      throw const FormatException(
+        'Invalid Course package manifest. Export a fresh Course package instead of editing the ZIP by hand.',
+      );
     }
     final courseJson = zipReader.read(courseEntry);
     final course = await validateCourse(courseJson, courseName);
@@ -392,7 +408,7 @@ class CoursePackageService {
         );
         final cover = reference == course.coverImage;
         _checkMedia(reference, value, cover: cover);
-        _checkImportedImage(reference, value, cover: cover);
+        await _checkImportedImage(reference, value, cover: cover);
         if (CourseMediaStore.isAudioReference(reference)) {
           try {
             await Mp3Validator.validate(value);
@@ -449,20 +465,24 @@ class CoursePackageService {
   }
 
   /// An imported image medium must be a valid image of the type its name
-  /// says. Applied when a package is read, never when one is written.
-  static void _checkImportedImage(
+  /// says, and one that can be drawn: it is decoded once (Build 271 Revision
+  /// 4). Before, only its structure was read, so a picture no device can
+  /// draw was imported and then shown as missing. The cover is decoded by
+  /// [checkCover]. Applied when a package is read, never when one is
+  /// written.
+  static Future<void> _checkImportedImage(
     String reference,
     Uint8List bytes, {
     required bool cover,
-  }) {
+  }) async {
     if (!CourseMediaStore.isImageReference(reference)) return;
     try {
-      final facts = ImageValidator.inspect(
-        bytes,
-        cover
-            ? ImageProfile.courseCover
-            : const ImageProfile(maxBytes: CourseMediaStore.maxImageBytes),
-      );
+      final facts = cover
+          ? ImageValidator.inspect(bytes, ImageProfile.courseCover)
+          : (await ImageValidator.validate(
+              bytes,
+              const ImageProfile(maxBytes: CourseMediaStore.maxImageBytes),
+            )).facts;
       final extension = CourseMediaStore.extensionOf(reference);
       if (facts.format.extension != extension &&
           !(facts.format == ImageFormat.jpeg && extension == 'jpeg')) {
@@ -564,7 +584,9 @@ class CoursePackageService {
     } on FormatException {
       rethrow;
     } catch (_) {
-      throw const FormatException('Course cover image could not be decoded. Export a fresh PNG, JPEG or WebP image and retry.');
+      throw const FormatException(
+        'Course cover image could not be decoded. Export a fresh PNG, JPEG or WebP image and retry.',
+      );
     } finally {
       codec?.dispose();
       descriptor?.dispose();

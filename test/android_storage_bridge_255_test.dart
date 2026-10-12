@@ -44,6 +44,9 @@ class _FakeAndroid {
   int? failReadAt;
   bool failWrite = false;
   bool failOpen = false;
+
+  /// Makes the picked document refuse to be opened for writing.
+  bool failOpenWrite = false;
   int chunk = 4;
 
   final _reading = <int, ({String uri, int offset})>{};
@@ -88,6 +91,9 @@ class _FakeAndroid {
         _reading.remove(args['handle']);
         return null;
       case 'openWrite':
+        if (failOpenWrite) {
+          throw PlatformException(code: 'io', message: 'FileNotFoundException');
+        }
         _writing[_next] = (uri: args['uri']! as String, bytes: BytesBuilder());
         return _next++;
       case 'write':
@@ -190,6 +196,27 @@ void main() {
       )!;
       expect(log, contains('platform='));
       expect(log, isNot(contains('content://')));
+    });
+
+    // Build 271 Revision 4: Save as… may name a file that exists already.
+    // When it cannot be opened nothing of it has been replaced, so nothing
+    // asks for it to be deleted (the Android side no longer deletes it
+    // either).
+    test('a document that cannot be opened is left as it is', () async {
+      android.created = {'uri': 'content://docs/mine', 'name': 'x.json'};
+      android.documents['content://docs/mine'] = Uint8List.fromList([7, 7, 7]);
+      android.failOpenWrite = true;
+      final result = await dialogs.saveBytes(
+        bytes: Uint8List.fromList([1, 2]),
+        suggestedName: 'x.json',
+        extensions: const ['json'],
+        artifact: 'user-data',
+      );
+      expect(result.outcome, FileDialogOutcome.failed);
+      expect(android.deleted, isEmpty);
+      expect(android.calls, isNot(contains('closeWrite')));
+      expect(android.documents['content://docs/mine'], [7, 7, 7]);
+      expect(android.allClosed, isTrue);
     });
   });
 

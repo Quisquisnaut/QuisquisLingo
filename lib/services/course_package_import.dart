@@ -1,6 +1,8 @@
 import '../models/course_models.dart';
 import 'course_editor_service.dart';
+import 'course_import_refusals.dart';
 import 'course_package_service.dart';
+import 'profile_service.dart';
 
 /// One Course package import, from the read package until the attempt ends.
 ///
@@ -12,11 +14,16 @@ import 'course_package_service.dart';
 /// them. Every action, and [close], discards the staged media as soon as the
 /// attempt ends — before a new Copy or Fork opens in its Editor.
 class CoursePackageImport {
-  CoursePackageImport(this._package, {required CourseEditorService editor})
-    : _editor = editor;
+  CoursePackageImport(
+    this._package, {
+    required CourseEditorService editor,
+    ProfileService? profiles,
+  }) : _editor = editor,
+       _profiles = profiles;
 
   final CoursePackage _package;
   final CourseEditorService _editor;
+  final ProfileService? _profiles;
   bool _started = false;
   Future<void>? _closed;
 
@@ -61,6 +68,10 @@ class CoursePackageImport {
     }
     _started = true;
     try {
+      // Build 271 Revision 4: every action refuses what the import screen
+      // refuses (someone else's Private course, a Course whose Audit has
+      // errors), so no other caller can bring them in.
+      await CourseImportRefusals.check(course, profiles: _profiles);
       return await install();
     } finally {
       await close();

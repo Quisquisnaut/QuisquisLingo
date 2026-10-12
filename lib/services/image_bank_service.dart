@@ -563,9 +563,15 @@ class ImageBankService {
         byBasename[item.filename.toLowerCase()]!,
         limit: maxImageBytes,
       );
+      // Build 271 Revision 4: each picture is decoded once, so one that no
+      // device can draw is refused here, by name, and not shown as missing
+      // later. Before, only its structure was read.
       final ImageFacts facts;
       try {
-        facts = ImageValidator.inspect(sourceBytes, ImageProfile.exerciseImage);
+        facts = (await ImageValidator.validate(
+          sourceBytes,
+          ImageProfile.exerciseImage,
+        )).facts;
       } on ImageValidationException catch (error) {
         throw FormatException(
           'Image Bank image ${item.filename}: ${error.message}',
