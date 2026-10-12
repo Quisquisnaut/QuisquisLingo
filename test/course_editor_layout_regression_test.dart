@@ -51,14 +51,11 @@ void main() {
   });
 
   test('Course metadata helper text uses multiline field layouts', () {
+    // Build 272 Revision 3: New Course's form has its own file.
     final createSource = File(
-      'lib/screens/course_projects_screen.dart',
+      'lib/screens/new_course_dialog.dart',
     ).readAsStringSync();
-    final createDialog = createSource.substring(
-      // Build 267: the form takes the Course Wizard's first-screen values.
-      createSource.indexOf('Future<Course?> _createCourse('),
-      createSource.indexOf('Future<void> _newCourse()'),
-    );
+    final createDialog = createSource;
     expect(createSource, contains("labelText: 'Course Maintainer'"));
     expect(createSource, isNot(contains('Choose an individual user.')));
     expect(createDialog, contains('helper: Text('));

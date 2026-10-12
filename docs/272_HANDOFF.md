@@ -27,17 +27,31 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 
 | Revision | Scope |
 |---|---|
-| 0 | Course credits and licence owner (`CourseCredits`): roles, licence choice, derivative policy, Rights Holder rows; Course Info, New Course and the Course Wizard use it (done) |
-| 1 | The five credits and licence rules made the same in the three screens (owner decision of 12 October 2026, below): a behaviour change, on purpose in a revision of its own |
-| 2 | Course Info form owner; the Course Info Editor dialog becomes a widget of its own |
-| 3 | New Course form owner; the New Course dialog becomes a widget of its own |
-| 4 | Lesson Options transforms and panel |
-| 5 | `TimedRoundClock` |
-| 6 | `AnswerGrader` |
+| 0 | Course credits and licence owner (`CourseCredits`) (done, `7c8f28fe`) |
+| 1 | The five credits and licence rules made the same in the three screens (done, `4d0d708c`) |
+| 2 | Course Info form owner; the Course Info Editor dialog in its own file (done, `89b51291`) |
+| 3 | New Course form owner; the New Course dialog in its own file (done) |
+| 4 | Lesson Options owner (`LessonOptions`) and panel; then a Windows package for the owner to try |
+| 5 | The exercise editor (`ExerciseEditorScreen`, 3,153 lines) moves whole to its own file |
+| 6 | `TimedRoundClock` |
 | 7 | Media-reference owner |
 | 8 | Shared JSON readers for the models |
-| 9 | Merge selection owner; Merge, Import and Export screens leave Course Studio |
-| later | Free moves; then the plan's medium-risk items 8–14 |
+| 9 | Merge selection owner; Merge, Import and Export pages leave Course Studio |
+| then | The other free moves, two or three per complete suite |
+| Build 273 | The plan's medium-risk items: answer grading, Story cast, the publish gate, the profile service split, Audit rule sets, the earlier exercise shapes, the Round screen's state owners, the Course save sequence |
+
+Owner decisions of 12 October 2026 (22:15, answers to four questions):
+
+1. **Suite**: every revision that creates an owner or touches a rule gets
+   its own complete suite; pure file moves with no logic go two or three
+   per suite, each still with focused tests and the independent review.
+2. **Exercise editor**: it leaves the Course Editor file right after Lesson
+   Options (Revision 5).
+3. **Scope**: Build 272 = the low-risk owners and the free moves; the
+   medium-risk items are Build 273, after the owner has used this Build.
+4. **Try it**: a Windows package after Revision 4 (Lesson Options), so the
+   owner can try the Course Info Editor, New Course's form, the Wizard's
+   credits and Lesson Options by hand.
 
 Owner decision of 12 October 2026 ("They must become the same", then "Agree
 on all five, own revision"), Revision 1:
@@ -56,10 +70,6 @@ on all five, own revision"), Revision 1:
    (`CourseCredits.customLicenseMissing`; Course Info and New Course were
    silent).
 
-Asked of the owner and not answered yet (12 October, 18:12): whether to run
-the complete suite once every two or three revisions instead of every
-revision while the PC is short of memory (85 minutes a run). Until an
-answer: one complete suite per revision.
 
 ## Revision 0 (2.0.72+272000), the credits and licence owner
 
@@ -199,20 +209,51 @@ the plan's free moves; I recommended moving it whole to its own file as
 the first free move (or as Revision 4 if the owner wants the big cut
 early). No answer yet.
 
-## Revision 3 (the New Course form), prepared
+## Revision 3 (2.0.72+272003), New Course's form and its own file
 
-In the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), folder `r3/`:
-`new_course_form.dart` (`NewCourseForm`, for `lib/controllers/`),
-`gen_dialog.py` + `dialog_head.txt` + `dialog_tail.txt` (they generate
-`lib/screens/new_course_dialog.dart`: `showNewCourseDialog`,
-`NewCourseDialog`). Still to write: the characterization tests on the
-code before the move (name another Course has, name refused, no
-languages, Buy a Coffee not HTTPS, a cancelled form deletes its cover),
-the form's own tests, the change of `CourseProjectsScreen._createCourse`,
-`_DisposeOnUnmount` removed if unused, the Wizard's `_CreditRow` /
-`_HolderRow` replaced by the shared rows, and the source-text tests that
-read `course_projects_screen.dart` (`course_editor_layout_regression_test`,
-`course_metadata_ui_v9_test`, `qql_233_revision_platform_contract_test`).
+State: done (12 October 2026). Analyzer clean; new tests 13 passed; 17 related files 209 passed; complete suite 4,380 passed, 1 skipped (20:58 to 21:42, 44 minutes). Committed on `build-272` and the branch pushed (hash in `git log`). Revision 2 is `89b51291`.
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/controllers/new_course_form.dart`: `NewCourseForm`,
+  `NewCourseSubmission` (`NewCourseAccepted` | `NewCourseRefused`).
+- `lib/screens/new_course_dialog.dart`: `showNewCourseDialog` (makes the
+  form, deletes a stored cover when the form is cancelled),
+  `NewCourseDialog`; the layout generated from the old text by
+  `r3/gen_dialog.py`; all 76 texts and keys of the old dialog are in the
+  new files (`r3/after_move.py`).
+- `CourseProjectsScreen._createCourse` is 30 lines; the file went from
+  3,504 to 2,772 lines; `_DisposeOnUnmount` and nine imports left.
+- The Course Wizard uses `CourseCreditRow` / `CourseRightsHolderRow`.
+- Source-text tests follow the code: `course_editor_layout_regression_test`,
+  `course_metadata_ui_v9_test`, `qql_233_revision_platform_contract_test`.
+- Tests: `new_course_form_272_test`, `new_course_dialog_272_test` (2,
+  passed on the code before the move).
+- The independent review before the suite found no visible or stored
+  difference. One point made exact: the name check asks the Course list
+  as it is when Continue to Editor is pressed
+  (`titleTaken: (title) => _library.hasCourseTitled(title)`), not a
+  tear-off bound when the form opened.
+
+## Revision 4 (Lesson Options), prepared
+
+In the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), folder `r4/`:
+`lesson_options.dart` (`LessonOptions`, pure, for `lib/services/`:
+`apply` with one optional parameter per setting, `customNumberingText`,
+`earlierLessonNumberingLabel`, `timedLimitRepeated`, `timedLimitsWith` /
+`timedLimitsMoved` / `timedLimitsWithout`) and `apply_r4.py` (moves
+`askAuthoringName` and `_chooseTimedLimit` to
+`lib/widgets/editor_dialogs.dart`, takes the Lesson Options members out
+of the Course Editor into `lib/widgets/lesson_options_panel.dart`
+(`LessonOptionsPanel(course, canModify, onChanged)`, with the two
+numbering-field version counters), replaces each JSON write by
+`LessonOptions.apply`, and makes `CourseWizardOptions.applyTo` use it).
+Still to write: the panel's head, the characterization tests on the code
+before the move (custom Lesson and Round label with Cancel, picture
+border, default Timed limits add / repeated / move / remove, View only),
+the owner's tests. Existing tests already cover Use GuideBook, Word
+Lookup, Create Duels, picture size / shape / per row and the numbering
+menus.
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

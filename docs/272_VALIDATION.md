@@ -132,3 +132,44 @@
   tests only. Worth a look by the owner: open Course Info Editor on a
   Course, scroll through it once, change something, Apply.
 - Not run: the Windows package, the Android build.
+
+## Revision 3 (2.0.72+272003), New Course's form and its own file
+
+12 October 2026, owner's Windows 10 PC, `build-272`.
+
+- Characterization, on the code **before** the move:
+  `test/new_course_dialog_272_test.dart`, **2 passed** (a name that cannot
+  be stored, no languages, Buy a Coffee not HTTPS and the fields as typed;
+  a name another Course of the learner has). Run while Revision 2 was still
+  uncommitted; New Course's code was the same then as in Revision 2's
+  commit `89b51291`.
+- Every text and key of the old dialog compared with the new files
+  (`after_move.py`): 76 before; none missing; "Author" and "Contributor"
+  now come from `CourseCredits`; nothing new besides file imports. No bare
+  interpolation was renamed (the script reports 0 braced).
+- **Independent review** before the suite (a second reader, read-only, old
+  code against new code, token by token for the dialog): no difference in
+  what an author sees or what is stored, in the order of the checks, the 22
+  values handed to `CourseLibraryOperations.newCourse`, the initial values,
+  the cover and its deletion on Cancel, the controls, the fields' lifetime,
+  the contexts and the Course Wizard's rows. One point was not exactly the
+  old code and was made exact: the name check now asks the Course list as
+  it is when Continue to Editor is pressed.
+- New tests after the move: `test/new_course_form_272_test.dart`, **11
+  passed**; `test/new_course_dialog_272_test.dart`, **2 passed**.
+- Focused files (17): the two above, `course_credits_272_test`,
+  `new_course_structure_226_04_test`, `course_creation_flags_226_04_test`,
+  `course_ownership_team_229_r1_test`,
+  `course_editor_layout_regression_test`, `course_metadata_ui_v9_test`,
+  `qql_233_revision_platform_contract_test`, `course_wizard_267_test`,
+  `wizard_wording_267_test`, `check_and_publish_267_test`,
+  `module_wizard_267_test`, `course_manager_workflow_249_test`,
+  `course_library_operations_249_test`, `provisional_mytest_workflow_test`,
+  `course_cover_255_test`: **209 passed**; the three New Course files again
+  after the review's point: 30 passed.
+- `flutter analyze --no-pub`: **No issues found** (42.5 s).
+- Complete suite, `flutter test --no-pub --concurrency=1` with the PC kept
+  awake and `TEMP` on `D:\QQL_test_temp`: **4,380 passed, 1 skipped, 0 failed** (20:58 to 21:42, 44 minutes).
+- Not checked by hand in the running app. Worth a look by the owner: New
+  Course, Continue by hand, fill the form once, Continue to Editor.
+- Not run: the Windows package, the Android build.

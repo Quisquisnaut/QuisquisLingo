@@ -18,8 +18,9 @@ const _profileId = '22222222-2222-4222-8222-222222222222';
 
 void main() {
   test('Create Course exposes structured Rights Holder editing', () {
+    // Build 272 Revision 3: New Course's form has its own file.
     final source = File(
-      'lib/screens/course_projects_screen.dart',
+      'lib/screens/new_course_dialog.dart',
     ).readAsStringSync();
 
     expect(source, contains("'License / Rights'"));

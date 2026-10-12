@@ -1,3 +1,30 @@
+# 2.0.72 (Build 272, Revision 3) - modularization: New Course's form and its own file - 2026-10-12
+
+Nothing an author or a learner sees changes in this revision.
+
+- **New Course's form has an owner**: `NewCourseForm`
+  (`lib/controllers/new_course_form.dart`). It holds what the fields show
+  (the creator as Author, New Course's defaults, what the Course Wizard's
+  first screen held), the rows of credits and Rights Holders, the licence
+  choice, the cover chosen before the Course exists, the check of the
+  numbers of Lessons and Rounds, and the Course that Continue to Editor
+  makes. It can be tested without opening any screen.
+- **The form is a widget in its own file**:
+  `lib/screens/new_course_dialog.dart` (`showNewCourseDialog`,
+  `NewCourseDialog`). It was one method of about 730 lines inside the Course
+  Studio screen, whose file goes from 3,504 to 2,772 lines. The layout was
+  carried over by exact text; every label, help text and key is the same.
+- **The Course Wizard uses the shared credit rows** (`CourseCreditRow`,
+  `CourseRightsHolderRow`); its own two copies are gone.
+- **Tests**: `test/new_course_form_272_test.dart` (the form alone) and
+  `test/new_course_dialog_272_test.dart` (through Course Studio, written
+  and passed on the code before the move: a name that cannot be stored, no
+  languages, Buy a Coffee not HTTPS, the fields as typed, a name another
+  Course has).
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-11 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 2) - modularization: the Course Info Editor's form and its own file - 2026-10-12
 
 Nothing an author or a learner sees changes in this revision.

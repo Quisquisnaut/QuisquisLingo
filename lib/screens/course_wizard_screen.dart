@@ -11,6 +11,7 @@ import '../services/authoring_duplication_service.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_audit_service.dart';
 import '../services/course_authoring_session.dart';
+import '../controllers/course_credit_rows.dart';
 import '../services/course_credits.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
@@ -85,44 +86,6 @@ class CourseWizardScreen extends StatefulWidget {
 
   @override
   State<CourseWizardScreen> createState() => _CourseWizardScreenState();
-}
-
-class _CreditRow {
-  _CreditRow({String name = '', Set<String>? roles, String customRoles = ''})
-    : name = TextEditingController(text: name),
-      roles = roles ?? {CourseCredits.defaultRole},
-      customRoles = TextEditingController(text: customRoles);
-
-  factory _CreditRow.of(CourseAuthor author) => _CreditRow(
-    name: author.name,
-    roles: CourseCredits.standardRolesIn(author.roles),
-    customRoles: CourseCredits.customRolesIn(author.roles),
-  );
-
-  final TextEditingController name;
-  final Set<String> roles;
-  final TextEditingController customRoles;
-
-  CourseAuthor? get value => CourseCredits.author(
-    name: name.text,
-    standardRoles: roles,
-    customRoles: customRoles.text,
-  );
-
-  void dispose() {
-    name.dispose();
-    customRoles.dispose();
-  }
-}
-
-class _HolderRow {
-  _HolderRow({this.type = CourseRightsHolderType.person, String name = ''})
-    : name = TextEditingController(text: name);
-
-  CourseRightsHolderType type;
-  final TextEditingController name;
-
-  void dispose() => name.dispose();
 }
 
 class _LessonRow {
@@ -206,11 +169,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   CourseFlagSelection _flag = const CourseFlagSelection.automatic();
 
   // Step 3.
-  final _creditRows = <_CreditRow>[];
+  final _creditRows = <CourseCreditRow>[];
   String _licenseChoice = CourseWizardCredits.defaultLicense;
   final _customLicense = TextEditingController();
   DerivativeWorksPolicy _derivative = DerivativeWorksPolicy.forbidden;
-  final _holderRows = <_HolderRow>[];
+  final _holderRows = <CourseRightsHolderRow>[];
   final _buyACoffee = TextEditingController();
   final _contactWebsite = TextEditingController();
   final _contactEmail = TextEditingController();
@@ -372,9 +335,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       for (final row in rows) {
         switch (row) {
-          case _CreditRow():
+          case CourseCreditRow():
             row.dispose();
-          case _HolderRow():
+          case CourseRightsHolderRow():
             row.dispose();
           case _LessonRow():
             row.dispose();
@@ -387,14 +350,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     _disposeLater([..._creditRows, ..._holderRows]);
     _creditRows
       ..clear()
-      ..addAll(credits.authors.map(_CreditRow.of));
+      ..addAll(credits.authors.map(CourseCreditRow.of));
     _holderRows
       ..clear()
-      ..addAll(
-        credits.rightsHolders.map(
-          (holder) => _HolderRow(type: holder.type, name: holder.name),
-        ),
-      );
+      ..addAll(credits.rightsHolders.map(CourseRightsHolderRow.of));
     _licenseChoice = CourseCredits.licenseChoiceFor(credits.license);
     _customLicense.text = CourseCredits.customLicenseTextFor(credits.license);
     _derivative = credits.derivativePolicy;
@@ -461,9 +420,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     derivativePolicy: _derivativeValue,
     rightsHolders: [
       for (final row in _holderRows)
-        if (CourseCredits.rightsHolder(row.type, row.name.text)
-            case final holder?)
-          holder,
+        if (row.value case final holder?) holder,
     ],
     buyACoffeeUrl: Course.normalizeBuyACoffeeUrl(_buyACoffee.text),
     publisherContact: CoursePublisherContact.fromFields(
@@ -2287,11 +2244,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           // starts as Contributor, as in Course Info and New Course.
           _creditRows.add(
             _creditRows.isEmpty
-                ? _CreditRow(
+                ? CourseCreditRow(
                     name: _authorName,
                     roles: {CourseCredits.creatorRole},
                   )
-                : _CreditRow(),
+                : CourseCreditRow(),
           );
           _generation++;
         }),
@@ -2447,7 +2404,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         key: const Key('course-wizard-add-rights-holder'),
         onPressed: () => setState(() {
           _holderRows.add(
-            _HolderRow(name: _holderRows.isEmpty ? _authorName : ''),
+            CourseRightsHolderRow(name: _holderRows.isEmpty ? _authorName : ''),
           );
           _generation++;
         }),

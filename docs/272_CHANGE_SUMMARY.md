@@ -231,3 +231,48 @@ What was done about it:
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 3 (2.0.72+272003): New Course's form and its own file
+
+Nothing an author sees changes.
+
+### Before
+
+New Course's form ("Create new course", reached with Continue by hand) was
+one method of the Course Studio screen, about 730 lines long, with about
+twenty text fields and their rules in the same place as the layout. It could
+be tested only by opening Course Studio.
+
+### Now
+
+- **`NewCourseForm`** (`lib/controllers/new_course_form.dart`) is the owner
+  of the form: the fields with New Course's defaults (the creator as Author,
+  "All rights reserved", 3 Lessons of 1 Round), what the Course Wizard's
+  first screen held, the rows, the licence choice, the cover, the check of
+  the numbers, and the Draft Course that Continue to Editor makes.
+- **`NewCourseDialog`** (`lib/screens/new_course_dialog.dart`) is the
+  dialog: it draws the form and asks about a name another Course has.
+  Course Studio reads the learners of the device and opens it.
+- The Course Wizard's own two row classes are replaced by the shared
+  `CourseCreditRow` and `CourseRightsHolderRow` of Revision 2.
+
+The Course Studio file goes from 3,504 to 2,772 lines.
+
+### How the dialog was moved
+
+As in Revision 2: the layout was taken as it was by a script that changes
+only the names of what it reads, every text and key was compared before and
+after, and a second reader compared the old and the new code line by line
+before the suite.
+
+### Tests
+
+- `test/new_course_form_272_test.dart`: the form alone.
+- `test/new_course_dialog_272_test.dart`: 2 cases through Course Studio,
+  written on the code before the move and passed there.
+- Already there and unchanged: the numbers of Lessons and Rounds, the flag,
+  the cover and its deletion on Cancel, the Maintainer list, the Wizard's
+  prefill, credits and licence.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

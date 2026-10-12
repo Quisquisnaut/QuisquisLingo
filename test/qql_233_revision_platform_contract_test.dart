@@ -8,10 +8,10 @@ void main() {
   test('technical version matches the current public build label', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
 
-    expect(AppMetadata.technicalVersion, '2.0.72+272002');
-    expect(AppMetadata.publicBuildLabel, 'Build 272, Revision 2');
-    expect(AppMetadata.displayLabel, 'Version 2.0.72\nBuild 272, Revision 2');
-    expect(pubspec, contains('version: 2.0.72+272002'));
+    expect(AppMetadata.technicalVersion, '2.0.72+272003');
+    expect(AppMetadata.publicBuildLabel, 'Build 272, Revision 3');
+    expect(AppMetadata.displayLabel, 'Version 2.0.72\nBuild 272, Revision 3');
+    expect(pubspec, contains('version: 2.0.72+272003'));
   });
 
   test('platform application identities use the QuisquisLingo namespace', () {
@@ -104,8 +104,10 @@ void main() {
       final team = File(
         'lib/screens/team_manager_screen.dart',
       ).readAsStringSync();
+      // Build 272 Revision 3: New Course's name warning is in New Course's
+      // own file.
       final courseManager = File(
-        'lib/screens/course_projects_screen.dart',
+        'lib/screens/new_course_dialog.dart',
       ).readAsStringSync();
       // Build 272 Revision 2: the Course Editor's name warning is in the
       // Course Info Editor's own file.
