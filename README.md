@@ -45,7 +45,10 @@ backups only the pictures and recordings they do not hold yet instead of
 reading every one of them three times, no longer reads every other stored
 Course, and the "Saving the Course…" window has a bar and names each step
 (checking, the backup with its count of pictures and recordings, writing,
-checking what was written).
+checking what was written). A follow-up audits a Course once for each change
+instead of every time a page is drawn, audits only the Lesson being edited
+on its own pages, and makes the image library's search about fifteen times
+faster.
 
 Build 270 fixes the weaknesses found by the audit of 10 October 2026
 ([audit](docs/270_AUDIT.md), [change summary](docs/270_CHANGE_SUMMARY.md)).

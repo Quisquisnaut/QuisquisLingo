@@ -36,6 +36,39 @@ shows the time it takes (`docs/271_PLAN.md`, Revision 3, its first part).
   key or folder; Course files, the backup format, scoring, progression and
   learner data are unchanged. Beta expiry `2026-11-11 23:59:59` local time.
 
+Follow-up in the same version (the rest of the plan's Revision 3, 12 October
+2026):
+
+- **One Audit for each change.** To colour their cards, the Course Editor's
+  main page, the Lessons page and every row of Course Studio ran the whole
+  Audit of the Course each time they were drawn again. The result is now
+  kept with the Course it was worked out for, so a Course is audited once
+  until it changes. Measured on the Exercise Laboratory: 30 to 80 ms each
+  time before, nothing after the first.
+- **A Lesson's pages audit their Lesson.** The Lesson, Rounds and Round
+  pages audited the whole Course each time they were drawn again, and built
+  the Course three or four times to do it. They now build it once and audit
+  their own Lesson. The Audit of a Lesson or of a Round (their menus, and
+  the check made when a Lesson or Round is applied) checks that Lesson too.
+  The findings are the same: a test compares them with the whole Audit's,
+  Lesson by Lesson and Round by Round, on the bundled Courses, the fixtures
+  and a Course with IDs repeated across Lessons. Measured on the Laboratory
+  (8 Lessons): the Audit of a Lesson 28 ms → 9 ms.
+- **The image library's search.** Every keystroke wrote the name, the tags,
+  the Local words, the ID and the category of every picture in small
+  letters and in the singular again. These are now worked out once for each
+  picture. Measured over QQL's 4,334 pictures: a search 109 to 303 ms → 6
+  to 19 ms; a category and a tag together 208 ms → 5 ms. The results are
+  the same: a test compares them, for every picture, with the rules as
+  they were written before.
+- Not done, because the measurements did not ask for them: a pause before
+  the search filters (it would only add a delay now), and reading Courses
+  off the screen's thread.
+- Tests: `test/audit_speed_271_test.dart` (18 cases),
+  `test/image_search_keys_271_test.dart` (4 cases). Audit findings, search
+  results, Course files, scoring, progression and learner data are
+  unchanged.
+
 # 2.0.71 (Build 271, Revision 2) - the Audio Library like the Image Library; the Course Editor's top bar - 2026-10-11
 
 Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).

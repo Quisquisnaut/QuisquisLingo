@@ -185,11 +185,53 @@ class AuthoringHierarchyStatus {
       issue.severity == AuditSeverity.error ||
       issue.severity == AuditSeverity.warning;
 
+  /// One status for each Course object (Build 271 Revision 3). A Course is
+  /// never changed in place, so the same object always audits the same.
+  /// Before, the whole Audit ran again on every rebuild of the Course
+  /// Editor's main page, of the Lessons page and of every row of Course
+  /// Studio.
+  static final _byCourse = Expando<AuthoringHierarchyStatus>();
+
   factory AuthoringHierarchyStatus.fromCourse(Course course) =>
-      AuthoringHierarchyStatus._(
+      _byCourse[course] ??= AuthoringHierarchyStatus._(
         course,
         CourseAuditService().auditCourse(course),
       );
+
+  /// The status of one Lesson's cards (its GuideBook, its Rounds and their
+  /// exercises) from the Audit of that Lesson alone (Build 271 Revision 3):
+  /// the answers [fromCourse] gives for them, without checking the content
+  /// of the other Lessons. A Lesson that repeats one of this Lesson's IDs
+  /// is audited too, because a finding is found again by its ID. Ask it
+  /// about this Lesson only.
+  factory AuthoringHierarchyStatus.forLesson(Course course, String lessonId) {
+    Set<String> idsOf(Lesson lesson) => {
+      for (final round in lesson.rounds) ...[
+        round.id,
+        for (final content in round.content) content.id,
+        for (final exercise in round.exercises) exercise.id,
+      ],
+    };
+    final index = course.lessons.indexWhere(
+      (lesson) => lesson.lessonId == lessonId,
+    );
+    if (index < 0) {
+      return AuthoringHierarchyStatus._(course, CourseAuditResult(const []));
+    }
+    final own = idsOf(course.lessons[index]);
+    final lessons = {
+      index,
+      for (var other = 0; other < course.lessons.length; other++)
+        if (other != index &&
+            (course.lessons[other].lessonId == lessonId ||
+                idsOf(course.lessons[other]).any(own.contains)))
+          other,
+    };
+    return AuthoringHierarchyStatus._(
+      course,
+      CourseAuditService().auditCourse(course, onlyLessons: lessons),
+    );
+  }
 
   final Course course;
   final bool hasCourseAuditConcern;
@@ -4511,8 +4553,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     return index < 0 ? 1 : index + 1;
   }
 
-  Widget get _lessonLabel {
-    final course = _courseWithIcons;
+  Widget _lessonLabelIn(Course course) {
     final index = course.lessons.indexWhere(
       (lesson) => lesson.lessonId == _lesson.lessonId,
     );
@@ -5383,8 +5424,13 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(
-      _courseWithIcons,
+    // Build 271 Revision 3: the Course as this page shows it is built once
+    // for each build (it was built four times), and its cards take their
+    // colours from the Audit of this Lesson alone.
+    final shown = _courseWithIcons;
+    final hierarchyStatus = AuthoringHierarchyStatus.forLesson(
+      shown,
+      _lesson.lessonId,
     );
     return PopScope(
       canPop: _routeMayPop,
@@ -5395,8 +5441,8 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
         appBar: AppBar(
           leading: BackButton(onPressed: _returnToLessons),
           title: CoursePreviewTitle(
-            course: _courseWithIcons,
-            title: _lessonLabel,
+            course: shown,
+            title: _lessonLabelIn(shown),
           ),
           actions: [
             IconButton(
@@ -5449,10 +5495,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           key: const Key('lesson-metadata-controls'),
           padding: const EdgeInsets.only(bottom: 48),
           children: [
-            EditorBreadcrumbs(
-              course: _courseWithIcons,
-              lessonId: _lesson.lessonId,
-            ),
+            EditorBreadcrumbs(course: shown, lessonId: _lesson.lessonId),
             EditorInternalIdText(label: 'Lesson', id: _lesson.lessonId),
             AuthoringStatusCard(
               indicatorKey: const Key('lesson-rounds-status-indicator'),
@@ -7644,8 +7687,12 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(
-      _auditableCourse,
+    // Build 271 Revision 3: built once for each build (it was built three
+    // times), and only this Lesson is audited for the Rounds' colours.
+    final shown = _auditableCourse;
+    final hierarchyStatus = AuthoringHierarchyStatus.forLesson(
+      shown,
+      widget.lesson.lessonId,
     );
     final lessonIndex = _course.lessons.indexWhere(
       (lesson) => lesson.lessonId == widget.lesson.lessonId,
@@ -7662,7 +7709,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: CoursePreviewTitle(
-            course: _auditableCourse,
+            course: shown,
             title: LabelledText(
               'Rounds · $lessonLabel',
               label: lessonIdentity?.prefix,
@@ -7720,7 +7767,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
           header: Column(
             children: [
               EditorBreadcrumbs(
-                course: _auditableCourse,
+                course: shown,
                 lessonId: widget.lesson.lessonId,
               ),
               EditorInternalIdText(label: 'Lesson', id: widget.lesson.lessonId),
@@ -9175,7 +9222,13 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final hierarchyStatus = AuthoringHierarchyStatus.fromCourse(_workingCourse);
+    // Build 271 Revision 3: built once for each build (it was built four
+    // times), and only this Lesson is audited for the exercises' colours.
+    final shown = _workingCourse;
+    final hierarchyStatus = AuthoringHierarchyStatus.forLesson(
+      shown,
+      _lesson.lessonId,
+    );
     return PopScope(
       canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
@@ -9185,12 +9238,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         appBar: AppBar(
           leading: BackButton(onPressed: _returnToRounds),
           title: CoursePreviewTitle(
-            course: _workingCourse,
-            title: _roundName(
-              _workingCourse,
-              _editedRound(),
-              widget.roundIndex + 1,
-            ),
+            course: shown,
+            title: _roundName(shown, _editedRound(), widget.roundIndex + 1),
           ),
           actions: [
             IconButton(
@@ -9274,7 +9323,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               EditorBreadcrumbs(
-                course: _workingCourse,
+                course: shown,
                 lessonId: _lesson.lessonId,
                 roundId: widget.round.id,
                 onParent: widget.linkParent ? _returnToRounds : null,

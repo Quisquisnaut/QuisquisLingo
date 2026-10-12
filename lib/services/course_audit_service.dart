@@ -236,10 +236,17 @@ class CourseAuditService {
     return languages[prompt.trim()];
   }
 
+  /// With [onlyLessons] (positions in the Course, from 0) the result holds
+  /// what the whole Audit finds in those Lessons and nothing else, without
+  /// checking the content of the others (Build 271 Revision 3): their IDs
+  /// are still read, because a repeated ID and a source reference are found
+  /// across the whole Course.
   CourseAuditResult auditCourse(
     Course course, {
     Course? sourceReferenceCourse,
+    Set<int>? onlyLessons,
   }) {
+    final whole = onlyLessons == null;
     final issues = <CourseAuditIssue>[];
     final ids = <String>{};
     // Publication gates audit the learner projection so Draft descendants do
@@ -414,7 +421,7 @@ class CourseAuditService {
       );
     }
 
-    if (course.mediaAttributions.isEmpty && _carriesOwnMedia(course)) {
+    if (whole && course.mediaAttributions.isEmpty && _carriesOwnMedia(course)) {
       issues.add(
         CourseAuditIssue.fromCode(
           AuditCode.mediaAttributionMissing,
@@ -436,6 +443,9 @@ class CourseAuditService {
           ),
         );
       }
+      // A Lesson's own Audit needs the icons' IDs, not their pictures
+      // checked again.
+      if (!whole) continue;
       try {
         CourseLessonIconAsset.validateCanonicalPng(asset.base64Png);
       } on FormatException catch (error) {
@@ -452,6 +462,14 @@ class CourseAuditService {
     for (var ti = 0; ti < course.lessons.length; ti++) {
       final t = course.lessons[ti];
       final tl = 'Lesson ${ti + 1} · ${t.title}';
+      if (onlyLessons != null && !onlyLessons.contains(ti)) {
+        // Another Lesson: only its IDs count, for the repeated IDs and the
+        // source references of the Lessons asked for.
+        for (final id in _checkedIdsOf(t)) {
+          if (id.trim().isNotEmpty) ids.add(id);
+        }
+        continue;
+      }
       idCheck(t.lessonId, tl);
       idCheck(t.duel.id, '$tl · Duel');
       if (t.section &&
@@ -1023,7 +1041,37 @@ class CourseAuditService {
         );
       }
     }
+    if (onlyLessons != null) {
+      final prefixes = [
+        for (final index in onlyLessons) 'Lesson ${index + 1} ·',
+      ];
+      issues.retainWhere((issue) => prefixes.any(issue.location.startsWith));
+    }
     return CourseAuditResult(_attachContentTimestamps(course, issues));
+  }
+
+  /// Every ID the Audit checks inside [lesson]: the Lesson, its Duel, its
+  /// GuideBook modules with their Sentences and Words & Expressions, its
+  /// Rounds and their Content. Keep it equal to the ID checks of
+  /// [auditCourse]; a test compares the two.
+  static Iterable<String> _checkedIdsOf(Lesson lesson) sync* {
+    yield lesson.lessonId;
+    yield lesson.duel.id;
+    for (final module in lesson.guidebook.modules) {
+      yield module.id;
+      for (final sentence in module.sentences) {
+        yield sentence.id;
+      }
+      for (final word in module.words) {
+        yield word.id;
+      }
+    }
+    for (final round in lesson.rounds) {
+      yield round.id;
+      for (final content in round.content) {
+        yield content.id;
+      }
+    }
   }
 
   /// Whether the Course uses any image or recording that did not ship inside
@@ -1128,6 +1176,7 @@ class CourseAuditService {
       auditCourse(
         course,
         sourceReferenceCourse: sourceReferenceCourse,
+        onlyLessons: {lessonIndex},
       ).issues.where((issue) => issue.location.startsWith(prefix)).toList(),
     );
   }
@@ -1180,12 +1229,23 @@ class CourseAuditService {
     Course course,
     String roundId, {
     Course? sourceReferenceCourse,
-  }) => CourseAuditResult(
-    auditCourse(
-      course,
-      sourceReferenceCourse: sourceReferenceCourse,
-    ).issues.where((issue) => issue.roundId == roundId).toList(),
-  );
+  }) {
+    // Every Lesson that has a Round with this ID (one, unless the ID is
+    // repeated): the findings are found again by the Round's ID.
+    final lessons = {
+      for (var index = 0; index < course.lessons.length; index++)
+        if (course.lessons[index].rounds.any((round) => round.id == roundId))
+          index,
+    };
+    if (lessons.isEmpty) return CourseAuditResult(const []);
+    return CourseAuditResult(
+      auditCourse(
+        course,
+        sourceReferenceCourse: sourceReferenceCourse,
+        onlyLessons: lessons,
+      ).issues.where((issue) => issue.roundId == roundId).toList(),
+    );
+  }
 
   String? _languageHint(String raw) {
     final token = raw.toLowerCase().replaceAll(

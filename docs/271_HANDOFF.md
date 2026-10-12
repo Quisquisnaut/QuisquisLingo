@@ -17,7 +17,7 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 0 | Content that plays wrong: Missing letters audio optional, Put the sentences in order marked as lines, the Audit flow copies the Round |
 | 1 | Deleting a Course (other learners named, reset my progress, delete its backups); saves never blocked by a backup; `*.tmp` cleanup; Publisher update over an unreadable copy keeps a backup; Inventory Delete all (added 11 October) |
 | 2 | The Audio Library like the Image Library; the Course Editor's top bar; Image Library Help into the Editor Help (mock-ups first: owner rule) |
-| 3 | Speed: a save that is faster and shows where it is (done first, owner report of 12 October); then one Audit per change, Lesson and Round Audits, image search keys (follow-up, same version) |
+| 3 | Speed: a save that is faster and shows where it is (owner report of 12 October); follow-up, same version: one Audit per change, Lesson and Round Audits, image search keys |
 | 4 | Import and Android file safety |
 | 5 | Tidy-ups (labels never translated, Cyrillic order, mascot after the frame, test seams, Course Info controllers) |
 
@@ -420,12 +420,33 @@ Decisions taken while building (to tell the owner):
 - The bar has a value (steps and the count of files), not an endless
   animation: the widget tests' `pumpAndSettle` would never end with one.
 
-Next: the Revision 3 follow-up (same version): the Course Editor's main
-page audits once per change of the working copy (`AuthoringHierarchyStatus
-.fromCourse(_course)` runs in `build`; 70 ms on the Laboratory); the Lesson,
-Rounds and Round pages build a Course and audit it on every rebuild (the
-Rounds page's `_auditableCourse` is a JSON round trip of the whole Course);
-`auditLesson` / `auditRound` audit the whole Course and filter; image
-library search keys and a short pause. Then Revision 4.
-
 Open with the owner: unchanged from the second follow-up above.
+
+## Revision 3 follow-up (same version 2.0.71+271003)
+
+State: done and committed (12 October 2026, morning), the branch pushed. Analyzer clean; complete suite 4,295 passed, 1 skipped (56:29).
+
+The rest of the plan's Revision 3.
+
+- `AuthoringHierarchyStatus.fromCourse`: one status for each Course object
+  (`Expando`). Used by the Course Editor's main page, the Lessons page, the
+  Course Wizard and every Course Studio row (`_courseStatusCard`).
+- `AuthoringHierarchyStatus.forLesson(course, lessonId)`: the Lesson page,
+  the Rounds page and the Round page; each builds its Course once for each
+  build (`shown`).
+- `CourseAuditService.auditCourse(onlyLessons:)`, `_checkedIdsOf`;
+  `auditLesson` and `auditRound` use it.
+- `ImageSearchKeys` in `lib/services/image_library_rules.dart`.
+- Tests: `test/audit_speed_271_test.dart` (18),
+  `test/image_search_keys_271_test.dart` (4).
+
+Decisions taken while building (to tell the owner): no pause before the
+image search (6 to 19 ms a keystroke now); Courses still read on the
+screen's thread; the sorting by name left as it was.
+
+Known and left: the Lesson, Rounds and Round pages still rebuild their
+Course through JSON once for each build (15 to 19 ms on the Laboratory;
+`CourseHierarchyUpdateService._withLessons`). Changing that is the
+modularization's subject (Build 272).
+
+Next: Revision 4, import and Android file safety (`docs/271_PLAN.md`).

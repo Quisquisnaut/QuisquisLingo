@@ -581,4 +581,95 @@ Stated plainly, because a check was moved:
 
 The plan's other speed items: one Audit per change of the working copy,
 Lesson and Round Audits of their own Lesson or Round, image library search
-keys.
+keys. They are the follow-up below.
+
+## Revision 3 follow-up (2.0.71+271003, same version)
+
+The rest of the plan's Revision 3. Nothing looks different; the same pages
+answer sooner.
+
+### One Audit for each change
+
+The red and green borders of the Course Editor come from the Audit. The
+main page, the Lessons page and every row of Course Studio ran the whole
+Audit of their Course each time they were drawn again, also when nothing
+in the Course had changed. On the Exercise Laboratory that is 30 to 80 ms
+each time; a Course ten times as large takes about ten times as long.
+
+The result is now kept with the Course it was worked out for. A Course is
+never changed in place in QQL: every change makes a new Course. So the same
+Course is audited once, and a changed one is audited when it is first
+shown.
+
+### A Lesson's pages audit their Lesson
+
+The Lesson page, the Rounds page and the Round page did more: each built
+the Course as it shows it (the stored Course with the page's own changes)
+three or four times for each drawing, 15 to 19 ms each on the Laboratory,
+and audited the whole of it.
+
+- Each page now builds that Course once for each drawing.
+- Their borders come from the Audit of their own Lesson. The other Lessons
+  are read only for their IDs, because a repeated ID and a source reference
+  are found across the whole Course.
+- The Audit of a Lesson and of a Round (in their menus, and when a Lesson
+  or Round is applied as Published) does the same.
+
+The findings are the same as the whole Audit's for that Lesson or Round.
+`test/audit_speed_271_test.dart` compares them one by one, for every Lesson
+and Round of the two bundled Courses, the Edge Case fixtures, the Korean
+fixture, the Laboratory of the future, and a Course made for it with IDs
+repeated across Lessons (a Lesson, a Duel, a module, a Sentence, a Word, a
+Round with its exercises) and a source reference to another Lesson.
+
+| On the Exercise Laboratory (8 Lessons) | Before | After |
+|---|---|---|
+| The borders of a Course already audited | 30 to 80 ms | 0 ms |
+| The Audit of one Lesson | 28 ms | 9 ms |
+| The Audit of one Round | 28 ms | 9 ms |
+| The Course a Lesson's page shows, built for one drawing | 3 or 4 times | once |
+
+### The image library's search
+
+The search compared each picture's name, tags, Local words, ID and category
+with what was typed, after writing each of them in small letters and in the
+singular; the same again for a category and for a tag. Every keystroke did
+this for every picture: about 40,000 texts for QQL's own pictures.
+
+These texts are now worked out once for each picture and kept with it (a
+picture's record never changes: a picture with other tags or Local words is
+a new record).
+
+| Over QQL's 4,334 pictures | Before | After |
+|---|---|---|
+| Search "c" | 109 ms | 6 ms |
+| Search "ca" | 226 ms | 19 ms |
+| Search "cat" | 279 ms | 17 ms |
+| Search "food and drink" | 303 ms | 9 ms |
+| A category and a tag together | 208 ms | 5 ms |
+
+The results are the same: `test/image_search_keys_271_test.dart` compares
+the search, the tag filter and the category filter with the rules as they
+were written before, for every picture and for 24 searches, a few hundred
+tags and every category.
+
+### Decisions taken while building
+
+- **No pause before the search.** The plan said the search would filter
+  "after a short pause instead of on every keystroke". With the texts kept,
+  a keystroke costs 6 to 19 ms, so a pause would only make the results come
+  later. Not added.
+- **Courses are still read on the screen's thread.** The plan allowed
+  moving it "if needed". After Revision 3 a save of a Course of the
+  Laboratory's size takes about 0.3 s whatever else is stored. Not moved.
+- Sorting the pictures by name (13 to 18 ms for the whole library) was
+  tried with a kept key and was no faster, so it is as it was.
+
+### Not changed
+
+- What the Audit finds and how it is shown; what a search, a tag and a
+  category find.
+- Course files, scoring, progression and learner data. No new key or
+  folder.
+- The whole Audit of a Course still takes as long as before the first time
+  a Course is shown.

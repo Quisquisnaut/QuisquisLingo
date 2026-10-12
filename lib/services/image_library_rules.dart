@@ -40,16 +40,84 @@ bool hasOnlyNameTags(ExerciseImageMetadata item) =>
 /// pictures of the category Restaurant; and singular and plural count as one
 /// ([imageTagKey]).
 bool carriesImageTag(ExerciseImageMetadata asset, String tag) {
-  final wanted = imageTagKey(tag);
+  final wanted = _keyOf(tag);
   if (wanted.isEmpty) return false;
-  final namesakeCategory = _categoryNameKey(asset.category);
-  if (namesakeCategory != null && namesakeCategory == wanted) return true;
-  return <String>[
-    asset.label,
-    ...asset.tags,
-    ...asset.localWords,
-  ].any((value) => imageTagKey(value) == wanted);
+  final keys = ImageSearchKeys.of(asset);
+  if (keys.categoryName != null && keys.categoryName == wanted) return true;
+  return keys.words.contains(wanted);
 }
+
+/// What the library compares of one picture, worked out once for each
+/// picture record (Build 271 Revision 3). Before, every keystroke of a
+/// search, and every rebuild of the library, wrote the name, the tags, the
+/// Local words, the ID and the category of every picture in small letters
+/// and in the singular again: tens of thousands of texts for QQL's own
+/// pictures. A record never changes (a changed picture is a new record), so
+/// its keys are kept with it.
+class ImageSearchKeys {
+  ImageSearchKeys._(ExerciseImageMetadata asset)
+    : texts = List.unmodifiable([
+        for (final value in [
+          asset.label,
+          ...asset.tags,
+          ...asset.localWords,
+          asset.id,
+          asset.category,
+        ])
+          normalizeImageSearchText(value),
+      ]),
+      words = {
+        for (final value in [asset.label, ...asset.tags, ...asset.localWords])
+          imageTagKey(value),
+      },
+      tags = {
+        for (final value in [...asset.tags, ...asset.localWords])
+          imageTagKey(value),
+      },
+      categoryName = _categoryNameKey(asset.category) {
+    singulars = List.unmodifiable([
+      for (final text in texts) imageTagKey(text),
+    ]);
+  }
+
+  static final _byAsset = Expando<ImageSearchKeys>();
+
+  static ImageSearchKeys of(ExerciseImageMetadata asset) =>
+      _byAsset[asset] ??= ImageSearchKeys._(asset);
+
+  /// The name, the tags, the Local words, the ID and the category as
+  /// [normalizeImageSearchText] writes them.
+  final List<String> texts;
+
+  /// [texts] with every word in its singular ([imageTagKey]).
+  late final List<String> singulars;
+
+  /// [imageTagKey] of the name, the tags and the Local words.
+  final Set<String> words;
+
+  /// [imageTagKey] of the tags and the Local words.
+  final Set<String> tags;
+
+  /// The key of the picture's own category's name, when the name is a word
+  /// to tag with.
+  final String? categoryName;
+}
+
+/// [imageTagKey] of the word asked for last: a filter asks for the same word
+/// once for each picture.
+String _keyOf(String value) {
+  if (value != _lastValue) {
+    _lastValue = value;
+    _lastKey = imageTagKey(value);
+  }
+  return _lastKey;
+}
+
+String? _lastValue;
+String _lastKey = '';
+
+/// The key of each category's name, worked out once.
+final _categoryNameKeys = <String, String?>{};
 
 /// Whether [asset] shows in [category]: its own category, or a tag or Local
 /// word naming that category (Build 264 Revision 10: the pictures tagged
@@ -57,12 +125,12 @@ bool carriesImageTag(ExerciseImageMetadata asset, String tag) {
 /// categories while it keeps one).
 bool belongsToImageCategory(ExerciseImageMetadata asset, String category) {
   if (asset.category == category) return true;
-  final name = _categoryNameKey(category);
+  final name = _categoryNameKeys.putIfAbsent(
+    category,
+    () => _categoryNameKey(category),
+  );
   if (name == null) return false;
-  return <String>[
-    ...asset.tags,
-    ...asset.localWords,
-  ].any((value) => imageTagKey(value) == name);
+  return ImageSearchKeys.of(asset).tags.contains(name);
 }
 
 /// The key of a category's name, or null for categories whose name is not
@@ -113,25 +181,30 @@ bool matchesImageSearch(ExerciseImageMetadata asset, String normalizedQuery) {
   if (normalizedQuery.isEmpty) return true;
   final group = imageCategoryGroupOf(asset.category);
   if (group != null && _namesGroup(group, normalizedQuery)) return true;
-  final wanted = imageTagKey(normalizedQuery);
-  return <String>[
-    asset.label,
-    ...asset.tags,
-    ...asset.localWords,
-    asset.id,
-    asset.category,
-  ].any((value) {
-    final text = normalizeImageSearchText(value);
-    return text.contains(normalizedQuery) || imageTagKey(text).contains(wanted);
-  });
+  final wanted = _keyOf(normalizedQuery);
+  final keys = ImageSearchKeys.of(asset);
+  for (var index = 0; index < keys.texts.length; index++) {
+    if (keys.texts[index].contains(normalizedQuery) ||
+        keys.singulars[index].contains(wanted)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /// Whether [normalizedQuery] is the whole name of [group], "&" or "and".
 bool _namesGroup(String group, String normalizedQuery) {
-  String spelled(String text) => text.replaceAll('&', 'and');
-  final name = normalizeImageSearchText(imageCategoryLabel(group));
-  return spelled(normalizedQuery) == spelled(name);
+  final name = _groupNames.putIfAbsent(
+    group,
+    () => _spelled(normalizeImageSearchText(imageCategoryLabel(group))),
+  );
+  return _spelled(normalizedQuery) == name;
 }
+
+String _spelled(String text) => text.replaceAll('&', 'and');
+
+/// Each group's name as a search writes it, worked out once.
+final _groupNames = <String, String>{};
 
 enum ImageSort {
   name('Name (A–Z)'),

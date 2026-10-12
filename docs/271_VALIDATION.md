@@ -398,3 +398,47 @@ Not checked: the dialogs by hand.
 Not checked: the window and the speed by hand in the running app; a Course
 with real pictures and recordings (the measurements use 4 × 4 pixel
 pictures); Android.
+
+## Revision 3 follow-up (2.0.71+271003, same version)
+
+12 October 2026, owner's Windows 10 PC, `build-271`.
+
+- Measurements (a temporary test, removed; the numbers are in
+  `docs/271_CHANGE_SUMMARY.md`), before and after: the whole Audit of the
+  Exercise Laboratory, the status of the same Course object asked again,
+  the Course a page builds through JSON, `auditLesson`, `auditRound`; four
+  searches, a category with a tag, and the sorting by name over the 4,334
+  pictures.
+- `test/audit_speed_271_test.dart`, 18 cases:
+  - for each of seven Courses (the two bundled ones, the Edge Case fixture
+    and its importable copy, the Laboratory of the future, the Korean
+    fixture, and a Course with IDs repeated across Lessons): the findings
+    of `auditLesson` for every Lesson and of `auditRound` for every Round
+    are, line by line (severity, code, location, message, Round, exercise,
+    type, date), the whole Audit's findings for them; a Lesson or Round the
+    Course does not have gives none;
+  - the same with the Course the source references are read from;
+  - the Course made for it has what it is meant to have: a repeated ID, a
+    missing source reference, and the Duel, module, Sentence and Word IDs
+    that its Lesson 6 repeats from Lesson 1 found in Lesson 6;
+  - for each of the seven Courses, `forLesson` answers as `fromCourse` for
+    every Lesson (Rounds, GuideBook, the Lesson, Drafts), every Round and
+    every exercise; a Lesson the Course does not have is all clear;
+  - the same Course object gets the same status object; the same content
+    in another object gets its own, with the same answers; a changed copy
+    (its first Lesson without Rounds) is audited as it is.
+- `test/image_search_keys_271_test.dart`, 4 cases: over the 4,334 pictures
+  and 40 with Local words, 24 searches, a few hundred tags (real names and
+  tags among them) and every category and group give what the rules gave as
+  they were written before; a picture's keys are worked out once, and a changed
+  picture is a new record with its own.
+- Focused (56 files: every Audit test, every image library test, and the
+  tests that read the borders): 457 passed. The two new files after their
+  last change: 22 passed.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,295 passed, 1 skipped (the usual one), none failed**, in
+  56:29.
+
+Not checked: the pages by hand in the running app; a Course much larger
+than the Laboratory; Android.
