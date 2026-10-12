@@ -276,3 +276,80 @@ before the suite.
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 4 (2.0.72+272004): Lesson Options
+
+Nothing an author sees changes.
+
+### Before
+
+Lesson Options (under the Lessons tile of the Course Editor) are settings of
+the whole Course: how Lessons and Rounds are numbered, Use GuideBook, Word
+Lookup, Create Duels, the default Timed limits and the look of picture
+answers. The Course Editor screen wrote each of them into the Course's data
+by itself, in seven places; the Course Wizard's options step wrote the same
+settings in its own way. The small rules were spread among the buttons: a
+custom label belongs only to the custom numbering; two stages cannot have
+the same Timed limit; the standard look of picture answers is not stored.
+
+### Now
+
+- **`LessonOptions`** (`lib/services/lesson_options.dart`) holds those
+  rules. `LessonOptions.apply(course, …)` gives the Course with the
+  settings named and leaves the others alone.
+- The Course Editor's panel and the Course Wizard's options step both call
+  it. A test checks that the Wizard's step still writes exactly what it
+  wrote before.
+- **`LessonOptionsPanel`** (`lib/widgets/lesson_options_panel.dart`) is the
+  panel: it draws the working copy and hands back the Course with one
+  setting changed. The Course Editor stages it as before.
+- The name prompt and the Time limit menu, which other Editor pages use
+  too, are in `lib/widgets/editor_dialogs.dart`.
+
+The Course Editor file goes from 13,288 to 12,748 lines.
+
+### What the independent review found, fixed before the commit
+
+On the normal paths the review found the panel identical to the old code.
+It found two edge cases where the first version of the panel was not:
+
+1. **A dialog's answer could be dropped.** The panel is one item of the
+   Course Editor's list, and a list lets go of an item that is far from
+   what is seen. If that happened while the panel's own dialog was open
+   (the custom label, the Time limit, the Use GuideBook notice), the answer
+   was thrown away without a word, because the panel, not the page, was
+   waiting for it. Before the move the page waited. In today's layout
+   Lesson Options stands near the top of the page, so the keyboard alone
+   cannot push it that far; the case would have come alive the day
+   something is added above it.
+2. **Two changes in the same instant.** The panel started each change from
+   the Course it had drawn, so of two changes made before the screen was
+   drawn again only the second was kept. Before the move each change
+   started from the working copy as it was at that moment.
+
+Both are exactly as before now: the panel's dialogs and messages open on
+the Course Editor page and their answer is staged while the page is there,
+and every change starts from the working copy of that moment. Two tests pin
+them; both pass on the code before the move, and the first version of the
+panel failed them.
+
+### Owner decisions for the rest of the Build (12 October 2026)
+
+1. One complete suite for every revision that creates an owner or touches a
+   rule; pure file moves go two or three per suite.
+2. The exercise editor leaves the Course Editor file next, as Revision 5.
+3. Build 272 does the low-risk owners and the free moves. The medium-risk
+   items of the plan (answer grading among them) become Build 273.
+4. A Windows package after this revision, to try the changed forms by hand.
+
+### Tests
+
+- `test/lesson_options_272_test.dart`: the rules alone.
+- `test/lesson_options_panel_272_test.dart`: 4 cases through the Course
+  Editor; all pass on the code before the move.
+- Already there and unchanged: the numbering menus with Cancel, Use
+  GuideBook and its notice, Word Lookup, Create Duels, picture size, shape
+  and number per row, the first default Timed limit.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

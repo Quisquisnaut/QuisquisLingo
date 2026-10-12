@@ -11,6 +11,7 @@ import 'guidebook_round_generator.dart';
 import 'guidebook_round_links.dart';
 import 'lesson_icon_catalog.dart';
 import 'publication_service.dart';
+import 'lesson_options.dart';
 
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`): it guides
 /// an author through creating a whole Course, step by step, and can stop at
@@ -446,29 +447,19 @@ class CourseWizardOptions {
     return null;
   }
 
-  Course applyTo(Course course) {
-    final json = {...course.toJson()}
-      ..remove('pictureAnswers')
-      ..remove('defaultTimedLimitsSeconds');
-    return Course.fromJson({
-      ...json,
-      'lessonNumberingMode': lessonNumbering.name,
-      'customLessonLabel': lessonNumbering == LessonNumberingMode.other
-          ? customLessonLabel.trim()
-          : '',
-      'roundNumberingMode': roundNumbering.name,
-      'customRoundLabel': roundNumbering == RoundNumberingMode.customAndNumber
-          ? customRoundLabel.trim()
-          : '',
-      // The Wizard builds the Rounds from the GuideBook, so it stays on.
-      'useGuidebook': true,
-      'wordLookup': wordLookup,
-      'createDuels': createDuels,
-      if (!pictureAnswers.isStandard) 'pictureAnswers': pictureAnswers.toJson(),
-      if (defaultTimedLimits.isNotEmpty)
-        'defaultTimedLimitsSeconds': defaultTimedLimits,
-    });
-  }
+  Course applyTo(Course course) => LessonOptions.apply(
+    course,
+    lessonNumbering: lessonNumbering,
+    customLessonLabel: customLessonLabel.trim(),
+    roundNumbering: roundNumbering,
+    customRoundLabel: customRoundLabel.trim(),
+    // The Wizard builds the Rounds from the GuideBook, so it stays on.
+    useGuidebook: true,
+    wordLookup: wordLookup,
+    createDuels: createDuels,
+    defaultTimedLimits: defaultTimedLimits,
+    pictureAnswers: pictureAnswers,
+  );
 }
 
 /// One Lesson of step 5: an existing Lesson keeps its ID and everything the

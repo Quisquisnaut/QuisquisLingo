@@ -173,3 +173,48 @@
 - Not checked by hand in the running app. Worth a look by the owner: New
   Course, Continue by hand, fill the form once, Continue to Editor.
 - Not run: the Windows package, the Android build.
+
+## Revision 4 (2.0.72+272004), Lesson Options
+
+12 October 2026, owner's Windows 10 PC, `build-272`.
+
+- Characterization, on the code **before** the move (Revision 3's commit
+  `213dc5c6` plus only the test file):
+  `test/lesson_options_panel_272_test.dart`, first 2 cases, **2 passed** at
+  the first run (a custom Round label, the picture border and the default
+  Timed limits added, replaced, refused, moved, removed and saved; View
+  only). After the review two cases were added and all four run again on
+  the code before the move, with the moved files set aside: **4 passed**.
+- Every text and key of the moved code compared with the new files
+  (`compare.py`): 109 before; none missing; one text differs by the renamed
+  variable inside it.
+- **Independent review** before the commit (a second reader, read-only, old
+  code against new code, Flutter's ExpansionTile source for the layout):
+  the writes of every setting, the default Timed limits, the Course
+  Wizard's step, the keys and initial values, the layout, the two moved
+  dialogs and the interpolations: no difference. **Two edge cases found in
+  the first version of the panel and fixed**: a dialog's answer dropped
+  when the list lets go of the panel while the dialog is open (the panel
+  waited instead of the page); and of two changes made before the screen is
+  drawn again only the second kept (the panel started from the Course it
+  had drawn). Both are as before the move now, and each has a test that the
+  first version failed (the reviewer's analysis; the tests pass on the code
+  before the move and on the corrected panel).
+- New tests after the move: `test/lesson_options_272_test.dart`, **7
+  passed** (the rules alone; the Course Wizard's options step against the
+  Course it wrote before); `test/lesson_options_panel_272_test.dart`, **4
+  passed**.
+- Focused files: 20 files **195 passed** before the fix (one more file name
+  in my list did not exist; not a test failure); after the fix the two new
+  files, `lesson_naming_226_04_test`, `timed_round_261_test`,
+  `lesson_controls_226_04_test`, `owner_review_263_revision2_test`,
+  `picture_border_267_test`, `word_lookup_ui_265_test`,
+  `course_wizard_267_test`, `optional_learning_paths_226_04_test`: **145
+  passed**.
+- `flutter analyze --no-pub`: **No issues found** (17.9 s).
+- Complete suite, `flutter test --no-pub --concurrency=1` with the PC kept
+  awake and `TEMP` on `D:\QQL_test_temp`: **4,391 passed, 1 skipped, 0 failed** (22:40 to 23:24, 44 minutes). A first run, started
+  before the review ended, was stopped at the review's findings and is not
+  counted.
+- Not checked by hand in the running app; the Windows package below is for
+  that.

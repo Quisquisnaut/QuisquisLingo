@@ -235,25 +235,64 @@ What was done (details in `docs/272_CHANGE_SUMMARY.md`):
   (`titleTaken: (title) => _library.hasCourseTitled(title)`), not a
   tear-off bound when the form opened.
 
-## Revision 4 (Lesson Options), prepared
+## Revision 4 (2.0.72+272004), Lesson Options
 
-In the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), folder `r4/`:
-`lesson_options.dart` (`LessonOptions`, pure, for `lib/services/`:
-`apply` with one optional parameter per setting, `customNumberingText`,
-`earlierLessonNumberingLabel`, `timedLimitRepeated`, `timedLimitsWith` /
-`timedLimitsMoved` / `timedLimitsWithout`) and `apply_r4.py` (moves
-`askAuthoringName` and `_chooseTimedLimit` to
-`lib/widgets/editor_dialogs.dart`, takes the Lesson Options members out
-of the Course Editor into `lib/widgets/lesson_options_panel.dart`
-(`LessonOptionsPanel(course, canModify, onChanged)`, with the two
-numbering-field version counters), replaces each JSON write by
-`LessonOptions.apply`, and makes `CourseWizardOptions.applyTo` use it).
-Still to write: the panel's head, the characterization tests on the code
-before the move (custom Lesson and Round label with Cancel, picture
-border, default Timed limits add / repeated / move / remove, View only),
-the owner's tests. Existing tests already cover Use GuideBook, Word
-Lookup, Create Duels, picture size / shape / per row and the numbering
-menus.
+State: done (12 October 2026). Analyzer clean; the independent review's two
+edge cases fixed and pinned; complete suite 4,391 passed, 1 skipped (22:40
+to 23:24, 44 minutes). Committed on `build-272` and the branch pushed
+(hash in `git log`). Revision 3 is `213dc5c6`.
+
+The review's two edge cases (see `docs/272_CHANGE_SUMMARY.md`): the panel is
+an item of the Course Editor's lazy list and can leave the tree while its
+own dialog is open; and it drew a Course that could be older than the
+working copy. Now `LessonOptionsPanel(working: () => _course, canModify:,
+onChanged:, host: context)`: dialogs and messages open on `host`, an answer
+is staged while `host.mounted`, a change starts from `working()`. **Apply
+the same to any widget taken out of a screen whose members read the live
+working copy and the screen's own `mounted`.** I had started the suite
+before the review ended, betting on no finding, and lost ten minutes: wait
+for the review first.
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/services/lesson_options.dart`: `LessonOptions` (pure).
+- `lib/widgets/lesson_options_panel.dart`: `LessonOptionsPanel`, taken
+  from the Course Editor's members by `r4/apply_r4.py`; every JSON write
+  replaced by `LessonOptions.apply`.
+- `lib/widgets/editor_dialogs.dart`: `askAuthoringName`,
+  `chooseTimedLimit` (was `_chooseTimedLimit`).
+- `CourseWizardOptions.applyTo` calls `LessonOptions.apply`.
+- The Course Editor file went from 13,288 to 12,748 lines.
+- Tests: `lesson_options_272_test` (the rules; the Wizard's step against
+  what it wrote before), `lesson_options_panel_272_test` (2, passed on
+  the code before the move).
+
+After the commit: build the Windows package for the owner
+(`tools/package_windows_release.ps1 -RebuildFlutterApplication`; it
+names the ZIP `quisquislingo_windows_beta_272004`) and tell them where it
+is and what to try: Course Info Editor, New Course's form, the Wizard's
+credits (Advanced on step 3), Lesson Options.
+
+## Revision 5 (the exercise editor's own file), prepared
+
+In the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), folder `r5/`: `analyze.py` (what
+ties the editor to the rest of the file), `make_head.py` (the new file's
+imports: all of the Course Editor file's, then remove what the analyzer
+calls unused), `apply_r5.py` (dry run passed on Revision 4's code:
+`ExerciseEditorScreen`, 3,153 lines, moves by exact text to
+`lib/screens/exercise_editor_screen.dart`; `_PresetActionChip` becomes
+`PresetActionChip` in `lib/widgets/preset_action_chip.dart`;
+`_blankExerciseWithId` becomes `ExerciseDraftBuilder.blankFor`;
+`labelForType` for the Exercise Wizard becomes
+`ExercisePresetRegistry.nameOrId`; `_withExercisePublication`,
+`_sameAuthoringJson` and `_hierarchyUpdates` are written out at their one
+use; the Course Editor file re-exports `ExerciseEditorScreen`), and
+`exercise_editor_move_272_test.dart` (draft; some expectations are
+guesses to check). No public declaration of the rest of the Course
+Editor file is used by the exercise editor, so no import cycle. Suite
+policy (owner): this pure move may share one complete suite with the
+next free moves from the same file (Audio Library, Audit page, Lesson
+preview, the hierarchy status rule).
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

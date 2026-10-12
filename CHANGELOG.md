@@ -1,3 +1,35 @@
+# 2.0.72 (Build 272, Revision 4) - modularization: Lesson Options - 2026-10-12
+
+Nothing an author or a learner sees changes in this revision.
+
+- **Lesson Options have an owner**: `LessonOptions`
+  (`lib/services/lesson_options.dart`, pure Dart). It says what each
+  setting does to a Course: the Lesson and Round numberings (a custom label
+  is kept only by the custom numbering), Use GuideBook, Word Lookup, Create
+  Duels, the default Timed limits (each different, in the author's order;
+  none stores nothing) and the look of picture answers (stored only when it
+  is not the standard look).
+- **The Course Editor and the Course Wizard use the same rules.** The Course
+  Editor's Lesson Options wrote the Course's data in seven places and the
+  Wizard's options step in one more; they all call `LessonOptions.apply`
+  now.
+- **The panel is a widget in its own file**:
+  `lib/widgets/lesson_options_panel.dart` (`LessonOptionsPanel`). The Course
+  Editor file goes from 13,288 to 12,748 lines.
+- The two small dialogs the panel shares with other Editor pages (the name
+  prompt and the Time limit menu) are in `lib/widgets/editor_dialogs.dart`.
+- **Tests**: `test/lesson_options_272_test.dart` (the rules alone, and the
+  Wizard's step against what it wrote before) and
+  `test/lesson_options_panel_272_test.dart` (through the Course Editor,
+  written and passed on the code before the move: a custom Round label,
+  the picture border, the default Timed limits added, replaced, refused,
+  moved and removed, View only, and two cases found by the independent
+  review: two changes made in the same instant are both kept, and a label
+  typed while the list has let go of Lesson Options is still applied).
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-11 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 3) - modularization: New Course's form and its own file - 2026-10-12
 
 Nothing an author or a learner sees changes in this revision.
