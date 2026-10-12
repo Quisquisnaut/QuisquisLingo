@@ -589,6 +589,11 @@ abstract final class ExercisePresetRegistry {
   static String? currentIdFor(String id) =>
       byId(id) != null ? id : successorOf[id];
 
+  /// The name an author reads for a preset ID: the preset's name, else the
+  /// ID with its underscores as spaces (a preset this version does not know).
+  static String nameOrId(String id) =>
+      byId(id)?.name ?? id.replaceAll('_', ' ');
+
   static ExercisePreset? byId(String id) {
     for (final preset in presets) {
       if (preset.id == id) return preset;

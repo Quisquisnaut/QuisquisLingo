@@ -231,3 +231,30 @@
   of the same name), version 2.0.72+272004. Not started by me: the owner
   tries it.
 
+## Revision 5 (2.0.72+272005), the exercise editor has its own file
+
+12 October 2026, owner's Windows 10 PC, `build-272`.
+
+- The moved class against its old text (`diff_region.py`, blank lines and
+  indentation ignored): 3,081 lines before, 3,077 after, **18 differing
+  lines**, all at the five ties (the preset's name, the action chip twice,
+  the blank exercise, the publication line, the hierarchy update).
+- No public declaration of the rest of the Course Editor file is used by
+  the exercise editor, so the new file does not import the Course Editor
+  file (no import cycle).
+- New tests: `test/exercise_editor_move_272_test.dart`, **4 passed** (the
+  exercise editor reachable from both files; a new exercise of every preset
+  is a Draft of that preset with the ID given and opens in its form; the
+  recipes without an earlier shape; the name of every preset and of an
+  unknown one).
+- Focused files (12): the one above, `exercise_creation_wizard_test`,
+  `exercise_responsive_224_test`, `owner_review_263_revision1_test` (Fill
+  with an example and Clear all for every preset),
+  `editor_notes_267_test`, `complete_text_and_sentence_order_259_test`,
+  `plural_pictures_265_test`, `exercise_field_help_ui_226_02_test`,
+  `arrange_gap_fill_editor_238_test`, `before_you_start_card_257_test`,
+  `canonical_authoring_route_245_test`, `revision3_followup_256_test`:
+  **153 passed**.
+- `flutter analyze --no-pub`: **No issues found** (23.4 s).
+- Complete suite and independent review: shared with Revision 6 (owner
+  decision of 12 October 2026 for pure file moves); see there.

@@ -1,3 +1,31 @@
+# 2.0.72 (Build 272, Revision 5) - modularization: the exercise editor has its own file - 2026-10-12
+
+Nothing an author or a learner sees changes in this revision.
+
+- **The exercise editor left the Course Editor file** (owner decision of 12
+  October 2026). `ExerciseEditorScreen`, the form of the preset exercises,
+  is in `lib/screens/exercise_editor_screen.dart`: 3,153 lines moved as
+  they were. The Course Editor file goes from 12,748 to 9,530 lines (it was
+  14,839 at the start of this Build). Its logic already had an owner,
+  `ExerciseDraftBuilder`, since Build 252.
+- The editor was tied to the rest of the file by five small private
+  helpers. Two were rules and now have owners: a new exercise of a preset as
+  its form starts is `PresetRecipes.blankFor`, and the name an author reads
+  for a preset is `ExercisePresetRegistry.nameOrId`. The chip that names a
+  preset's action is a widget of its own (`PresetActionChip`). The other
+  two were one-line shortcuts and are written out where they were used.
+- The moved text was compared with the old line by line: it differs only at
+  those five points.
+- **Tests**: `test/exercise_editor_move_272_test.dart` (the new owners; the
+  Course Editor file still gives access to the exercise editor, as the 51
+  test files that drive it expect).
+
+By the owner's decision a pure file move shares its complete suite with the
+next ones (Revision 6).
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-11 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 4) - modularization: Lesson Options - 2026-10-12
 
 Nothing an author or a learner sees changes in this revision.

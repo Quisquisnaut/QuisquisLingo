@@ -353,3 +353,51 @@ panel failed them.
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 5 (2.0.72+272005): the exercise editor has its own file
+
+Nothing an author sees changes. Owner decision of 12 October 2026: the
+exercise editor leaves the Course Editor file right after Lesson Options.
+
+### What moved
+
+`ExerciseEditorScreen`, the form in which an author fills a preset exercise
+(Choose the answer, Match, Flashcard and the others), is now
+`lib/screens/exercise_editor_screen.dart`. Its 3,153 lines were moved as
+they were. Its logic, building the exercise from the form's values, already
+had an owner since Build 252 (`ExerciseDraftBuilder`), so this is a move and
+not a new owner.
+
+| File | Before | After |
+|---|---|---|
+| Course Editor (`course_editor_screen.dart`) | 12,748 lines | 9,530 lines |
+| Exercise editor (`exercise_editor_screen.dart`) | - | 3,186 lines |
+
+At the start of this Build the Course Editor file had 14,839 lines.
+
+### The five ties that had to be cut
+
+The editor used five small private helpers of the Course Editor file, and
+the Exercise Wizard used one of the editor's:
+
+- **A new exercise of a preset, as its form starts** (also what Clear all
+  returns to): now `PresetRecipes.blankFor`. A rule, with a test for every
+  preset.
+- **The name an author reads for a preset**: now
+  `ExercisePresetRegistry.nameOrId`. A rule, with a test.
+- **The chip with a preset's action word** (Choose, Type, Match…): now the
+  widget `PresetActionChip`.
+- Two one-line shortcuts and one shared helper object are written out at
+  the one place the editor used them.
+
+The Course Editor file still gives access to the exercise editor, so the 51
+test files and the screens that open it did not change.
+
+### How it was checked
+
+The moved class was compared with its old text line by line: 18 lines
+differ, all at the five points above. The complete suite is shared with
+Revision 6 (owner decision: pure file moves go two or three per suite).
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

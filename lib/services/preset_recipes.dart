@@ -13,6 +13,48 @@ import 'preset_variants.dart';
 /// the draft builder rebuilds from them. A preset never changes what plays;
 /// nothing here writes.
 abstract final class PresetRecipes {
+  /// A new exercise of [presetId] as its form starts; Clear all returns the
+  /// form to it (Build 263 Revision 1).
+  static Exercise blankFor(String presetId, String id) {
+    // A recipe with no v11 shape (a Dialogue line, a Story cover; Build 256
+    // Revision 5) is blank as its own recipe builds it from empty fields, so
+    // the exercise is a presentation from the start.
+    if (PresetRecipes.canonicalOnly.contains(presetId)) {
+      return ExerciseDraftBuilder.build(
+        ExerciseDraftValues(
+          original: Exercise.canonical(
+            id: id,
+            publicationState: PublicationState.draft,
+            primitive: ExercisePrimitive.presentation,
+            canonicalEvaluation: CanonicalEvaluation.none,
+          ),
+          type: presetId,
+          publicationState: PublicationState.draft,
+        ),
+      ).candidate!;
+    }
+    // The v11 shape needs the recipe's base type (a catalogue twin such as
+    // type_translation_to_target is not a v11 type and would fall back to a
+    // Select interaction); the preset itself travels as the editor template.
+    return Exercise(
+      id: id,
+      publicationState: PublicationState.draft,
+      type: ExercisePresetRegistry.byId(presetId)?.base ?? presetId,
+      editorTemplate: presetId,
+      prompt: '',
+      question: '',
+      answers: const [],
+      correct: null,
+      tts: null,
+      accepted: const [],
+      tokens: const [],
+      orderAnswer: const [],
+      pairs: const [],
+      hint: '',
+      icons: const [],
+    );
+  }
+
   /// The presets whose recipe has no v11 shape (Build 256 Revision 5), or
   /// whose own recipe builds their exercise (Name what you see, which still
   /// converts from the Put the words in order shape): a blank exercise for

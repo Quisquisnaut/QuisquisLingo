@@ -279,26 +279,49 @@ not finish; fixed, and the script then ran through. **Before a release
 check a script for control characters**:
 `python -c "import sys; print(sorted(set(b for b in open(sys.argv[1],'rb').read() if b < 32 and b not in (9,10,13))))" <file>`.
 
-## Revision 5 (the exercise editor's own file), prepared
+## Revision 5 (2.0.72+272005), the exercise editor has its own file
 
-In the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), folder `r5/`: `analyze.py` (what
-ties the editor to the rest of the file), `make_head.py` (the new file's
-imports: all of the Course Editor file's, then remove what the analyzer
-calls unused), `apply_r5.py` (dry run passed on Revision 4's code:
-`ExerciseEditorScreen`, 3,153 lines, moves by exact text to
-`lib/screens/exercise_editor_screen.dart`; `_PresetActionChip` becomes
-`PresetActionChip` in `lib/widgets/preset_action_chip.dart`;
-`_blankExerciseWithId` becomes `ExerciseDraftBuilder.blankFor`;
-`labelForType` for the Exercise Wizard becomes
-`ExercisePresetRegistry.nameOrId`; `_withExercisePublication`,
-`_sameAuthoringJson` and `_hierarchyUpdates` are written out at their one
-use; the Course Editor file re-exports `ExerciseEditorScreen`), and
-`exercise_editor_move_272_test.dart` (draft; some expectations are
-guesses to check). No public declaration of the rest of the Course
-Editor file is used by the exercise editor, so no import cycle. Suite
-policy (owner): this pure move may share one complete suite with the
-next free moves from the same file (Audio Library, Audit page, Lesson
-preview, the hierarchy status rule).
+State (12 October 2026, 23:45): code, tests and documents done; analyzer clean; 12 related files 153 passed; committed locally (hash in `git log`), NOT pushed yet: by the owner's decision this pure move shares its independent review and its complete suite with Revision 6. Revision 4 is `b17ae621`, its follow-up `9765999e`.
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/screens/exercise_editor_screen.dart`: `ExerciseEditorScreen`,
+  moved by exact text (`r5/apply_r5.py`); 18 lines differ, all at the
+  five ties (`r5/diff_region.py`). The Course Editor file re-exports it
+  and is at 9,530 lines.
+- `PresetRecipes.blankFor`, `ExercisePresetRegistry.nameOrId`,
+  `PresetActionChip` (`lib/widgets/preset_action_chip.dart`).
+- Tests: `exercise_editor_move_272_test` (4).
+
+Gotchas:
+
+- A new file's imports: start from all the imports of the file the code
+  came from, run `flutter analyze --no-pub > log`, then
+  `python prune_imports.py log` (scratchpad) removes what the analyzer
+  calls unused or unnecessary, in every file; analyze again.
+- The blank exercise went to `PresetRecipes`, not to
+  `ExerciseDraftBuilder`: the recipes import the builder.
+- A public widget needs `{super.key}` (lint).
+- `course_editor_screen.dart` holds a control character (0x02) on purpose
+  as a separator in the exercise form's snapshot (`_pluralPictures`
+  joined); it moved with the editor. Left as found.
+
+## Revision 6 (more free moves from the Course Editor file), prepared
+
+In the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), folder `r6/`: `ties.py` (what
+ties a run of declarations to the rest of its file), `imports_head.py`,
+`apply_r6.py`, tried on a scratch copy of `lib/` (`sim/`) with Revision
+5 applied: `ExerciseLabels` (`lib/services/exercise_labels.dart`:
+`kindName`, `typeLabel`, `summary`, from three private functions);
+`exerciseEditorFor` and `openSearchResult` join the exercise editor's
+file (public); `AudioLibraryScreen` (1,046 lines, with its dialog),
+`CourseAuditScreen` (218), `LessonAuthoringPreviewScreen` (75) and
+`AuthoringHierarchyStatus` (148, to `lib/services/`) get their own
+files, re-exported from the Course Editor file, which would be at about
+7,900 lines. After applying: analyzer, `prune_imports.py`, the
+line-by-line comparison of each moved run, focused tests, ONE
+independent review for Revisions 5 and 6 together, then ONE complete
+suite for both, then push.
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,
