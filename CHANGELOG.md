@@ -1,3 +1,35 @@
+# 2.0.72 (Build 272, Revision 6) - modularization: four more pages leave the Course Editor file - 2026-10-12
+
+Nothing an author or a learner sees changes in this revision.
+
+- **Files of their own** for the Audio Library
+  (`lib/screens/audio_library_screen.dart`, with its Associate recording
+  dialog), the Audit page (`lib/screens/course_audit_screen.dart`), the
+  Lesson preview (`lib/screens/lesson_authoring_preview_screen.dart`) and
+  the rule behind the red, green and blue status of the Editor's lists
+  (`lib/services/authoring_hierarchy_status.dart`). Each was moved as it
+  was and compared with its old text line by line.
+- **The names an author reads for an exercise have an owner**:
+  `ExerciseLabels` (`lib/services/exercise_labels.dart`: the kind name, the
+  type label, the one-line summary). They were three private functions of
+  the Course Editor file, used by its lists, the Audit locations and the
+  Audio Library.
+- **Opening an exercise's editor is with the exercise editor**:
+  `exerciseEditorFor` (the preset form, or the canonical editor when no
+  preset represents the exercise) and `openSearchResult` are in
+  `lib/screens/exercise_editor_screen.dart`.
+- The Course Editor file goes from 9,530 to 7,927 lines. It had 14,839 at
+  the start of this Build.
+- **Tests**: `test/exercise_labels_272_test.dart` (the labels on every
+  exercise of the bundled Courses; the moved pages still reachable from the
+  Course Editor file).
+
+Revisions 5 and 6 share one independent review and one complete suite
+(owner decision for pure file moves).
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-11 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 5) - modularization: the exercise editor has its own file - 2026-10-12
 
 Nothing an author or a learner sees changes in this revision.

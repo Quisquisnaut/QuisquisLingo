@@ -401,3 +401,56 @@ Revision 6 (owner decision: pure file moves go two or three per suite).
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 6 (2.0.72+272006): four more pages leave the Course Editor file
+
+Nothing an author sees changes.
+
+### What moved
+
+| What | New file | Lines |
+|---|---|---|
+| Audio Library, with its Associate recording dialog | `lib/screens/audio_library_screen.dart` | 1,051 |
+| Audit page | `lib/screens/course_audit_screen.dart` | 223 |
+| Lesson preview | `lib/screens/lesson_authoring_preview_screen.dart` | 83 |
+| The status rule of the Editor's lists (red, green, blue) | `lib/services/authoring_hierarchy_status.dart` | 152 |
+
+Each was moved as it was and compared with its old text line by line: the
+Audit page, the Lesson preview and the status rule are identical; the Audio
+Library differs in three lines, the three calls named below.
+
+### Two small things that got a proper place
+
+- **The names an author reads for an exercise**: its kind name, its type
+  label and the one line that identifies it in a list. They were three
+  private functions used by the Editor's lists, the Audit locations and the
+  Audio Library. They are `ExerciseLabels` now, with tests on every
+  exercise of the bundled Courses.
+- **Opening an exercise's editor** (the preset form, or the canonical
+  editor when no preset represents the exercise), also from a search result
+  or from a recording's "Used in N exercises": these two functions are in
+  the exercise editor's file now, so the Audio Library does not need the
+  Course Editor file.
+
+### Where the Course Editor file stands
+
+| Moment | Lines |
+|---|---|
+| Start of Build 272 | 14,839 |
+| After Revision 2 (Course Info Editor) | 13,288 |
+| After Revision 4 (Lesson Options) | 12,748 |
+| After Revision 5 (exercise editor) | 9,530 |
+| After Revision 6 | 7,927 |
+
+What remains in it: the Course Editor's main page, the four hierarchy pages
+(Lessons, Lesson, Rounds, Round), the Round Wizard, the Story Wizard and the
+Exercise Wizard.
+
+### Tests
+
+`test/exercise_labels_272_test.dart`, 5 cases. Revisions 5 and 6 share one
+independent review and one complete suite (owner decision for pure file
+moves).
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

@@ -32,11 +32,12 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 2 | Course Info form owner; the Course Info Editor dialog in its own file (done, `89b51291`) |
 | 3 | New Course form owner; the New Course dialog in its own file (done) |
 | 4 | Lesson Options owner (`LessonOptions`) and panel; then a Windows package for the owner to try |
-| 5 | The exercise editor (`ExerciseEditorScreen`, 3,153 lines) moves whole to its own file |
-| 6 | `TimedRoundClock` |
-| 7 | Media-reference owner |
-| 8 | Shared JSON readers for the models |
-| 9 | Merge selection owner; Merge, Import and Export pages leave Course Studio |
+| 5 | The exercise editor (`ExerciseEditorScreen`, 3,153 lines) moves whole to its own file (done, `1aa0d72d`) |
+| 6 | Free moves from the Course Editor file: Audio Library, Audit page, Lesson preview, the hierarchy status; `ExerciseLabels` |
+| 7 | `TimedRoundClock` |
+| 8 | Media-reference owner |
+| 9 | Shared JSON readers for the models |
+| 10 | Merge selection owner; Merge, Import and Export pages leave Course Studio |
 | then | The other free moves, two or three per complete suite |
 | Build 273 | The plan's medium-risk items: answer grading, Story cast, the publish gate, the profile service split, Audit rule sets, the earlier exercise shapes, the Round screen's state owners, the Course save sequence |
 
@@ -306,22 +307,55 @@ Gotchas:
   as a separator in the exercise form's snapshot (`_pluralPictures`
   joined); it moved with the editor. Left as found.
 
-## Revision 6 (more free moves from the Course Editor file), prepared
+## Revision 6 (2.0.72+272006), four more pages leave the Course Editor file
 
-In the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), folder `r6/`: `ties.py` (what
-ties a run of declarations to the rest of its file), `imports_head.py`,
-`apply_r6.py`, tried on a scratch copy of `lib/` (`sim/`) with Revision
-5 applied: `ExerciseLabels` (`lib/services/exercise_labels.dart`:
-`kindName`, `typeLabel`, `summary`, from three private functions);
-`exerciseEditorFor` and `openSearchResult` join the exercise editor's
-file (public); `AudioLibraryScreen` (1,046 lines, with its dialog),
-`CourseAuditScreen` (218), `LessonAuthoringPreviewScreen` (75) and
-`AuthoringHierarchyStatus` (148, to `lib/services/`) get their own
-files, re-exported from the Course Editor file, which would be at about
-7,900 lines. After applying: analyzer, `prune_imports.py`, the
-line-by-line comparison of each moved run, focused tests, ONE
-independent review for Revisions 5 and 6 together, then ONE complete
-suite for both, then push.
+State (13 October 2026, 00:52): done. Analyzer clean; 18 focused files 166 passed; the independent review of Revisions 5 and 6 found no behaviour difference (two tidy-ups done: the async import, the labels owner's comment); the ONE complete suite for both: 4,400 passed, 1 skipped. Committed (hash in `git log`) and pushed with Revision 5 (`1aa0d72d`).
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/services/exercise_labels.dart`: `ExerciseLabels.kindName`,
+  `typeLabel`, `summary` (were `_exerciseKindName`, `_exerciseTypeLabel`,
+  `_exerciseSummary` of the Course Editor file).
+- `exerciseEditorFor` and `openSearchResult` are public functions at the
+  end of `lib/screens/exercise_editor_screen.dart`.
+- Own files, moved by exact text (`r6/apply_r6.py`, then `r6/fix_tail.py`):
+  `lib/screens/audio_library_screen.dart` (1,051 lines),
+  `lib/screens/course_audit_screen.dart` (223),
+  `lib/screens/lesson_authoring_preview_screen.dart` (83),
+  `lib/services/authoring_hierarchy_status.dart` (152). The Course Editor
+  file re-exports them and is at 7,927 lines.
+- Tests: `exercise_labels_272_test` (5).
+
+Gotchas:
+
+- Taking a run "to the end of the file" also takes what stands after the
+  class meant: `_lessonName` and `_roundName` followed the Audio Library
+  and went with it; `fix_tail.py` put them back in the Course Editor
+  file, where their users are. Name the end of a run, never `EOF`,
+  unless the last declaration is the one meant.
+- Wait for the focused tests to end before the version bump or any edit
+  in `lib/` or `test/`; wait for the independent review before the
+  complete suite.
+
+## Next: Revision 7, `TimedRoundClock` (not started)
+
+Read so far (`lib/screens/round_screen.dart`, read only): the Timed
+Round's state is eight fields of `_RoundScreenState` (`_timedTicker`,
+`_timedExpiryTimer`, `_timedDeadline`, `_activeTimedLimitSeconds`,
+`_timedSecondsLeft`, `_timedOut`, `_timedCompletedBeforeZero`,
+`_timedReviewDialogOpen`) and `_startTimedCountdown`,
+`_expireTimedAttempt`, the deadline check at the top of `_mark`, the
+stop on the last answer in `_mark`, the stop when finishing (about line
+2330), `dispose`, the claim of the limit (about line 2394) and the clock
+text (about line 5564). Design: a pure Dart owner (`dart:async` only)
+with the injected `now` (the screen's `timedClock`), `limitSeconds`,
+`secondsLeft`, `expired`, `completedInTime`, `start`, the deadline check,
+`expire`, `completeInTime`, `stop`; the screen keeps what the screen
+does on expiry (unfocus, close the review dialog, save the timeout XP)
+and the `mounted` / `_finishing` guards. First the characterization
+tests on the present screen (`round_types_261_test.dart` has Timed
+cases to start from), then the owner, then its own complete suite (an
+owner, not a move).
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

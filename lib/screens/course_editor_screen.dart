@@ -1,12 +1,8 @@
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../services/file_dialog_service.dart';
 import '../widgets/difficulty_badge.dart';
 import '../widgets/exercise_image_field.dart';
-import 'package:audioplayers/audioplayers.dart';
 
-import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
 import '../models/exercise_features.dart';
@@ -26,10 +22,7 @@ import '../services/course_wizard.dart';
 import '../services/course_wizard_memory.dart';
 import '../services/course_audit_service.dart';
 import '../services/duel_eligibility_service.dart';
-import '../services/audit_code_registry.dart' show AuditCode;
-import '../services/course_audit_report_service.dart';
 import '../services/settings_service.dart';
-import '../services/audio_library_index.dart';
 import '../services/exercise_search_service.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
@@ -38,12 +31,15 @@ import '../services/lesson_icon_service.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/recorded_audio_service.dart';
 import 'round_screen.dart';
-import 'primitive_editor_screen.dart';
 import 'flat_image_library_screen.dart';
-import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
 import 'course_info_editor.dart';
 import 'exercise_editor_screen.dart';
+import 'audio_library_screen.dart';
+import 'course_audit_screen.dart';
+import 'lesson_authoring_preview_screen.dart';
+import '../services/authoring_hierarchy_status.dart';
+import '../services/exercise_labels.dart';
 import 'course_info_screen.dart';
 import 'guidebook_screen.dart';
 import 'guidebook_editor_screen.dart';
@@ -82,22 +78,20 @@ import '../widgets/image_credit_reminder.dart';
 import '../widgets/story_line_dialog.dart';
 import '../widgets/story_speaker_dialog.dart';
 import '../widgets/lesson_fallback_icon.dart';
-import '../widgets/import_summary.dart';
-import '../services/storage/qql_storage.dart';
 import '../widgets/quick_import_access.dart';
 import '../widgets/reported_action.dart';
 import '../services/course_backup_retention.dart';
 import '../widgets/course_backup_purge.dart';
 import '../widgets/labelled_text.dart';
 import '../services/course_audio_usage.dart';
-import '../services/course_audio_texts.dart';
-import '../services/course_media_store.dart';
-import '../widgets/folder_opener.dart';
-import '../widgets/library_save_notice.dart';
 import '../widgets/course_saving.dart';
-import 'audio_texts_screen.dart';
 
+export '../services/authoring_hierarchy_status.dart'
+    show AuthoringHierarchyStatus;
+export 'audio_library_screen.dart' show AudioLibraryScreen;
+export 'course_audit_screen.dart' show CourseAuditScreen;
 export 'exercise_editor_screen.dart' show ExerciseEditorScreen;
+export 'lesson_authoring_preview_screen.dart' show LessonAuthoringPreviewScreen;
 export 'guidebook_editor_screen.dart'
     show GuidebookEditorScreen, GuidebookModuleEditorScreen;
 
@@ -107,154 +101,6 @@ String _roundCountLabel(int count) =>
     '$count ${count == 1 ? 'Round' : 'Rounds'}';
 
 const _hierarchyLinkStyle = TextStyle(fontWeight: FontWeight.w800);
-
-class AuthoringHierarchyStatus {
-  AuthoringHierarchyStatus._(this.course, CourseAuditResult audit)
-    : hasCourseAuditConcern = audit.issues.any(_isAuditConcern),
-      hasLessonsAuditConcern = audit.issues.any(
-        (issue) =>
-            _isAuditConcern(issue) &&
-            (issue.code == AuditCode.courseLessonsEmpty.code ||
-                issue.location.startsWith('Lesson ')),
-      ),
-      exerciseAuditConcernIds = {
-        for (final issue in audit.issues)
-          if (_isAuditConcern(issue) && issue.exerciseId != null)
-            issue.exerciseId!,
-      },
-      roundAuditConcernIds = {
-        for (final issue in audit.issues)
-          if (_isAuditConcern(issue) && issue.roundId != null) issue.roundId!,
-      },
-      lessonAuditConcernIds = {
-        for (var index = 0; index < course.lessons.length; index++)
-          if (audit.issues.any(
-            (issue) =>
-                _isAuditConcern(issue) &&
-                (issue.location ==
-                        'Lesson ${index + 1} · ${course.lessons[index].title}' ||
-                    issue.location.startsWith(
-                      'Lesson ${index + 1} · ${course.lessons[index].title} ·',
-                    )),
-          ))
-            course.lessons[index].lessonId,
-      },
-      lessonEmptyRoundsIds = {
-        for (var index = 0; index < course.lessons.length; index++)
-          if (audit.issues.any(
-            (issue) =>
-                issue.code == AuditCode.lessonRoundsEmpty.code &&
-                issue.location ==
-                    'Lesson ${index + 1} · ${course.lessons[index].title}',
-          ))
-            course.lessons[index].lessonId,
-      },
-      lessonGuidebookAuditConcernIds = {
-        for (var index = 0; index < course.lessons.length; index++)
-          if (audit.issues.any(
-            (issue) =>
-                _isAuditConcern(issue) &&
-                issue.roundId == null &&
-                issue.exerciseId == null &&
-                (issue.location ==
-                        'Lesson ${index + 1} · ${course.lessons[index].title} · Guidebook' ||
-                    // Build 266: a module's location (and its entries').
-                    issue.location.startsWith(
-                      'Lesson ${index + 1} · ${course.lessons[index].title} · Guidebook · ',
-                    )),
-          ))
-            course.lessons[index].lessonId,
-      };
-
-  static bool _isAuditConcern(CourseAuditIssue issue) =>
-      issue.severity == AuditSeverity.error ||
-      issue.severity == AuditSeverity.warning;
-
-  /// One status for each Course object (Build 271 Revision 3). A Course is
-  /// never changed in place, so the same object always audits the same.
-  /// Before, the whole Audit ran again on every rebuild of the Course
-  /// Editor's main page, of the Lessons page and of every row of Course
-  /// Studio.
-  static final _byCourse = Expando<AuthoringHierarchyStatus>();
-
-  factory AuthoringHierarchyStatus.fromCourse(Course course) =>
-      _byCourse[course] ??= AuthoringHierarchyStatus._(
-        course,
-        CourseAuditService().auditCourse(course),
-      );
-
-  /// The status of one Lesson's cards (its GuideBook, its Rounds and their
-  /// exercises) from the Audit of that Lesson alone (Build 271 Revision 3):
-  /// the answers [fromCourse] gives for them, without checking the content
-  /// of the other Lessons. A Lesson that repeats one of this Lesson's IDs
-  /// is audited too, because a finding is found again by its ID. Ask it
-  /// about this Lesson only.
-  factory AuthoringHierarchyStatus.forLesson(Course course, String lessonId) {
-    Set<String> idsOf(Lesson lesson) => {
-      for (final round in lesson.rounds) ...[
-        round.id,
-        for (final content in round.content) content.id,
-        for (final exercise in round.exercises) exercise.id,
-      ],
-    };
-    final index = course.lessons.indexWhere(
-      (lesson) => lesson.lessonId == lessonId,
-    );
-    if (index < 0) {
-      return AuthoringHierarchyStatus._(course, CourseAuditResult(const []));
-    }
-    final own = idsOf(course.lessons[index]);
-    final lessons = {
-      index,
-      for (var other = 0; other < course.lessons.length; other++)
-        if (other != index &&
-            (course.lessons[other].lessonId == lessonId ||
-                idsOf(course.lessons[other]).any(own.contains)))
-          other,
-    };
-    return AuthoringHierarchyStatus._(
-      course,
-      CourseAuditService().auditCourse(course, onlyLessons: lessons),
-    );
-  }
-
-  final Course course;
-  final bool hasCourseAuditConcern;
-  final bool hasLessonsAuditConcern;
-  final Set<String> exerciseAuditConcernIds;
-  final Set<String> roundAuditConcernIds;
-  final Set<String> lessonAuditConcernIds;
-  final Set<String> lessonEmptyRoundsIds;
-  final Set<String> lessonGuidebookAuditConcernIds;
-
-  /// Draft rules live in [CourseDraftStatus]; these getters delegate to it.
-  bool get courseHasDraft => CourseDraftStatus.courseHasDraft(course);
-  bool lessonHasDraft(Lesson lesson) =>
-      CourseDraftStatus.lessonHasDraft(course, lesson);
-  bool lessonGuidebookHasDraft(Lesson lesson) =>
-      CourseDraftStatus.lessonGuidebookHasDraft(course, lesson);
-  bool lessonHasRoundDraft(Lesson lesson) =>
-      CourseDraftStatus.lessonHasRoundDraft(lesson);
-  bool lessonHasAuditConcern(Lesson lesson) =>
-      lessonAuditConcernIds.contains(lesson.lessonId);
-
-  /// The Guidebook card border: no color at all while GuideBook is off.
-  bool? lessonGuidebookAuditStatus(Lesson lesson) =>
-      course.useGuidebook ? lessonGuidebookHasAuditConcern(lesson) : null;
-  bool lessonGuidebookHasAuditConcern(Lesson lesson) =>
-      lessonGuidebookAuditConcernIds.contains(lesson.lessonId);
-  bool lessonHasRoundAuditConcern(Lesson lesson) =>
-      lessonEmptyRoundsIds.contains(lesson.lessonId) ||
-      lesson.rounds.any(roundHasAuditConcern);
-  bool roundHasDraft(LearningRound round) =>
-      CourseDraftStatus.roundHasDraft(round);
-  bool roundHasAuditConcern(LearningRound round) =>
-      roundAuditConcernIds.contains(round.id);
-  bool exerciseIsDraft(Exercise exercise) =>
-      CourseDraftStatus.exerciseIsDraft(exercise);
-  bool exerciseHasAuditConcern(Exercise exercise) =>
-      exerciseAuditConcernIds.contains(exercise.id);
-}
 
 class AuthoringStatusCard extends StatelessWidget {
   const AuthoringStatusCard({
@@ -397,47 +243,6 @@ Exercise _withExercisePublication(
   PublicationState state, {
   DateTime? updatedAt,
 }) => source.withPublicationState(state, updatedAt: updatedAt);
-
-Future<Course?> _openSearchResult(
-  BuildContext context, {
-  required Course course,
-  required ExerciseSearchResult result,
-  required bool readOnly,
-  required bool initiallyInspecting,
-  DateTime Function()? clock,
-}) async {
-  final lesson = course.lessons[result.lessonIndex];
-  final round = lesson.rounds[result.roundIndex];
-  final exercise = round.exercises[result.exerciseIndex];
-  final saved = <String, Exercise>{};
-  final returned = await Navigator.of(context).push<Exercise>(
-    MaterialPageRoute(
-      builder: (_) => _exerciseEditorFor(
-        exercise: exercise,
-        title: 'Edit exercise ${result.exerciseIndex + 1}',
-        isNew: false,
-        course: course,
-        lesson: lesson,
-        round: round,
-        clock: clock,
-        readOnly: readOnly,
-        initiallyInspecting: initiallyInspecting,
-        onExerciseSaved: readOnly ? null : (value) => saved[value.id] = value,
-      ),
-    ),
-  );
-  if (readOnly) return null;
-  if (returned != null) saved[returned.id] = returned;
-  if (saved.isEmpty) return null;
-  var changed = course;
-  for (final exercise in saved.values) {
-    changed = _hierarchyUpdates.apply(
-      changed,
-      UpsertExercise(lesson.lessonId, round.id, exercise),
-    );
-  }
-  return changed;
-}
 
 /// Custom-course authoring and read-only official-course inspection.
 ///
@@ -1427,7 +1232,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             if (!mounted) return;
             final updatedExercise = await Navigator.of(context).push<Exercise>(
               MaterialPageRoute(
-                builder: (_) => _exerciseEditorFor(
+                builder: (_) => exerciseEditorFor(
                   exercise: round.exercises[ei],
                   title: 'Edit exercise ${ei + 1}',
                   isNew: false,
@@ -2175,7 +1980,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
       ),
     );
     if (result == null || !mounted) return;
-    final changed = await _openSearchResult(
+    final changed = await openSearchResult(
       context,
       course: _course,
       result: result,
@@ -2350,81 +2155,6 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
       ),
     );
   }
-}
-
-class LessonAuthoringPreviewScreen extends StatelessWidget {
-  const LessonAuthoringPreviewScreen({
-    super.key,
-    required this.course,
-    required this.lesson,
-  });
-
-  final Course course;
-  final Lesson lesson;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: CoursePreviewTitle(
-        course: course,
-        title: () {
-          final index = course.lessons.indexWhere(
-            (candidate) => candidate.lessonId == lesson.lessonId,
-          );
-          final identity = index < 0
-              ? null
-              : const LessonPresentationService().identity(course, index);
-          return LabelledText(
-            'PREVIEW · ${identity?.fullText ?? lesson.title}',
-            label: identity?.prefix,
-          );
-        }(),
-      ),
-    ),
-    body: lesson.rounds.isEmpty
-        ? const Center(child: Text('This Lesson has no Rounds to preview.'))
-        : ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: lesson.rounds.length,
-            itemBuilder: (context, index) {
-              final round = lesson.rounds[index];
-              return Card(
-                child: ListTile(
-                  leading: const Icon(Icons.play_circle_outline),
-                  title: LabelledText(
-                    RoundTypePresentation.title(
-                      round,
-                      index + 1,
-                      course.roundNumberingMode,
-                      customPrefix: course.customRoundLabel,
-                    ),
-                    label: RoundTypePresentation.prefix(
-                      round.roundType,
-                      index + 1,
-                      course.roundNumberingMode,
-                      customPrefix: course.customRoundLabel,
-                    ),
-                  ),
-                  subtitle: Text('${round.exercises.length} exercises'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) => RoundScreen(
-                        course: course,
-                        lesson: lesson,
-                        round: round,
-                        ttsLanguage:
-                            CourseLanguageResolver.learning(course).code ?? '',
-                        roundIndex: index,
-                        previewMode: true,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-  );
 }
 
 class LessonEditorScreen extends StatefulWidget {
@@ -3323,7 +3053,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       ),
     );
     if (result == null || !mounted) return;
-    final changed = await _openSearchResult(
+    final changed = await openSearchResult(
       context,
       course: _courseWithIcons,
       result: result,
@@ -3912,7 +3642,7 @@ class _GuidebookRoundGeneratorScreenState
           CourseAuditService().auditExercise(
             exercise,
             location:
-                '${round.displayTitle(roundIndex)} · ${_exerciseKindName(exercise)}',
+                '${round.displayTitle(roundIndex)} · ${ExerciseLabels.kindName(exercise)}',
             roundId: round.id,
           ),
         );
@@ -4632,7 +4362,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
     if (presetId == null || !mounted) return;
     final exercise = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => _exerciseEditorFor(
+        builder: (_) => exerciseEditorFor(
           exercise: _blankExerciseForPreset(presetId, _ids),
           title: 'New Exercise',
           isNew: true,
@@ -4649,7 +4379,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
   Future<void> _editExercise(int index) async {
     final exercise = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => _exerciseEditorFor(
+        builder: (_) => exerciseEditorFor(
           exercise: _steps[index],
           title: 'Edit exercise',
           isNew: false,
@@ -5595,7 +5325,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       ),
     );
     if (result == null || !mounted) return;
-    final changed = await _openSearchResult(
+    final changed = await openSearchResult(
       context,
       course: _auditableCourse,
       result: result,
@@ -6145,7 +5875,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         if (drafts.isNotEmpty) {
           final titles = drafts
               .take(3)
-              .map((exercise) => '“${_exerciseSummary(exercise)}”')
+              .map((exercise) => '“${ExerciseLabels.summary(exercise)}”')
               .join(', ');
           final more = drafts.length > 3
               ? ' and ${drafts.length - 3} more'
@@ -6239,7 +5969,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _mutateRound(() => _exercises[index] = changed);
   }
 
-  String _summary(Exercise e) => _exerciseSummary(e);
+  String _summary(Exercise e) => ExerciseLabels.summary(e);
 
   Course get _workingCourse => _hierarchyUpdates.apply(
     _course,
@@ -6331,7 +6061,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   Future<void> _edit(int i) async {
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => _exerciseEditorFor(
+        builder: (_) => exerciseEditorFor(
           exercise: _exercises[i],
           title: 'Edit exercise ${i + 1}',
           isNew: false,
@@ -6363,7 +6093,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (widget.readOnly) return;
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => _exerciseEditorFor(
+        builder: (_) => exerciseEditorFor(
           exercise: _blankExerciseForPreset(presetId, _ids),
           title: title,
           isNew: true,
@@ -6772,7 +6502,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Text(
-                    '• ${_exerciseKindName(e).replaceAll('_', ' ')}: ${_summary(e)}',
+                    '• ${ExerciseLabels.kindName(e).replaceAll('_', ' ')}: ${_summary(e)}',
                   ),
                 ),
               if (audit.isNotEmpty) ...[
@@ -7110,7 +6840,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       ),
     );
     if (result == null || !mounted) return;
-    final changed = await _openSearchResult(
+    final changed = await openSearchResult(
       context,
       course: _workingCourse,
       result: result,
@@ -7511,7 +7241,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     // Build 260 Revision 5: the exercise's difficulty.
                     title: Row(
                       children: [
-                        Flexible(child: Text(_exerciseTypeLabel(e))),
+                        Flexible(child: Text(ExerciseLabels.typeLabel(e))),
                         if (ExerciseDifficulty.of(e) case final level?)
                           DifficultyBadge(
                             key: ValueKey('exercise-difficulty-${e.id}'),
@@ -7652,95 +7382,6 @@ final ButtonStyle _compactButtonStyle = ButtonStyle(
   minimumSize: const WidgetStatePropertyAll(Size(0, 36)),
   textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 13)),
 );
-
-/// The preset an exercise carries, else its learner kind: the name the
-/// editor's lists and Audit locations show for it.
-String _exerciseKindName(Exercise e) => e.editorTemplate.isNotEmpty
-    ? e.editorTemplate
-    : ExerciseFeatures(e).kind.name;
-
-/// The friendly type label: the preset's name, else the kind's.
-String _exerciseTypeLabel(Exercise e) =>
-    ExercisePresetRegistry.byId(e.editorTemplate)?.name ??
-    CourseAuditService.kindLabel(ExerciseFeatures(e).kind);
-
-/// One line that identifies an exercise in a list: its sentence, context,
-/// main text, term, question, meaning or spoken text, else its ID.
-String _exerciseSummary(Exercise e) {
-  final features = ExerciseFeatures(e);
-  for (final text in [
-    // A Story's line and cover keep their text in the line and title roles
-    // (owner report, 29 September 2026: the list showed their IDs).
-    features.lineText,
-    features.lineAudio?.text ?? '',
-    features.coverTitle,
-    features.introText,
-    // A Page is named by its first text block (Build 258 Revision 2).
-    ...features.pageBlocks.where((block) => block.isText).map((b) => b.text),
-    features.inlineSentence,
-    features.contextText,
-    features.primaryText,
-    features.textOf('term'),
-    features.questionText,
-    features.textOf('meaning'),
-    features.primaryAudioText ?? '',
-  ]) {
-    if (text.trim().isNotEmpty) return text.trim();
-  }
-  if (features.kind == LearnerExerciseKind.storyCover ||
-      e.editorTemplate == 'story_cover') {
-    final picture = features.illustrationImages
-        .map((image) => image.text.trim())
-        .where((text) => text.isNotEmpty)
-        .firstOrNull;
-    return picture == null ? 'Title block' : 'Title block · $picture';
-  }
-  return e.id;
-}
-
-/// The editor for one exercise: the preset form when a preset represents
-/// the exercise (or it is new), otherwise the Generic Primitive Editor, which
-/// shows every canonical field and never drops data the form cannot show
-/// (Build 256 Session 4, plan A.13).
-Widget _exerciseEditorFor({
-  required Exercise exercise,
-  required String title,
-  required bool isNew,
-  DateTime Function()? clock,
-  bool linkParent = false,
-  Course? course,
-  Lesson? lesson,
-  LearningRound? round,
-  ValueChanged<Exercise>? onExerciseSaved,
-  bool readOnly = false,
-  bool initiallyInspecting = false,
-}) => !isNew && PresetRecipes.presetToEdit(exercise) == null
-    ? PrimitiveEditorScreen(
-        exercise: exercise,
-        title: title,
-        isNew: isNew,
-        clock: clock,
-        linkParent: linkParent,
-        course: course,
-        lesson: lesson,
-        round: round,
-        onExerciseSaved: onExerciseSaved,
-        readOnly: readOnly,
-        initiallyInspecting: initiallyInspecting,
-      )
-    : ExerciseEditorScreen(
-        exercise: exercise,
-        title: title,
-        isNew: isNew,
-        clock: clock,
-        linkParent: linkParent,
-        course: course,
-        lesson: lesson,
-        round: round,
-        onExerciseSaved: onExerciseSaved,
-        readOnly: readOnly,
-        initiallyInspecting: initiallyInspecting,
-      );
 
 /// [course] with the Story [narrator] and [characters] and any new media
 /// [credits] (Build 256 Revision 5). A narrator equal to the one the Course
@@ -7931,7 +7572,7 @@ class _ExerciseCreationWizardScreenState
     final existing = _drafts[_current];
     final exercise = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => _exerciseEditorFor(
+        builder: (_) => exerciseEditorFor(
           exercise:
               existing ??
               _blankExerciseForPreset(plan.presetIds[_current], _ids),
@@ -8263,1250 +7904,6 @@ class _ExerciseCreationWizardScreenState
       },
     ),
   );
-}
-
-class CourseAuditScreen extends StatefulWidget {
-  final Course course;
-  final CourseAuditResult result;
-  final String title;
-  final CourseAuditReportService? reportService;
-  const CourseAuditScreen({
-    super.key,
-    required this.course,
-    required this.result,
-    this.title = 'Course Audit',
-    this.reportService,
-  });
-  @override
-  State<CourseAuditScreen> createState() => _CourseAuditScreenState();
-}
-
-class _CourseAuditScreenState extends State<CourseAuditScreen> {
-  AuditSeverity? _filter;
-  AuditSortMode _sortMode = AuditSortMode.lesson;
-
-  late final CourseAuditReportService _reportService =
-      widget.reportService ?? CourseAuditReportService();
-
-  Future<void> _copyReport() async {
-    try {
-      await _reportService.copyReport(
-        course: widget.course,
-        result: widget.result,
-        scope: widget.title,
-        sortMode: _sortMode,
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Complete Audit report copied.')),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not copy Audit report: $error'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _exportReport() async {
-    try {
-      final path = await _reportService.exportReport(
-        course: widget.course,
-        result: widget.result,
-        scope: widget.title,
-        sortMode: _sortMode,
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Complete Audit report exported to $path')),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not export Audit report: $error'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-    }
-  }
-
-  String _severityLabel(AuditSeverity severity) => switch (severity) {
-    AuditSeverity.error => 'Errors',
-    AuditSeverity.warning => 'Warnings',
-    AuditSeverity.info => 'Info',
-  };
-
-  Widget _issueCard(NumberedAuditIssue numbered) {
-    final issue = numbered.issue;
-    return Semantics(
-      label:
-          '${numbered.label}. ${issue.message}. Code ${issue.code}. ${issue.location}',
-      child: Card(
-        child: ListTile(
-          leading: Icon(
-            issue.severity == AuditSeverity.error
-                ? Icons.error_outline
-                : issue.severity == AuditSeverity.warning
-                ? Icons.warning_amber_outlined
-                : Icons.info_outline,
-          ),
-          title: Text(issue.message),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(numbered.label),
-              Text('Code: ${issue.code}'),
-              Text(issue.location),
-            ],
-          ),
-          isThreeLine: true,
-          trailing: issue.roundId == null
-              ? null
-              : Icon(
-                  widget.course.originType.isOfficial
-                      ? Icons.visibility_outlined
-                      : Icons.edit_outlined,
-                ),
-          onTap: issue.roundId == null
-              ? null
-              : () => Navigator.pop(context, issue),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final issues = widget.result.numbered(_sortMode, severity: _filter);
-    Widget chip(String label, AuditSeverity? severity) => ChoiceChip(
-      label: Text(label),
-      selected: _filter == severity,
-      onSelected: (_) => setState(() => _filter = severity),
-    );
-    return Scaffold(
-      appBar: AppBar(
-        title: CoursePreviewTitle(
-          course: widget.course,
-          title: Text(widget.title),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  chip('All ${widget.result.issues.length}', null),
-                  chip(
-                    'Errors ${widget.result.count(AuditSeverity.error)}',
-                    AuditSeverity.error,
-                  ),
-                  chip(
-                    'Warnings ${widget.result.count(AuditSeverity.warning)}',
-                    AuditSeverity.warning,
-                  ),
-                  chip(
-                    'Info ${widget.result.count(AuditSeverity.info)}',
-                    AuditSeverity.info,
-                  ),
-                  SizedBox(
-                    width: 220,
-                    child: DropdownButton<AuditSortMode>(
-                      isExpanded: true,
-                      value: _sortMode,
-                      onChanged: (value) => setState(
-                        () => _sortMode = value ?? AuditSortMode.lesson,
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: AuditSortMode.lesson,
-                          child: Text('By Lesson'),
-                        ),
-                        DropdownMenuItem(
-                          value: AuditSortMode.exerciseType,
-                          child: Text('By Exercise type'),
-                        ),
-                        DropdownMenuItem(
-                          value: AuditSortMode.recentlyModified,
-                          child: Text('Recently modified'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  OutlinedButton.icon(
-                    key: const Key('copy-audit-report'),
-                    onPressed: _copyReport,
-                    icon: const Icon(Icons.copy_outlined),
-                    label: const Text('Copy report'),
-                  ),
-                  OutlinedButton.icon(
-                    key: const Key('export-audit-report'),
-                    onPressed: _exportReport,
-                    icon: const Icon(Icons.download_outlined),
-                    label: const Text('Export report'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (issues.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(18),
-                child: Text('No items in this category.'),
-              ),
-            ),
-          for (final severity in AuditSeverity.values)
-            if (issues.any((entry) => entry.issue.severity == severity)) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 16, 8, 6),
-                child: Text(
-                  _severityLabel(severity),
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              ...issues
-                  .where((entry) => entry.issue.severity == severity)
-                  .map(_issueCard),
-            ],
-        ],
-      ),
-    );
-  }
-}
-
-class AudioLibraryScreen extends StatefulWidget {
-  final Course course;
-  const AudioLibraryScreen({super.key, required this.course});
-
-  /// The Editor Help question the screen's Help opens at: the first of its
-  /// sound questions (audio modes, adding recordings, the texts to record,
-  /// how recordings travel).
-  static const helpQuestion = 'audioModes';
-
-  /// What a recording without a text says in the list.
-  static const noTextLabel = 'Tap to give it its text';
-
-  /// The body height from which the notice, the audio source and the A–Z
-  /// bar stay in place; a shorter window scrolls them with the recordings.
-  static const fixedHeaderMinimumHeight = 420.0;
-
-  /// The one line under the audio source (Build 271 Revision 2, the owner's
-  /// wording); the rest is in the Editor Help.
-  static String sourceLine(String audioMode) => switch (audioMode) {
-    'recorded' =>
-      'Only your recordings play; a text without a complete recording stays '
-          'silent.',
-    'hybrid' =>
-      'Your recordings play first; the device’s voice reads a text they '
-          'don’t fully cover.',
-    _ => 'The device’s voice reads every text; no recordings are needed.',
-  };
-
-  @override
-  State<AudioLibraryScreen> createState() => _AudioLibraryScreenState();
-}
-
-class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
-  final _audio = RecordedAudioService();
-  final AudioPlayer _previewPlayer = AudioPlayer();
-  late Course _course;
-  bool _routeMayPop = false;
-
-  /// The recording whose preview plays; its row and Associate recording
-  /// both show it.
-  final _playing = ValueNotifier<String?>(null);
-  final Map<String, GlobalKey> _letterKeys = {};
-
-  /// Clips whose file no longer resolves. A clip that still carries its word
-  /// is not an orphan, so the orphan tool never reports it; without this the
-  /// only sign would be a failed preview.
-  Set<String> _missingClipIds = const {};
-
-  /// Which exercises play each recording (Build 270 Revision 13), worked
-  /// out again only when the draft changes.
-  Course? _usesCourse;
-  Map<String, List<AudioClipUse>> _usesCache = const {};
-  Map<String, List<AudioClipUse>> get _uses {
-    if (!identical(_usesCourse, _course)) {
-      _usesCourse = _course;
-      _usesCache = CourseAudioUsage.usesByClip(
-        _course,
-        (text) => _audio.segment(text, _course.audioLibrary),
-      );
-    }
-    return _usesCache;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _course = widget.course;
-    _previewPlayer.onPlayerComplete.listen((_) {
-      if (mounted) _playing.value = null;
-    });
-    _refreshMissingClips();
-  }
-
-  Future<void> _refreshMissingClips() async {
-    final missing = <String>{};
-    for (final clip in _course.audioLibrary) {
-      final source = await _audio.resolveSourceForClip(
-        clip,
-        courseId: _course.courseId,
-      );
-      if (source == null) missing.add(clip.id);
-    }
-    if (!mounted) return;
-    setState(() => _missingClipIds = Set.unmodifiable(missing));
-  }
-
-  @override
-  void dispose() {
-    _previewPlayer.dispose();
-    _playing.dispose();
-    super.dispose();
-  }
-
-  Course _copy({String? mode, List<CourseAudioClip>? clips}) =>
-      Course.fromJson({
-        ..._course.toJson(),
-        'audioMode': mode ?? _course.audioMode,
-        'audioLibrary': (clips ?? _course.audioLibrary)
-            .map((clip) => clip.toJson())
-            .toList(),
-      });
-  Future<void> _importFromDialog() async {
-    try {
-      // Open from…: up to 100 MP3s, each checked like a folder import.
-      final picked = await _audio.importMp3sFromDialog(
-        _course.courseId,
-        existingReferences: {
-          for (final clip in _course.audioLibrary) clip.filePath,
-        },
-      );
-      if (!mounted) return;
-      if (picked.dialog.outcome != FileDialogOutcome.opened) {
-        showFileDialogFeedback(
-          context,
-          picked.dialog,
-          saving: false,
-          fallbackHint: mp3FallbackHint,
-        );
-        return;
-      }
-      if (picked.clips.isNotEmpty) {
-        setState(
-          () => _course = _copy(
-            clips: [..._course.audioLibrary, ...picked.clips],
-          ),
-        );
-        unawaited(_refreshMissingClips());
-      }
-      await showImportSummary(
-        context,
-        title: 'MP3 files imported',
-        items: picked.results,
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: const Duration(seconds: 8), content: Text('$e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _import() async {
-    switch (await ensureQuickImportAccess(
-      context,
-      offerOpenFrom: _audio.fileDialogsAvailable,
-    )) {
-      case QuickImportAccess.ready:
-        break;
-      case QuickImportAccess.openFrom:
-        return _importFromDialog();
-      case QuickImportAccess.stop:
-        return;
-    }
-    if (!mounted) return;
-    try {
-      final clips = await _audio.importMp3Files(
-        _course.courseId,
-        existingReferences: {
-          for (final clip in _course.audioLibrary) clip.filePath,
-        },
-      );
-      if (clips.isNotEmpty && mounted) {
-        setState(
-          () => _course = _copy(clips: [..._course.audioLibrary, ...clips]),
-        );
-        unawaited(_refreshMissingClips());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: Duration(seconds: 8),
-            content: Text(
-              'Imported ${clips.length} MP3 file${clips.length == 1 ? '' : 's'} from ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}.',
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: Duration(seconds: 8), content: Text('$e')),
-        );
-      }
-    }
-  }
-
-  /// Whether Open folder can show where this recording is stored: only for
-  /// a recording in the Course's own folder, on a system that opens folders.
-  bool _canOpenFolder(CourseAudioClip clip) =>
-      FolderOpener.available() && CourseMediaStore.isReference(clip.filePath);
-
-  /// Opens the Course's media folder; false when it could not be shown.
-  Future<bool> _openMediaFolder() async {
-    try {
-      final folder = await CourseMediaStore().courseDirectory(_course.courseId);
-      if (!await folder.exists()) return false;
-      return await FolderOpener.open(folder.path);
-    } catch (_) {
-      return false;
-    }
-  }
-
-  /// Associate recording (Build 271 Revision 2): the file's names, Play,
-  /// Open folder, the text and Texts in this Course. A text that another
-  /// recording already says by itself takes that recording's place, after
-  /// the author agrees; the other one then waits under #.
-  Future<void> _editById(String id) async {
-    final i = _course.audioLibrary.indexWhere((e) => e.id == id);
-    if (i < 0) return;
-    final clip = _course.audioLibrary[i];
-    final result = await showDialog<({String text, String? replaced})>(
-      context: context,
-      builder: (ctx) => _AssociateRecordingDialog(
-        course: _course,
-        clip: clip,
-        missing: _missingClipIds.contains(clip.id),
-        playing: _playing,
-        onPlay: () => _preview(clip),
-        onOpenFolder: _canOpenFolder(clip) ? _openMediaFolder : null,
-      ),
-    );
-    if (result == null || !mounted) return;
-    setState(
-      () => _course = _copy(
-        clips: [
-          for (final entry in _course.audioLibrary)
-            if (entry.id == id)
-              entry.withText(result.text)
-            else if (entry.id == result.replaced)
-              entry.withText('')
-            else
-              entry,
-        ],
-      ),
-    );
-  }
-
-  void _showTexts() {
-    Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => AudioTextsScreen(course: _course)),
-    );
-  }
-
-  Future<void> _deleteById(String id) async {
-    final i = _course.audioLibrary.indexWhere((e) => e.id == id);
-    if (i < 0) return;
-    if (_playing.value == id) {
-      await _previewPlayer.stop();
-      _playing.value = null;
-    }
-    final list = [..._course.audioLibrary]..removeAt(i);
-    setState(() => _course = _copy(clips: list));
-    unawaited(_refreshMissingClips());
-  }
-
-  Future<void> _preview(CourseAudioClip clip) async {
-    if (_playing.value == clip.id) {
-      await _previewPlayer.stop();
-      if (mounted) _playing.value = null;
-      return;
-    }
-    try {
-      final source = await _audio.resolveSourceForClip(
-        clip,
-        courseId: _course.courseId,
-      );
-      if (source == null) throw StateError('MP3 source is missing');
-      await _previewPlayer.stop();
-      await _previewPlayer.play(source);
-      if (mounted) _playing.value = clip.id;
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text('Could not play this MP3 file.'),
-        ),
-      );
-    }
-  }
-
-  Future<void> _orphans() async {
-    // Build 270 Revision 13 (owner decision): the recordings no exercise
-    // plays; those without text are under # already.
-    final list = CourseAudioUsage.unused(_course, _uses);
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        key: const Key('audio-unused-dialog'),
-        title: Text(
-          '${list.length} unused MP3 file${list.length == 1 ? '' : 's'}',
-        ),
-        content: SingleChildScrollView(
-          child: Text(
-            list.isEmpty
-                ? 'Every recording with a text is played by an exercise.'
-                : 'No exercise plays these recordings. Removing them takes '
-                      'them out of this Course; their files are deleted when '
-                      'the Course is saved.\n\n'
-                      '${list.map((clip) => clip.text.trim()).join('\n')}',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-          if (list.isNotEmpty)
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                final ids = list.map((e) => e.id).toSet();
-                setState(
-                  () => _course = _copy(
-                    clips: _course.audioLibrary
-                        .where((e) => !ids.contains(e.id))
-                        .toList(),
-                  ),
-                );
-                unawaited(_refreshMissingClips());
-              },
-              child: const Text('Remove these recordings'),
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// "Used in N exercises", opening the list, or "Not used by any
-  /// exercise" (Build 270 Revision 13).
-  Widget _usesLine(CourseAudioClip clip) {
-    final uses = _uses[clip.id] ?? const <AudioClipUse>[];
-    final scheme = Theme.of(context).colorScheme;
-    if (uses.isEmpty) {
-      return Text(
-        'Not used by any exercise',
-        key: Key('audio-clip-unused-${clip.id}'),
-        style: TextStyle(color: scheme.onSurfaceVariant),
-      );
-    }
-    return InkWell(
-      key: Key('audio-clip-uses-${clip.id}'),
-      onTap: () => _showUses(clip, uses),
-      child: Text(
-        'Used in ${uses.length} exercise${uses.length == 1 ? '' : 's'}',
-        style: TextStyle(
-          color: scheme.primary,
-          decoration: TextDecoration.underline,
-        ),
-      ),
-    );
-  }
-
-  /// The exercises that play [clip]; a tap opens one, as Search does, and
-  /// its changes stay in this draft.
-  Future<void> _showUses(CourseAudioClip clip, List<AudioClipUse> uses) async {
-    final chosen = await showDialog<AudioClipUse>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        key: const Key('audio-clip-uses-dialog'),
-        title: Text('“${clip.text.trim()}” is heard in'),
-        content: SizedBox(
-          width: 520,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Text(
-                  'Only texts that recordings say from beginning to end '
-                  'count. Tap an exercise to open it.',
-                ),
-              ),
-              for (final (index, use) in uses.indexed)
-                ListTile(
-                  key: Key('audio-clip-use-$index'),
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    _exerciseSummary(use.exercise),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: _usePlace(use),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.pop(ctx, use),
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-    if (chosen == null || !mounted) return;
-    final lesson = _course.lessons[chosen.lessonIndex];
-    final round = lesson.rounds[chosen.roundIndex];
-    final changed = await _openSearchResult(
-      context,
-      course: _course,
-      result: ExerciseSearchResult(
-        lessonIndex: chosen.lessonIndex,
-        roundIndex: chosen.roundIndex,
-        exerciseIndex: chosen.exerciseIndex,
-        lessonId: lesson.lessonId,
-        roundId: round.id,
-        exerciseId: chosen.exercise.id,
-        exerciseType: chosen.exercise.primitive.serialized,
-        exerciseDisplayName: _exerciseSummary(chosen.exercise),
-        matchingExcerpt: '',
-        matchedFieldLabel: '',
-        idMatch: false,
-      ),
-      readOnly: false,
-      initiallyInspecting: false,
-    );
-    if (changed != null && mounted) {
-      setState(() => _course = changed);
-      unawaited(_refreshMissingClips());
-    }
-  }
-
-  /// "Lesson 2: Food › Step 3 · Practice › Exercise 4", labels in the label
-  /// style (Build 270 Revision 12).
-  Widget _usePlace(AudioClipUse use) {
-    final identity = const LessonPresentationService().identity(
-      _course,
-      use.lessonIndex,
-    );
-    final round = _course.lessons[use.lessonIndex].rounds[use.roundIndex];
-    final roundPrefix = RoundTypePresentation.prefix(
-      round.roundType,
-      use.roundIndex + 1,
-      _course.roundNumberingMode,
-      customPrefix: _course.customRoundLabel,
-    );
-    final roundTitle = RoundTypePresentation.title(
-      round,
-      use.roundIndex + 1,
-      _course.roundNumberingMode,
-      customPrefix: _course.customRoundLabel,
-    );
-    return LabelledText.all(
-      '${identity.fullText} › $roundTitle › Exercise ${use.exerciseIndex + 1}',
-      labels: [identity.prefix, roundPrefix],
-    );
-  }
-
-  /// Build 270 Revision 12 (owner report): the clips are built only near
-  /// the screen, so a letter's header is a sliver of its own that is always
-  /// built. The first move lands where the clips in between are estimated to
-  /// end; once they are laid out, the next moves put the letter in place.
-  Future<void> _jump(String letter) async {
-    for (var pass = 0; pass < 3; pass++) {
-      final ctx = _letterKeys[letter]?.currentContext;
-      if (ctx == null || !ctx.mounted) return;
-      await Scrollable.ensureVisible(
-        ctx,
-        duration: pass == 0 ? const Duration(milliseconds: 250) : Duration.zero,
-        alignment: .08,
-      );
-      await WidgetsBinding.instance.endOfFrame;
-    }
-  }
-
-  PopupMenuItem<String> _menuItem({
-    required String value,
-    required Key key,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) => PopupMenuItem<String>(
-    key: key,
-    value: value,
-    child: ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(subtitle),
-    ),
-  );
-
-  /// Build 271 Revision 2 (owner decisions of 10 and 11 October 2026): what
-  /// stays in place above the recordings. The one-line notice, the audio
-  /// source with its one line and the A–Z bar.
-  Widget _header(List<AudioLibraryGroup> groups) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const LibrarySaveNotice(key: Key('audio-library-save-notice')),
-          const SizedBox(height: 10),
-          DropdownButtonFormField<String>(
-            key: const Key('audio-source'),
-            initialValue: _course.audioMode,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              isDense: true,
-              labelText: 'Course audio source',
-            ),
-            items: const [
-              DropdownMenuItem(value: 'tts', child: Text('On-Device TTS')),
-              DropdownMenuItem(
-                value: 'recorded',
-                child: Text('Recorded MP3 only'),
-              ),
-              DropdownMenuItem(
-                value: 'hybrid',
-                child: Text('Hybrid: MP3 + TTS fallback'),
-              ),
-            ],
-            onChanged: (v) {
-              if (v != null) setState(() => _course = _copy(mode: v));
-            },
-          ),
-          const SizedBox(height: 6),
-          Text(
-            AudioLibraryScreen.sourceLine(_course.audioMode),
-            key: const Key('audio-source-line'),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (groups.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            SizedBox(
-              height: 46,
-              child: ListView(
-                key: const Key('audio-library-letters'),
-                scrollDirection: Axis.horizontal,
-                children: [
-                  for (final group in groups)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: ActionChip(
-                        label: Text(group.key),
-                        onPressed: () => _jump(group.key),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-          const Divider(height: 12),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Build 270 Revision 12 (owner decisions): # (no text), 0–9, the
-    // letters without accents, other scripts; AudioLibraryIndex owns the rule.
-    final groups = AudioLibraryIndex.groups(_course.audioLibrary);
-    // Recordings are managed only where the Course plays them.
-    final recorded = _course.audioMode != 'tts';
-    const chooseFirst = 'choose Recorded MP3 only or Hybrid first';
-    final slivers = <Widget>[
-      if (groups.isEmpty && recorded)
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'No recordings yet. Add to the Course, at the top, imports '
-              'MP3 files.',
-              key: Key('audio-library-empty'),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      for (final group in groups) ...[
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          sliver: SliverToBoxAdapter(
-            child: Padding(
-              key: _letterKeys.putIfAbsent(group.key, () => GlobalKey()),
-              padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
-              child: Text(
-                group.heading,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-              ),
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          sliver: SliverList.builder(
-            itemCount: group.clips.length,
-            itemBuilder: (context, index) => _clipCard(group.clips[index]),
-          ),
-        ),
-      ],
-      const SliverToBoxAdapter(child: SizedBox(height: 12)),
-    ];
-    return PopScope<Course>(
-      canPop: _routeMayPop,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _leave();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: CoursePreviewTitle(
-            course: _course,
-            title: const Text('Audio Library'),
-          ),
-          // Three icons (owner rule): Help, Add to the Course, Check.
-          actions: [
-            IconButton(
-              key: const Key('audio-library-help'),
-              tooltip: 'Help: sound',
-              icon: const Icon(Icons.help_outline),
-              onPressed: () => Navigator.of(context).push<void>(
-                MaterialPageRoute(
-                  builder: (_) => const EditorHelpScreen(
-                    question: AudioLibraryScreen.helpQuestion,
-                  ),
-                ),
-              ),
-            ),
-            PopupMenuButton<String>(
-              key: const Key('audio-library-add'),
-              enabled: recorded,
-              tooltip: recorded
-                  ? 'Add to the Course'
-                  : 'Add to the Course: $chooseFirst',
-              icon: const Icon(Icons.library_add_outlined),
-              onSelected: (value) =>
-                  value == 'open' ? _importFromDialog() : _import(),
-              itemBuilder: (_) => [
-                _menuItem(
-                  value: 'quick',
-                  key: const Key('audio-quick-import'),
-                  icon: Icons.library_music_outlined,
-                  title: 'Quick Import',
-                  subtitle:
-                      'Every MP3 in '
-                      '${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}',
-                ),
-                if (_audio.fileDialogsAvailable)
-                  _menuItem(
-                    value: 'open',
-                    key: const Key('open-mp3-from'),
-                    icon: Icons.folder_open_outlined,
-                    title: 'Open from…',
-                    subtitle: 'Choose MP3 files',
-                  ),
-              ],
-            ),
-            PopupMenuButton<String>(
-              key: const Key('audio-library-check'),
-              enabled: recorded,
-              tooltip: recorded ? 'Check' : 'Check: $chooseFirst',
-              icon: const Icon(Icons.fact_check_outlined),
-              onSelected: (value) =>
-                  value == 'texts' ? _showTexts() : _orphans(),
-              itemBuilder: (_) => [
-                _menuItem(
-                  value: 'texts',
-                  key: const Key('audio-check-texts'),
-                  icon: Icons.format_list_bulleted,
-                  title: 'Texts in this Course',
-                  subtitle: 'What is recorded and what is missing',
-                ),
-                _menuItem(
-                  value: 'unused',
-                  key: const Key('audio-check-unused'),
-                  icon: Icons.cleaning_services_outlined,
-                  title: 'Unused MP3 files',
-                  subtitle: 'Recordings no exercise plays',
-                ),
-              ],
-            ),
-          ],
-        ),
-        // Only the groups and recordings scroll; a window too short for
-        // that scrolls everything, so the recordings always have room.
-        body: LayoutBuilder(
-          builder: (context, constraints) =>
-              constraints.maxHeight >=
-                  AudioLibraryScreen.fixedHeaderMinimumHeight
-              ? Column(
-                  children: [
-                    _header(groups),
-                    Expanded(
-                      child: CustomScrollView(
-                        key: const Key('audio-library-list'),
-                        slivers: slivers,
-                      ),
-                    ),
-                  ],
-                )
-              : CustomScrollView(
-                  key: const Key('audio-library-list'),
-                  slivers: [
-                    SliverToBoxAdapter(child: _header(groups)),
-                    ...slivers,
-                  ],
-                ),
-        ),
-      ),
-    );
-  }
-
-  Widget _clipCard(CourseAudioClip clip) {
-    final hasText = clip.text.trim().isNotEmpty;
-    final missing = _missingClipIds.contains(clip.id);
-    // Follow-up (owner decision of 11 October 2026): a recording without
-    // text shows the name its file came with, in grey, so freshly imported
-    // recordings can be told apart without opening each one.
-    final original = hasText ? '' : clip.originalFileName;
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      child: ListTile(
-        key: Key('audio-clip-row-${clip.id}'),
-        leading: ValueListenableBuilder<String?>(
-          valueListenable: _playing,
-          builder: (context, playing, _) => IconButton(
-            tooltip: playing == clip.id ? 'Stop preview' : 'Play preview',
-            icon: Icon(
-              playing == clip.id
-                  ? Icons.stop_circle_outlined
-                  : Icons.play_circle_outline,
-            ),
-            onPressed: () => _preview(clip),
-          ),
-        ),
-        // The stored file name says nothing to an author; Associate
-        // recording shows it. A recording with a text shows no file name.
-        title: hasText
-            ? Text(clip.text)
-            : Text(
-                AudioLibraryScreen.noTextLabel,
-                style: TextStyle(
-                  color: scheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-        subtitle: hasText || missing || original.isNotEmpty
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (original.isNotEmpty)
-                    Text(
-                      original,
-                      key: Key('audio-clip-original-${clip.id}'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: scheme.onSurfaceVariant),
-                    ),
-                  if (missing)
-                    Text(
-                      'File missing. Delete this recording to remove its '
-                      'reference, then save the Course.',
-                      key: Key('audio-clip-missing-${clip.id}'),
-                      style: TextStyle(color: scheme.error),
-                    ),
-                  if (hasText) _usesLine(clip),
-                ],
-              )
-            : null,
-        isThreeLine: hasText && missing,
-        onTap: () => _editById(clip.id),
-        trailing: IconButton(
-          tooltip: 'Delete this recording',
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () => _deleteById(clip.id),
-        ),
-      ),
-    );
-  }
-
-  /// Leaving the screen returns the draft, so there is no Save button. The
-  /// Course Editor stages it in the working copy; the single top-level Course
-  /// confirmation is still the only thing that writes it.
-  Future<void> _leave() async {
-    if (!mounted || _routeMayPop) return;
-    setState(() => _routeMayPop = true);
-    await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.pop(context, _course);
-  }
-}
-
-/// Associate recording (Build 271 Revision 2, owner decisions of 10 and 11
-/// October 2026): what the author needs to say which text a recording
-/// speaks. It returns the text and, when another recording already said it
-/// by itself and the author agreed to replace it, that recording's ID.
-class _AssociateRecordingDialog extends StatefulWidget {
-  const _AssociateRecordingDialog({
-    required this.course,
-    required this.clip,
-    required this.missing,
-    required this.playing,
-    required this.onPlay,
-    required this.onOpenFolder,
-  });
-
-  final Course course;
-  final CourseAudioClip clip;
-
-  /// Whether the recording's file is no longer on the device.
-  final bool missing;
-
-  /// The ID of the recording whose preview plays.
-  final ValueNotifier<String?> playing;
-  final VoidCallback onPlay;
-
-  /// Opens the folder that stores the file; null where it is not offered.
-  final Future<bool> Function()? onOpenFolder;
-
-  @override
-  State<_AssociateRecordingDialog> createState() =>
-      _AssociateRecordingDialogState();
-}
-
-class _AssociateRecordingDialogState extends State<_AssociateRecordingDialog> {
-  late final _text = TextEditingController(text: widget.clip.text);
-  String? _folderMessage;
-
-  @override
-  void dispose() {
-    _text.dispose();
-    super.dispose();
-  }
-
-  /// The file's name in the Course's folder, in full.
-  String get _storedName => CourseMediaStore.isReference(widget.clip.filePath)
-      ? CourseMediaStore.fileNameOf(widget.clip.filePath)
-      : widget.clip.filePath;
-
-  Future<void> _openFolder() async {
-    final opened = await widget.onOpenFolder!();
-    if (!mounted) return;
-    setState(
-      () => _folderMessage = opened ? null : 'The folder could not be opened.',
-    );
-  }
-
-  Future<void> _pickText() async {
-    final picked = await Navigator.of(context).push<String>(
-      MaterialPageRoute(
-        builder: (_) => AudioTextsScreen(course: widget.course, pick: true),
-      ),
-    );
-    if (picked == null || !mounted) return;
-    // A text of several lines is one text for a recording.
-    final oneLine = picked.trim().split(RegExp(r'\s*\n\s*')).join(' ');
-    setState(() {
-      _text.text = oneLine;
-      _text.selection = TextSelection.collapsed(offset: oneLine.length);
-    });
-  }
-
-  Future<void> _apply() async {
-    final text = _text.text.trim();
-    if (text.isEmpty) return;
-    final other = CourseAudioTexts.ownRecordingOf(
-      text,
-      widget.course.audioLibrary,
-      except: widget.clip.id,
-    );
-    if (other != null) {
-      final replace = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          key: const Key('audio-replace-dialog'),
-          title: const Text('Replace the recording?'),
-          content: Text(
-            '“$text” already has a recording. Replace it? The old one '
-            'loses its text and moves under #.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              key: const Key('audio-replace-confirm'),
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Replace'),
-            ),
-          ],
-        ),
-      );
-      if (replace != true || !mounted) return;
-    }
-    Navigator.pop(context, (text: text, replaced: other?.id));
-  }
-
-  Widget _fileLine(String label, String name, Key key) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          SelectableText(name, key: key, style: theme.textTheme.bodySmall),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return AlertDialog(
-      key: const Key('audio-associate-dialog'),
-      title: const Text('Associate recording'),
-      content: SizedBox(
-        width: 480,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (widget.clip.originalFileName.isNotEmpty)
-                _fileLine(
-                  'Original file',
-                  widget.clip.originalFileName,
-                  const Key('audio-associate-original'),
-                ),
-              _fileLine(
-                'Stored as',
-                _storedName,
-                const Key('audio-associate-stored'),
-              ),
-              if (widget.missing)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text(
-                    'This file is no longer on the device.',
-                    key: const Key('audio-associate-missing'),
-                    style: TextStyle(color: scheme.error),
-                  ),
-                ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ValueListenableBuilder<String?>(
-                    valueListenable: widget.playing,
-                    builder: (context, playing, _) => OutlinedButton.icon(
-                      key: const Key('audio-associate-play'),
-                      onPressed: widget.onPlay,
-                      icon: Icon(
-                        playing == widget.clip.id
-                            ? Icons.stop_circle_outlined
-                            : Icons.play_circle_outline,
-                      ),
-                      label: Text(playing == widget.clip.id ? 'Stop' : 'Play'),
-                    ),
-                  ),
-                  if (widget.onOpenFolder != null)
-                    OutlinedButton.icon(
-                      key: const Key('audio-associate-open-folder'),
-                      onPressed: _openFolder,
-                      icon: const Icon(Icons.folder_open_outlined),
-                      label: const Text('Open folder'),
-                    ),
-                ],
-              ),
-              if (_folderMessage case final message?)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    message,
-                    key: const Key('audio-associate-folder-error'),
-                    style: TextStyle(color: scheme.error),
-                  ),
-                ),
-              const SizedBox(height: 14),
-              TextField(
-                key: const Key('audio-associate-text'),
-                controller: _text,
-                autofocus: true,
-                onChanged: (_) => setState(() {}),
-                onSubmitted: (_) => _apply(),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Word or expression',
-                  helperText: 'Exactly what the recording says.',
-                ),
-              ),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton.icon(
-                  key: const Key('audio-associate-texts'),
-                  onPressed: _pickText,
-                  icon: const Icon(Icons.format_list_bulleted),
-                  label: const Text('Texts in this Course'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          key: const Key('audio-associate-apply'),
-          onPressed: _text.text.trim().isEmpty ? null : _apply,
-          child: const Text('Apply'),
-        ),
-      ],
-    );
-  }
 }
 
 /// A Lesson's name with its label in the label style (Build 270

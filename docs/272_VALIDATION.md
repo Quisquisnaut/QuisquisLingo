@@ -258,3 +258,64 @@
 - `flutter analyze --no-pub`: **No issues found** (23.4 s).
 - Complete suite and independent review: shared with Revision 6 (owner
   decision of 12 October 2026 for pure file moves); see there.
+
+## Revision 6 (2.0.72+272006), four more pages leave the Course Editor file
+
+12 October 2026, owner's Windows 10 PC, `build-272`.
+
+- Each moved run against its old text (`diff_region.py`, blank lines and
+  indentation ignored): the Audit page, the Lesson preview and
+  `AuthoringHierarchyStatus` **0 differing lines**; the Audio Library
+  **3 differing lines**, the three calls that changed their name
+  (`ExerciseLabels.summary`, `ExerciseLabels.typeLabel`,
+  `openSearchResult`).
+- The three label functions against `ExerciseLabels`: same bodies, the
+  names apart. `exerciseEditorFor` and `openSearchResult`: same bodies,
+  public names.
+- No new file imports `course_editor_screen.dart` (no import cycle); the
+  Course Editor file imports and re-exports the four moved declarations.
+- New tests: `test/exercise_labels_272_test.dart`, **5 passed** (the moved
+  pages reachable from the Course Editor file; the kind name, the type
+  label and the summary on every exercise of the bundled Courses; an
+  exercise without words and a Story cover without a title).
+- Focused files (18), among them the Audio Library's
+  (`audio_library_271_test`, `audio_library_letters_270_test`,
+  `audio_library_media_248_test`, `audio_usage_270_test`), the Audit's and
+  the hierarchy status's (`authoring_hierarchy_indicators_226_02_test`,
+  `audit_speed_271_test`, `editor_diagnostics_226_02_revision3_test`) and
+  the layout regression tests: **166 passed**.
+- `flutter analyze --no-pub`: **No issues found**.
+
+### Independent review of Revisions 5 and 6 (one review for both)
+
+A second reader (read only, no access to this session's reasoning) compared
+both revisions with the commit before them (`9765999e`): **no behaviour
+difference found**.
+
+- Every moved class against its old text: the Audit page, the Lesson
+  preview and the status rule identical; the Audio Library 3 lines and the
+  exercise editor 6 places, all the intended renames.
+- `PresetRecipes.blankFor`, `ExercisePresetRegistry.nameOrId` and the three
+  `ExerciseLabels` functions: the same text as the private functions they
+  replace. The two helpers written out in the exercise editor
+  (`jsonEncode(a) != jsonEncode(b)`, `withPublicationState`) and
+  `const CourseHierarchyUpdateService()` give the same results.
+- Private names: nothing a new file needs stayed behind, nothing is declared
+  twice; `AuthoringHierarchyStatus` has one declaration and one cache.
+- No new file imports the Course Editor file; every user of the five
+  re-exported names still resolves (about 70 test files among them).
+
+Two tidy-ups it pointed out, done before the suite:
+
+- `import 'dart:async'` was needed only by the Audio Library's code; removed
+  from the Course Editor file, the exercise editor's file and the Audit
+  page's file.
+- `ExerciseLabels`' comment said "Pure Dart"; it reaches the Audit service,
+  which reaches a widget file, so the comment now says what is true: an
+  exercise in, a text out, no screen state.
+
+Analyzer after them: **No issues found** (65.0 s).
+
+### Complete suite for Revisions 5 and 6 (one suite for both)
+
+13 October 2026, 00:05–00:51, `flutter test --no-pub --concurrency=1` on the final tree (after the review's two tidy-ups): **4,400 passed, 1 skipped, 0 failed** (45 min 29 s). Revision 4's suite had 4,391; the 9 more are Revision 5's 4 and Revision 6's 5.

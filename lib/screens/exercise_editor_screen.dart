@@ -1,7 +1,7 @@
 import '../widgets/editor_notes_field.dart';
-import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import '../services/exercise_search_service.dart';
 import '../widgets/preset_action_chip.dart';
 import 'package:flutter/services.dart';
 import '../services/answer_engine.dart';
@@ -3183,4 +3183,92 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ),
     ),
   );
+}
+
+/// The editor for one exercise: the preset form when a preset represents
+/// the exercise (or it is new), otherwise the Generic Primitive Editor, which
+/// shows every canonical field and never drops data the form cannot show
+/// (Build 256 Session 4, plan A.13).
+Widget exerciseEditorFor({
+  required Exercise exercise,
+  required String title,
+  required bool isNew,
+  DateTime Function()? clock,
+  bool linkParent = false,
+  Course? course,
+  Lesson? lesson,
+  LearningRound? round,
+  ValueChanged<Exercise>? onExerciseSaved,
+  bool readOnly = false,
+  bool initiallyInspecting = false,
+}) => !isNew && PresetRecipes.presetToEdit(exercise) == null
+    ? PrimitiveEditorScreen(
+        exercise: exercise,
+        title: title,
+        isNew: isNew,
+        clock: clock,
+        linkParent: linkParent,
+        course: course,
+        lesson: lesson,
+        round: round,
+        onExerciseSaved: onExerciseSaved,
+        readOnly: readOnly,
+        initiallyInspecting: initiallyInspecting,
+      )
+    : ExerciseEditorScreen(
+        exercise: exercise,
+        title: title,
+        isNew: isNew,
+        clock: clock,
+        linkParent: linkParent,
+        course: course,
+        lesson: lesson,
+        round: round,
+        onExerciseSaved: onExerciseSaved,
+        readOnly: readOnly,
+        initiallyInspecting: initiallyInspecting,
+      );
+
+/// Opens the editor of the exercise a search result (or a recording's use)
+/// names, and gives the Course with what was applied there; null when
+/// nothing changed or the Course is read-only.
+Future<Course?> openSearchResult(
+  BuildContext context, {
+  required Course course,
+  required ExerciseSearchResult result,
+  required bool readOnly,
+  required bool initiallyInspecting,
+  DateTime Function()? clock,
+}) async {
+  final lesson = course.lessons[result.lessonIndex];
+  final round = lesson.rounds[result.roundIndex];
+  final exercise = round.exercises[result.exerciseIndex];
+  final saved = <String, Exercise>{};
+  final returned = await Navigator.of(context).push<Exercise>(
+    MaterialPageRoute(
+      builder: (_) => exerciseEditorFor(
+        exercise: exercise,
+        title: 'Edit exercise ${result.exerciseIndex + 1}',
+        isNew: false,
+        course: course,
+        lesson: lesson,
+        round: round,
+        clock: clock,
+        readOnly: readOnly,
+        initiallyInspecting: initiallyInspecting,
+        onExerciseSaved: readOnly ? null : (value) => saved[value.id] = value,
+      ),
+    ),
+  );
+  if (readOnly) return null;
+  if (returned != null) saved[returned.id] = returned;
+  if (saved.isEmpty) return null;
+  var changed = course;
+  for (final exercise in saved.values) {
+    changed = const CourseHierarchyUpdateService().apply(
+      changed,
+      UpsertExercise(lesson.lessonId, round.id, exercise),
+    );
+  }
+  return changed;
 }
