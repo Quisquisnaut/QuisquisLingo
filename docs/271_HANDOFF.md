@@ -19,7 +19,7 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 2 | The Audio Library like the Image Library; the Course Editor's top bar; Image Library Help into the Editor Help (mock-ups first: owner rule) |
 | 3 | Speed: a save that is faster and shows where it is (owner report of 12 October); follow-up, same version: one Audit per change, Lesson and Round Audits, image search keys |
 | 4 | Import and Android file safety (done, 12 October) |
-| 5 | Tidy-ups (labels never translated, Cyrillic order, mascot after the frame, test seams, Course Info controllers) |
+| 5 | The names of a Course's items stay in English (owner, 12 October); Cyrillic order, test seams, Course Info controllers; the mascot item set aside |
 
 Owner rules for this Build: at most three icons in a top bar; show a
 mock-up before a screen changes; labels are never translated.
@@ -479,3 +479,36 @@ To tell the owner: the label slip; Android 10 not checked (no image);
 reading a large Image Bank is slower (not measured).
 
 Next: Revision 5, tidy-ups (`docs/271_PLAN.md`).
+
+## Revision 5 (2.0.71+271005), the names of a Course's items stay in English; tidy-ups
+
+State: done and committed (12 October 2026), the branch pushed. Analyzer clean; focused 362 passed in 44 files; complete suite 4,319 passed, 1 skipped, 1 failed (77:41): a 10-second wait of `course_backups_270_test` ran out while the PC was stalled (browsers open, 0.7 GB of memory free); that file alone afterwards, 11 passed.
+
+Where:
+
+- The six translated catalogs of `lib/localization/learner_panel/` and
+  `lib/localization/exercise_copy/`; keys `lessonLine`, `review.lesson`,
+  `review.round` removed from the seven.
+- `RoundScreen._lessonName`, `_reviewContext`, the line under the title;
+  `ReviewScreen._lessonLine` and its Round line;
+  `LessonPresentationService.panelNamesLessons` removed.
+- `AudioLibraryIndex._inAlphabetOrder`, `_cyrillicPlaces`.
+- `CourseEditorScreen._closedCourseInfoEditors`, its `dispose`.
+- `test/flutter_test_config.dart` (the three seams).
+- `docs/LOCALIZATION_CURRENT_STATE.md`: written by a script kept outside
+  the repository (it reads the catalogs with a small Dart string reader).
+  When a catalog changes, the tables must be written again.
+
+To tell the owner: "Course", the Round's repetition ("Ripasso") and the
+Laurel are still translated; the English texts keep "Finish round" and
+"Open Guidebook"; the articles are the AI's; the mascot item was not done
+and moved to "Not in Build 271".
+
+Also to tell the owner: `test/support/pump_file_io.dart` allows 10 seconds
+of real time for a screen to arrive, which is too little when the PC is
+busy (the Course Info Editor alone takes about 8 seconds to open in a
+test); D: had 2 GB free, and `D:\QQL_test_temp` holds 1.1 GB of files left
+by earlier test runs (3,400 entries), which can be deleted.
+
+Build 271's plan is complete with this revision. `main` only on the owner's
+go.

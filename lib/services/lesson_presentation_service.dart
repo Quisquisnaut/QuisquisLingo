@@ -40,13 +40,6 @@ class LessonPresentationService {
     LessonNumberingMode.none => null,
   };
 
-  /// Whether the learner panel names this Course's Lessons with its own
-  /// "Lesson {n}" in the Course's instruction language (the default
-  /// numbering); any other numbering is the author's and the panel shows it
-  /// as the learner path does (Build 270 Revision 12).
-  static bool panelNamesLessons(Course course) =>
-      course.lessonNumberingMode == LessonNumberingMode.lesson;
-
   LessonIdentityPresentation identity(Course course, int publishedLessonIndex) {
     final lesson = course.lessons[publishedLessonIndex];
     final number = publishedLessonIndex + 1;

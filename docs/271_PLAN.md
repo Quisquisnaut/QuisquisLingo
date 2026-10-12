@@ -161,16 +161,23 @@ Course Editor main page, three icons:
   Review show the label as the learner path does ("Lesson 2", or the author's
   label), and Review's "Round N" too; the words around them stay in the
   learner's language (`LessonPresentationService.panelNamesLessons` goes).
+  Widened by the owner on 12 October 2026: the names of a Course's items
+  (Lesson, Round and the Round types, Story, Sequence, Duel, GuideBook,
+  Review) are proper names, written in English in every language, also
+  inside a translated sentence; localization proper is a future project;
+  `docs/LOCALIZATION_CURRENT_STATE.md` records the state.
 - The Audio Library index puts Cyrillic letters in alphabet order (Ukrainian
   Є, І, Ї after their neighbours, not before А).
-- The Round screen places its mascot after the frame instead of writing state
-  during build.
 - Test seams reset between tests (`RoundScreen.openLink`,
   `RoundScreen.lineStopwatch`, `SpokenLinePace.shared`).
 - Course Info disposes its controllers normally (no 300 ms delay).
 
 ## Not in Build 271
 
+- The Round screen placing its mascot after the frame instead of writing
+  state during build (set aside in Revision 5: the sentence would move one
+  frame after it is drawn, or the placement would have to pass through every
+  exercise page; what is written today is the same on every build).
 - Android release signing with the owner's key (later, owner decision).
 - The modularization (its own build, ownership first,
   `docs/272_MODULARIZATION_PLAN.md`), with the import cycle between

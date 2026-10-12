@@ -491,3 +491,52 @@ than the Laboratory; Android.
 Not checked: Android 10; Wipe out everything on the emulator; a chosen file
 that cannot be opened; the time a large Image Bank now takes to read; the
 dialogs by hand on Windows.
+
+## Revision 5 (2.0.71+271005), the names of a Course's items stay in English; tidy-ups
+
+12 October 2026, owner's Windows 10 PC, `build-271`.
+
+- `test/labels_in_english_271_test.dart`, 12 cases:
+  - the catalogs: every text whose English names a Lesson, a Round, a
+    Story, a Sequence, a Duel or the GuideBook writes that name, with its
+    capital, in each of the six translations, and the nine texts that name
+    the Review page write "Review" (more than 250 checks); no text of the
+    six languages uses its own word for one of them (lezione, storia,
+    duello, ripasso, ronda, Runde, leçon…), except the two texts of a
+    Round's own repetition; fifteen Italian texts word for word; the three
+    removed keys are in none of the seven catalogs;
+  - the Round screen of a Course whose learners read Italian: "English ·
+    Lesson 1: Primi passi" with "Controlla" beside it and no "Lezione";
+    an author's label ("Unità 1: Primi passi") and no label ("Primi
+    passi"); in Review the line "… · Lesson 1: Primi passi · Round 1:
+    Practice · Saluti", the title "Review · Practice · Saluti" and no
+    "Ripasso";
+  - the Audio Library: the groups of Ukrainian, Serbian and Kazakh texts in
+    the order of their alphabets, Latin and Greek as before, and texts in
+    alphabet order inside a group;
+  - Course Info Editor opened, applied and closed twice, the test ending at
+    once (before, the pending timer failed such a test);
+  - the seams: a test replaces all three, and the next test finds the app's
+    own again.
+- The test found one text the first pass had missed: Spanish "Bonificación
+  por ronda perfecta" (the English says "Perfect bonus", without the name).
+  Now "Bonificación por Round perfecto".
+- Focused (44 files around the learner panel, the Review, the
+  Round screen, the Duel, the Audio Library, Course Info, Help and the
+  version pins): **362 passed**.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,319 passed, 1 skipped, 1 failed** (77:41; the earlier runs
+  of Build 271 took about 57 minutes).
+- The one failure is a time limit, not a wrong result:
+  `course_backups_270_test`, "Course Info sets the number and the Course
+  Editor's save asks". Its wait for the Course Info Editor to open allows
+  10 seconds of real time, and it ran out while the PC was stalled: the
+  browsers were open, 0.7 GB of 8 GB of memory was free, and the test just
+  before it, which takes one second, took three minutes. That file run
+  alone straight afterwards: **11 passed**. Revision 5 does not change how
+  the Course Info Editor opens the first time. The suite was not run again.
+
+Not checked: the screens by hand in the running app; the German, Portuguese,
+Dutch and French texts by a speaker of those languages (the articles are
+the AI's); Android.

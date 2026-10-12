@@ -1,3 +1,49 @@
+# 2.0.71 (Build 271, Revision 5) - the names of a Course's items stay in English; tidy-ups - 2026-10-12
+
+Owner decisions of 12 October 2026; plan `docs/271_PLAN.md`, Revision 5.
+
+- **The names of a Course's items are in English in every language, as
+  proper names**: Lesson, Round and the Round types, Story, Sequence, Duel
+  (Language Duel, Final Duel), GuideBook, Review. This holds inside a
+  translated sentence too. In a Course whose learners read Italian, "Termina
+  la storia" is now "Termina la Story", "Apri la guida" is "Apri il
+  GuideBook", "Duello vinto" is "Duel vinto" and "Prossimo ripasso" is
+  "Prossima Review". Changed: 40 to 45 buttons and messages and 3 exercise
+  texts in each of Spanish, Italian, German, Portuguese, Dutch and French.
+  The English texts are unchanged.
+- **A Round names its Lesson as the learner path does.** The line under a
+  Round's title showed "Lezione 2" in an Italian Course while the path showed
+  "Lesson 2". It now shows the same label, number and title as the path:
+  "Lesson 2: …", the author's own label, a number alone or the title alone.
+  The Review page and a Round played in Review do the same, and write "Round
+  3" as the path does.
+- **Still translated, on purpose**: "course" as an ordinary word (corso,
+  curso, Kurs…), and a Round's own repetition of the exercises missed
+  ("Ripasso"), which is not the Review page.
+- **New document**: `docs/LOCALIZATION_CURRENT_STATE.md` says what QQL shows
+  in which language and lists the translated buttons, titles and messages in
+  English with their Italian translation. Localization proper is a future
+  project (owner decision).
+- **Audio Library**: Cyrillic letters stand where their alphabets put them.
+  Ukrainian Ґ, Є, І and Ї, Serbian Ђ, Ј, Љ, Њ, Ћ and Џ, Kazakh Ә, Ғ, Қ, Ң,
+  Ө, Ұ, Ү and Һ came before А or after Я; they now follow their neighbours
+  (Ґ after Г, Є after Е, І after И).
+- **Course Info Editor**: its fields are released when the next Course Info
+  opens or the Course Editor closes. Before, a timer released them 300
+  milliseconds after the dialog closed, whatever was still on the screen.
+- **Tests**: the Round screen's replaceable parts (the link opener, the
+  line stopwatch, the measured reading pace) are set back before every test
+  of the suite, so one test can no longer change another.
+- **Not done**: the plan's "the Round screen places its mascot after the
+  frame". It would move the sentence one frame after it is drawn, or need
+  the placement passed through every exercise page; it is listed in the plan
+  under "Not in Build 271".
+- Help EN/IT/ES (the Course languages answer states the rule; a few
+  "Storia"/"Lezione" and "Historia"/"Lección" in the Italian and Spanish
+  Help now say Story and Lesson). Tests: `test/labels_in_english_271_test.dart`
+  (12 cases). No new key or folder; Course files, scoring, progression and
+  learner data are unchanged. Beta expiry `2026-11-11 23:59:59` local time.
+
 # 2.0.71 (Build 271, Revision 4) - imports check what they bring in; Android file safety - 2026-10-12
 
 Plan `docs/271_PLAN.md`, Revision 4.

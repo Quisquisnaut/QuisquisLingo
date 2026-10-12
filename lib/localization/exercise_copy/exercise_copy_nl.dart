@@ -12,7 +12,7 @@ const exerciseCopyNl = <String, String>{
   'type.selectImage': 'KIES DE AFBEELDING',
   'type.presentation': 'FLASHCARD',
   'type.dialogueLine': 'DIALOOG',
-  'type.storyCover': 'VERHAAL',
+  'type.storyCover': 'STORY',
   'type.inputComplete': 'AANVULLEN',
   'type.selectComplete': 'ZIN AANVULLEN',
   'type.arrangeSentence': 'MAAK DE ZIN',
@@ -45,8 +45,7 @@ const exerciseCopyNl = <String, String>{
   'instruction.dialogueLineAudio': 'Luister, en ga dan verder.',
   'instruction.dialogueLineAfterAudio':
       'Luister eerst; de tekst verschijnt daarna.',
-  'instruction.storyCover':
-      'Er begint een verhaal. Ga verder als je klaar bent.',
+  'instruction.storyCover': 'Er begint een Story. Ga verder als je klaar bent.',
   'instruction.inputComplete': 'Typ de woorden die de zin aanvullen.',
   'instruction.selectComplete': 'Selecteer het blok dat in het gat past.',
   'instruction.select_opposite': 'Zoek het tegenovergestelde.',
@@ -128,7 +127,7 @@ const exerciseCopyNl = <String, String>{
   'title.match_pictures_to_words': 'KOPPEL AFBEELDINGEN AAN WOORDEN',
   'title.note_card': 'NOTITIEKAART',
   'title.dialogue_line': 'DIALOOGREGEL',
-  'title.story_cover': 'VERHAALOMSLAG',
+  'title.story_cover': 'STORY-OMSLAG',
   'title.before_you_start': 'VOORDAT JE BEGINT',
   'title.page': 'PAGINA',
   'instruction.selectTranslation':

@@ -704,6 +704,26 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   final _storyIds = TimestampAuthoringIdGenerator();
 
+  /// What disposes the text controllers of each Course Info Editor that was
+  /// closed. A closed dialog still draws while it fades out, so its
+  /// controllers go when the next one opens or with this screen (Build 271
+  /// Revision 5). Before, a timer disposed them 300 ms after the dialog
+  /// closed, however long the closing took.
+  final _closedCourseInfoEditors = <VoidCallback>[];
+
+  void _disposeClosedCourseInfoEditors() {
+    for (final dispose in _closedCourseInfoEditors) {
+      dispose();
+    }
+    _closedCourseInfoEditors.clear();
+  }
+
+  @override
+  void dispose() {
+    _disposeClosedCourseInfoEditors();
+    super.dispose();
+  }
+
   bool get _canModify => _session.canModify;
 
   CourseEditorMode get _editorMode => _session.editorMode;
@@ -977,6 +997,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   }
 
   Future<void> _editCourseInfo() async {
+    _disposeClosedCourseInfoEditors();
     final loaded = await runReported(
       context,
       'Course Info',
@@ -2445,7 +2466,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         ),
       ),
     );
-    Future<void>.delayed(const Duration(milliseconds: 300), () {
+    _closedCourseInfoEditors.add(() {
       for (final c in names) {
         c.dispose();
       }

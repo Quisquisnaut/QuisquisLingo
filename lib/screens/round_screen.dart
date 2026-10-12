@@ -56,7 +56,10 @@ import '../widgets/labelled_text.dart';
 class RoundScreen extends StatefulWidget {
   /// Opens a Page link in the browser (Build 258). A test seam: widget
   /// tests replace it; the app never downloads or plays video itself.
-  static Future<bool> Function(Uri url) openLink = (url) =>
+  static Future<bool> Function(Uri url) openLink = launchLink;
+
+  /// What [openLink] is outside tests: the system opens the link.
+  static Future<bool> launchLink(Uri url) =>
       launchUrl(url, mode: LaunchMode.externalApplication);
 
   /// Times a Story line's voice (Build 269 Revision 0). A test seam: widget
@@ -203,16 +206,13 @@ class _RoundScreenState extends State<RoundScreen> {
     (lesson) => lesson.lessonId == widget.lesson.lessonId,
   );
 
-  /// The Lesson as the learner panel names it: its own "Lesson {n}" with
-  /// the default numbering, else the author's label as on the learner path
-  /// (Build 270 Revision 12, owner decision: the labels apply everywhere).
-  String get _lessonName =>
-      _lessonIndex < 0 ||
-          LessonPresentationService.panelNamesLessons(widget.course)
-      ? _t('review.lesson', {
-          'n': _lessonIndex + 1,
-          'title': widget.lesson.title,
-        })
+  /// The Lesson as the learner path names it: the label and number the
+  /// author chose ("Lesson 2", "Unit 2", their own word, a number, nothing)
+  /// and its title. Build 271 Revision 5 (owner decision of 12 October
+  /// 2026): a label is never translated; before, the default "Lesson 2"
+  /// was "Lezione 2" here for an Italian Course and "Lesson 2" on the path.
+  String get _lessonName => _lessonIndex < 0
+      ? widget.lesson.title
       : const LessonPresentationService()
             .identity(widget.course, _lessonIndex)
             .fullText;
@@ -222,7 +222,7 @@ class _RoundScreenState extends State<RoundScreen> {
     // With a Round numbering the Round's title already carries its label
     // and number (Build 270 Revision 12).
     final round = widget.course.roundNumberingMode == RoundNumberingMode.off
-        ? '${_t('review.round', {'n': widget.roundIndex + 1})}'
+        ? '${RoundTypePresentation.numberLabel(widget.roundIndex + 1, RoundNumberingMode.roundAndNumber)}'
               '${roundTitle.isEmpty ? '' : ': $roundTitle'}'
         : roundTitle;
     return '${widget.course.title} · ${widget.course.targetLanguage} · '
@@ -5542,16 +5542,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 label: _roundPrefix,
               ),
               Text(
-                _lessonIndex < 0 ||
-                        LessonPresentationService.panelNamesLessons(
-                          widget.course,
-                        )
-                    ? _t('lessonLine', {
-                        'language': widget.course.targetLanguage,
-                        'n': _lessonIndex + 1,
-                        'title': widget.lesson.title,
-                      })
-                    : '${widget.course.targetLanguage} · $_lessonName',
+                '${widget.course.targetLanguage} · $_lessonName',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ],

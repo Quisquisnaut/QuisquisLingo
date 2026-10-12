@@ -12,7 +12,7 @@ const exerciseCopyDe = <String, String>{
   'type.selectImage': 'BILD AUSWÄHLEN',
   'type.presentation': 'KARTE',
   'type.dialogueLine': 'DIALOG',
-  'type.storyCover': 'GESCHICHTE',
+  'type.storyCover': 'STORY',
   'type.inputComplete': 'ERGÄNZEN',
   'type.selectComplete': 'SATZ ERGÄNZEN',
   'type.arrangeSentence': 'SATZ BILDEN',
@@ -46,8 +46,7 @@ const exerciseCopyDe = <String, String>{
   'instruction.dialogueLineAudio': 'Hör zu, dann weiter.',
   'instruction.dialogueLineAfterAudio':
       'Hör zuerst zu; der Text erscheint danach.',
-  'instruction.storyCover':
-      'Eine Geschichte beginnt. Weiter, wenn du bereit bist.',
+  'instruction.storyCover': 'Eine Story beginnt. Weiter, wenn du bereit bist.',
   'instruction.inputComplete':
       'Schreibe die Wörter, die den Satz vervollständigen.',
   'instruction.selectComplete': 'Wähle den Baustein, der in die Lücke passt.',
@@ -134,7 +133,7 @@ const exerciseCopyDe = <String, String>{
   'title.match_pictures_to_words': 'BILDER UND WÖRTER ZUORDNEN',
   'title.note_card': 'NOTIZKARTE',
   'title.dialogue_line': 'DIALOGZEILE',
-  'title.story_cover': 'TITELBILD DER GESCHICHTE',
+  'title.story_cover': 'TITELBILD DER STORY',
   'title.before_you_start': 'BEVOR DU BEGINNST',
   'title.page': 'SEITE',
   'instruction.selectTranslation':

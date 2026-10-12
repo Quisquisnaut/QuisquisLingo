@@ -774,3 +774,111 @@ opened, which cannot be provoked by hand.
 - Course files, the package format, scoring, progression and learner data.
   No new key or folder.
 - What the import screen shows, apart from the dialog's sentence.
+
+## Revision 5 (2.0.71+271005): the names of a Course's items stay in English; tidy-ups
+
+### The owner's decisions (12 October 2026)
+
+The plan said "labels are never translated". Looking at how an Italian
+Course showed its labels, the owner found a mix: "Lesson 2" on the learner
+path and "Lezione 2" in the Round, "Final Duel" on the path and "Duello
+finale" in the Duel, "Review" on the button and "Ripasso" on the page.
+The decisions:
+
+1. The app interface is in English.
+2. The names of the main items of a Course are in English, as they are
+   written originally: Lesson, Round and the Round types, Story, Sequence,
+   Duel, Language Duel, Final Duel, GuideBook, Review.
+3. They stay in English inside ordinary sentences too. The reason: they are
+   like proper names of the main items of a Course.
+4. In the learner's language: the exercise instructions (7 languages) and
+   Help, the FAQ and App Info (3 languages).
+5. Localization is left to a future project.
+6. A document, `docs/LOCALIZATION_CURRENT_STATE.md`, records the state.
+
+### What a learner sees
+
+Only in a Course whose learners read Spanish, Italian, German, Portuguese,
+Dutch or French. A Course for English readers shows what it showed.
+
+| Where | Before (Italian) | Now |
+|---|---|---|
+| Under a Round's title | English · Lezione 2 · Primi passi | English · Lesson 2: Primi passi |
+| A Round's last button | Termina il round | Termina il Round |
+| A Story's last button | Termina la storia | Termina la Story |
+| The end of a Round | Lezione completata: +25 XP | Lesson completata: +25 XP |
+| Before you start | Apri la guida | Apri il GuideBook |
+| The Final Duel's top bar | Duello finale | Final Duel |
+| The Duel's result | Duello vinto | Duel vinto |
+| The Review page | Ripasso, Prossimo ripasso | Review, Prossima Review |
+| A Round in Review | Ripasso · Practice · Saluti | Review · Practice · Saluti |
+
+The line under a Round's title now reads exactly as the learner path: the
+label the author chose for Lessons (Lesson, their own word, a number alone,
+or nothing), the number, a colon and the title. Before, only the default
+label was translated, and it was written with dots.
+
+In each of the six languages 40 to 45 buttons and messages changed, and 3
+exercise texts (the Story cover's heading, title and instruction): 274
+texts in all. Each name takes the article of its language: il Round, la
+Lesson, la Story, la Sequence, il Duel, il GuideBook, la Review in Italian;
+el Round, la Lesson in Spanish; die Round, die Lesson, das Duel, das Review
+in German; o Round, a Lesson in Portuguese; de Round, het Duel in Dutch; le
+Round, la Lesson in French.
+
+### Decisions taken while building
+
+To tell the owner, who can change any of them:
+
+- **"Course" is still translated** (corso, curso, Kurs, cursus, cours) in
+  the seven texts that use it as an ordinary word, such as "Torna al corso".
+  It was not in the owner's list.
+- **A Round's own repetition of the exercises missed is still "Ripasso"**
+  ("Practice · Ripasso", "Ripasso degli esercizi sbagliati"). English calls
+  it "review", but it is not the Review page.
+- **The Laurel is still translated** in the end-of-Round summary ("Primo
+  alloro"), while the Welcome Wizard writes "Laurel".
+- **The English texts were not touched**: "Finish round", "Open Guidebook"
+  keep their small letters and their earlier spelling.
+- **The articles** above were chosen by the AI that wrote the translations.
+
+### The document
+
+`docs/LOCALIZATION_CURRENT_STATE.md`: the decisions; a table of what is in
+which language and what it follows; the names that stay in English, with
+the same seven texts in the seven languages; what is still translated on
+purpose; what is English only; and the lists, English with Italian: the 128
+buttons and messages around an exercise, the 119 exercise titles, headings
+and instruction lines, the Welcome Wizard, Course Info, the 141 Help titles,
+the 90 Editor Help questions and the 21 short texts of the Help pages. The
+491 long Help texts are counted by part of Help, not listed. The tables are
+written by a script from the catalogs.
+
+### Tidy-ups
+
+- **Cyrillic order in the Audio Library.** The letter groups and the texts
+  inside them were ordered by the letters' code numbers, which put Ukrainian
+  Є, І and Ї before А, and Ґ after Я. Eighteen letters of Ukrainian,
+  Serbian, Macedonian and Kazakh now stand after the letter their alphabet
+  puts them after. Ї stays with І and Ў with У, as before. Latin and Greek
+  are unchanged.
+- **Course Info Editor.** Its text fields were released by a timer 300
+  milliseconds after the dialog closed. They are now released when the next
+  Course Info opens or when the Course Editor closes.
+- **Test seams.** `RoundScreen.openLink`, `RoundScreen.lineStopwatch` and
+  `SpokenLinePace.shared` are set back before every test of the suite.
+
+### Not done
+
+- **The mascot.** The plan asked that the Round screen place its mascot
+  after the frame instead of writing state while it builds. Doing it after
+  the frame makes the sentence move a frame after it appears; doing it
+  before means passing the placement through every exercise page. What is
+  written while building is the same on every build, so nothing goes wrong
+  today. It is now in the plan under "Not in Build 271".
+
+### Not changed
+
+No new key or folder. Course files, scoring, progression and learner data.
+The three removed catalog keys were only read by the two screens changed
+here.

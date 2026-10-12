@@ -331,16 +331,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
     ),
   };
 
+  /// The Lesson as the learner path names it, its label in the label style
+  /// (Build 271 Revision 5: a label is never translated).
   Widget _lessonLine(ReviewRoundLocation location) {
-    if (LessonPresentationService.panelNamesLessons(widget.course)) {
-      return Text(
-        _t('review.lesson', {
-          'n': location.lessonIndex + 1,
-          'title': location.lesson.title,
-        }),
-        softWrap: true,
-      );
-    }
     final identity = const LessonPresentationService().identity(
       widget.course,
       location.lessonIndex,
@@ -370,13 +363,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
         const SizedBox(height: 12),
         Text(widget.course.title, softWrap: true),
         Text(widget.course.targetLanguage, softWrap: true),
-        // Build 270 Revision 12: the Lesson and the Round named as on the
-        // learner path when the author chose a numbering, their labels in
-        // the label style.
+        // The Lesson and the Round named as on the learner path, their
+        // labels in the label style. Without a Round numbering the page
+        // still says which Round it is, with the label "Round" as the
+        // numbering would write it (Build 271 Revision 5).
         _lessonLine(location),
         LabelledText(
           widget.course.roundNumberingMode == RoundNumberingMode.off
-              ? '${_t('review.round', {'n': location.roundIndex + 1})}'
+              ? '${RoundTypePresentation.numberLabel(location.roundIndex + 1, RoundNumberingMode.roundAndNumber)}'
                     '${roundTitle.isEmpty ? '' : ': $roundTitle'}'
               : roundTitle,
           label: RoundTypePresentation.prefix(

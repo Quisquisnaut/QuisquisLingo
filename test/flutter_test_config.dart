@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/spoken_line_pace.dart';
 import 'package:quisquislingo_app/widgets/exercise_editor_intro.dart';
 import 'package:quisquislingo_app/widgets/exercise_mascot.dart';
 import 'package:quisquislingo_app/widgets/primitive_intro.dart';
@@ -57,6 +59,12 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   late Directory root;
   var installedHandler = false;
   setUp(() {
+    // The Round screen's seams and the pace of spoken Story lines are
+    // static (Build 271 Revision 5): every test starts from the app's own,
+    // so one test's stand-in or measured pace never reaches the next.
+    RoundScreen.openLink = RoundScreen.launchLink;
+    RoundScreen.lineStopwatch = Stopwatch.new;
+    SpokenLinePace.shared.reset();
     // Cached asset futures must not cross widget-test fake-async zones.
     rootBundle.clear();
     root = Directory.systemTemp.createTempSync('qql_test_');

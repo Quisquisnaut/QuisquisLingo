@@ -108,7 +108,50 @@ abstract final class AudioLibraryIndex {
 
   static int _compareKeys(String a, String b) {
     final rank = _rank(a).compareTo(_rank(b));
-    return rank != 0 ? rank : a.compareTo(b);
+    return rank != 0
+        ? rank
+        : _inAlphabetOrder(
+            a.toLowerCase(),
+          ).compareTo(_inAlphabetOrder(b.toLowerCase()));
+  }
+
+  /// Where the Cyrillic letters outside а–я stand in their alphabets: after
+  /// the letter given, in the order given (Build 271 Revision 5). By their
+  /// code points alone the Ukrainian Є and І (Ї is filed with І, as é with
+  /// e) and the Serbian Ђ, Ј, Љ, Њ, Ћ, Џ came before А, and the Kazakh
+  /// letters after Я.
+  static const _cyrillicPlaces = <String, String>{
+    'ә': 'а\uFFF0',
+    'ґ': 'г\uFFF0',
+    'ғ': 'г\uFFF1',
+    'ђ': 'д\uFFF0',
+    'є': 'е\uFFF0',
+    'ѕ': 'з\uFFF0',
+    'і': 'и\uFFF0',
+    'ј': 'и\uFFF1',
+    'қ': 'к\uFFF0',
+    'љ': 'л\uFFF0',
+    'ң': 'н\uFFF0',
+    'њ': 'н\uFFF1',
+    'ө': 'о\uFFF0',
+    'ћ': 'т\uFFF0',
+    'ұ': 'у\uFFF0',
+    'ү': 'у\uFFF1',
+    'һ': 'х\uFFF0',
+    'џ': 'ч\uFFF0',
+  };
+
+  /// [text], in small letters, as it compares in alphabet order: each
+  /// letter of [_cyrillicPlaces] directly after its neighbour.
+  static String _inAlphabetOrder(String text) {
+    if (!text.runes.any((rune) => rune >= 0x0400 && rune <= 0x04FF)) {
+      return text;
+    }
+    final out = StringBuffer();
+    for (final character in text.characters) {
+      out.write(_cyrillicPlaces[character] ?? character);
+    }
+    return out.toString();
   }
 
   /// Alphabetical, ignoring capitals, accents and leading punctuation;
@@ -122,6 +165,7 @@ abstract final class AudioLibraryIndex {
 
   /// What texts are put in order by: no capitals, accents or punctuation
   /// (also the order of Texts in this Course, Build 271 Revision 2).
-  static String sortKey(String text) =>
-      unorm.nfd(ExerciseSearchService.normalize(text)).replaceAll(_mark, '');
+  static String sortKey(String text) => _inAlphabetOrder(
+    unorm.nfd(ExerciseSearchService.normalize(text)).replaceAll(_mark, ''),
+  );
 }

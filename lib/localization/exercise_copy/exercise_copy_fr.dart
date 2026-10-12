@@ -13,7 +13,7 @@ const exerciseCopyFr = <String, String>{
   'type.selectImage': 'CHOISIS L’IMAGE',
   'type.presentation': 'CARTE',
   'type.dialogueLine': 'DIALOGUE',
-  'type.storyCover': 'HISTOIRE',
+  'type.storyCover': 'STORY',
   'type.inputComplete': 'COMPLÈTE',
   'type.selectComplete': 'COMPLÈTE LA PHRASE',
   'type.arrangeSentence': 'CONSTRUIS LA PHRASE',
@@ -52,7 +52,7 @@ const exerciseCopyFr = <String, String>{
   'instruction.dialogueLineAudio': 'Écoute, puis continue.',
   'instruction.dialogueLineAfterAudio':
       'Écoute d’abord ; le texte apparaît ensuite.',
-  'instruction.storyCover': 'Une histoire commence. Continue quand tu veux.',
+  'instruction.storyCover': 'Une Story commence. Continue quand tu veux.',
   'instruction.inputComplete': 'Saisis les mots qui manquent dans la phrase.',
   'instruction.selectComplete': 'Sélectionne le bloc qui remplit le vide.',
   'instruction.select_opposite': 'Trouve le contraire.',
@@ -131,7 +131,7 @@ const exerciseCopyFr = <String, String>{
   'title.match_pictures_to_words': 'ASSOCIE IMAGES ET MOTS',
   'title.note_card': 'FICHE NOTE',
   'title.dialogue_line': 'RÉPLIQUE',
-  'title.story_cover': 'COUVERTURE DE L’HISTOIRE',
+  'title.story_cover': 'COUVERTURE DE LA STORY',
   'title.before_you_start': 'AVANT DE COMMENCER',
   'title.page': 'PAGE',
   'instruction.selectTranslation':
