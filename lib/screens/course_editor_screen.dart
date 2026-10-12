@@ -29,6 +29,7 @@ import '../services/course_governance_service.dart';
 import '../services/course_info_update_service.dart';
 import '../services/course_hierarchy_update_service.dart';
 import '../services/course_authoring_session.dart';
+import '../services/course_credits.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_service.dart';
 import '../services/course_wizard.dart';
@@ -1032,14 +1033,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       for (final a in initialAuthors) TextEditingController(text: a.name),
     ];
     final selectedRoles = [
-      for (final a in initialAuthors)
-        <String>{...a.roles.where(standardRoles.contains)},
+      for (final a in initialAuthors) CourseCredits.standardRolesIn(a.roles),
     ];
     final customRoles = [
       for (final a in initialAuthors)
-        TextEditingController(
-          text: a.roles.where((r) => !standardRoles.contains(r)).join(', '),
-        ),
+        TextEditingController(text: CourseCredits.customRolesIn(a.roles)),
     ];
     if (names.isEmpty) {
       names.add(TextEditingController());
@@ -1167,9 +1165,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     );
     final customLicense = TextEditingController(text: _course.license);
     const standardLicenses = CourseMetadataOptions.standardLicenses;
-    var selected = standardLicenses.contains(_course.license)
-        ? _course.license
-        : 'Other / Custom license';
+    var selected = CourseCredits.licenseChoiceFor(_course.license);
     var derivativePolicy = _course.derivativeWorksPolicy;
     var allowPageSharing = _course.allowPageSharing;
     var privateCourse = _course.temporarySample;
@@ -1885,16 +1881,13 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     ],
                     onChanged: (v) => setLocalState(() {
                       selected = v ?? selected;
-                      final inferred =
-                          CourseMetadataOptions.derivativePolicyForLicense(
-                            selected,
-                          );
-                      if (inferred != DerivativeWorksPolicy.unspecified) {
-                        derivativePolicy = inferred;
-                      }
+                      derivativePolicy = CourseCredits.policyAfterChoosing(
+                        selected,
+                        derivativePolicy,
+                      );
                     }),
                   ),
-                  if (selected == 'Other / Custom license') ...[
+                  if (CourseCredits.isCustomLicenseChoice(selected)) ...[
                     const SizedBox(height: 12),
                     TextField(
                       controller: customLicense,
@@ -2315,9 +2308,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   );
                   if (continueAnyway != true || !ctx.mounted) return;
                 }
-                final license = selected == 'Other / Custom license'
-                    ? customLicense.text.trim()
-                    : selected;
+                final license = CourseCredits.licenseOf(
+                  selected,
+                  customLicense.text,
+                );
                 if (license.isEmpty) return;
                 String normalizedBuyACoffeeUrl;
                 int? parsedHours;
@@ -2367,30 +2361,25 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   ).showSnackBar(SnackBar(content: Text(error.message)));
                   return;
                 }
-                final aa = <CourseAuthor>[];
-                for (var i = 0; i < names.length; i++) {
-                  final n = names[i].text.trim();
-                  if (n.isEmpty) continue;
-                  final rr = <String>[
-                    ...standardRoles.where(selectedRoles[i].contains),
-                  ];
-                  for (final part in customRoles[i].text.split(',')) {
-                    final value = part.trim();
-                    if (value.isNotEmpty && !rr.contains(value)) {
-                      rr.add(value);
-                    }
-                  }
-                  if (rr.isEmpty) rr.add('Contributor');
-                  aa.add(CourseAuthor(name: n, roles: rr));
-                }
-                final rightsHolders = <CourseRightsHolder>[];
-                for (var i = 0; i < rightsHolderNames.length; i++) {
-                  final name = rightsHolderNames[i].text.trim();
-                  if (name.isEmpty) continue;
-                  rightsHolders.add(
-                    CourseRightsHolder(type: rightsHolderTypes[i], name: name),
-                  );
-                }
+                final aa = <CourseAuthor>[
+                  for (var i = 0; i < names.length; i++)
+                    if (CourseCredits.author(
+                          name: names[i].text,
+                          standardRoles: selectedRoles[i],
+                          customRoles: customRoles[i].text,
+                        )
+                        case final author?)
+                      author,
+                ];
+                final rightsHolders = <CourseRightsHolder>[
+                  for (var i = 0; i < rightsHolderNames.length; i++)
+                    if (CourseCredits.rightsHolder(
+                          rightsHolderTypes[i],
+                          rightsHolderNames[i].text,
+                        )
+                        case final holder?)
+                      holder,
+                ];
                 final mediaAttributions = <CourseMediaAttribution>[];
                 for (var i = 0; i < mediaAuthors.length; i++) {
                   final author = mediaAuthors[i].text.trim();
@@ -2429,13 +2418,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   rightsHolders: rightsHolders,
                   mediaAttributions: mediaAttributions,
                   license: license,
-                  derivativePolicy: selected == 'Other / Custom license'
-                      ? derivativePolicy
-                      : license == _course.license
-                      ? _course.derivativeWorksPolicy
-                      : CourseMetadataOptions.derivativePolicyForLicense(
-                          selected,
-                        ),
+                  derivativePolicy: CourseCredits.policyKeepingStored(
+                    selected,
+                    derivativePolicy,
+                    storedLicense: _course.license,
+                    storedPolicy: _course.derivativeWorksPolicy,
+                  ),
                   allowPageSharing: allowPageSharing,
                   privateCourse: privateCourse,
                   sourceLanguageTag: sourceTag,

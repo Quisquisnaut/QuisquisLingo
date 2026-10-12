@@ -24,17 +24,17 @@ void main() {
         multiLine: true,
       ).firstMatch(pubspec)?.group(1);
 
-      expect(AppMetadata.releaseVersion, '2.0.71');
-      expect(AppMetadata.buildNumber, '271005');
-      expect(AppMetadata.developmentPhase, '271');
-      expect(AppMetadata.correctiveRevision, 5);
-      expect(AppMetadata.build, '271');
-      expect(AppMetadata.platformBuildNumber, '271005');
-      expect(AppMetadata.technicalVersion, '2.0.71+271005');
+      expect(AppMetadata.releaseVersion, '2.0.72');
+      expect(AppMetadata.buildNumber, '272000');
+      expect(AppMetadata.developmentPhase, '272');
+      expect(AppMetadata.correctiveRevision, 0);
+      expect(AppMetadata.build, '272');
+      expect(AppMetadata.platformBuildNumber, '272000');
+      expect(AppMetadata.technicalVersion, '2.0.72+272000');
       expect(AppMetadata.version, AppMetadata.technicalVersion);
       expect(version, AppMetadata.technicalVersion);
-      expect(AppMetadata.displayLabel, 'Version 2.0.71\nBuild 271, Revision 5');
-      expect(AppMetadata.publicBuildLabel, 'Build 271, Revision 5');
+      expect(AppMetadata.displayLabel, 'Version 2.0.72\nBuild 272, Revision 0');
+      expect(AppMetadata.publicBuildLabel, 'Build 272, Revision 0');
     },
   );
 

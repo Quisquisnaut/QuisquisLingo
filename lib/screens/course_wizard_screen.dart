@@ -11,6 +11,7 @@ import '../services/authoring_duplication_service.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_audit_service.dart';
 import '../services/course_authoring_session.dart';
+import '../services/course_credits.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
 import '../services/course_service.dart';
@@ -94,32 +95,19 @@ class _CreditRow {
 
   factory _CreditRow.of(CourseAuthor author) => _CreditRow(
     name: author.name,
-    roles: {
-      for (final role in author.roles)
-        if (CourseMetadataOptions.standardRoles.contains(role)) role,
-    },
-    customRoles: author.roles
-        .where((role) => !CourseMetadataOptions.standardRoles.contains(role))
-        .join(', '),
+    roles: CourseCredits.standardRolesIn(author.roles),
+    customRoles: CourseCredits.customRolesIn(author.roles),
   );
 
   final TextEditingController name;
   final Set<String> roles;
   final TextEditingController customRoles;
 
-  CourseAuthor? get value {
-    final trimmed = name.text.trim();
-    if (trimmed.isEmpty) return null;
-    final list = <String>[
-      ...CourseMetadataOptions.standardRoles.where(roles.contains),
-    ];
-    for (final part in customRoles.text.split(',')) {
-      final role = part.trim();
-      if (role.isNotEmpty && !list.contains(role)) list.add(role);
-    }
-    if (list.isEmpty) list.add('Contributor');
-    return CourseAuthor(name: trimmed, roles: list);
-  }
+  CourseAuthor? get value => CourseCredits.author(
+    name: name.text,
+    standardRoles: roles,
+    customRoles: customRoles.text,
+  );
 
   void dispose() {
     name.dispose();
@@ -239,8 +227,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   // at (read once).
   int _shownLesson = 0;
   late String? _pausedLessonId = widget.pause?.lessonId;
-
-  static const _customLicenseChoice = 'Other / Custom license';
 
   Course get _working => _session!.workingCourse;
   bool get _starting => _session == null;
@@ -409,11 +395,12 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           (holder) => _HolderRow(type: holder.type, name: holder.name),
         ),
       );
-    final standard = CourseMetadataOptions.standardLicenses.contains(
-      credits.license,
-    );
-    _licenseChoice = standard ? credits.license : _customLicenseChoice;
-    _customLicense.text = standard ? '' : credits.license;
+    _licenseChoice = CourseCredits.licenseChoiceFor(credits.license);
+    // A licence of the list leaves the Custom license field empty (Course
+    // Info shows the stored licence there).
+    _customLicense.text = _licenseChoice == credits.license
+        ? ''
+        : credits.license;
     _derivative = credits.derivativePolicy;
     _buyACoffee.text = credits.buyACoffeeUrl;
     _contactWebsite.text = credits.publisherContact?.websiteUrl ?? '';
@@ -464,16 +451,15 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       for (final row in _creditRows)
         if (row.value case final author?) author,
     ],
-    license: _licenseChoice == _customLicenseChoice
-        ? _customLicense.text.trim()
-        : _licenseChoice,
-    derivativePolicy: _licenseChoice == _customLicenseChoice
-        ? _derivative
-        : CourseMetadataOptions.derivativePolicyForLicense(_licenseChoice),
+    license: CourseCredits.licenseOf(_licenseChoice, _customLicense.text),
+    // The policy of a licence of the list, whatever the Course stored
+    // (Course Info keeps a stored policy: CourseCredits.policyKeepingStored).
+    derivativePolicy: CourseCredits.policyOf(_licenseChoice, _derivative),
     rightsHolders: [
       for (final row in _holderRows)
-        if (row.name.text.trim().isNotEmpty)
-          CourseRightsHolder(type: row.type, name: row.name.text.trim()),
+        if (CourseCredits.rightsHolder(row.type, row.name.text)
+            case final holder?)
+          holder,
     ],
     buyACoffeeUrl: Course.normalizeBuyACoffeeUrl(_buyACoffee.text),
     publisherContact: CoursePublisherContact.fromFields(
@@ -519,7 +505,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             CourseWizardAbout.studyHoursProblem(_studyHours.text) ??
             CourseWizardAbout.keywordsProblem(_keywords.text);
         if (about != null) return about;
-        if (_licenseChoice == _customLicenseChoice &&
+        if (CourseCredits.isCustomLicenseChoice(_licenseChoice) &&
             _customLicense.text.trim().isEmpty) {
           return 'Type the custom license, or choose a license from the list.';
         }
@@ -2324,29 +2310,23 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       ],
       onChanged: (value) => setState(() {
         _licenseChoice = value ?? _licenseChoice;
-        final inferred = CourseMetadataOptions.derivativePolicyForLicense(
+        _derivative = CourseCredits.policyAfterChoosing(
           _licenseChoice,
+          _derivative,
         );
-        if (inferred != DerivativeWorksPolicy.unspecified) {
-          _derivative = inferred;
-        }
       }),
     ),
     const SizedBox(height: 6),
     Text(
       key: const Key('course-wizard-derivative-note'),
-      (_licenseChoice == _customLicenseChoice
-                  ? _derivative
-                  : CourseMetadataOptions.derivativePolicyForLicense(
-                      _licenseChoice,
-                    )) ==
+      CourseCredits.policyOf(_licenseChoice, _derivative) ==
               DerivativeWorksPolicy.allowed
           ? 'Derivative works are allowed: other people may Fork your Course '
                 'and change their own copy; your name stays as the original '
                 'creator.'
           : 'Derivative works are not allowed: nobody may Fork your Course.',
     ),
-    if (_licenseChoice == _customLicenseChoice) ...[
+    if (CourseCredits.isCustomLicenseChoice(_licenseChoice)) ...[
       const SizedBox(height: 8),
       TextField(
         key: ValueKey('course-wizard-custom-license-$_generation'),

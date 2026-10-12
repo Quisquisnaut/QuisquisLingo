@@ -29,6 +29,10 @@ abstract final class CourseMetadataOptions {
     'Illustrator': 'Creates or supplies visual artwork for the course.',
   };
 
+  /// The entry of [standardLicenses] for a licence the author writes
+  /// (Build 272 Revision 0: the one place of this text).
+  static const customLicense = 'Other / Custom license';
+
   static const standardLicenses = <String>[
     'All rights reserved',
     'CC0 1.0',
@@ -36,7 +40,7 @@ abstract final class CourseMetadataOptions {
     'CC BY-SA 4.0',
     'CC BY-NC 4.0',
     'CC BY-NC-SA 4.0',
-    'Other / Custom license',
+    customLicense,
   ];
 
   static DerivativeWorksPolicy derivativePolicyForLicense(String license) =>

@@ -7,6 +7,7 @@ import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
 import '../services/course_backup_service.dart';
+import '../services/course_credits.dart';
 import '../services/course_editor_service.dart';
 import '../services/diagnostic_log_service.dart';
 import '../services/course_file_store.dart' show SkippedCourseFile;
@@ -1453,13 +1454,19 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ],
                       onChanged: (value) => setDialogState(() {
                         selectedLicense = value ?? selectedLicense;
+                        // New Course shows the policy the licence states,
+                        // also "Not specified" for Other / Custom license;
+                        // Course Info and the Course Wizard keep the policy
+                        // shown before (CourseCredits.policyAfterChoosing).
                         selectedDerivativePolicy =
                             CourseMetadataOptions.derivativePolicyForLicense(
                               selectedLicense,
                             );
                       }),
                     ),
-                    if (selectedLicense == 'Other / Custom license') ...[
+                    if (CourseCredits.isCustomLicenseChoice(
+                      selectedLicense,
+                    )) ...[
                       const SizedBox(height: 8),
                       TextField(
                         controller: customLicense,
@@ -1795,10 +1802,10 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           );
                           if (continueAnyway != true || !ctx.mounted) return;
                         }
-                        final license =
-                            selectedLicense == 'Other / Custom license'
-                            ? customLicense.text.trim()
-                            : selectedLicense;
+                        final license = CourseCredits.licenseOf(
+                          selectedLicense,
+                          customLicense.text,
+                        );
                         if (license.isEmpty) return;
                         String normalizedBuyACoffeeUrl;
                         try {
@@ -1833,12 +1840,10 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                                 ),
                             ],
                             license: license,
-                            derivativeWorksPolicy:
-                                selectedLicense == 'Other / Custom license'
-                                ? selectedDerivativePolicy
-                                : CourseMetadataOptions.derivativePolicyForLicense(
-                                    selectedLicense,
-                                  ),
+                            derivativeWorksPolicy: CourseCredits.policyOf(
+                              selectedLicense,
+                              selectedDerivativePolicy,
+                            ),
                             rightsHolders: [
                               for (
                                 var index = 0;

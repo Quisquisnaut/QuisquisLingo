@@ -31,6 +31,7 @@ import 'team_service.dart';
 import 'stored_course_reader.dart';
 import 'course_backup_retention.dart';
 import 'course_backup_service.dart';
+import 'course_credits.dart';
 
 /// The Course Manager menu entries, in menu order. [study] and [review]
 /// (Build 261 Revision 1) come from [CourseManagerLibrary.studyEntriesFor],
@@ -1002,14 +1003,20 @@ class CourseLibraryOperations {
       courseVersion: '',
       authors: [
         for (final credit in credits)
-          if (credit.name.trim().isNotEmpty)
-            CourseAuthor(name: credit.name.trim(), roles: _rolesOf(credit)),
+          if (CourseCredits.author(
+                name: credit.name,
+                standardRoles: credit.roles,
+                customRoles: credit.customRoles,
+              )
+              case final author?)
+            author,
       ],
       license: license,
       rightsHolders: [
         for (final holder in rightsHolders)
-          if (holder.name.trim().isNotEmpty)
-            CourseRightsHolder(type: holder.type, name: holder.name.trim()),
+          if (CourseCredits.rightsHolder(holder.type, holder.name)
+              case final rightsHolder?)
+            rightsHolder,
       ],
       derivativeWorksPolicy: derivativeWorksPolicy,
       languageVariant: languageVariant,
@@ -1032,20 +1039,6 @@ class CourseLibraryOperations {
       pictureAnswers: PictureAnswerStyle.newCourse,
       lessons: lessons,
     );
-  }
-
-  /// Standard roles in their standard order, then custom roles as typed;
-  /// `Contributor` when none is given.
-  static List<String> _rolesOf(NewCourseCredit credit) {
-    final roles = <String>[
-      ...CourseMetadataOptions.standardRoles.where(credit.roles.contains),
-    ];
-    for (final part in credit.customRoles.split(',')) {
-      final role = part.trim();
-      if (role.isNotEmpty && !roles.contains(role)) roles.add(role);
-    }
-    if (roles.isEmpty) roles.add('Contributor');
-    return roles;
   }
 }
 

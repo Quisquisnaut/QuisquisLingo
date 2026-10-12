@@ -1,3 +1,34 @@
+# 2.0.72 (Build 272, Revision 0) - modularization: the credits and licence owner - 2026-10-12
+
+Build 272 is the modularization build (plan
+`docs/272_MODULARIZATION_PLAN.md`; owner rule: a responsibility first gets an
+owner that can be tested without its screen, only then may its file be
+split). Nothing an author or a learner sees changes in this revision.
+
+- **One owner for credits and licence**: `CourseCredits`
+  (`lib/services/course_credits.dart`, pure Dart). The Course Info Editor,
+  New Course's form and the Course Wizard each had their own copy of the
+  rules for a credit's roles, the licence chosen from the list, the
+  derivative-works policy that goes with it and the Rights Holder rows. They
+  now call the same ones. The text "Other / Custom license" is written once
+  (`CourseMetadataOptions.customLicense`).
+- **Four differences between the three screens came out and are kept**, each
+  pinned by a test and listed in `docs/272_CHANGE_SUMMARY.md` for the
+  owner's decision: the policy shown after choosing Other / Custom license
+  (New Course: Not specified; the other two keep the policy shown before);
+  whether a licence left unchanged keeps the policy the Course stores
+  (Course Info: yes; the Course Wizard stores the licence's own); whether
+  the Custom license field starts from the stored licence (Course Info: yes;
+  the Course Wizard: empty for a licence of the list); and the role an added
+  credit row starts with (Contributor; in the Course Wizard, Author).
+- **Tests**: `test/course_credits_272_test.dart`, 11 cases. The 6 that drive
+  the three screens were written on the code before the change and passed
+  there.
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-11 23:59:59 local time (same release day as Build 271
+Revisions 3 to 5).
+
 # 2.0.71 (Build 271, Revision 5) - the names of a Course's items stay in English; tidy-ups - 2026-10-12
 
 Owner decisions of 12 October 2026; plan `docs/271_PLAN.md`, Revision 5.
