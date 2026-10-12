@@ -1,3 +1,34 @@
+# 2.0.72 (Build 272, Revision 1) - Course Info, New Course and the Course Wizard follow the same credits and licence rules - 2026-10-12
+
+Owner decision of 12 October 2026: the differences Revision 0 found between
+the three screens must become the same.
+
+- **Other / Custom license keeps the policy shown before.** In New Course,
+  choosing it set "Derivative works" to "Not specified". Now the policy on
+  screen stays (Forbidden after "All rights reserved", Allowed after a
+  Creative Commons licence), as in Course Info and the Course Wizard.
+- **A licence left unchanged keeps the policy the Course stores.** The Course
+  Wizard wrote the licence's own policy on every save of its step, so a
+  Course that is "All rights reserved" and allows derivative works (a Fork
+  of QQL Demo: Italian Exercise Lab) would have become "forbidden" without
+  anyone choosing it. Now the Wizard leaves it, as Course Info does.
+- **The Custom license field starts empty** for a licence of the list, and
+  with the stored text when the licence is the author's own. Course Info
+  started it from the stored licence, for example "CC BY 4.0".
+- **A person added to the credits starts as Contributor**; the creator's own
+  row is Author. In the Course Wizard every added person was an Author. The
+  roles are behind Advanced there, as before. Credits already stored are not
+  changed.
+- **Other / Custom license without a text says so**: "Type the custom
+  license, or choose a license from the list." In Course Info and New Course
+  the button did nothing, without a word; the Course Wizard already said it.
+- No screen layout changes. Stored Courses are not touched.
+- **Tests**: `test/course_credits_272_test.dart` (12 cases) now pins the one
+  rule for each of the five points in all three screens.
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-11 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 0) - modularization: the credits and licence owner - 2026-10-12
 
 Build 272 is the modularization build (plan

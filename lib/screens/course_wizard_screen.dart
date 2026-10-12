@@ -90,7 +90,7 @@ class CourseWizardScreen extends StatefulWidget {
 class _CreditRow {
   _CreditRow({String name = '', Set<String>? roles, String customRoles = ''})
     : name = TextEditingController(text: name),
-      roles = roles ?? {'Author'},
+      roles = roles ?? {CourseCredits.defaultRole},
       customRoles = TextEditingController(text: customRoles);
 
   factory _CreditRow.of(CourseAuthor author) => _CreditRow(
@@ -396,11 +396,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         ),
       );
     _licenseChoice = CourseCredits.licenseChoiceFor(credits.license);
-    // A licence of the list leaves the Custom license field empty (Course
-    // Info shows the stored licence there).
-    _customLicense.text = _licenseChoice == credits.license
-        ? ''
-        : credits.license;
+    _customLicense.text = CourseCredits.customLicenseTextFor(credits.license);
     _derivative = credits.derivativePolicy;
     _buyACoffee.text = credits.buyACoffeeUrl;
     _contactWebsite.text = credits.publisherContact?.websiteUrl ?? '';
@@ -445,6 +441,16 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     keywords: CourseWizardAbout.keywordsFrom(_keywords.text),
   );
 
+  /// The derivative-works policy this step stores: a licence left as the
+  /// Course has it keeps the Course's policy (as in Course Info).
+  DerivativeWorksPolicy get _derivativeValue =>
+      CourseCredits.policyKeepingStored(
+        _licenseChoice,
+        _derivative,
+        storedLicense: _working.license,
+        storedPolicy: _working.derivativeWorksPolicy,
+      );
+
   /// Throws a [FormatException] for an address that cannot be stored.
   CourseWizardCredits get _creditsValue => CourseWizardCredits(
     authors: [
@@ -452,9 +458,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         if (row.value case final author?) author,
     ],
     license: CourseCredits.licenseOf(_licenseChoice, _customLicense.text),
-    // The policy of a licence of the list, whatever the Course stored
-    // (Course Info keeps a stored policy: CourseCredits.policyKeepingStored).
-    derivativePolicy: CourseCredits.policyOf(_licenseChoice, _derivative),
+    derivativePolicy: _derivativeValue,
     rightsHolders: [
       for (final row in _holderRows)
         if (CourseCredits.rightsHolder(row.type, row.name.text)
@@ -507,7 +511,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         if (about != null) return about;
         if (CourseCredits.isCustomLicenseChoice(_licenseChoice) &&
             _customLicense.text.trim().isEmpty) {
-          return 'Type the custom license, or choose a license from the list.';
+          return CourseCredits.customLicenseMissing;
         }
         try {
           _creditsValue;
@@ -2279,8 +2283,15 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       child: TextButton.icon(
         key: const Key('course-wizard-add-credit'),
         onPressed: () => setState(() {
+          // The creator's own row is an Author; a person added after
+          // starts as Contributor, as in Course Info and New Course.
           _creditRows.add(
-            _CreditRow(name: _creditRows.isEmpty ? _authorName : ''),
+            _creditRows.isEmpty
+                ? _CreditRow(
+                    name: _authorName,
+                    roles: {CourseCredits.creatorRole},
+                  )
+                : _CreditRow(),
           );
           _generation++;
         }),
@@ -2319,8 +2330,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     const SizedBox(height: 6),
     Text(
       key: const Key('course-wizard-derivative-note'),
-      CourseCredits.policyOf(_licenseChoice, _derivative) ==
-              DerivativeWorksPolicy.allowed
+      _derivativeValue == DerivativeWorksPolicy.allowed
           ? 'Derivative works are allowed: other people may Fork your Course '
                 'and change their own copy; your name stays as the original '
                 'creator.'

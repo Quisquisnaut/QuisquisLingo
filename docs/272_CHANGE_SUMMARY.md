@@ -53,6 +53,9 @@ letter by letter.
 
 ### Differences between the three screens, kept as they are
 
+(Kept in Revision 0 only. The owner decided the same day that they must
+become the same: Revision 1, below.)
+
 While reading the three copies four differences came out. This revision
 keeps each of them (a test pins each one), because changing them is the
 owner's decision, not a side effect of tidying:
@@ -83,6 +86,61 @@ because the text field separates roles with commas.
 drive the three screens (Course Info 3, New Course 2, Course Wizard 1). The
 6 screen cases were written and run on the code **before** the change and
 passed there.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.
+
+## Revision 1 (2.0.72+272001): the three screens follow the same rules
+
+Owner decision of 12 October 2026 on the differences Revision 0 found:
+"They must become the same", then "Agree on all five, own revision".
+
+| # | The rule, now the same in Course Info, New Course and the Course Wizard | What changed |
+|---|---|---|
+| 1 | Choosing Other / Custom license keeps the derivative-works policy shown before the choice | New Course: it showed "Not specified" |
+| 2 | A licence left unchanged keeps the policy the Course stores | Course Wizard: it stored the licence's own policy on every save of its step |
+| 3 | The Custom license field starts empty for a licence of the list, and with the stored text when the licence is the author's own | Course Info: it started from the stored licence, for example "CC BY 4.0" |
+| 4 | The creator's own credit row is Author; a person added afterwards starts as Contributor | Course Wizard: every added person was an Author |
+| 5 | Other / Custom license without a text says "Type the custom license, or choose a license from the list." | Course Info and New Course: the button did nothing, without a word |
+
+### What an author may notice
+
+- **New Course**: after "CC BY-SA 4.0", choosing Other / Custom license
+  shows "Allowed" (before: "Not specified"). Starting from the default "All
+  rights reserved" it shows "Forbidden". The author can still choose any of
+  the three.
+- **Course Wizard**: a person added with **Add a person** is credited as
+  Contributor unless another role is chosen under Advanced. The first row,
+  which the Wizard fills with the creator's name, is still Author.
+- **Course Wizard**: saving the About step no longer changes the policy of
+  a Course whose licence was not touched.
+- **Course Info**: switching to Other / Custom license starts from an empty
+  field. A licence the author wrote earlier is still shown there.
+- **Course Info and New Course**: with Other / Custom license and no text,
+  Apply and Continue to Editor say what is missing.
+
+Stored Courses are not converted: credits and policies already stored stay
+as they are. No screen layout changes.
+
+### How
+
+- `CourseCredits` gains `customLicenseTextFor(license)`,
+  `customLicenseMissing` (the one text of the refusal) and `creatorRole`.
+- New Course's licence list calls `policyAfterChoosing`.
+- The Course Wizard stores `policyKeepingStored` against its working copy
+  (`_derivativeValue`); the line under the licence list ("Derivative works
+  are allowed…") reads the same value. `_CreditRow` starts as
+  `CourseCredits.defaultRole`; Add a person gives the creator's row
+  `creatorRole`.
+- Course Info's Custom license field starts from `customLicenseTextFor`;
+  its Apply and New Course's Continue to Editor show
+  `customLicenseMissing`.
+
+### Tests
+
+`test/course_credits_272_test.dart`, 12 cases: the screen cases that pinned
+a difference in Revision 0 now pin the one rule (points 1 to 5), and one
+more owner case covers the new owner members.
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.

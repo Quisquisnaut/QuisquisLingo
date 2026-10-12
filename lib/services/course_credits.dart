@@ -11,8 +11,17 @@ import '../models/course_models.dart';
 /// no storage. The vocabulary (the standard roles and licences) stays in
 /// [CourseMetadataOptions].
 abstract final class CourseCredits {
-  /// The role of a credit whose author chose none.
+  /// The role of a credit whose author chose none, and the role a person
+  /// added to a form starts with.
   static const defaultRole = 'Contributor';
+
+  /// The role of the row a form fills with the Course creator's own name.
+  static const creatorRole = 'Author';
+
+  /// What a form says when Other / Custom license is chosen and no text is
+  /// typed.
+  static const customLicenseMissing =
+      'Type the custom license, or choose a license from the list.';
 
   /// A credit's roles as a Course stores them: the [standard] ones in their
   /// standard order, then the author's own from [custom] (separated by
@@ -78,9 +87,15 @@ abstract final class CourseCredits {
       ? license
       : CourseMetadataOptions.customLicense;
 
+  /// What the Custom license field starts with for a stored [license]:
+  /// nothing for a licence of the list, the licence itself when it is the
+  /// author's own.
+  static String customLicenseTextFor(String license) =>
+      CourseMetadataOptions.standardLicenses.contains(license) ? '' : license;
+
   /// The licence a Course stores for a [choice] of the list: the text typed
   /// in the Custom license field for Other / Custom license (empty when
-  /// nothing was typed: each form refuses that in its own way), else the
+  /// nothing was typed: the form then says [customLicenseMissing]), else the
   /// choice.
   static String licenseOf(String choice, String customText) =>
       isCustomLicenseChoice(choice) ? customText.trim() : choice;
@@ -95,11 +110,11 @@ abstract final class CourseCredits {
       ? chosen
       : CourseMetadataOptions.derivativePolicyForLicense(choice);
 
-  /// As [policyOf], for a form that edits a stored Course: a licence of the
-  /// list left as the Course stores it keeps the Course's policy, also one
-  /// the licence does not state (a Course may be "All rights reserved" and
-  /// still allow derivative works). Course Info uses this; the Course Wizard
-  /// uses [policyOf].
+  /// As [policyOf], for a form that edits a stored Course (Course Info and
+  /// the Course Wizard): a licence of the list left as the Course stores it
+  /// keeps the Course's policy, also one the licence does not state (a
+  /// Course may be "All rights reserved" and still allow derivative works).
+  /// A save never changes what the author did not touch.
   static DerivativeWorksPolicy policyKeepingStored(
     String choice,
     DerivativeWorksPolicy chosen, {

@@ -1163,7 +1163,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     final minimumAppBuild = TextEditingController(
       text: _course.minimumAppBuild?.toString() ?? '',
     );
-    final customLicense = TextEditingController(text: _course.license);
+    final customLicense = TextEditingController(
+      text: CourseCredits.customLicenseTextFor(_course.license),
+    );
     const standardLicenses = CourseMetadataOptions.standardLicenses;
     var selected = CourseCredits.licenseChoiceFor(_course.license);
     var derivativePolicy = _course.derivativeWorksPolicy;
@@ -2312,7 +2314,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   selected,
                   customLicense.text,
                 );
-                if (license.isEmpty) return;
+                if (license.isEmpty) {
+                  if (!ctx.mounted) return;
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                      content: Text(CourseCredits.customLicenseMissing),
+                    ),
+                  );
+                  return;
+                }
                 String normalizedBuyACoffeeUrl;
                 int? parsedHours;
                 int? parsedMinimumBuild;

@@ -1454,13 +1454,10 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ],
                       onChanged: (value) => setDialogState(() {
                         selectedLicense = value ?? selectedLicense;
-                        // New Course shows the policy the licence states,
-                        // also "Not specified" for Other / Custom license;
-                        // Course Info and the Course Wizard keep the policy
-                        // shown before (CourseCredits.policyAfterChoosing).
                         selectedDerivativePolicy =
-                            CourseMetadataOptions.derivativePolicyForLicense(
+                            CourseCredits.policyAfterChoosing(
                               selectedLicense,
+                              selectedDerivativePolicy,
                             );
                       }),
                     ),
@@ -1806,7 +1803,15 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           selectedLicense,
                           customLicense.text,
                         );
-                        if (license.isEmpty) return;
+                        if (license.isEmpty) {
+                          if (!ctx.mounted) return;
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                              content: Text(CourseCredits.customLicenseMissing),
+                            ),
+                          );
+                          return;
+                        }
                         String normalizedBuyACoffeeUrl;
                         try {
                           normalizedBuyACoffeeUrl =

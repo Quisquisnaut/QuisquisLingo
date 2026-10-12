@@ -108,21 +108,49 @@ Gotchas:
 - The PC had 1.2 to 1.5 GB of memory free (Chrome, Firefox and Claude take
   about 4 GB): the analyzer took 270 s.
 
-## Revision 1 (the five rules), prepared
+## Revision 1 (2.0.72+272001), the three screens follow the same rules
 
-`u1/apply_u1.py` in the session scratchpad
-(`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`)
-holds the code changes; the screen cases of
-`test/course_credits_272_test.dart` then change to pin the single rule
-(points 1 to 5 above). If the scratchpad is gone, the changes are small:
-the list above names the owner method for each.
+State: done (12 October 2026). Analyzer clean; credits tests 12 passed; 12
+related files 167 passed; complete suite 4,339 passed, 1 skipped (18:49 to
+19:32, 43 minutes). Committed on `build-272` and the branch pushed (hash in
+`git log`). Revision 0 is `7c8f28fe`.
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`): the owner's five
+points above.
+
+- `CourseCredits`: `customLicenseTextFor`, `customLicenseMissing`,
+  `creatorRole`.
+- New Course: the licence list calls `policyAfterChoosing`; Continue to
+  Editor shows `customLicenseMissing`.
+- Course Info: the Custom license field starts from
+  `customLicenseTextFor`; Apply shows `customLicenseMissing`.
+- Course Wizard: `_derivativeValue` (`policyKeepingStored` against the
+  working copy) for the stored policy and the note under the licence
+  list; `_CreditRow` starts as Contributor, Add a person gives the
+  creator's row Author.
+- Tests: `test/course_credits_272_test.dart`, 12 cases.
+
+Decisions taken while working (say so in the report):
+
+- The Wizard's "stored" policy is the one of its working copy (what the
+  step opened on, or what an earlier step staged), not the file on disk.
+- No Help text changed: none described one of the five differences.
+- `docs/COURSE_EDITOR.md` says "No bundled course currently grants
+  derivative permission", which is stale (the Italian Exercise Lab
+  does); left as found, outside this revision.
+
+Session scratchpad (drafts of the next revisions):
+`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`
 
 ## Revision 2 (the Course Info form), prepared (not in the repository yet)
 
-Drafted in the same scratchpad, folder `r1/`, before the owner's decision
-(so it still carries Revision 0's behaviour for points 3 and 5: regenerate
-and adjust after Revision 1); to be copied in after Revision 1 is
-committed:
+Drafted in the scratchpad, folder `r1/`, and already adjusted to the five
+rules (`r1/adjust_for_u1.py`); regenerate the dialog file with
+`r1/gen_dialog.py` on Revision 1's code, run
+`course_info_editor_272_test.dart` on that code BEFORE the move, then
+`r1/apply_r1.py`. The shared credit rows are in their own draft file,
+`course_credit_rows.dart` (for `lib/controllers/`). A draft of Revision
+3's form is in `r3/new_course_form.dart`.
 
 - `lib/controllers/course_info_form.dart`: `CourseInfoForm` (the state of
   the Course Info Editor: fields from a Course, `addAuthor` /

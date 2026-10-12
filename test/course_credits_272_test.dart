@@ -19,8 +19,14 @@ import 'support/pump_file_io.dart';
 /// Build 272 Revision 0: the credits and licence rules of Course Info, New
 /// Course and the Course Wizard. The owner's own cases first; then the three
 /// screens as they behave. The screen cases were written on the code before
-/// the rules got one owner, and passed there: they pin what an author gets,
-/// the differences between the screens included.
+/// the rules got one owner, and passed there.
+///
+/// Revision 1 (owner decision of 12 October 2026): the three screens follow
+/// the same rules. The screen cases that pinned a difference now pin the one
+/// rule: the policy shown is kept when Other / Custom license is chosen; a
+/// licence left unchanged keeps the Course's policy; the Custom license
+/// field starts empty for a licence of the list; a person added starts as
+/// Contributor; a custom licence without a text is refused with a message.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -129,10 +135,30 @@ void main() {
         CourseCredits.licenseOf(CourseMetadataOptions.customLicense, ' Mine '),
         'Mine',
       );
-      // Nothing typed: the form refuses the empty licence.
+      // Nothing typed: the form refuses the empty licence and says why.
       expect(
         CourseCredits.licenseOf(CourseMetadataOptions.customLicense, '  '),
         isEmpty,
+      );
+      expect(
+        CourseCredits.customLicenseMissing,
+        'Type the custom license, or choose a license from the list.',
+      );
+
+      // The Custom license field starts empty for a licence of the list and
+      // with the stored text for any other.
+      for (final license in CourseMetadataOptions.standardLicenses) {
+        expect(CourseCredits.customLicenseTextFor(license), isEmpty);
+      }
+      expect(CourseCredits.customLicenseTextFor('My terms'), 'My terms');
+    });
+
+    test('the creator is an Author; a person added is a Contributor', () {
+      expect(CourseCredits.creatorRole, 'Author');
+      expect(CourseCredits.defaultRole, 'Contributor');
+      expect(
+        CourseMetadataOptions.standardRoles,
+        containsAll([CourseCredits.creatorRole, CourseCredits.defaultRole]),
       );
     });
 
@@ -252,9 +278,9 @@ void main() {
 
       await _choose(tester, 'Course content license', 'CC0 1.0');
       await _choose(tester, 'Course content license', 'Other / Custom license');
-      // Course Info shows the stored licence in the Custom license field,
-      // also when it was one of the list.
-      expect(_texts(tester, 'Custom license'), ['CC BY 4.0']);
+      // The Custom license field starts empty: the stored licence was one
+      // of the list.
+      expect(_texts(tester, 'Custom license'), ['']);
       // CC0 allowed derivative works, and the custom licence keeps that.
       expect(
         tester
@@ -265,13 +291,17 @@ void main() {
         DerivativeWorksPolicy.allowed,
       );
 
-      // Without a text Apply does nothing.
-      await _enter(tester, _field('Custom license'), '   ');
+      // Without a text Apply says what is missing and stays.
       final apply = find.byKey(const Key('course-info-save'));
       await tester.ensureVisible(apply);
       await tester.tap(apply);
-      await tester.pumpUntilFileIoState(() => true);
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.text(CourseCredits.customLicenseMissing).evaluate().isNotEmpty,
+      );
       expect(apply, findsOneWidget);
+      ScaffoldMessenger.of(tester.element(apply)).clearSnackBars();
+      await tester.pumpAndSettle();
 
       await _enter(tester, _field('Custom license'), ' My terms ');
       await _enter(
@@ -283,6 +313,10 @@ void main() {
       expect(saved.license, 'My terms');
       expect(saved.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
       expect(saved.rightsHolders.single.name, 'Org');
+
+      // The author's own licence comes back in the Custom license field.
+      await _openCourseInfo(tester, service, saved, store: false);
+      expect(_texts(tester, 'Custom license'), ['My terms']);
     });
 
     testWidgets('a licence chosen from the list replaces a policy the '
@@ -318,9 +352,8 @@ void main() {
 
   group('New Course', () {
     testWidgets('the creator is an Author; roles, Rights Holders and a '
-        'custom licence as typed; Other / Custom license starts unspecified', (
-      tester,
-    ) async {
+        'custom licence as typed; Other / Custom license keeps the policy '
+        'shown and needs a text', (tester) async {
       tester.view.physicalSize = const Size(1000, 2600);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -349,8 +382,9 @@ void main() {
         find.widgetWithText(FilterChip, 'Contributor').at(1),
       );
 
-      // A licence of the list brings its policy, and so does Other / Custom
-      // license: it states none, so New Course shows Not specified.
+      // A licence of the list brings its policy; Other / Custom license
+      // states none and keeps the policy shown before, as in Course Info
+      // and the Course Wizard.
       await _choose(tester, 'Course content license', 'CC BY-SA 4.0');
       await _choose(tester, 'Course content license', 'Other / Custom license');
       expect(_texts(tester, 'Custom license'), ['']);
@@ -360,8 +394,18 @@ void main() {
               find.byKey(const Key('new-course-derivative-policy')),
             )
             .initialValue,
-        DerivativeWorksPolicy.unspecified,
+        DerivativeWorksPolicy.allowed,
       );
+      // Without a text Continue to Editor says what is missing and stays.
+      final create = find.widgetWithText(FilledButton, 'Continue to Editor');
+      await tester.ensureVisible(create);
+      await tester.tap(create);
+      await tester.pumpAndSettle();
+      expect(find.text(CourseCredits.customLicenseMissing), findsOneWidget);
+      expect(find.byType(CourseEditorScreen), findsNothing);
+      ScaffoldMessenger.of(tester.element(create)).clearSnackBars();
+      await tester.pumpAndSettle();
+
       await _enter(tester, _field('Custom license'), ' My terms ');
       await _enter(
         tester,
@@ -369,7 +413,6 @@ void main() {
         ' Org ',
       );
 
-      final create = find.widgetWithText(FilledButton, 'Continue to Editor');
       await tester.ensureVisible(create);
       await tester.tap(create);
       await tester.pumpAndSettle();
@@ -381,7 +424,7 @@ void main() {
         'Bo': ['Contributor'],
       });
       expect(course.license, 'My terms');
-      expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.unspecified);
+      expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
       expect(course.rightsHolders.single.name, 'Org');
       expect(course.rightsHolders.single.type, CourseRightsHolderType.person);
     });
@@ -420,10 +463,9 @@ void main() {
   });
 
   group('Course Wizard', () {
-    testWidgets('roles as in Course Info; a licence of the list is stored '
-        'with its own policy; a custom licence keeps the policy shown', (
-      tester,
-    ) async {
+    testWidgets('roles as in Course Info; a person added starts as '
+        'Contributor; a licence left unchanged keeps the Course\'s policy; a '
+        'custom licence keeps the policy shown', (tester) async {
       tester.view.physicalSize = const Size(1000, 3200);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -454,6 +496,15 @@ void main() {
       expect(_chip(tester, 'Editor', 0).selected, isTrue);
       expect(_texts(tester, 'Other roles'), ['Voice, Subtitles']);
       await _enter(tester, _field('Other roles'), ' Sound , Author,, Sound');
+      // A person added after the creator starts as Contributor, as in
+      // Course Info and New Course.
+      await _tapFinder(
+        tester,
+        find.byKey(const Key('course-wizard-add-credit')),
+      );
+      expect(_chip(tester, 'Contributor', 1).selected, isTrue);
+      expect(_chip(tester, 'Author', 1).selected, isFalse);
+      await _enter(tester, _field('Name').at(1), ' Bo ');
 
       Future<Course> saveNow() async {
         final save = find.byKey(const Key('course-wizard-save-now'));
@@ -472,12 +523,15 @@ void main() {
         ))!.single;
       }
 
-      // The Wizard stores the policy of the licence of the list, whatever
-      // the Course stored before.
+      // The licence was not touched, so the Course keeps the policy it
+      // stored, also one CC BY 4.0 does not state.
       var saved = await saveNow();
-      expect(saved.authors.single.roles, ['Author', 'Editor', 'Sound']);
+      expect(_credits(saved), {
+        'Ann': ['Author', 'Editor', 'Sound'],
+        'Bo': ['Contributor'],
+      });
       expect(saved.license, 'CC BY 4.0');
-      expect(saved.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
+      expect(saved.derivativeWorksPolicy, DerivativeWorksPolicy.unspecified);
 
       await _choose(tester, 'Course content license', 'All rights reserved');
       await _choose(tester, 'Course content license', 'Other / Custom license');
