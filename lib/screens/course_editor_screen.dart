@@ -110,6 +110,7 @@ import '../services/course_audio_texts.dart';
 import '../services/course_media_store.dart';
 import '../widgets/folder_opener.dart';
 import '../widgets/library_save_notice.dart';
+import '../widgets/course_saving.dart';
 import 'audio_texts_screen.dart';
 
 export 'guidebook_editor_screen.dart'
@@ -713,36 +714,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   /// Editor stayed in use meanwhile with no sign of it: Back found the
   /// changes still unsaved and asked about them as if Save had not written
   /// anything, and a change applied during the save was lost when the save
-  /// finished.
-  Future<CourseConfirmationResult> _writeCourse(String versionNotes) async {
-    final navigator = Navigator.of(context, rootNavigator: true);
-    final progress = DialogRoute<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const PopScope(
-        canPop: false,
-        child: AlertDialog(
-          key: Key('course-saving'),
-          content: Row(
-            children: [
-              Icon(Icons.save_outlined),
-              SizedBox(width: 16),
-              Expanded(child: Text('Saving the Course…')),
-            ],
-          ),
+  /// finished. Since Revision 3 the window shows each step and a bar
+  /// ([CourseSaving]).
+  Future<CourseConfirmationResult> _writeCourse(String versionNotes) =>
+      CourseSaving.run(
+        context,
+        (onProgress) => _session.confirm(
+          languageCode: _code,
+          versionNotes: versionNotes,
+          onProgress: onProgress,
         ),
-      ),
-    );
-    unawaited(navigator.push(progress));
-    try {
-      return await _session.confirm(
-        languageCode: _code,
-        versionNotes: versionNotes,
       );
-    } finally {
-      if (progress.isActive) navigator.removeRoute(progress);
-    }
-  }
 
   /// Save now (Build 270 Revision 12, owner decision of 10 October 2026):
   /// writes the Course as a new version, with its version notes, and stays

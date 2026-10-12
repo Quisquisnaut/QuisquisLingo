@@ -331,3 +331,70 @@ test above reproduces it).
   on D:): **4,254 passed, 1 skipped**, 57:49 (11 October 2026, 22:53–23:51).
 
 Not checked: the dialogs by hand.
+
+## Revision 3 (2.0.71+271003), a save is faster and shows where it is
+
+12 October 2026, owner's Windows 10 PC, `build-271`.
+
+- Measurements (temporary tests, removed; the numbers are in
+  `docs/271_CHANGE_SUMMARY.md`): a save of a Course with 700 small pictures,
+  a save with 1 and with 31 stored Courses of the Exercise Laboratory's
+  size, the listing of the versions; each before and after.
+- `test/save_speed_271_test.dart`, 19 cases:
+  - the backup: the second version writes its own file only and names the
+    copies the first one made, and read on its own with every content
+    checked it is whole; a copy is told by its name and its length (with
+    the stored file and the copy both changed to another content of the
+    same length, nothing is written or logged and the copy is left as it
+    is); a stored file of another length is read and is a gap when it is
+    not what its name says (logged); a copy of another length is written
+    again with the right content; the progress is (0, n), (1, n) … (n, n),
+    also when nothing is copied, and (0, 0) without media;
+  - the versions: a version whose copy was changed is listed, refused by
+    `loadBackup` with "A course backup asset failed integrity validation.",
+    and refused by the restore with the same message while the Course's
+    folder stays empty; with the right content again the restore puts the
+    file back; a version whose file is gone is named in `skipped` and stops
+    the strict listing;
+  - the store: `leadingCourseId` for what QQL writes (also an ID with a
+    quote, a backslash and an accent), for what follows a good beginning,
+    and null for a file with spaces and line breaks, the ID not first, no
+    comma after it, a number, an empty file, an ID longer than 1,024 bytes
+    and a missing file; what `write` wrote begins with its ID; another
+    Course's file that could not be read whole is passed over; a second
+    file with the same ID is refused whatever its name and shape (compact,
+    then with spaces and line breaks; `write` refuses too), and is no
+    obstacle once it holds another ID; a file named for the Course that
+    cannot be read is refused;
+  - the steps: the seven labels word for word, a bar that never goes back
+    and stays between 0 and 1; a real save of a Course with two pictures
+    reports checking, the backup (0 of 0, 0 of 2, 1 of 2, 2 of 2), writing,
+    checking what was written; a Course saved for the first time reports
+    checking, writing, checking; a save with three stored Courses changes
+    only its own;
+  - the window: it is on the screen when the work starts, shows the first
+    step and a bar at .05, then "Making the backup: 1 of 4 pictures and
+    recordings" at .275, stays through Back and a tap on what is behind
+    (the work is not started twice), and goes at the end with the result;
+    when no frame is drawn, the save starts after a quarter of a second
+    anyway; when the save throws, the window goes, the caller gets the
+    error and the page is in use again.
+- Eight test doubles take the new optional `onProgress` parameter (six
+  `createBackup`, two `confirmCourseTransaction`).
+- Focused, before the last changes to the store and the restore (22 files
+  around saving and backups): 240 passed. After them (39 files, with the
+  Help and version tests): 435 passed, 3 failed, all three in
+  `beta_lifecycle_test`: its other dates had not moved by a day with the
+  new expiry. Moved; the file passes. A first complete suite was stopped at
+  574 passed, none failed, to add two safeguards found on rereading the
+  code (a name that is not a media reference is a gap and never a path; a
+  save does not wait for a frame while the window is hidden); the six files
+  around them: 81 passed.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,273 passed, 1 skipped (the usual one), none failed**, in
+  56:04.
+
+Not checked: the window and the speed by hand in the running app; a Course
+with real pictures and recordings (the measurements use 4 × 4 pixel
+pictures); Android.

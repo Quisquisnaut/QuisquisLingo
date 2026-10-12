@@ -162,6 +162,44 @@ class CourseFileStore {
       ? a.absolute.path.toLowerCase() == b.absolute.path.toLowerCase()
       : a.absolute.path == b.absolute.path;
 
+  /// How much of a stored file [leadingCourseId] reads.
+  static const leadingBytes = 1024;
+
+  /// The Course ID a stored file begins with, when the file has the shape
+  /// QQL writes (`{"courseId":"<id>",`), read from its first [leadingBytes]
+  /// bytes; null when it cannot be told this way (another shape, an ID that
+  /// does not end there, a file that cannot be opened), and the whole file
+  /// has to be read.
+  static Future<String?> leadingCourseId(File file) async {
+    final List<int> bytes;
+    try {
+      final handle = await file.open();
+      try {
+        bytes = await handle.read(leadingBytes);
+      } finally {
+        await handle.close();
+      }
+    } on FileSystemException {
+      return null;
+    }
+    const start = '{"courseId":"';
+    final text = utf8.decode(bytes, allowMalformed: true);
+    if (!text.startsWith(start)) return null;
+    // The end of the JSON string that holds the ID: the first quote that no
+    // backslash escapes.
+    var end = start.length;
+    while (end < text.length && text.codeUnitAt(end) != 0x22) {
+      end += text.codeUnitAt(end) == 0x5C ? 2 : 1;
+    }
+    if (end + 1 >= text.length || text.codeUnitAt(end + 1) != 0x2C) return null;
+    try {
+      final id = jsonDecode(text.substring(start.length - 1, end + 1));
+      return id is String ? id : null;
+    } on FormatException {
+      return null;
+    }
+  }
+
   /// The one file holding [courseId], with its record, or null. A file is
   /// found by the ID inside it, because its name is lossy and carries a
   /// language pair that can change. A file named for this ID that cannot be
@@ -181,6 +219,16 @@ class CourseFileStore {
         CourseStorageNames.idPartOfCourseFile(_name(entity)),
         idPart,
       );
+      // Build 271 Revision 3 (owner report of 12 October 2026: Save is
+      // slow): another Course's file is told by its first bytes. Before,
+      // finding one Course read and decoded every stored Course, and a save
+      // finds its Course three times. A file named for this ID, one that
+      // begins with this ID and one whose beginning cannot be read this way
+      // are still read whole, so nothing below changes for them.
+      if (!named) {
+        final leading = await leadingCourseId(entity);
+        if (leading != null && leading != courseId) continue;
+      }
       final ({Map<String, dynamic> record, List<int> bytes}) read;
       try {
         read = await _readRecord(entity);

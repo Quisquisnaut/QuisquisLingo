@@ -17,7 +17,7 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 0 | Content that plays wrong: Missing letters audio optional, Put the sentences in order marked as lines, the Audit flow copies the Round |
 | 1 | Deleting a Course (other learners named, reset my progress, delete its backups); saves never blocked by a backup; `*.tmp` cleanup; Publisher update over an unreadable copy keeps a backup; Inventory Delete all (added 11 October) |
 | 2 | The Audio Library like the Image Library; the Course Editor's top bar; Image Library Help into the Editor Help (mock-ups first: owner rule) |
-| 3 | Speed: one Audit per change, one read of the stored Courses per save, image search keys |
+| 3 | Speed: a save that is faster and shows where it is (done first, owner report of 12 October); then one Audit per change, Lesson and Round Audits, image search keys (follow-up, same version) |
 | 4 | Import and Android file safety |
 | 5 | Tidy-ups (labels never translated, Cyrillic order, mascot after the frame, test seams, Course Info controllers) |
 
@@ -377,3 +377,55 @@ header that scrolls in a very short window, Apply greyed while empty, no
 Show internal IDs switch on the read-only Course Info page).
 
 Next: Revision 3, speed (`docs/271_PLAN.md`).
+
+## Revision 3 (2.0.71+271003), a save is faster and shows where it is
+
+State: done and committed (12 October 2026, early morning), the branch pushed. Analyzer clean; complete suite 4,273 passed, 1 skipped (56:04).
+
+Owner report of 12 October 2026 (in Italian): "Il Save funziona ma è lento
+e il tempo non viene segnalato." Taken as the first part of the plan's
+Revision 3 (speed) and committed on its own; the plan's other items follow
+as a follow-up in the same version.
+
+What was found (measured, numbers in `docs/271_CHANGE_SUMMARY.md`):
+
+1. The backup before each save read every picture and recording three
+   times (stored file, backup copy, backup copy again) with a SHA-256 each.
+2. `CourseFileStore._findUnlocked` read and decoded every stored Course;
+   a save calls it three times, and once for the Publisher folder.
+3. `listBackups` read every file of every version (also after each save
+   when Course Info keeps a number of backups).
+
+What was done:
+
+- `CourseBackupService.createBackup(onProgress:)`: same name and same
+  length in `QQL_media` means held, nothing read. `BackupMediaCheck`
+  (content, presence, none); the listings use presence; `reinstateMedia`
+  checks the SHA-256 of each copy before it puts it back.
+- `CourseFileStore.leadingCourseId` and its use in `_findUnlocked`.
+- `CourseSaveStep`, `CourseSaveProgress`; `onProgress` through
+  `confirmCourseTransaction` and `CourseAuthoringSession.confirm`.
+- `lib/widgets/course_saving.dart`: `CourseSaving.run`,
+  `CourseSavingWindow`; used by `CourseEditorScreen._writeCourse` and
+  `CourseWizardScreen._save`. The save starts when the window's frame is
+  done or after `drawnWithin` (250 ms), whichever comes first.
+- Help EN/IT/ES (`leaveEditor`, `backups`, `restore`).
+- Tests: `test/save_speed_271_test.dart` (19).
+
+Decisions taken while building (to tell the owner):
+
+- The content of a backup's files is checked at restore, not at every save
+  and every listing. A copy changed outside QQL with the same length is no
+  longer rewritten by the next save; a restore finds it and says so.
+- The bar has a value (steps and the count of files), not an endless
+  animation: the widget tests' `pumpAndSettle` would never end with one.
+
+Next: the Revision 3 follow-up (same version): the Course Editor's main
+page audits once per change of the working copy (`AuthoringHierarchyStatus
+.fromCourse(_course)` runs in `build`; 70 ms on the Laboratory); the Lesson,
+Rounds and Round pages build a Course and audit it on every rebuild (the
+Rounds page's `_auditableCourse` is a JSON round trip of the whole Course);
+`auditLesson` / `auditRound` audit the whole Course and filter; image
+library search keys and a short pause. Then Revision 4.
+
+Open with the owner: unchanged from the second follow-up above.

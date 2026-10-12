@@ -373,6 +373,7 @@ class _PausingBackupService extends CourseBackupService {
     Course course, {
     required DateTime backedUpAt,
     required String reason,
+    void Function(int done, int total)? onProgress,
   }) async {
     final entered = _entered;
     final resume = _resume;

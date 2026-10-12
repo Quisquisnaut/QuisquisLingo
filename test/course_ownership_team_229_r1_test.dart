@@ -800,6 +800,7 @@ class _MemoryBackupService extends CourseBackupService {
     Course course, {
     required DateTime backedUpAt,
     required String reason,
+    void Function(int done, int total)? onProgress,
   }) async => CourseBackupRecord(
     manifestFile: File('${Directory.systemTemp.path}/${course.courseId}.json'),
     course: course,

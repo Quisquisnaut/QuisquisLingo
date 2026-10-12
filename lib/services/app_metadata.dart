@@ -1,6 +1,6 @@
 abstract final class AppMetadata {
   static const String releaseVersion = '2.0.71';
-  static const String buildNumber = '271002';
+  static const String buildNumber = '271003';
   static const String developmentPhase = '271';
   static const int correctiveRevision = 1;
   static const String build = developmentPhase;

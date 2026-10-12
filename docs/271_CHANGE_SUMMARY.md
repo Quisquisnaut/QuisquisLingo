@@ -478,3 +478,107 @@ assigned. The service refuses a Team's Delete without the word.
   (owner's choice: the Inventory only).
 - The only admin still cannot be deleted.
 - Course files: deleting a Team rewrites none.
+
+## Revision 3 (2.0.71+271003): a save is faster and shows where it is
+
+Owner report of 12 October 2026: "Save works but is slow, and the time is
+not signalled." This is the first part of the plan's Revision 3 (speed).
+
+### What was slow
+
+Measured before changing anything, on the owner's Windows PC, with tests
+that save a Course the way the Course Editor does.
+
+1. **The backup before each save.** With 700 small pictures in the Course, a
+   save took about 2.1 seconds, and 1.8 of them were the backup. For every
+   picture and recording of the Course it read the stored file and worked
+   out its checksum, read the copy the backups hold and worked out its
+   checksum, wrote nothing (the copy was there), and then read the copy and
+   worked out its checksum a third time when the finished backup was read
+   back.
+2. **Finding the Course.** A stored Course is found by the ID inside its
+   file, so finding one read and decoded every Course on the device. A save
+   finds its Course three times (to read it, to replace it, to check what
+   was written). With 31 stored Courses of the Exercise Laboratory's size a
+   save took about 0.85 seconds; with one, about 0.3.
+3. **Listing the versions.** Version History, and the question about older
+   backups after a save when Course Info keeps a number of them, read every
+   picture and recording of every version: about 2 seconds for 4 versions of
+   the 700-picture Course.
+
+### What changed
+
+- **Name and length.** A stored picture or recording and its copy in the
+  backups are both named by their content, and both were checked when they
+  were written. When the backups hold a file with the same name and the same
+  length, the backup records it without reading either file. A file the
+  backups do not hold yet, or hold with another length, is read, checked,
+  copied and checked again as before. A missing file is a gap, as before.
+- **The versions are listed by what is there.** The listing checks that
+  every file a version names exists (one listing per folder). The content
+  is checked when a version is restored: each file is compared with its
+  name before it goes back into the Course's folder. A changed or missing
+  file stops the restore with a message, and nothing is loaded.
+- **Another Course's file is told by its first bytes.** QQL writes a stored
+  Course as `{"courseId":"<id>",…`. Finding a Course reads the first 1,024
+  bytes of the other files and passes over those that begin with another
+  ID. A file named for the Course, one that begins with its ID and one that
+  does not have this shape are still read whole, so two files that claim
+  one Course are still refused, and so is a file named for the Course that
+  cannot be read.
+- **The window of a save.** "Saving the Course…" now has a bar and one line
+  that names the step: Checking the Course…, Making the backup: N of M
+  pictures and recordings, Writing the Course…, Checking what was written….
+  The window is on the screen before the work starts; before, it faded in
+  while the save was already running. A save never waits for the window
+  when nothing is drawn (a minimized window): it starts after a quarter of
+  a second at the latest. The Course Wizard's Save now, Save
+  and leave, Continue by hand and Finish show the same window; before, they
+  showed nothing.
+
+### Measured afterwards
+
+| Case | Before | After |
+|---|---|---|
+| Save, Course with 700 small pictures | about 2,080 ms | 514 to 589 ms |
+| First save of that Course (every file is copied) | about 6,100 ms | about 5,700 ms |
+| Save, 31 stored Courses of the Laboratory's size | 792 to 918 ms | 251 to 333 ms |
+| Save, 1 stored Course of that size | 267 to 293 ms | 268 to 312 ms |
+| Listing the versions of the 700-picture Course | 2,022 ms (4 versions) | 654 ms (3 versions) |
+
+The pictures of these tests are tiny (4 × 4 pixels). Real pictures and
+recordings are thousands of times larger, and the reading that was removed
+grows with their size, so the gain on a real Course should be larger; that
+was not measured.
+
+### What this costs
+
+Stated plainly, because a check was moved:
+
+- A copy in the backup folder that is changed from outside QQL without
+  changing its length was rewritten by the next save. Now it stays as it
+  is until a restore reads it, finds that it is not what the Course names,
+  and says so.
+- A stored picture or recording changed from outside QQL without changing
+  its length was recorded as a gap (and written to the Diagnostic Log) by
+  the next save. Now, while the backups hold its copy, the backup names
+  that copy, which is the right one.
+- Version History lists a version whose files were changed (same names);
+  before, it named that version as unreadable. Restoring it says what is
+  wrong.
+- The first save of a Course with many pictures and recordings still takes
+  as long as copying them takes. The window now counts them.
+
+### Not changed
+
+- Course files and the backup format: a backup written by this version is
+  the same file as before.
+- A backup is still made and checked before every save, and the Course is
+  still read back after it is written.
+- No new key or folder. Scoring, progression and learner data.
+
+### Not in this commit
+
+The plan's other speed items: one Audit per change of the working copy,
+Lesson and Round Audits of their own Lesson or Round, image library search
+keys.

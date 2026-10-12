@@ -334,6 +334,7 @@ class _RecordingEditorService extends CourseEditorService {
     bool isNewCourse = false,
     bool governanceChangesMadeInEditMode = false,
     DateTime? committedAt,
+    void Function(CourseSaveProgress progress)? onProgress,
   }) async {
     calls += 1;
     original = originalCourse;

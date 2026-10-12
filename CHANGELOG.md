@@ -1,3 +1,41 @@
+# 2.0.71 (Build 271, Revision 3) - a save is faster and shows where it is - 2026-10-12
+
+Owner report of 12 October 2026: Save works, but it is slow and nothing
+shows the time it takes (`docs/271_PLAN.md`, Revision 3, its first part).
+
+- **A save no longer reads every picture and recording three times.** The
+  backup made before each save read every picture and recording of the
+  Course, then its copy in the backups, then that copy again, and worked out
+  the checksum of each. Now a picture or recording whose copy the backups
+  already hold, with the same name and the same length, is recorded without
+  being read: both files are named by their content. A file the backups do
+  not hold yet is copied and checked as before. Measured with a Course of
+  700 small pictures on the owner's PC: a save went from about 2.1 seconds
+  to about 0.55. The first save of such a Course still copies every file.
+- **A save no longer reads every other stored Course.** Finding the Course
+  to save read and decoded every Course on the device, three times per save.
+  Another Course's file is now told by its first bytes. Measured with 31
+  stored Courses of the Exercise Laboratory's size: about 0.85 seconds
+  before, about 0.3 now, the same as with one Course.
+- **Version History lists faster.** Listing the versions read every picture
+  and recording of every version. It now looks whether the files are there;
+  their content is checked when a version is restored, before anything goes
+  back into the Course. A restore that finds a changed or missing file says
+  so and loads nothing, as before.
+- **The save shows where it is.** The "Saving the Course…" window has a bar
+  and one line for the step: Checking the Course…, Making the backup: N of M
+  pictures and recordings, Writing the Course…, Checking what was written….
+  It is on the screen before the work starts (and a save never waits for it
+  when the window is minimized and nothing is drawn). The Course Wizard's
+  saves show it too.
+- Known limits, unchanged or accepted: the first save of a Course with many
+  pictures and recordings still takes as long as copying them takes; a copy
+  in the backup folder that someone changes without changing its length is
+  no longer rewritten by the next save (a restore finds it and says so).
+- Help EN/IT/ES. Tests: `test/save_speed_271_test.dart` (19 cases). No new
+  key or folder; Course files, the backup format, scoring, progression and
+  learner data are unchanged. Beta expiry `2026-11-11 23:59:59` local time.
+
 # 2.0.71 (Build 271, Revision 2) - the Audio Library like the Image Library; the Course Editor's top bar - 2026-10-11
 
 Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).

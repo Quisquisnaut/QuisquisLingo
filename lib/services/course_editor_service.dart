@@ -26,6 +26,40 @@ import 'team_service.dart';
 import 'publisher_course_ids.dart';
 import 'storage/qql_storage.dart';
 
+/// The steps of a save from the Course Editor (Build 271 Revision 3).
+enum CourseSaveStep { checking, backingUp, writing, verifying }
+
+/// Where a save is, for the window that shows it (Build 271 Revision 3,
+/// owner report of 12 October 2026: the time a save takes was not
+/// signalled). While the backup is made, [done] of [total] pictures and
+/// recordings have been dealt with.
+class CourseSaveProgress {
+  const CourseSaveProgress(this.step, {this.done = 0, this.total = 0});
+
+  final CourseSaveStep step;
+  final int done;
+  final int total;
+
+  /// How far the save is, from 0 to 1.
+  double get fraction => switch (step) {
+    CourseSaveStep.checking => .05,
+    CourseSaveStep.backingUp => total == 0 ? .1 : .1 + .7 * done / total,
+    CourseSaveStep.writing => .85,
+    CourseSaveStep.verifying => .95,
+  };
+
+  /// The step in words.
+  String get label => switch (step) {
+    CourseSaveStep.checking => 'Checking the Course…',
+    CourseSaveStep.backingUp =>
+      total == 0
+          ? 'Making the backup…'
+          : 'Making the backup: $done of $total pictures and recordings',
+    CourseSaveStep.writing => 'Writing the Course…',
+    CourseSaveStep.verifying => 'Checking what was written…',
+  };
+}
+
 class CourseConfirmationResult {
   final Course course;
   final String? backupPath;
@@ -133,12 +167,14 @@ class CourseEditorService {
     required DateTime when,
     required String reason,
     void Function(String folder)? onSkipped,
+    void Function(int done, int total)? onProgress,
   }) async {
     try {
       return await backupService.createBackup(
         course,
         backedUpAt: when,
         reason: reason,
+        onProgress: onProgress,
       );
     } on CourseBackupsAccessDenied catch (denied) {
       onSkipped?.call(denied.folder);
@@ -1097,6 +1133,8 @@ class CourseEditorService {
   Future<String> exportUserCourse(Course course) async =>
       const JsonEncoder.withIndent('  ').convert(course.toJson());
 
+  /// [onProgress] is told where the save is (Build 271 Revision 3), so the
+  /// Course Editor can show it.
   Future<CourseConfirmationResult> confirmCourseTransaction({
     required Course originalCourse,
     required Course workingCourse,
@@ -1105,6 +1143,7 @@ class CourseEditorService {
     bool isNewCourse = false,
     bool governanceChangesMadeInEditMode = false,
     DateTime? committedAt,
+    void Function(CourseSaveProgress progress)? onProgress,
   }) => _store.withCourseLock(
     workingCourse.courseId,
     () => _confirmCourseTransactionLocked(
@@ -1115,6 +1154,7 @@ class CourseEditorService {
       isNewCourse: isNewCourse,
       governanceChangesMadeInEditMode: governanceChangesMadeInEditMode,
       committedAt: committedAt,
+      onProgress: onProgress,
     ),
   );
 
@@ -1126,7 +1166,9 @@ class CourseEditorService {
     bool isNewCourse = false,
     bool governanceChangesMadeInEditMode = false,
     DateTime? committedAt,
+    void Function(CourseSaveProgress progress)? onProgress,
   }) async {
+    onProgress?.call(const CourseSaveProgress(CourseSaveStep.checking));
     await CourseFlagService().validateWorldFlag(workingCourse);
     originalCourse = await _materializeDetachedConstructorIdentity(
       originalCourse,
@@ -1231,14 +1273,25 @@ class CourseEditorService {
     CourseBackupRecord? backup;
     String? backupSkippedFolder;
     if (current != null) {
+      onProgress?.call(const CourseSaveProgress(CourseSaveStep.backingUp));
       backup = await _backupOrSkip(
         current,
         when: when,
         onSkipped: (folder) => backupSkippedFolder = folder,
         reason: 'Pre-change Course Editor transaction backup',
+        onProgress: onProgress == null
+            ? null
+            : (done, total) => onProgress(
+                CourseSaveProgress(
+                  CourseSaveStep.backingUp,
+                  done: done,
+                  total: total,
+                ),
+              ),
       );
     }
 
+    onProgress?.call(const CourseSaveProgress(CourseSaveStep.writing));
     final committed = _confirmedCustomCourse(
       workingCourse,
       current,
@@ -1263,6 +1316,7 @@ class CourseEditorService {
     }
 
     if (current == null) await _addToImporterLibrary(committed);
+    onProgress?.call(const CourseSaveProgress(CourseSaveStep.verifying));
     final verifiedRecord = await _customRecord(storageId);
     if (verifiedRecord == null) {
       throw StateError('Course persistence verification failed.');

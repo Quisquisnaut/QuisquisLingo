@@ -136,6 +136,7 @@ class CourseAuthoringSession {
   Future<CourseConfirmationResult> confirm({
     required String languageCode,
     required String versionNotes,
+    void Function(CourseSaveProgress progress)? onProgress,
   }) async {
     _pendingVersionNotes = versionNotes;
     final result = await _editorService.confirmCourseTransaction(
@@ -146,6 +147,7 @@ class CourseAuthoringSession {
       isNewCourse: _isNewCourse,
       governanceChangesMadeInEditMode: _governanceChangedInEditMode,
       committedAt: _clock(),
+      onProgress: onProgress,
     );
     _transaction.markConfirmed(result.course);
     _isNewCourse = false;

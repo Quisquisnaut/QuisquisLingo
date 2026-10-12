@@ -16,6 +16,22 @@ import 'import/image_validator.dart';
 import 'import/json_limits.dart';
 import 'import/mp3_validator.dart';
 
+/// How far reading a backup checks the pictures and recordings it names
+/// (Build 271 Revision 3).
+enum BackupMediaCheck {
+  /// Each file is read and its content compared with its name: one backup
+  /// read on its own.
+  content,
+
+  /// Each file is there: a listing of every version, which would otherwise
+  /// read every file of every version. A restore checks the content of what
+  /// it puts back.
+  presence,
+
+  /// Not looked at: the backup was written a moment ago by the same call.
+  none,
+}
+
 class CourseBackupRecord {
   final File manifestFile;
   final Course course;
@@ -235,6 +251,29 @@ class CourseBackupService {
     }
   }
 
+  /// The file's length, or null when it is missing or cannot be read.
+  static Future<int?> _lengthOf(File file) async {
+    try {
+      return await file.length();
+    } on FileSystemException {
+      return null;
+    }
+  }
+
+  /// The names of the files in [folder], listed once for a whole listing of
+  /// backups.
+  static Future<Set<String>> _namesIn(Directory folder) async {
+    try {
+      if (!await folder.exists()) return const {};
+      return {
+        await for (final entity in folder.list(followLinks: false))
+          if (entity is File) entity.uri.pathSegments.last,
+      };
+    } on FileSystemException {
+      return const {};
+    }
+  }
+
   /// Whether [file] exists and holds the bytes of [digest]; false when it
   /// cannot be read.
   static Future<bool> _holds(File file, String digest) async {
@@ -255,10 +294,14 @@ class CourseBackupService {
     }
   }
 
+  /// [onProgress] is told how many of the Course's pictures and recordings
+  /// have been dealt with, of how many (Build 271 Revision 3), so a save can
+  /// show where it is.
   Future<CourseBackupRecord> createBackup(
     Course course, {
     required DateTime backedUpAt,
     required String reason,
+    void Function(int done, int total)? onProgress,
   }) async {
     final when = backedUpAt.toUtc();
     final pair = CourseStorageNames.pairOfCourse(course);
@@ -289,14 +332,30 @@ class CourseBackupService {
 
     final assetRecords = <Map<String, String>>[];
     final references = CourseMediaStore.referencesOf(course).toList()..sort();
+    var done = 0;
+    onProgress?.call(0, references.length);
     if (references.isNotEmpty) {
       final assetsDirectory = Directory(
         '${directory.path}${Platform.pathSeparator}$sharedMediaFolderName',
       );
       await assetsDirectory.create(recursive: true);
+      // Build 271 Revision 3 (owner report of 12 October 2026: Save is
+      // slow): the Course's folder is found once, not for every file.
+      final stored = await _media.courseDirectory(course.courseId);
       for (final reference in references) {
-        final source = await _media.existingFile(course.courseId, reference);
-        if (source == null) {
+        if (done > 0) onProgress?.call(done, references.length);
+        done++;
+        // A name that is not a media reference has no file (and must never
+        // become a path): a gap, as a missing file is.
+        final isReference = CourseMediaStore.isReference(reference);
+        final backupName = isReference
+            ? CourseMediaStore.fileNameOf(reference)
+            : '';
+        final source = File(
+          '${stored.path}${Platform.pathSeparator}$backupName',
+        );
+        final sourceLength = isReference ? await _lengthOf(source) : null;
+        if (sourceLength == null) {
           // A file that is already gone cannot be lost by the change this
           // backup precedes, so refusing to back anything up would protect
           // nothing while making the Course permanently unsaveable: the
@@ -305,6 +364,24 @@ class CourseBackupService {
           // Record the gap instead; `loadBackup` accepts it and restore has
           // nothing to put back.
           assetRecords.add({'reference': reference, 'missing': 'true'});
+          continue;
+        }
+        final target = File(
+          '${assetsDirectory.path}${Platform.pathSeparator}$backupName',
+        );
+        // Build 271 Revision 3: kept already. A stored file and its backup
+        // copy are both named by their content and were checked when they
+        // were written, so the same name with the same length is the same
+        // file. Before, every save read the stored file, the backup copy
+        // and the backup copy again, and worked out the hash of each: three
+        // readings of every picture and recording of the Course. A restore
+        // still checks what it puts back ([reinstateMedia]).
+        if (sourceLength > 0 && await _lengthOf(target) == sourceLength) {
+          assetRecords.add({
+            'reference': reference,
+            'backupRelativePath': '$sharedMediaFolderName/$backupName',
+            'sha256': CourseMediaStore.digestOf(reference),
+          });
           continue;
         }
         final bytes = await source.readAsBytes();
@@ -327,10 +404,6 @@ class CourseBackupService {
           );
           continue;
         }
-        final backupName = CourseMediaStore.fileNameOf(reference);
-        final target = File(
-          '${assetsDirectory.path}${Platform.pathSeparator}$backupName',
-        );
         // Kept once: an earlier version already holds the same bytes. A file
         // this installation may not read or replace (Android keeps a file
         // with the installation that wrote it) goes to a folder of this
@@ -361,6 +434,7 @@ class CourseBackupService {
           'sha256': digest,
         });
       }
+      onProgress?.call(references.length, references.length);
     }
 
     final checksum = courseChecksum(course);
@@ -386,12 +460,35 @@ class CourseBackupService {
       manifest,
       utf8.encode(const JsonEncoder.withIndent('  ').convert(payload)),
     );
-    return loadBackup(manifest, expectedCourseId: course.courseId);
+    // The media were checked or written just above: reading them all again
+    // would only repeat that.
+    return _loadBackup(
+      manifest,
+      expectedCourseId: course.courseId,
+      media: BackupMediaCheck.none,
+    );
   }
 
+  /// Reads one backup and checks it: its Course, its checksum and, by
+  /// [media], the pictures and recordings it names (their content by
+  /// default).
   Future<CourseBackupRecord> loadBackup(
     File manifestFile, {
     required String expectedCourseId,
+    BackupMediaCheck media = BackupMediaCheck.content,
+  }) => _loadBackup(
+    manifestFile,
+    expectedCourseId: expectedCourseId,
+    media: media,
+  );
+
+  /// [listings] holds the file names of the media folders already listed,
+  /// for [BackupMediaCheck.presence] over many backups.
+  Future<CourseBackupRecord> _loadBackup(
+    File manifestFile, {
+    required String expectedCourseId,
+    required BackupMediaCheck media,
+    Map<String, Set<String>>? listings,
   }) async {
     final directory = await courseBackupDirectory(expectedCourseId);
     _requireChildPath(directory, manifestFile);
@@ -480,8 +577,21 @@ class CourseBackupService {
         final asset = File(
           '${manifestFile.parent.path}${Platform.pathSeparator}${relative.replaceAll('/', Platform.pathSeparator)}',
         );
-        if (!await asset.exists() ||
-            sha256.convert(await asset.readAsBytes()).toString() != expected) {
+        final valid = switch (media) {
+          BackupMediaCheck.none => true,
+          // A listing of every version does not read every file of every
+          // version (Build 271 Revision 3): each media folder is listed
+          // once, and a restore checks the content of what it puts back.
+          BackupMediaCheck.presence =>
+            ((listings ?? {})[asset.parent.path] ??= await _namesIn(
+              asset.parent,
+            )).contains(asset.uri.pathSegments.last),
+          BackupMediaCheck.content =>
+            await asset.exists() &&
+                sha256.convert(await asset.readAsBytes()).toString() ==
+                    expected,
+        };
+        if (!valid) {
           throw const FormatException(
             'A course backup asset failed integrity validation.',
           );
@@ -665,6 +775,15 @@ class CourseBackupService {
         '${record.manifestFile.parent.path}${Platform.pathSeparator}${relative.replaceAll('/', Platform.pathSeparator)}',
       );
       final bytes = await source.readAsBytes();
+      // Build 271 Revision 3: the listing of versions only looks whether a
+      // backup's files are there, so their content is checked here, before
+      // anything goes back into the Course's folder.
+      if (sha256.convert(bytes).toString() !=
+          CourseMediaStore.digestOf(reference)) {
+        throw const FormatException(
+          'A course backup asset failed integrity validation.',
+        );
+      }
       final cover = reference == record.course.coverImage;
       if (CourseMediaStore.isAudioReference(reference)) {
         await Mp3Validator.validate(bytes);
@@ -698,12 +817,20 @@ class CourseBackupService {
     final directory = await courseBackupDirectory(courseId);
     if (!await directory.exists()) return const [];
     final records = <CourseBackupRecord>[];
+    final listings = <String, Set<String>>{};
     await for (final entity in directory.list(followLinks: false)) {
       if (entity is! File || !entity.path.toLowerCase().endsWith('.json')) {
         continue;
       }
       try {
-        records.add(await loadBackup(entity, expectedCourseId: courseId));
+        records.add(
+          await _loadBackup(
+            entity,
+            expectedCourseId: courseId,
+            media: BackupMediaCheck.presence,
+            listings: listings,
+          ),
+        );
       } catch (error) {
         if (skipped != null) {
           skipped.add(_nameOf(entity));
@@ -727,12 +854,18 @@ class CourseBackupService {
     final directory = await courseBackupDirectory(courseId);
     if (!await directory.exists()) return const [];
     final records = <CourseBackupRecord>[];
+    final listings = <String, Set<String>>{};
     await for (final entity in directory.list(followLinks: false)) {
       if (entity is! File || !entity.path.toLowerCase().endsWith('.json')) {
         continue;
       }
       try {
-        final record = await loadBackup(entity, expectedCourseId: courseId);
+        final record = await _loadBackup(
+          entity,
+          expectedCourseId: courseId,
+          media: BackupMediaCheck.presence,
+          listings: listings,
+        );
         final source = record.course;
         if (!source.originType.isOfficial ||
             !officialContentChecksumMatches(source)) {

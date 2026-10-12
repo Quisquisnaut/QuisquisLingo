@@ -661,6 +661,7 @@ class _RecordingBackupService extends CourseBackupService {
     Course course, {
     required DateTime backedUpAt,
     required String reason,
+    void Function(int done, int total)? onProgress,
   }) async {
     final record = CourseBackupRecord(
       manifestFile: File('memory/${course.courseId}_${records.length}.json'),

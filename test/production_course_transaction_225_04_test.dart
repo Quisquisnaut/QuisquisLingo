@@ -982,6 +982,7 @@ class _MemoryBackupService extends CourseBackupService {
     Course course, {
     required DateTime backedUpAt,
     required String reason,
+    void Function(int done, int total)? onProgress,
   }) async {
     final record = CourseBackupRecord(
       manifestFile: File('memory/${course.courseId}_${records.length}.json'),
@@ -1016,6 +1017,7 @@ class _FailingCourseEditorService extends CourseEditorService {
     bool isNewCourse = false,
     bool governanceChangesMadeInEditMode = false,
     DateTime? committedAt,
+    void Function(CourseSaveProgress progress)? onProgress,
   }) async {
     throw StateError('simulated persistence failure');
   }

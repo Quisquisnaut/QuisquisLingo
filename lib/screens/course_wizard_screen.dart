@@ -30,6 +30,7 @@ import '../widgets/course_flag_picker.dart';
 import '../widgets/language_field.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/reported_action.dart';
+import '../widgets/course_saving.dart';
 import 'course_editor_screen.dart'
     show
         AuthoringHierarchyStatus,
@@ -684,12 +685,18 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       await _remember(_step);
       return true;
     }
+    // Build 271 Revision 3: the save says that it is running and where it
+    // is, as in the Course Editor.
     final result = await runReported(
       context,
       'Saving the Course',
-      () => session.confirm(
-        languageCode: CourseService.codeForCourse(session.workingCourse),
-        versionNotes: 'Course Wizard: ${_step.title}',
+      () => CourseSaving.run(
+        context,
+        (onProgress) => session.confirm(
+          languageCode: CourseService.codeForCourse(session.workingCourse),
+          versionNotes: 'Course Wizard: ${_step.title}',
+          onProgress: onProgress,
+        ),
       ),
     );
     if (result == null) return false;
