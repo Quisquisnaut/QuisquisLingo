@@ -20,6 +20,7 @@ import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/widgets/course_import_check_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/korean_fixture.dart';
 import 'support/publisher_fixtures.dart';
 import 'support/pump_file_io.dart';
 import 'support/test_directories.dart';
@@ -283,9 +284,15 @@ void main() {
       await install(tester, theirs);
       await addToLibrary(tester, theirs);
       await install(tester, publisher);
+      // A bundled Course that forbids derivative works, so Fork is greyed:
+      // the Korean fixture. QQL Demo: English from Italian, used here until
+      // then, left the app and the repository in Build 272 Revision 15
+      // (owner decision of 13 October 2026).
+      registerKoreanFixture();
       final bundled = (await tester.runAsync(
-        () => CourseService().loadCourse('EN_IT'),
+        () => CourseService().loadCourse('KO'),
       ))!;
+      expect(bundled.derivativeWorksPolicy, DerivativeWorksPolicy.forbidden);
       await pumpManager(tester, current: bundled);
 
       expect(await menuEntries(tester, actionsOf('mine')), [

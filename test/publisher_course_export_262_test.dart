@@ -20,6 +20,7 @@ import 'package:quisquislingo_app/services/publisher_verification_service.dart';
 import 'package:quisquislingo_app/services/trusted_publishers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/korean_fixture.dart';
 import 'support/publisher_fixtures.dart';
 
 /// Build 262 Revision 2 (`docs/PUBLISHER_COURSES_PLAN.md` 4.3): Export as
@@ -50,12 +51,19 @@ const _officialKeys = [
   'publisherSignature',
 ];
 
-/// QQL Demo: English from Italian as a custom Course Alice maintains.
+/// An official Course: the Korean fixture (QQL Demo: English from Italian
+/// until it left the app and the repository in Build 272 Revision 15, owner
+/// decision of 13 October 2026).
+Future<Course> _official() => CourseService().loadBundledCourse('KO');
+
+/// The Korean fixture as a custom Course Alice maintains. The fixture's
+/// `temporarySample` flag is on, which on a custom Course means a Private
+/// course, so the sample turns it off.
 Future<Course> _custom({
   String version = '3',
   Map<String, Object?> changes = const {},
 }) async {
-  final json = (await CourseService().loadBundledCourse('EN_IT')).toJson();
+  final json = (await _official()).toJson();
   for (final key in _officialKeys) {
     json.remove(key);
   }
@@ -73,6 +81,7 @@ Future<Course> _custom({
     'versionNotes': 'Edition $version.',
     'lastVersionEditorProfileId': _alice,
     'lastVersionEditorDisplayName': 'Alice',
+    'temporarySample': false,
     // Build 272 Revision 14: a license names its Rights Holder.
     'rightsHolders': [
       {'type': 'person', 'name': 'Alice'},
@@ -112,7 +121,10 @@ Future<PublisherVerificationService> _testVerifier() async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  setUp(() => SharedPreferences.setMockInitialValues({}));
+  setUp(() {
+    registerKoreanFixture();
+    SharedPreferences.setMockInitialValues({});
+  });
 
   group('refusals', () {
     test('a published, clean Course its Maintainer exports', () async {
@@ -179,7 +191,8 @@ void main() {
           'Course Editor.',
         ),
       );
-      final official = await CourseService().loadBundledCourse('EN_IT');
+      final official = await _official();
+      expect(official.originType, CourseOriginType.bundledOfficial);
       expect(
         PublisherCourseExport.refusals(official, hasOperationalAccess: true),
         ['Only a custom Course can become a Publisher Course.'],
@@ -463,7 +476,9 @@ void main() {
       expect(remembered.publisherName, _publisher.publisherName);
       expect(
         path,
-        endsWith('QQL_IT_EN_qql_demo_english_from_italian_publisher_v3.zip'),
+        endsWith(
+          'QQL_EN_KO_ai_slop_demo_korean_for_english_speakers_publisher_v3.zip',
+        ),
       );
       final course = await exported(path);
       expect(course.originType, CourseOriginType.externalOfficial);
@@ -564,7 +579,7 @@ void main() {
         entry(theirs)!.unavailableReason,
         'Only the Maintainer or assigned Team can publish this Course.',
       );
-      expect(entry(await CourseService().loadBundledCourse('EN_IT')), isNull);
+      expect(entry(await _official()), isNull);
     });
 
     testWidgets('the screen names the refusals and exports nothing', (

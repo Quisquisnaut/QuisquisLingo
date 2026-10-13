@@ -7,11 +7,12 @@ import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/audit_code_registry.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 
-/// The Courses the comparisons run on: the bundled ones and the fixtures
-/// made to carry findings of many kinds.
+/// The Courses the comparisons run on: the bundled one and the fixtures
+/// made to carry findings of many kinds. (QQL Demo: English from Italian was
+/// among them until it left the app and the repository in Build 272
+/// Revision 15.)
 const _files = [
   'assets/courses/exercise_laboratory_en_it.json',
-  'assets/courses/english_from_italian_it_en.json',
   'test/fixtures/v12/edge_case_it_en.json',
   'test/fixtures/v12/laboratory_future_en_it.json',
   'test/fixtures/v12/korean_en.json',

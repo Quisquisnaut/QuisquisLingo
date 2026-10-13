@@ -189,10 +189,11 @@ void main() {
         findsOneWidget,
       );
     }
-    // Two bundled demos since Build 262 Revision 0 and the Edge Case
-    // fixture.
-    expect(CourseService.bundledAssets, hasLength(3));
-    expect(count(tester, 0), ' · 2 of 3 shown');
+    // One bundled demo since Build 272 Revision 15 (QQL Demo: English from
+    // Italian left the app and the repository; two since Build 262 Revision
+    // 0) and the Edge Case fixture.
+    expect(CourseService.bundledAssets, hasLength(2));
+    expect(count(tester, 0), ' · 1 of 2 shown');
     final edge = (await tester.runAsync(
       () => CourseService().loadCourse('EN_EDGE'),
     ))!;
@@ -220,7 +221,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('show-unavailable-courses')));
     await tester.pump();
-    expect(count(tester, 0), ' · 3');
+    expect(count(tester, 0), ' · 2');
     expect(row(edge), findsOneWidget);
     expect(
       find.descendant(of: row(edge), matching: find.text('Draft')),

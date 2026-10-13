@@ -16,6 +16,7 @@ import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/edge_case_fixture.dart';
 import 'support/pump_file_io.dart';
 
 /// Build 261 Revision 1 (owner decisions of 1 October 2026): Study and Review
@@ -23,7 +24,13 @@ import 'support/pump_file_io.dart';
 /// Editor opening mode in Do Not Disturb.
 const _alice = '11111111-1111-4111-8111-111111111261';
 const _laboratoryId = 'course_50d68435-d2c2-4b63-9a0b-b23161357f1d';
-const _englishId = 'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05';
+
+// The second bundled Course of these cases is the Edge Case fixture: QQL
+// Demo: English from Italian, the second one until then, left the app and the
+// repository in Build 272 Revision 15 (owner decision of 13 October 2026).
+const _edgeCaseId = 'course_6f6a1fa3-b834-4936-b324-92fb57f73502';
+const _edgeCaseLessonId = 'qql_edge_254_l01';
+const _edgeCaseRoundId = 'qql_edge_254_r01';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +38,7 @@ void main() {
   final library = CourseLibraryService();
 
   setUp(() async {
+    registerEdgeCaseFixture();
     SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
     await profiles.createProfile(
       'Alice',
@@ -44,7 +52,7 @@ void main() {
     test(
       'a published bundled Course can be studied; Review needs a Round',
       () async {
-        final course = await CourseService().loadCourse('EN_IT');
+        final course = await CourseService().loadCourse('EN_EDGE');
         expect(
           CourseStudy.studyUnavailableReason(course, hasLearner: true),
           isNull,
@@ -82,23 +90,23 @@ void main() {
 
     test('completed Rounds are read from the Review records', () async {
       await ProgressService().recordRecentRound(
-        _englishId,
-        'enit_65dce83b_l01',
-        'enit_65dce83b_l01_r01',
+        _edgeCaseId,
+        _edgeCaseLessonId,
+        _edgeCaseRoundId,
         errors: 1,
       );
       expect(await CourseStudy.coursesWithCompletedRounds(ProgressService()), {
-        _englishId,
+        _edgeCaseId,
       });
     });
 
     test(
       'Course Studio offers Study and Review apart from its entries',
       () async {
-        final course = await CourseService().loadCourse('EN_IT');
+        final course = await CourseService().loadCourse('EN_EDGE');
         final reviewable = CourseManagerLibrary(
           activeProfileId: _alice,
-          reviewableCourseIds: {_englishId},
+          reviewableCourseIds: {_edgeCaseId},
         );
         expect(
           reviewable.studyEntriesFor(course).map((entry) => entry.action),
@@ -225,7 +233,8 @@ void main() {
           'welcome_${AppMetadata.technicalVersion}',
         );
         await settings.setAnimationsEnabled(false);
-        for (final code in CourseService.courseAssets.keys) {
+        // The bundled Course and the registered fixture.
+        for (final code in CourseService.bundledAssets.keys) {
           await library.remove(await CourseService().loadCourse(code));
         }
       });
@@ -245,6 +254,8 @@ void main() {
     Future<void> openMenu(WidgetTester tester, String courseId) async {
       final menu = find.byKey(ValueKey('all-course-actions-$courseId'));
       await tester.scrollUntilVisible(menu, 250);
+      // The row is laid out where the scroll brought it before it is tapped.
+      await tester.pump();
       await tester.tap(menu);
       await tester.pumpAndSettle();
     }
@@ -290,25 +301,25 @@ void main() {
     ) async {
       await tester.runAsync(
         () => ProgressService().recordRecentRound(
-          _englishId,
-          'enit_65dce83b_l01',
-          'enit_65dce83b_l01_r01',
+          _edgeCaseId,
+          _edgeCaseLessonId,
+          _edgeCaseRoundId,
           errors: 2,
         ),
       );
       await openEmptyHome(tester);
-      await openMenu(tester, _englishId);
+      await openMenu(tester, _edgeCaseId);
       await tester.tap(find.byKey(const ValueKey('all-course-action-review')));
       await tester.pumpUntilFileIoState(
         () => find.byType(ReviewScreen).evaluate().isNotEmpty,
       );
       expect(
         tester.widget<ReviewScreen>(find.byType(ReviewScreen)).course.courseId,
-        _englishId,
+        _edgeCaseId,
       );
       expect(
         await tester.runAsync(SettingsService().getLastSelectedCourseCode),
-        'EN_IT',
+        'EN_EDGE',
       );
     });
 
@@ -342,7 +353,7 @@ void main() {
       );
       await tester.tap(find.text('Open Courses'));
       final menu = find.byKey(
-        const ValueKey('course-manager-actions-$_englishId'),
+        const ValueKey('course-manager-actions-$_edgeCaseId'),
       );
       await tester.pumpUntilFileIoState(() => menu.evaluate().isNotEmpty);
       await tester.scrollUntilVisible(
@@ -350,6 +361,8 @@ void main() {
         250,
         scrollable: find.byType(Scrollable).last,
       );
+      // The row is laid out where the scroll brought it before it is tapped.
+      await tester.pump();
       await tester.tap(menu);
       await tester.pumpAndSettle();
       expect(
@@ -359,7 +372,7 @@ void main() {
       await tester.tap(find.text('Study'));
       await tester.pumpAndSettle();
       expect(results, hasLength(1));
-      expect(results.single!.course.courseId, _englishId);
+      expect(results.single!.course.courseId, _edgeCaseId);
       expect(results.single!.action, CourseStudyAction.study);
     });
   });

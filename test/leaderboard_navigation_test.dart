@@ -2845,8 +2845,10 @@ void main() {
     expect(find.text('Current course'), findsOneWidget);
     expect(find.text('Other courses'), findsOneWidget);
     expect(find.text(italianCourse.title), findsWidgets);
-    // Build 260 Revision 2: a fourth bundled Course moves the Korean row
-    // below the picker's first screen.
+    // Build 260 Revision 2: a fourth bundled Course (QQL Demo: English from
+    // Italian) moved the Korean row below the picker's first screen. It left
+    // the app and the repository in Build 272 Revision 15; the scroll stays
+    // and does nothing when the row is already in view.
     final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
     await tester.scrollUntilVisible(
       koreanTile,
@@ -3259,27 +3261,33 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     // Four other Courses were opened; only the three most recent are listed.
     // Build 255 Revision 6 left three other bundled demos, so the oldest one
-    // is a local Course.
-    final oldest = Course(
-      courseId: 'user_oldest_recent_course',
+    // is a local Course. Build 272 Revision 15: QQL Demo: English from
+    // Italian, the most recent of the three, left the app and the repository
+    // (owner decision of 13 October 2026), so a second local Course is the
+    // third recent one.
+    Course local(String id, String title) => Course(
+      courseId: id,
       learningLanguage: 'Italian',
       interfaceLanguage: 'English',
       sourceLanguage: 'English',
       targetLanguage: 'Italian',
-      title: 'Oldest Recent Course',
+      title: title,
       ttsLanguage: 'it-IT',
       flagCode: 'IT',
       lessons: [
-        Lesson(lessonId: 'oldest_first', title: 'First', rounds: const []),
+        Lesson(lessonId: '${id}_first', title: 'First', rounds: const []),
       ],
     );
+    final oldest = local('user_oldest_recent_course', 'Oldest Recent Course');
+    final third = local('user_third_recent_course', 'Third Recent Course');
     (await tester.runAsync(() => CourseEditorService().saveUserCourse(oldest)));
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(third)));
     final settings = SettingsService();
     for (final ref in [
       'custom:${oldest.courseId}',
+      'custom:${third.courseId}',
       'KO',
       'EN_EDGE',
-      'EN_IT',
       'IT',
     ]) {
       await settings.setLastSelectedCourseCode(ref);
@@ -3313,9 +3321,9 @@ void main() {
     expect(recentTiles, hasLength(3));
 
     final recentTitles = [
-      'QQL Demo: English from Italian',
       'Temporary Demo: Edge Case Course',
       'AI-Slop Demo: Korean for English Speakers',
+      'Third Recent Course',
     ];
     final recentPositions = recentTitles
         .map((title) => tester.getRect(find.text(title).first).center.dy)
@@ -3415,14 +3423,33 @@ void main() {
   testWidgets(
     'Favorites may repeat Current and Recent; Hide removes a noncurrent row only',
     (tester) async {
-      // The Edge Case is a test fixture since Build 259 Revision 5.
+      // The Edge Case is a test fixture since Build 259 Revision 5. It is
+      // the Favorite hidden here since QQL Demo: English from Italian left
+      // the app and the repository (Build 272 Revision 15, owner decision of
+      // 13 October 2026); a local Course is the row left under Other courses.
       registerEdgeCaseFixture();
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(1200, 2000);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
+      final other = Course(
+        courseId: 'user_other_selector_course',
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Other Selector Course',
+        ttsLanguage: 'it-IT',
+        flagCode: 'IT',
+        lessons: [
+          Lesson(lessonId: 'other_first', title: 'First', rounds: const []),
+        ],
+      );
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(other),
+      ));
       final settings = SettingsService();
-      for (final ref in ['EN_IT', 'KO', 'IT']) {
+      for (final ref in ['EN_EDGE', 'KO', 'IT']) {
         await settings.setLastSelectedCourseCode(ref);
       }
       await _openHome(tester, scrollToActions: false);
@@ -3430,13 +3457,13 @@ void main() {
       final korean = (await tester.runAsync(
         () => CourseService().loadCourse('KO'),
       ))!;
-      final english = (await tester.runAsync(
-        () => CourseService().loadCourse('EN_IT'),
+      final edgeCase = (await tester.runAsync(
+        () => CourseService().loadCourse('EN_EDGE'),
       ))!;
       final favorites = CourseFavoriteService();
       await favorites.setFavorite(current.courseId, true);
       await favorites.setFavorite(korean.courseId, true);
-      await favorites.setFavorite(english.courseId, true);
+      await favorites.setFavorite(edgeCase.courseId, true);
 
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
       await _pumpUntilWithIo(
@@ -3450,7 +3477,7 @@ void main() {
       );
       expect(find.byKey(const Key('current-course')), findsOneWidget);
       expect(find.byKey(const Key('recent-course-KO')), findsOneWidget);
-      for (final ref in ['IT', 'KO', 'EN_IT']) {
+      for (final ref in ['IT', 'KO', 'EN_EDGE']) {
         await tester.scrollUntilVisible(
           find.byKey(ValueKey('favorite-course-$ref')),
           250,
@@ -3461,24 +3488,24 @@ void main() {
       expect(find.text('Favorites'), findsOneWidget);
 
       await tester.scrollUntilVisible(
-        find.byKey(const Key('course-selector-actions-favorite-EN_IT')),
+        find.byKey(const Key('course-selector-actions-favorite-EN_EDGE')),
         250,
         scrollable: selectorScroll,
       );
       await tester.tap(
-        find.byKey(const Key('course-selector-actions-favorite-EN_IT')),
+        find.byKey(const Key('course-selector-actions-favorite-EN_EDGE')),
       );
       await tester.pumpAndSettle();
       expect(find.text('Remove from Favorites'), findsOneWidget);
       await tester.tap(find.text('Hide in Learner'));
       await tester.pumpAndSettle();
       expect(
-        await CourseLearnerVisibilityService().isHidden(english.courseId),
+        await CourseLearnerVisibilityService().isHidden(edgeCase.courseId),
         isTrue,
       );
-      expect(await CourseLibraryService().contains(english), isTrue);
+      expect(await CourseLibraryService().contains(edgeCase), isTrue);
       expect(await settings.getLastSelectedCourseCode(), 'IT');
-      expect(find.byKey(const Key('favorite-course-EN_IT')), findsNothing);
+      expect(find.byKey(const Key('favorite-course-EN_EDGE')), findsNothing);
 
       await tester.scrollUntilVisible(
         find.byKey(const Key('course-selector-actions-current')),
@@ -3495,12 +3522,13 @@ void main() {
       expect(await CourseLibraryService().contains(current), isTrue);
       // No longer a Favorite, the current Course keeps only its own row: from
       // Build 255 Revision 7 it is not repeated under Other courses.
+      const otherRow = Key('local-course-user_other_selector_course');
       await tester.scrollUntilVisible(
-        find.byKey(const Key('bundled-course-EN_EDGE')),
+        find.byKey(otherRow),
         250,
         scrollable: selectorScroll,
       );
-      expect(find.byKey(const Key('bundled-course-EN_EDGE')), findsOneWidget);
+      expect(find.byKey(otherRow), findsOneWidget);
       expect(find.byKey(const Key('bundled-course-IT')), findsNothing);
     },
   );
@@ -4052,10 +4080,11 @@ Finder _sectionSelectorLabel(Course course, int lessonIndex) => find.descendant(
   ),
 );
 
-/// The Course Selector's World Flag rows (English from Italian) show an indeterminate
-/// progress indicator while their SVG loads, so pumpAndSettle never settles
-/// once such a row is built. Ten 100 ms frames cover the sheet and menu
-/// transitions.
+/// The Course Selector's World Flag rows show an indeterminate progress
+/// indicator while their SVG loads, so pumpAndSettle never settles once such
+/// a row is built (QQL Demo: English from Italian had one until it left the
+/// app and the repository in Build 272 Revision 15). Ten 100 ms frames cover
+/// the sheet and menu transitions.
 Future<void> _settleSelector(WidgetTester tester) async {
   for (var frame = 0; frame < 10; frame++) {
     await tester.pump(const Duration(milliseconds: 100));

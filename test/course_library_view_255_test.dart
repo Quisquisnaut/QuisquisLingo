@@ -229,12 +229,14 @@ void main() {
         await tester.tap(toggle(0));
         await tester.pump();
       }
-      // The Edge Case demo has Draft content, so it is unavailable (two
-      // bundled demos and the fixture since Build 262 Revision 0).
-      expect(count(tester, 0), ' · 2 of 3 shown');
+      // The Edge Case demo has Draft content, so it is unavailable (one
+      // bundled demo and the fixture since Build 272 Revision 15, when QQL
+      // Demo: English from Italian left the app and the repository; two
+      // demos since Build 262 Revision 0).
+      expect(count(tester, 0), ' · 1 of 2 shown');
       await tester.tap(find.byKey(const Key('show-unavailable-courses')));
       await tester.pump();
-      expect(count(tester, 0), ' · 3 of 3 shown');
+      expect(count(tester, 0), ' · 2 of 2 shown');
       expect(
         find.byKey(
           const ValueKey(

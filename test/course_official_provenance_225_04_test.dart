@@ -11,9 +11,11 @@ void main() {
 
   test('the bundled sources have verified immutable provenance', () async {
     // The Edge Case left the bundle in Build 259 Revision 5; QQL Demo:
-    // English from Italian joined it in Build 260 Revision 2; the two
-    // Piedmontese demos left it in Build 262 Revision 0.
-    expect(CourseService.courseAssets, hasLength(2));
+    // English from Italian joined it in Build 260 Revision 2 and left the
+    // app and the repository in Build 272 Revision 15 (owner decision of
+    // 13 October 2026); the two Piedmontese demos left it in Build 262
+    // Revision 0.
+    expect(CourseService.courseAssets, hasLength(1));
     final mismatches = <String, String>{};
     final titles = <String>{};
     for (final entry in CourseService.courseAssets.entries) {
@@ -36,10 +38,7 @@ void main() {
       }
     }
     expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
-    expect(titles, {
-      'QQL Demo: English from Italian',
-      'QQL Demo: Italian Exercise Lab',
-    });
+    expect(titles, {'QQL Demo: Italian Exercise Lab'});
     for (final entry in CourseService.courseAssets.entries) {
       expect(
         (await CourseService().loadBundledCourse(entry.key)).courseId,
@@ -54,10 +53,7 @@ void main() {
   test(
     'bundled demos are All rights reserved; only test demos allow Fork',
     () async {
-      const derivatives = {
-        'IT': DerivativeWorksPolicy.allowed,
-        'EN_IT': DerivativeWorksPolicy.forbidden,
-      };
+      const derivatives = {'IT': DerivativeWorksPolicy.allowed};
       expect(
         CourseService.courseAssets.keys,
         unorderedEquals(derivatives.keys),

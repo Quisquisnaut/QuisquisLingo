@@ -1,3 +1,4 @@
+import 'support/edge_case_fixture.dart';
 import 'support/korean_fixture.dart';
 import 'support/test_directories.dart';
 import 'dart:async';
@@ -435,18 +436,18 @@ void main() {
         final courses = await tester.runAsync(
           () => Future.wait([
             CourseService().loadCourse('IT'),
-            CourseService().loadCourse('EN_IT'),
+            CourseService().loadCourse('KO'),
           ]),
         );
         final italian = courses![0];
-        final english = courses[1];
+        final korean = courses[1];
         final profiles = _BlockingFlagBackgroundProfileService();
         await profiles.setFlagBackgroundMode(
           italian.courseId,
           LearnerFlagBackgroundMode.extended,
         );
         await profiles.setFlagBackgroundMode(
-          english.courseId,
+          korean.courseId,
           LearnerFlagBackgroundMode.off,
         );
         await _openHome(tester, profileService: profiles);
@@ -462,10 +463,10 @@ void main() {
           italian.courseId,
         );
 
-        profiles.blockNextFlagReadFor(english.courseId);
+        profiles.blockNextFlagReadFor(korean.courseId);
         addTearDown(profiles.releaseFlagRead);
         await _openCoursePicker(tester);
-        await _tapBundledCourse(tester, 'EN_IT');
+        await _tapBundledCourse(tester, 'KO');
 
         void expectCoherentFrame() {
           if (find.byType(UnifiedLearnerTopBar).evaluate().isEmpty) return;
@@ -473,7 +474,7 @@ void main() {
           final extendedBackdrop = find.byKey(
             const Key('unified-learner-flag-background'),
           );
-          if (activeCourseId == english.courseId) {
+          if (activeCourseId == korean.courseId) {
             expect(
               extendedBackdrop,
               findsNothing,
@@ -514,9 +515,9 @@ void main() {
           );
           await tester.pump(const Duration(milliseconds: 10));
           expectCoherentFrame();
-          if (_activeCourseId(tester) == english.courseId) break;
+          if (_activeCourseId(tester) == korean.courseId) break;
         }
-        expect(_activeCourseId(tester), english.courseId);
+        expect(_activeCourseId(tester), korean.courseId);
         await _pumpUntil(tester, find.byTooltip('Flag background: Off'));
         expect(find.byTooltip('Flag background: Off'), findsOneWidget);
       },
@@ -525,22 +526,26 @@ void main() {
     testWidgets(
       'a stale slow switch cannot replace the latest selected course',
       (tester) async {
+        // The slow Course is the Edge Case fixture: QQL Demo: English from
+        // Italian, the slow one until then, left the app and the repository
+        // in Build 272 Revision 15 (owner decision of 13 October 2026).
+        registerEdgeCaseFixture();
         _useLargeTestWindow(tester);
         await SettingsService().setAnimationsEnabled(false);
         final courses = await tester.runAsync(
           () => Future.wait([
-            CourseService().loadCourse('EN_IT'),
+            CourseService().loadCourse('EN_EDGE'),
             CourseService().loadCourse('KO'),
           ]),
         );
-        final english = courses![0];
+        final edgeCase = courses![0];
         final korean = courses[1];
         final profiles = _BlockingFlagBackgroundProfileService();
-        profiles.blockNextFlagReadFor(english.courseId);
+        profiles.blockNextFlagReadFor(edgeCase.courseId);
         addTearDown(profiles.releaseFlagRead);
         await _openHome(tester, profileService: profiles);
 
-        await _selectBundledCourse(tester, 'EN_IT');
+        await _selectBundledCourse(tester, 'EN_EDGE');
         for (
           var attempt = 0;
           attempt < 100 && !profiles.flagReadStarted;
@@ -741,8 +746,10 @@ Future<void> _selectBundledCourse(WidgetTester tester, String code) async {
 Future<void> _openCoursePicker(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
   await _pumpUntil(tester, find.text('Choose course'));
-  // The bundled English from Italian row resolves its World Flag asynchronously and
-  // legitimately shows an indeterminate progress indicator in the meantime.
+  // A row with a World Flag resolves it asynchronously and legitimately shows
+  // an indeterminate progress indicator in the meantime (the bundled English
+  // from Italian row did, until that Course left the app and the repository
+  // in Build 272 Revision 15; a custom Course with a World Flag still does).
   // Waiting for the whole tree to settle would therefore conflate that asset
   // load with the bottom-sheet transition under test.
   await tester.pump(const Duration(milliseconds: 350));

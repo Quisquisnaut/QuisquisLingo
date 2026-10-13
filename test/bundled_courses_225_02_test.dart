@@ -9,7 +9,6 @@ import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/duel_eligibility_service.dart';
 import 'package:quisquislingo_app/services/round_playability_service.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +33,6 @@ void main() {
         // Holder. The owner decided to take them out of the app (Revisions
         // 15 and 16) rather than name one, so their files are unchanged.
         'IT|null|LICENSE_RIGHTS_HOLDER_MISSING',
-        'EN_IT|null|LICENSE_RIGHTS_HOLDER_MISSING',
         // The Edge Case's three intentional warnings are checked by
         // edge_case_course_254_test since it left the bundle (Build 259
         // Revision 5).
@@ -47,7 +45,7 @@ void main() {
           Map<String, dynamic>.from(jsonDecode(raw) as Map),
         );
         final result = CourseAuditService().auditCourse(course);
-        final isModelDemo = const {'IT', 'EN_IT'}.contains(entry.key);
+        final isModelDemo = const {'IT'}.contains(entry.key);
         final errors = result.count(AuditSeverity.error);
         final warnings = result.count(AuditSeverity.warning);
         final info = result.count(AuditSeverity.info);
@@ -132,9 +130,11 @@ void main() {
         }
       }
 
-      // QQL Demo: English from Italian joined in Build 260 Revision 2; the
-      // two Piedmontese demos left in Build 262 Revision 0.
-      expect(CourseService.courseAssets, hasLength(2));
+      // QQL Demo: English from Italian joined in Build 260 Revision 2 and
+      // left the app and the repository in Build 272 Revision 15 (owner
+      // decision of 13 October 2026); the two Piedmontese demos left in
+      // Build 262 Revision 0.
+      expect(CourseService.courseAssets, hasLength(1));
       final auditReport = <String>[
         ...auditSummaries,
         'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '
@@ -156,18 +156,6 @@ void main() {
       );
     },
   );
-
-  test('the English from Italian demo loads through the registry', () async {
-    SharedPreferences.setMockInitialValues({});
-    final course = await CourseService().loadCourse('EN_IT');
-
-    expect(course.formatVersion, Course.currentFormatVersion);
-    expect(course.title, 'QQL Demo: English from Italian');
-    expect(course.sourceLanguage, 'Italian');
-    expect(course.targetLanguage, 'English');
-    expect(course.ttsLanguage, 'en-GB');
-    expect(course.worldFlagId, 'united_kingdom');
-  });
 
   testWidgets('Korean registry code renders the South Korean flag', (
     tester,

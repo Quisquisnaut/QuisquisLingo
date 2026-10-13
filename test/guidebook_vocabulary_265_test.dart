@@ -40,40 +40,33 @@ void main() {
     expect(parse(':house'), isNull);
   });
 
-  group('QQL Demo: English from Italian', () {
+  // A Course from Italian to English: its entries put English, the learning
+  // language, first. QQL Demo: English from Italian was the Course read here
+  // until it left the app and the repository in Build 272 Revision 15 (owner
+  // decision of 13 October 2026); the Edge Case fixture teaches the same way
+  // round. The case that counted the removed Course's own 36 entries left
+  // with it.
+  group('the Edge Case fixture, Italian to English', () {
     final course = Course.fromJson(
       jsonDecode(
-            File(
-              'assets/courses/english_from_italian_it_en.json',
-            ).readAsStringSync(),
+            File('test/fixtures/v12/edge_case_it_en.json').readAsStringSync(),
           )
           as Map<String, dynamic>,
     );
-    final lesson = course.lessons.single;
-
-    test('its 36 entries put English, the learning language, first', () {
-      // Build 266: the entries' own fields.
-      final pairs = lesson.guidebook.words.toList();
-      expect(pairs, hasLength(36));
-      expect(pairs.first.target, 'hello, hi');
-      expect(pairs.first.source, 'ciao');
-      expect(
-        pairs.map((pair) => pair.target),
-        containsAll(['water', 'bread', 'what time is it?']),
-      );
-      expect(
-        pairs.map((pair) => pair.source),
-        containsAll(["l'acqua", 'il pane', 'che ore sono?']),
-      );
-    });
+    final lesson = course.lessons.first;
+    // The first Lesson's seven Words & Expressions, English side first
+    // («hello = ciao» is there twice, on purpose).
+    const english = {'yes', 'a window', 'red', 'blue', 'hello', 'café'};
 
     test('Review vocabulary shows the English side as the prompt', () {
-      final entries = VocabularyReviewService().resolveEntries(course, lesson);
-      expect(entries, hasLength(36));
-      final thanks = entries.singleWhere(
-        (entry) => entry.prompt == 'thank you',
+      expect(
+        lesson.guidebook.words.map((word) => word.target).toSet(),
+        english,
       );
-      expect(thanks.answer, 'grazie');
+      final entries = VocabularyReviewService().resolveEntries(course, lesson);
+      expect(entries, hasLength(7));
+      final yes = entries.singleWhere((entry) => entry.prompt == 'yes');
+      expect(yes.answer, 'sì');
     });
 
     test('the Round Wizard takes English as the target', () {
@@ -88,10 +81,12 @@ void main() {
       final module = lesson.guidebook.modules.single.title;
       expect(plan.rounds.first.title, 'Foundations: $module');
       expect(plan.rounds.last.title, 'Use in context: $module');
-      expect(
-        generator.wordsOf(lesson.guidebook, plan.rounds.first),
-        contains('hello'),
-      );
+      // "Focus: <module> — <word>, <word>, …".
+      final words = generator.wordsOf(lesson.guidebook, plan.rounds.first);
+      expect(words, startsWith('Focus: $module — '));
+      final listed = words.substring('Focus: $module — '.length).split(', ');
+      expect(listed, isNotEmpty);
+      expect(english, containsAll(listed));
     });
   });
 }

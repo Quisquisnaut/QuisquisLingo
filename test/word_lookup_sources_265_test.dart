@@ -47,7 +47,9 @@ void main() {
       lesson(
         'first',
         [vocabulary('pane', 'il pane = the bread')],
-        sentences: [vocabulary('sentence', 'il pane è buono = the bread is good')],
+        sentences: [
+          vocabulary('sentence', 'il pane è buono = the bread is good'),
+        ],
       ),
       lesson('draft-lesson', [
         vocabulary('acqua', "l'acqua = the water"),
@@ -128,12 +130,15 @@ void main() {
     );
   });
 
-  group('QQL Demo: English from Italian', () {
+  // A whole Course from Italian to English: only its English side is
+  // searched. QQL Demo: English from Italian was the Course read here until
+  // it left the app and the repository in Build 272 Revision 15 (owner
+  // decision of 13 October 2026); the Edge Case fixture teaches the same way
+  // round.
+  group('the Edge Case fixture, Italian to English', () {
     final demo = Course.fromJson(
       jsonDecode(
-            File(
-              'assets/courses/english_from_italian_it_en.json',
-            ).readAsStringSync(),
+            File('test/fixtures/v12/edge_case_it_en.json').readAsStringSync(),
           )
           as Map<String, dynamic>,
     );
@@ -152,25 +157,34 @@ void main() {
     }
 
     test('its English lines find their entries', () {
-      expect(index.length, 36);
-      const line = 'Excuse me, where is the train to Oxford?';
-      expect(tap(line, 'train'), ['the train = il treno']);
-      // "the" is in too many entries alone, but "the train" is an entry.
-      expect(tap(line, 'the'), ['the train = il treno']);
-      expect(tap(line, 'Oxford'), isEmpty);
-      expect(tap("It's on platform two.", 'platform'), [
-        'the platform = il binario',
+      // The Published Lessons with a Published GuideBook: 7 + 4 + 4 + 1
+      // entries. Lesson 4's Draft GuideBook and the Draft Lesson 5 are not
+      // read.
+      expect(index.length, 16);
+      const line = 'Good morning! A coffee, please.';
+      expect(tap(line, 'coffee'), ['a coffee = un caffè']);
+      // "a" alone is an article, but "a coffee" is an entry.
+      expect(tap(line, 'A'), ['a coffee = un caffè']);
+      expect(tap(line, 'morning'), isEmpty);
+      // "coffee" alone is no entry; it is found inside "a coffee", whose
+      // other word is an English article.
+      expect(tap('Coffee or tea?', 'Coffee'), ['a coffee = un caffè']);
+      expect(tap('Coffee or tea?', 'tea'), ['tea = tè']);
+      const passage = 'The little cat is sitting beside the open window.';
+      expect(tap(passage, 'cat'), ['cat = gatto']);
+      expect(tap(passage, 'window'), ['window = finestra']);
+      // A word in the middle of an entry of several words, with the
+      // punctuation that follows it.
+      expect(tap('A cup of tea, please!', 'cup'), [
+        'a cup of tea = una tazza di tè',
       ]);
-      expect(tap('Thank you. What time is it?', 'Thank'), [
-        'thank you = grazie',
-      ]);
-      expect(tap('Thank you. What time is it?', 'time'), [
-        'what time is it? = che ore sono?',
+      expect(tap('A cup of tea, please!', 'of'), [
+        'a cup of tea = una tazza di tè',
       ]);
     });
 
     test('Italian words are never the searched side', () {
-      expect(tap('Anna sale sul treno.', 'treno'), isEmpty);
+      expect(tap('una finestra', 'finestra'), isEmpty);
       expect(tap('Un caffè, per favore.', 'caffè'), isEmpty);
     });
   });

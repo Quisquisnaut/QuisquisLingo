@@ -1,3 +1,4 @@
+import 'support/korean_fixture.dart';
 import 'support/publisher_fixtures.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -191,7 +192,12 @@ void main() {
     'official checksum covers derivative permission and rejects custom restore metadata',
     () async {
       SharedPreferences.setMockInitialValues({});
-      final source = await CourseService().loadBundledCourse('EN_IT');
+      // An official Course that forbids derivative works: the Korean
+      // fixture (QQL Demo: English from Italian until it left the app and
+      // the repository in Build 272 Revision 15).
+      registerKoreanFixture();
+      final source = await CourseService().loadBundledCourse('KO');
+      expect(source.derivativeWorksPolicy, DerivativeWorksPolicy.forbidden);
       final hash = CourseBackupService.officialContentChecksum(source);
       expect(
         CourseBackupService.officialContentChecksum(

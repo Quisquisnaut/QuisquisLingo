@@ -10,6 +10,7 @@ import 'package:quisquislingo_app/services/exercise_copy_service.dart';
 import 'package:quisquislingo_app/services/exercise_title.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/edge_case_fixture.dart';
 import 'support/pump_file_io.dart';
 
 /// Build 261 Revision 3 (owner decisions of 2 October 2026): every exercise
@@ -19,6 +20,11 @@ Iterable<Exercise> _exercises(Course course) => [
   for (final lesson in course.lessons)
     for (final round in lesson.rounds) ...round.exercises,
 ];
+
+/// The Edge Case fixture's Pick the translation: «una finestra».
+Exercise _edgeCaseWindow(Course course) => _exercises(
+  course,
+).firstWhere((exercise) => exercise.id == 'qql_edge_254_e02_max_translation');
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -75,16 +81,18 @@ void main() {
     }
   });
 
-  // Build 262 Revision 0: QQL Demo: Piedmontese left the bundle; its dog
-  // has a twin in QQL Demo: English from Italian.
-  test('the dog of QQL Demo: English from Italian has its title', () async {
-    final course = await CourseService().loadCourse('EN_IT');
-    final dog = course.lessons.first.rounds[1].exercises.firstWhere(
-      (exercise) => exercise.id == 'enit_65dce83b_l01_r02_e01',
-    );
-    expect(ExerciseCopyService.title(course, dog), 'SCEGLI LA TRADUZIONE');
+  // Build 262 Revision 0: QQL Demo: Piedmontese left the bundle and its dog
+  // had a twin in QQL Demo: English from Italian. Build 272 Revision 15:
+  // that Course left the app and the repository too (owner decision of 13
+  // October 2026); the Edge Case fixture, which also speaks Italian to its
+  // learners, has a Pick the translation of its own, the window.
+  test('the window of the Edge Case fixture has its title', () async {
+    registerEdgeCaseFixture();
+    final course = await CourseService().loadCourse('EN_EDGE');
+    final window = _edgeCaseWindow(course);
+    expect(ExerciseCopyService.title(course, window), 'SCEGLI LA TRADUZIONE');
     expect(
-      ExerciseCopyService.instructionForExercise(course, dog),
+      ExerciseCopyService.instructionForExercise(course, window),
       'Seleziona la traduzione corretta in inglese',
     );
   });
@@ -111,10 +119,11 @@ void main() {
   testWidgets('Pick the translation shows its title and a translated line', (
     tester,
   ) async {
+    registerEdgeCaseFixture();
     final course = (await tester.runAsync(
-      () => CourseService().loadCourse('EN_IT'),
+      () => CourseService().loadCourse('EN_EDGE'),
     ))!;
-    final exercise = course.lessons.first.rounds[1].exercises.first;
+    final exercise = _edgeCaseWindow(course);
     expect(exercise.editorTemplate, 'translation_choice_to_target');
     await pumpRound(
       tester,
@@ -128,7 +137,7 @@ void main() {
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('exercise-heading')).evaluate().isNotEmpty,
     );
-    // QQL Demo: English from Italian speaks Italian to its learners.
+    // The Edge Case fixture speaks Italian to its learners.
     expect(
       tester.widget<Text>(find.byKey(const Key('exercise-heading'))).data,
       'SCEGLI LA TRADUZIONE',
@@ -142,36 +151,59 @@ void main() {
   });
 
   testWidgets('a Story shows no title, not even on its cover', (tester) async {
+    // The Edge Case fixture's Story «At the bar»: a Before you start card,
+    // the cover, two lines, a question and a last line. (The Story «Al bar»
+    // of QQL Demo: English from Italian until Build 272 Revision 15.)
+    registerEdgeCaseFixture();
     final course = (await tester.runAsync(
-      () => CourseService().loadCourse('EN_IT'),
+      () => CourseService().loadCourse('EN_EDGE'),
     ))!;
-    final story = course.lessons.first.rounds[3];
+    final story = course.lessons
+        .expand((lesson) => lesson.rounds)
+        .firstWhere((round) => round.id == 'qql_edge_254_r11_story');
     expect(story.isStory, isTrue);
+    final question = story.exercises.firstWhere(
+      (exercise) => exercise.id == 'qql_edge_254_e36_needs_audio',
+    );
+    // Outside a Story the question would be titled.
+    final title = ExerciseCopyService.title(course, question);
+    expect(title, 'SCEGLI LA RISPOSTA');
     await pumpRound(tester, course, story);
+    await tester.pumpUntilFileIoState(
+      () => find
+          .byKey(const Key('before-you-start-continue'))
+          .evaluate()
+          .isNotEmpty,
+    );
+    await tester.tap(find.byKey(const Key('before-you-start-continue')));
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('story-cover-continue')).evaluate().isNotEmpty,
     );
     expect(find.byKey(const Key('exercise-heading')), findsNothing);
     expect(find.byKey(const Key('exercise-instruction')), findsOneWidget);
-    // Through the cover and the three lines to the first question.
+    // Through the cover and the two lines to the question.
     await tester.tap(find.byKey(const Key('story-cover-continue')));
-    for (var line = 0; line < 3; line++) {
+    // A line that reads itself aloud holds its Continue until it has been
+    // read (Build 269 Revision 0): wait for a Continue that can be pressed.
+    final lineContinue = find.byWidgetPredicate(
+      (widget) =>
+          widget is FilledButton &&
+          widget.key == const Key('story-line-continue') &&
+          widget.onPressed != null,
+    );
+    for (var line = 0; line < 2; line++) {
       await tester.pumpUntilFileIoState(
-        () =>
-            find.byKey(const Key('story-line-continue')).evaluate().isNotEmpty,
+        () => lineContinue.evaluate().isNotEmpty,
       );
-      await tester.ensureVisible(
-        find.byKey(const Key('story-line-continue')).last,
-      );
-      await tester.tap(find.byKey(const Key('story-line-continue')).last);
+      await tester.ensureVisible(lineContinue.last);
+      await tester.tap(lineContinue.last);
     }
     await tester.pumpUntilFileIoState(
-      () => find
-          .byKey(const Key('translation-choice-instruction'))
-          .evaluate()
-          .isNotEmpty,
+      () => find.text('Che cosa ordina Marta?').evaluate().isNotEmpty,
     );
     expect(find.byKey(const Key('exercise-heading')), findsNothing);
-    expect(find.text('SCEGLI LA TRADUZIONE'), findsNothing);
+    expect(find.text(title), findsNothing);
+    // The question keeps its instruction line.
+    expect(find.byKey(const Key('exercise-instruction')), findsWidgets);
   });
 }

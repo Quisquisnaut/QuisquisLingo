@@ -11,15 +11,17 @@ import 'package:quisquislingo_app/services/exercise_copy_service.dart';
 /// "Translate from English into Piedmontese"), and the standard lines no
 /// longer repeat their exercise title. Build 262 Revision 0: the
 /// Piedmontese demos left the bundle; the Laboratory and QQL Demo: English
-/// from Italian show the same lines.
+/// from Italian showed the same lines. Build 272 Revision 15: QQL Demo:
+/// English from Italian left the app and the repository too (owner decision
+/// of 13 October 2026); the Edge Case fixture is the Course whose learners
+/// read the lines in Italian.
 
-Course _load(String file) => Course.fromJson(
-  jsonDecode(File('assets/courses/$file').readAsStringSync())
-      as Map<String, dynamic>,
+Course _load(String path) => Course.fromJson(
+  jsonDecode(File(path).readAsStringSync()) as Map<String, dynamic>,
 );
 
-final _laboratory = _load('exercise_laboratory_en_it.json');
-final _englishFromItalian = _load('english_from_italian_it_en.json');
+final _laboratory = _load('assets/courses/exercise_laboratory_en_it.json');
+final _edgeCase = _load('test/fixtures/v12/edge_case_it_en.json');
 
 Iterable<LearningContent> _contents(Course course) => course.lessons
     .expand((lesson) => lesson.rounds)
@@ -35,13 +37,16 @@ String _line(Course course, Exercise exercise) =>
 
 void main() {
   group('2. Translations name the language of the answer', () {
-    for (final (course, source, target) in [
-      (_laboratory, 'English', 'Italian'),
-      (_englishFromItalian, 'italiano', 'inglese'),
+    for (final (course, toSourceFrom, source, target) in [
+      (_laboratory, _laboratory, 'English', 'Italian'),
+      // The Edge Case fixture has no "to source" Type the translation, so
+      // the Laboratory's are read with the fixture's languages: the line
+      // follows the Course's languages and the exercise's direction alone.
+      (_edgeCase, _laboratory, 'italiano', 'inglese'),
     ]) {
       final english = course == _laboratory;
       test('${course.title}: Type the translation, both directions', () {
-        final toSource = _byPreset(course, 'type_translation_to_source');
+        final toSource = _byPreset(toSourceFrom, 'type_translation_to_source');
         final toTarget = _byPreset(course, 'type_translation_to_target');
         expect(toSource, isNotEmpty);
         expect(toTarget, isNotEmpty);

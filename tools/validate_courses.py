@@ -27,7 +27,6 @@ ROOT = Path(__file__).resolve().parents[1]
 COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
     "exercise_laboratory_en_it.json": "it-IT",
-    "english_from_italian_it_en.json": "en-GB",
 }
 TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
 ROUND_VISUAL_TYPES = {"listening", "story", "generic", "test"}
@@ -501,8 +500,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     expected_lessons = {
         # The Page Lesson (Build 258 Revision 3) is the eighth.
         "exercise_laboratory_en_it.json": 8,
-        # QQL Demo: English from Italian (Build 260 Revision 2): one Lesson.
-        "english_from_italian_it_en.json": 1,
     }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(

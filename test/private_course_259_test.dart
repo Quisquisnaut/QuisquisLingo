@@ -21,6 +21,8 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/team_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/edge_case_fixture.dart';
+
 /// Build 259 Revision 8 (owner decisions of 1 October 2026): a custom Course
 /// whose `temporarySample` flag is on is a Private course, visible in QQL
 /// only to its Maintainer and assigned Team (admins included in the rule).
@@ -105,7 +107,12 @@ void main() {
       isTrue,
     );
     expect(CoursePrivacy.isPrivate(_course('c', maintainer: _bob)), isFalse);
-    final bundled = await CourseService().loadCourse('EN_IT');
+    // An official Course: the Edge Case fixture (QQL Demo: English from
+    // Italian until it left the app and the repository in Build 272
+    // Revision 15).
+    registerEdgeCaseFixture();
+    final bundled = await CourseService().loadCourse('EN_EDGE');
+    expect(bundled.originType, CourseOriginType.bundledOfficial);
     expect(bundled.temporarySample, isFalse);
     final flagged = Course.fromJson({
       ...bundled.toJson(),

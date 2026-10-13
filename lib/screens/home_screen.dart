@@ -1805,16 +1805,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     for (final ref in favorites)
                       includedCourseTile(ctx, ref, 'favorite'),
                   ],
-                  const Divider(),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
-                    child: Text(
-                      'Other courses',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                  // Build 272 Revision 15: no heading over nothing (a
+                  // learner whose only Course is the current one).
+                  if (other.isNotEmpty) ...[
+                    const Divider(),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 4, 16, 6),
+                      child: Text(
+                        'Other courses',
+                        key: Key('course-selector-other-courses'),
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
                     ),
-                  ),
-                  for (final ref in other)
-                    includedCourseTile(ctx, ref, 'other'),
+                    for (final ref in other)
+                      includedCourseTile(ctx, ref, 'other'),
+                  ],
                   const Divider(height: 28),
                   ListTile(
                     key: const Key('course-selector-all-courses'),

@@ -21,14 +21,13 @@ class CourseService {
   // Course IDs stay reserved in CourseEditorService, as the demos removed
   // in Build 254 do. The Edge Case is an importable custom Course in
   // demo_courses/ and, for the tests, the fixture
-  // test/fixtures/v12/edge_case_it_en.json. Build 260 Revision 2 adds
-  // QQL Demo: English from Italian (owner request). Build 262 Revision 0
-  // removed QQL Demo: Piedmontese (sorted by exercise type) and QQL Demo:
-  // Piedmontese, which left the app and its public repository (owner
-  // decision of 2 October 2026).
+  // test/fixtures/v12/edge_case_it_en.json. Build 262 Revision 0 removed
+  // QQL Demo: Piedmontese (sorted by exercise type) and QQL Demo:
+  // Piedmontese, and Build 272 Revision 15 QQL Demo: English from Italian
+  // (added in Build 260 Revision 2), which left the app and its public
+  // repository (owner decisions of 2 and 13 October 2026).
   static const Map<String, String> courseAssets = {
     'IT': 'assets/courses/exercise_laboratory_en_it.json',
-    'EN_IT': 'assets/courses/english_from_italian_it_en.json',
   };
 
   /// The Course IDs of [courseAssets], for callers that must know which
@@ -37,7 +36,6 @@ class CourseService {
   /// progress on a bundled one). A test keeps it equal to the assets.
   static const bundledCourseIds = <String>{
     'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
-    'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
   };
 
   /// Test-only: Courses registered by a test beside the bundle, such as the
@@ -60,15 +58,9 @@ class CourseService {
   static const bundledCourseIndexStorageKey =
       'quisquislingo_bundled_course_codes_v9_233030';
 
-  static const Map<String, String> targetLabels = {
-    'IT': 'Italian',
-    'EN_IT': 'English',
-  };
+  static const Map<String, String> targetLabels = {'IT': 'Italian'};
 
-  static const Map<String, String> sourceLabels = {
-    'IT': 'English',
-    'EN_IT': 'Italian',
-  };
+  static const Map<String, String> sourceLabels = {'IT': 'English'};
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
 
@@ -103,12 +95,9 @@ class CourseService {
       _additionalBundledCodes[course.courseId] ?? codeForCourse(course);
 
   // The Edge Case test fixture (registered by the tests since Build 259
-  // Revision 5) keeps its own reference beside the English language code;
-  // QQL Demo: English from Italian (Build 260 Revision 2) is another English
-  // Course.
+  // Revision 5) keeps its own reference beside the English language code.
   static const _additionalBundledCodes = {
     'course_6f6a1fa3-b834-4936-b324-92fb57f73502': 'EN_EDGE',
-    'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05': 'EN_IT',
   };
 
   static String codeForCourse(Course course) {

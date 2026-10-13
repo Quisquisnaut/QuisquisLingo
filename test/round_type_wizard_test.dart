@@ -6,11 +6,13 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/guidebook_round_generator.dart';
 
 void main() {
+  // The GuideBook of the Edge Case fixture's first Lesson: seven Words &
+  // Expressions, no Sentences. (QQL Demo: English from Italian's GuideBook
+  // until that Course left the app and the repository in Build 272
+  // Revision 15.)
   final course = Course.fromJson(
     jsonDecode(
-          File(
-            'assets/courses/english_from_italian_it_en.json',
-          ).readAsStringSync(),
+          File('test/fixtures/v12/edge_case_it_en.json').readAsStringSync(),
         )
         as Map<String, dynamic>,
   );

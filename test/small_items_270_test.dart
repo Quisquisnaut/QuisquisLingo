@@ -58,7 +58,7 @@ void main() {
   test('an imported Course ID is short and plain', () async {
     final pattern = CustomCourseTransferService.importableCourseId;
     for (final id in [
-      'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
+      'course_6f6a1fa3-b834-4936-b324-92fb57f73502',
       'italian-demo-2-239',
       'sample_ko_en_ko',
       'a' * 64,
@@ -68,11 +68,11 @@ void main() {
     for (final id in ['a' * 65, '../x', 'a b', '.hidden', 'x\u202Ey', '']) {
       expect(pattern.hasMatch(id), isFalse, reason: id);
     }
+    // A whole Course file whose only fault is its ID: the Edge Case fixture
+    // (QQL Demo: English from Italian's file until Build 272 Revision 15).
     final json =
         jsonDecode(
-              File(
-                'assets/courses/english_from_italian_it_en.json',
-              ).readAsStringSync(),
+              File('test/fixtures/v12/edge_case_it_en.json').readAsStringSync(),
             )
             as Map<String, dynamic>;
     json['courseId'] = 'c' * 70;

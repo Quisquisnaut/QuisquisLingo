@@ -22,6 +22,7 @@ import 'package:quisquislingo_app/services/course_backup_retention.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/korean_fixture.dart';
 import 'support/publisher_fixtures.dart';
 
 /// Build 249: every Course Manager operation, reached without the screen.
@@ -281,8 +282,13 @@ void main() {
       );
     });
 
+    // A bundled Course that forbids derivative works: the Korean fixture
+    // (QQL Demo: English from Italian, used here until then, left the app and
+    // the repository in Build 272 Revision 15).
     test('a Bundled Course is read only and exportable', () async {
-      final bundled = await CourseService().loadCourse('EN_IT');
+      registerKoreanFixture();
+      final bundled = await CourseService().loadCourse('KO');
+      expect(bundled.derivativeWorksPolicy, DerivativeWorksPolicy.forbidden);
       expect(admin.actionsFor(bundled), const [
         CourseManagerAction.removeFromMyCourses,
         CourseManagerAction.courseInfo,
@@ -362,7 +368,10 @@ void main() {
     });
 
     test('official Courses hide what can never apply', () async {
-      final bundled = await CourseService().loadCourse('EN_IT');
+      // The Korean fixture forbids derivative works, as QQL Demo: English
+      // from Italian did (it left in Build 272 Revision 15).
+      registerKoreanFixture();
+      final bundled = await CourseService().loadCourse('KO');
       final shown = reasons(admin, bundled);
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,

@@ -123,30 +123,4 @@ void main() {
       'Italia = Italy',
     ]);
   });
-
-  test('English from Italian: mass nouns without "the"', () {
-    final english = load('english_from_italian_it_en.json');
-    final words = [
-      for (final word in english.lessons.single.guidebook.words)
-        '${word.target} = ${word.source}',
-    ];
-    expect(
-      words,
-      containsAll([
-        'bread = il pane',
-        "water = l'acqua",
-        'milk = il latte',
-        'coffee = il caffè',
-        'tea = il tè',
-        'the apple = la mela',
-      ]),
-    );
-    final lookup = WordLookupSources.indexFor(english);
-    final result = lookup.resultAt(
-      'I like the bread.',
-      'I like the bread.'.indexOf('bread'),
-      currentLessonIndex: 0,
-    );
-    expect(result!.entries.single.source, 'il pane');
-  });
 }

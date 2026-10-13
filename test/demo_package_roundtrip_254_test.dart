@@ -21,32 +21,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _authorId = '12345678-1234-4234-9234-123456789abc';
 const _receiverId = '22345678-1234-4234-9234-123456789abc';
-const _demos = {
-  'Laboratory': 'assets/courses/exercise_laboratory_en_it.json',
-  // Build 262 Revision 0: the Piedmontese demo left the bundle; English from
-  // Italian takes its place here.
-  'English from Italian': 'assets/courses/english_from_italian_it_en.json',
-};
+// Build 262 Revision 0: the Piedmontese demo left the bundle and English
+// from Italian took its place here; Build 272 Revision 15: English from
+// Italian left the app and the repository too (owner decision of 13 October
+// 2026). It was the demo that forbids derivative works, whose content took
+// the personal-fork route through a test-only copy; the Laboratory allows
+// them, so that copy left with it.
+const _demos = {'Laboratory': 'assets/courses/exercise_laboratory_en_it.json'};
 
-// English from Italian forbids derivative works, so the shipped Course
-// cannot be forked. Its content still takes the personal-fork route through
-// this test-only copy, which differs only in that permission.
-const _forbidsDerivatives = {'English from Italian'};
-
-Course _forkableTestCopy(Course shipped) {
-  final allowed = Course.fromJson({
-    ...shipped.toJson(),
-    'derivativeWorksPolicy': DerivativeWorksPolicy.allowed.name,
-  });
-  return Course.fromJson({
-    ...allowed.toJson(),
-    'officialChecksum': CourseChecksums.official(allowed),
-  });
-}
-
-const _allNewDemoAssets = [
+const _demoAssetsWithAFile = [
   'assets/courses/exercise_laboratory_en_it.json',
-  'assets/courses/english_from_italian_it_en.json',
   // The Edge Case is a test fixture since Build 259 Revision 5; its bundled
   // identity stays reserved.
   'test/fixtures/v12/edge_case_it_en.json',
@@ -293,13 +277,7 @@ void main() {
     test(
       '${demo.key} personal Fork survives real export, receiver Import and re-export',
       () async {
-        final shipped = await _load(demo.value);
-        final forbidden = _forbidsDerivatives.contains(demo.key);
-        expect(
-          CourseAccessPolicy.evaluate(shipped, profileId: _authorId).canFork,
-          !forbidden,
-        );
-        final source = forbidden ? _forkableTestCopy(shipped) : shipped;
+        final source = await _load(demo.value);
         final sourceJson = source.toJson();
         expect(
           CourseAccessPolicy.evaluate(source, profileId: _authorId).canFork,
@@ -380,9 +358,9 @@ void main() {
   }
 
   test(
-    'all three new bundled identities reject valid custom impersonations',
+    'the Laboratory and Edge Case identities reject valid custom impersonations',
     () async {
-      for (final asset in _allNewDemoAssets) {
+      for (final asset in _demoAssetsWithAFile) {
         final bundled = await _load(asset);
         final collision = _collisionProbe(bundled.courseId);
         expect(
@@ -401,12 +379,14 @@ void main() {
     },
   );
 
-  // Build 262 Revision 0: the Piedmontese demos left the bundle; their
-  // identities stay reserved, as the demos removed before them.
-  test('the removed Piedmontese identities stay reserved', () async {
+  // Build 262 Revision 0: the Piedmontese demos left the bundle; Build 272
+  // Revision 15: QQL Demo: English from Italian left it too. Their identities
+  // stay reserved, as the demos removed before them.
+  test('the identities of the removed demos stay reserved', () async {
     for (final courseId in const [
       'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
       'course_69ff369e-bb4f-46a3-85f0-57ff9d51b453',
+      'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
     ]) {
       final collision = _collisionProbe(courseId);
       await expectLater(

@@ -1,3 +1,44 @@
+# 2.0.72 (Build 272, Revision 15) - QQL Demo: English from Italian leaves - 2026-10-13
+
+Decided by the owner on 13 October 2026: the Demo leaves the app and its
+public repository, as the two Piedmontese Courses did in Build 262.
+
+- **QuisquisLingo ships one sample Course**, QQL Demo: Italian Exercise
+  Lab. QQL Demo: English from Italian is no longer in All Courses, Course
+  Studio or the Course selector.
+- **A learner who was studying it** finds, at the next start, the first
+  Course they can study opened instead; its entries among the recent
+  Courses are passed over.
+- **Progress made on it stays on the device**, without a Course. The
+  Inventory lists it under "Progress on Courses no longer on this device",
+  where an admin can reset it. XP, streak and study days for English are
+  not touched.
+- **Its Course ID stays reserved**, like those of the Demos removed
+  before: no custom Course can take it.
+- **The Course selector shows no "Other courses" heading over nothing.**
+  With one bundled Course, a learner who has only that one saw the
+  heading with no row under it.
+- The credits page names the Edge Case course alone.
+- `tools/validate_courses.py` checks the one bundled Course.
+- The Course file, its generator with `tools/qql_v11_builders.py` (only
+  that generator used it) and its two test files were moved to the
+  owner's private folder, outside the repository, where an importable
+  custom version of the Course was made at the owner's request (a new
+  Course ID; checked with the app's import reader). The history of the
+  repository is not rewritten.
+- Tests: 33 test files that used the Demo as a sample, or listed the
+  bundled Courses, now use the Laboratory or the Edge Case and Korean test
+  fixtures; the cases about the Demo's own content left with it (its
+  title and flag, its 36 GuideBook entries, its mass nouns, its Rounds
+  without titles, its one card per Lesson, its difficulty curve, its
+  package round trip as a Course that forbids derivative works). Two new
+  cases: a learner whose stored Course is no longer bundled opens the
+  first Course they can study; the selector with one Course has no "Other
+  courses" heading.
+
+No new key or folder. Course files of other Courses, scoring, progression
+and learner data are unchanged.
+
 # 2.0.72 (Build 272, Revision 14) - a license names its Rights Holder - 2026-10-13
 
 A behaviour change, decided by the owner on 13 October 2026: a Course that

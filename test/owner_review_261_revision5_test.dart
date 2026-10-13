@@ -9,9 +9,10 @@ import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Build 261 Revision 5 (owner review of 2 October 2026): reading answers
-/// that do not copy the text and the Audit's READING_ANSWER_IN_TEXT; the
-/// English course's ordinary Rounds without titles; Fill with an example in
-/// the canonical editor.
+/// that do not copy the text and the Audit's READING_ANSWER_IN_TEXT; Fill
+/// with an example in the canonical editor. (The case on the English
+/// course's ordinary Rounds without titles left with QQL Demo: English from
+/// Italian in Build 272 Revision 15, owner decision of 13 October 2026.)
 final _stamp = DateTime.utc(2026, 10, 2, 12);
 
 PromptElement _text(String value, String role, {TextLanguage? language}) =>
@@ -102,22 +103,6 @@ void main() {
         expect(codes, isNot(contains('READING_ANSWER_IN_TEXT')), reason: code);
       }
     });
-  });
-
-  test('the English course\'s ordinary Rounds have no title', () async {
-    final course = await CourseService().loadCourse('EN_IT');
-    final rounds = course.lessons.single.rounds;
-    expect([
-      for (final round in rounds)
-        if (!round.isStory) round.title,
-    ], everyElement(isEmpty));
-    expect(
-      [
-        for (final round in rounds)
-          if (round.isStory) round.displayTitle(0),
-      ],
-      ['Story: Al bar', 'Story: Alla stazione'],
-    );
   });
 
   group('Fill with an example', () {

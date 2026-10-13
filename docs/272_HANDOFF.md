@@ -562,18 +562,11 @@ Gotchas:
 - A Python script with apostrophes or backslashes goes through the
   Write tool, never a shell heredoc (three more failures today).
 
-## Revision 14 (2.0.72+272014), a license names its Rights Holder: READY, waiting for the owner's go to commit
+## Revision 14 (2.0.72+272014), a license names its Rights Holder
 
-Revision 13 is committed and pushed (`082646c6`). Revision 14 is complete
-in the working tree (13 October 2026, night) and NOT committed: the owner
-asked to see the commit description first. It is in the session scratchpad
-(`commit_272014.txt`) and was shown to the owner; commit only on the
-owner's go, with an explicit file list (never `devtools_options.yaml`,
-`tools/cloud_setup.sh`; the new files are `lib/models/one_line_text.dart`
-and `test/rights_holder_272_test.dart`), then push `build-272`, beep,
-update the memory file. If the scratchpad is gone, write the message again
-from the Revision 14 sections of `CHANGELOG.md` and
-`docs/272_VALIDATION.md`.
+Committed `b0ffbb04` on 13 October 2026 (night) after the owner's "go" on
+the commit description, and pushed to `origin/build-272`. Next: Revision
+15 (see "After Revision 14" below).
 
 What it is:
 - The rule in `CourseCredits`: `rightsGivenUp`, `needsRightsHolder`,
@@ -636,6 +629,172 @@ tests "Maria Rossi", "Anna Bianchi", "mari_88", "Ada", "Ann", "Bo",
 
 Scripts and logs in the scratchpad `r14/`; the suite log is
 `suite272r14b.log`.
+
+## Revision 15 (2.0.72+272015) READY, waiting for the owner's go to commit: QQL Demo: English from Italian leaves the repository
+
+Started 13 October 2026 (night), after Revision 14's commit `b0ffbb04`.
+Owner decision: "Take it out of the repo, like viterbese and piedmontese."
+The model is Build 262 Revision 0 (`5ee20a5b`).
+
+Plan:
+1. Copy to the owner's private folder `D:\QQL_plus\Corsi_Privati` (outside
+   the repository, never commit them), check the copies byte for byte,
+   then remove from the repository:
+   - `assets/courses/english_from_italian_it_en.json` → `bundled\`
+   - `tools/generate_english_from_italian_260.py` and
+     `tools/qql_v11_builders.py` (only that generator imports it) →
+     `generators\`
+   - `test/english_from_italian_260_test.dart`,
+     `test/difficulty_curve_260_test.dart` → `tests\`
+2. App: `CourseService.courseAssets` loses `EN_IT` (with its labels and its
+   `_additionalBundledCodes` entry); the Course ID
+   `course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05` stays reserved in
+   `CourseEditorService`; `lib/screens/credits_screen.dart` line about
+   "English from Italian / Edge Case courses"; `tools/validate_courses.py`.
+   Check what Home does for a learner whose last Course was `EN_IT`.
+3. Tests that name it (about 35 files). Three kinds:
+   - about its own content: remove the case (bundled_courses_225_02,
+     lab_vocabulary_265, guidebook_vocabulary_265, word_lookup_sources_265,
+     owner_review_259_revision7 / 260_revision3 / 261_revision5,
+     exercise_titles_261, course_official_provenance_225_04,
+     course_service_test, course_model_v11_243, demo_package_roundtrip_254,
+     korean_production_discovery_225_03, audit_speed_271,
+     runtime_canonical_256, exercise_mascot_256, round_type_wizard_test);
+   - using it as a sample Course: use another Course (the Laboratory `IT`,
+     or the fixtures `registerEdgeCaseFixture()` `EN_EDGE` (Italian to
+     English) and `registerKoreanFixture()` `KO`): courses_study_review_261,
+     course_entry_animation_228, course_library_operations_249,
+     course_manager_workflow_249, official_course_storage_226_01,
+     private_course_259, publisher_course_export_262, course_preview_261,
+     leaderboard_navigation_test, small_items_270, import_side_doors_270;
+   - `EN_IT` as a language pair only (private_storage_names_255,
+     course_backup_v9_clean_cut, `course_storage_names.dart`,
+     learner_round_path_test's ID as a seed): nothing to do.
+   Remember that Revision 16 takes the Laboratory out of the app too (it
+   stays as a test fixture), so prefer the fixtures over the Laboratory
+   where a test needs only "a bundled Course".
+4. Documents (README lines that name it, CHANGELOG, AGENTS.md bullet,
+   change summary, validation), version 272015, independent review,
+   complete suite, the commit description shown to the owner first.
+
+Scripts in the session scratchpad `r15/`.
+
+Progress (13 October 2026, about 19:15):
+- Done: version 272015; the five files copied to the private folder
+  (each copy's SHA-256 checked), a section appended to its `LEGGIMI.txt`,
+  then `git rm`; `CourseService` (registry, `bundledCourseIds`, labels,
+  `_additionalBundledCodes`); credits page ("Edge Case course");
+  `tools/validate_courses.py`; README. Home needs no change: a stored
+  selection that no longer exists falls back to the first playable Course
+  (`home_screen.dart`, "if (!playable.any(...))") and stale recent refs
+  are filtered by `courseByRef.containsKey`.
+- Running: a helper agent migrates the test files under `test/` only
+  (rules: delete only cases about the removed Course's own content, move
+  the others to the Laboratory or to the Edge Case / Korean fixtures,
+  never weaken a test). Review its report and its diff before anything
+  else; it runs the analyzer and the changed test files itself.
+- Drafted in the scratchpad `r15/`: `changelog_r15.md`, `summary_r15.md`
+  (placeholders TESTS_LINE / TESTS_SECTION to fill from the helper's
+  report).
+- Left for Revision 16 on purpose: App Info's "The bundled demo courses"
+  (plural) in the three Help catalogs.
+- Importable custom version made on the owner's request ("Ok, make an
+  importable version"): `D:\QQL_plus\Corsi_Privati\custom  QQL_IT_EN_english_from_italian.json` (new Course ID
+  `course_dff7519d-8973-4def-8988-5ca14c7cfc88`, Maintainer Tempesta
+  35932, version 1), written by the new
+  `make_custom_english_from_italian.py` there (it imports `custom_course`
+  from the owner's `make_custom_courses.py`, which is unchanged, and
+  writes this one file; the other custom files' hashes were compared
+  before and after). `LEGGIMI.txt` describes it. STILL TO DO: check the
+  file with the app's own import reader
+  (`CustomCourseTransferService.courseFromBytes` and the Audit) in a
+  throwaway test once the helper has finished its Flutter runs; delete
+  the throwaway test afterwards.
+- Seen while there, to tell the owner: the Piedmontese custom files of 3
+  October are in the GuideBook shape of before Build 266 (`content`);
+  check whether current QQL still imports them before saying so.
+
+Progress (13 October 2026, about 20:15):
+- The helper finished the test migration: 33 files under `test/` (31
+  named the Course, plus `course_library_screen_244_test` and
+  `course_library_view_255_test`, which count bundled rows); its own
+  final run: analyzer clean, 340 passed in the 31 files. I read five of
+  its diffs (roundtrip, owner reviews 259 r7 / 260 r3 / 261 r5, Publisher
+  export): deletions are of the Demo's own content only, migrations keep
+  their meaning.
+- The importable custom file was checked with the app's import reader (a
+  throwaway test, deleted): it reads, 0 Audit errors, 1 warning (Rights
+  Holder). The same check: the owner's four other private custom Courses
+  (two Piedmontese, Viterbese, Neapolitan) are REFUSED by the current app
+  (GuideBook shape of before Build 266); told to the owner, not touched.
+- Documents written: CHANGELOG entry, README, AGENTS.md bullet, the
+  Revision 15 section of `docs/272_CHANGE_SUMMARY.md`.
+  `python tools/validate_courses.py`: 1 bundled Course, OK.
+- Running: the independent read-only review (the app's behaviour with
+  leftover learner state for the removed Course; the test migration).
+- Still to do: act on the review; `docs/272_VALIDATION.md` section; the
+  complete suite once; show the owner the commit description; commit
+  (the five deletions are already staged by `git rm`; stage the rest
+  with an explicit list), push, beep, memory.
+- New order decided by the owner the same evening: Revision 16 = the
+  pair-count and Flashcard recommendations become Info (see "After that"
+  below), Revision 17 = the Laboratory leaves the app.
+
+Progress (13 October 2026, about 21:00):
+- The independent review is back: no crash and no stale row for a device
+  with leftover `EN_IT` state; four test points and one outside the
+  repository, all acted on:
+  - the owner's private `corsi_brevi/make_short_courses.py` imported
+    `qql_v11_builders` from the repository's `tools/`: a copy now stands
+    beside it (script unchanged, import checked), `LEGGIMI.txt` says so;
+  - `korean_production_discovery_225_03_test`: its comment now says that
+    two Courses of one language are no longer shown switching; two new
+    cases (a stored selection that is no longer bundled; the selector with
+    one Course);
+  - `exercise_titles_261_test`: the Story case waits for a Continue that
+    can be pressed and checks the instruction line again;
+  - `word_lookup_sources_265_test`: taps inside "a cup of tea".
+  - App: the Course selector draws "Other courses"
+    (`course-selector-other-courses`) only over rows (`home_screen.dart`).
+- Documents updated for all of this (CHANGELOG, AGENTS.md, change
+  summary).
+- Running: analyzer + seven test files (`r15/analyze1.log`,
+  `r15/review1.log`). Then: validation section, the complete suite, the
+  commit description for the owner.
+- Not done from the review (reported in the change summary): the plural
+  texts (Revision 17); `exercise_titles_261_test`'s loop over
+  `courseAssets` lost its Italian sample (the single Edge Case case and
+  `learner_panel_260_test` still check Italian titles).
+
+STATE (13 October 2026, about 20:50): Revision 15 is READY and NOT
+committed; the commit description is in the scratchpad
+(`commit_272015.txt`) and was shown to the owner: commit only on the
+owner's go. The five deletions are staged by `git rm`; stage the rest
+with an explicit list (never `devtools_options.yaml`,
+`tools/cloud_setup.sh`), push `build-272`, beep, update the memory file.
+Evidence: analyzer clean; two new Home cases six times in a row; the
+complete suite 4,629 passed, 1 skipped, 0 failed (37 min,
+`suite272r15.log`); `docs/272_VALIDATION.md` has the section.
+
+Owner, same evening:
+- "Also the Edge Course can't be imported", then: "I used an old version.
+  The current version can be imported." A throwaway test (deleted) had
+  meanwhile imported `demo_courses/edge_case_it_en.json` through the real
+  Course Studio screen: pop-up, Import anyway, imported. No bug.
+  Note: Quick Import reads only `import.zip` or `import.json`.
+- "the folder should be renamed from Demo Courses to Test Courses": do it
+  as a follow-up commit of the same version right after Revision 15's
+  commit: `git mv demo_courses test_courses`, then every reference
+  (about 27 test files, `test/support/edge_case_fixture.dart`,
+  `tools/generate_edge_case_demo_254.py`, the comment in
+  `lib/services/course_service.dart`, README, AGENTS.md's current-state
+  lines, `test/fixtures/v11/README.md`); earlier Builds' documents keep
+  the old name as history. Run the analyzer and every test file that
+  names the folder. `demo_image_banks/` was not named by the owner: ask.
+- "what is Italian Demo 2?": answered (a small English to Italian sample
+  of Build 239, 2 Lessons, 10 Rounds, 50 exercises, JSON and ZIP; used by
+  about twelve test files as the sample Course for packages and the
+  Image Library; Maintainer Tempesta 35932; no author, no Rights Holder).
 
 ## After Revision 14: owner decisions of 13 October 2026 (evening), not started
 
@@ -711,10 +870,25 @@ Build 273: Home's `LearnerRoundPath` with its painters and
 home first), and the Course preview (a `part` of `home_screen.dart`
 because it uses six Home privates).
 
-So Build 272 ends with Revision 16: Revision 14 (this one), Revision 15
-(English from Italian leaves the repository), Revision 16 (the Lab leaves
-the app; the start page with no Course; App Info), then the owner's go
-for the merge into `main`.
+Owner decision of 13 October 2026 (about 19:30, "Agreed" to my
+recommendation, after reporting that the Audit still warns that Audio
+Match needs exactly 3 pairs): Build 274's planned Revision 1 ("two
+recommendations stop being Warnings", `docs/274_PLAN.md`) is brought
+forward into Build 272 as a revision of its own, right after Revision 15:
+- `AUDIO_MATCH_PAIR_COUNT` and `MATCH_PAIR_COUNT`: Info, and only outside
+  2 to 5 pairs (the owner's words: "fewer than 2", or large numbers: 1
+  pair, or 6 and more); the Listen and match form's label "Sound matches
+  (2 to 5)", the same wording for Match by meaning;
+- `FLASHCARD_EXAMPLE_EMPTY` Info for both kinds of card (a Picture
+  flashcard gets it too), the form's field "Usage sentence and optional
+  translation (recommended)"; `FLASHCARD_AUDIO_EMPTY` Info;
+- Help EN/IT/ES, the registry counts the tests pin. When it is delivered,
+  mark Revision 1 of `docs/274_PLAN.md` as done in Build 272.
+
+So Build 272 ends with Revision 17: Revision 15 (English from Italian
+leaves the repository), Revision 16 (the two recommendations stop being
+Warnings), Revision 17 (the Lab leaves the app; the start page with no
+Course; App Info), then the owner's go for the merge into `main`.
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

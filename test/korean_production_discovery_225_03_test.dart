@@ -77,9 +77,15 @@ void main() {
     await SettingsService().setAudioExercisesEnabled(false);
   });
 
-  // Build 255 Revision 6 removed the Spanish-to-English bundle; the Edge
-  // Course and English from Italian, two English Courses, still switch and
-  // restart independently (Build 262 Revision 0 removed Piedmontese).
+  // Build 255 Revision 6 removed the Spanish-to-English bundle, Build 262
+  // Revision 0 Piedmontese and Build 272 Revision 15 QQL Demo: English from
+  // Italian (it left the app and the repository, owner decision of 13 October
+  // 2026); the Edge Course and the Korean fixture still switch and restart
+  // independently. With QQL Demo: English from Italian this case switched
+  // between two Courses of the same language (English); no second English
+  // Course is left, so that two bundled Courses of one language are told
+  // apart is no longer shown here (`bundledCodeForCourse` is checked in
+  // bundled_demo_registry_254_test).
   testWidgets('two bundled Courses switch and restart independently', (
     tester,
   ) async {
@@ -93,17 +99,14 @@ void main() {
     await _openCoursePicker(tester);
     await _expectCourseTile(
       tester,
-      const ValueKey('bundled-course-EN_IT'),
-      'QQL Demo: English from Italian',
+      const ValueKey('bundled-course-KO'),
+      'AI-Slop Demo: Korean for English Speakers',
       selected: false,
     );
-    await tester.tap(find.byKey(const ValueKey('bundled-course-EN_IT')));
+    await tester.tap(find.byKey(const ValueKey('bundled-course-KO')));
     await _pumpIo(tester, frames: 30);
-    expect(
-      current().course.courseId,
-      'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
-    );
-    expect(await settings.getLastSelectedCourseCode(), 'EN_IT');
+    expect(current().course.courseId, 'sample_ko_en_ko');
+    expect(await settings.getLastSelectedCourseCode(), 'KO');
     await tester.pump(
       CourseEntryAnimationPolicy.duration + const Duration(milliseconds: 50),
     );
@@ -124,6 +127,52 @@ void main() {
     await _openHome(tester);
     expect(current().course.title, 'Temporary Demo: Edge Case Course');
     expect(await settings.getLastSelectedCourseCode(), 'EN_EDGE');
+    expect(tester.takeException(), isNull);
+  });
+
+  // Build 272 Revision 15: a learner whose Course left the app (QQL Demo:
+  // English from Italian, code EN_IT) opens the first Course they can
+  // study; the selection is written again and the stale recent entry is
+  // passed over.
+  testWidgets('a stored selection that is no longer bundled opens the first '
+      'Course the learner can study', (tester) async {
+    final settings = SettingsService();
+    await settings.setLastSelectedCourseCode('EN_IT');
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setStringList('recent_course_refs', const [
+      'EN_IT',
+      'KO',
+    ]);
+    await _openHome(tester);
+    final current = tester.widget<UnifiedLearnerTopBar>(
+      find.byType(UnifiedLearnerTopBar),
+    );
+    expect(current.course.title, 'QQL Demo: Italian Exercise Lab');
+    expect(await settings.getLastSelectedCourseCode(), 'IT');
+    await _openCoursePicker(tester);
+    expect(find.byKey(const ValueKey('recent-course-EN_IT')), findsNothing);
+    expect(find.byKey(const ValueKey('bundled-course-EN_IT')), findsNothing);
+    expect(find.byKey(const ValueKey('recent-course-KO')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  // Build 272 Revision 15: with one bundled Course, a learner who has only
+  // that one saw the heading with nothing under it.
+  testWidgets('with one Course in the library the selector shows no Other '
+      'courses heading', (tester) async {
+    CourseService.debugExtraAssets.clear();
+    await _openHome(tester);
+    await _openCoursePicker(tester);
+    expect(find.text('Current course'), findsOneWidget);
+    expect(
+      find.byKey(const Key('course-selector-other-courses')),
+      findsNothing,
+    );
+    expect(find.text('Other courses'), findsNothing);
+    expect(
+      find.byKey(const Key('course-selector-all-courses')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -280,7 +329,7 @@ void main() {
           for (final ref in [
             'custom:${otherCustom.courseId}',
             'EN_EDGE',
-            'EN_IT',
+            'KO',
             selectCustom ? 'custom:${custom.courseId}' : 'IT',
           ]) {
             await settings.setLastSelectedCourseCode(ref);
@@ -295,7 +344,7 @@ void main() {
             selected: true,
           );
           for (final entry in {
-            'EN_IT': 'QQL Demo: English from Italian',
+            'KO': 'AI-Slop Demo: Korean for English Speakers',
             'EN_EDGE': 'Temporary Demo: Edge Case Course',
             'custom:${otherCustom.courseId}': otherCustom.title,
           }.entries) {
@@ -318,8 +367,8 @@ void main() {
           }
           await _expectCourseTile(
             tester,
-            const ValueKey('recent-course-EN_IT'),
-            'QQL Demo: English from Italian',
+            const ValueKey('recent-course-KO'),
+            'AI-Slop Demo: Korean for English Speakers',
             selected: false,
           );
           await _expectCourseTile(
@@ -433,9 +482,11 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
 }
 
 Future<void> _expectEveryBundledTile(WidgetTester tester) async {
-  // IT, EN_IT (Build 260 Revision 2), KO and EN_EDGE fixtures; the two
-  // Piedmontese demos left in Build 262 Revision 0.
-  expect(CourseService.bundledAssets, hasLength(4));
+  // IT, and the KO and EN_EDGE fixtures. EN_IT joined in Build 260 Revision
+  // 2 and left the app and the repository in Build 272 Revision 15 (owner
+  // decision of 13 October 2026); the two Piedmontese demos left in Build
+  // 262 Revision 0.
+  expect(CourseService.bundledAssets, hasLength(3));
   final settings = SettingsService();
   final selected = await settings.getLastSelectedCourseCode();
   final recent = (await settings.getRecentCourseRefs())

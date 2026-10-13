@@ -57,6 +57,8 @@ void main() {
     // Build 262 Revision 0 removed the two Piedmontese demos.
     expect(CourseService.hasCourse('PMS'), isFalse);
     expect(CourseService.hasCourse('PMS_MIX'), isFalse);
+    // Build 272 Revision 15 removed QQL Demo: English from Italian.
+    expect(CourseService.hasCourse('EN_IT'), isFalse);
     // Build 259 Revision 5: the Edge Case left the bundle; it is imported
     // from demo_courses/.
     expect(CourseService.courseAssets.containsKey('EN_EDGE'), isFalse);

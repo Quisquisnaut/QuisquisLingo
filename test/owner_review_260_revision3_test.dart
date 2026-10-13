@@ -8,14 +8,15 @@ import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/services/exercise_draft_builder.dart';
 import 'package:quisquislingo_app/services/exercise_field_help.dart';
 import 'package:quisquislingo_app/services/preset_recipes.dart';
-import 'package:quisquislingo_app/services/round_playability_service.dart';
 
 /// Build 260 Revision 3 (owner review of 1 October 2026): Pick the missing
 /// word and One word fills all take an Instruction or context, the
 /// Piedmontese demo's exercises are all represented by their presets (it
 /// showcased them until it left the bundle in Build 262 Revision 0), and the
 /// QQL Demo Courses keep a Before you start card on the first Round of each
-/// Lesson only.
+/// Lesson only. That last rule was checked on QQL Demo: English from
+/// Italian alone; its case left with the Course in Build 272 Revision 15
+/// (owner decision of 13 October 2026).
 
 final _stamp = DateTime.utc(2026, 10, 1);
 
@@ -24,10 +25,7 @@ Course _load(String file) => Course.fromJson(
       as Map<String, dynamic>,
 );
 
-const _bundled = [
-  'exercise_laboratory_en_it.json',
-  'english_from_italian_it_en.json',
-];
+const _bundled = ['exercise_laboratory_en_it.json'];
 
 Exercise _built(String presetId, {required String prompt}) {
   final result = ExerciseDraftBuilder.build(
@@ -111,22 +109,6 @@ void main() {
                 content.id,
       ];
       expect(unrepresented, isEmpty, reason: file);
-    }
-  });
-
-  test('the QQL Demo Courses open only each Lesson\'s first Round with a '
-      'card', () {
-    for (final file in ['english_from_italian_it_en.json']) {
-      final course = _load(file);
-      for (final lesson in course.lessons) {
-        for (final (index, round) in lesson.rounds.indexed) {
-          expect(
-            RoundPlayabilityService().introFor(round) != null,
-            index == 0,
-            reason: '$file ${round.id}',
-          );
-        }
-      }
     }
   });
 }

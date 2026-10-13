@@ -906,3 +906,73 @@ sentence). Each has a test.
 ### Complete suite
 
 `flutter test --no-pub --concurrency=1`: **4,649 passed, 1 skipped, 0 failed** (84 min 46 s; the PC was busy), once, on the final tree, after both reviews' corrections. It also covers Revision 13's last two changes (author and license in a Merge; See the Audit), which had only focused tests.
+
+## Revision 15 (2.0.72+272015), QQL Demo: English from Italian leaves
+
+13 October 2026, owner's Windows 10 PC, `build-272`. A removal the owner
+decided; the model is Build 262 Revision 0.
+
+- The five files were copied to the owner's private folder and each
+  copy's SHA-256 compared with the original before `git rm`.
+- `python tools/validate_courses.py`: **Validated 1 bundled Course Model
+  v12 files**, OK.
+- The test migration (33 files) was done by a helper under written rules
+  (delete only cases about the Demo's own content; move the others to the
+  Laboratory or to the Edge Case and Korean fixtures; never weaken a
+  test). Its own final run: analyzer clean, **340 passed** in the 31
+  files that named the Course; 14 more files that read the registry,
+  **140 passed**. I read five of its diffs in full before the review.
+- After the review's corrections, seven files
+  (`korean_production_discovery_225_03_test`, `exercise_titles_261_test`,
+  `word_lookup_sources_265_test`, `leaderboard_navigation_test`,
+  `course_entry_animation_228_test`, `courses_study_review_261_test`,
+  `persisted_learner_delivery_226_04_r1_test`): **103 passed**.
+- Two new cases that open Home ("a stored selection that is no longer
+  bundled opens the first Course the learner can study"; "with one Course
+  in the library the selector shows no Other courses heading"), six runs
+  in a row: **passed** each time.
+- `flutter analyze --no-pub`: **No issues found**, on the final tree.
+- The importable custom version made in the private folder was read with
+  the app's own import reader (`CustomCourseTransferService.
+  courseFromBytes`, the Course Audit and the import check) in a throwaway
+  test, deleted afterwards: it reads as a custom Course, 0 Audit errors,
+  1 warning (the missing Rights Holder).
+
+### Independent review
+
+One second reader (read-only), asked for every place that reads a Course
+by its code or ID and what a device with leftover state for the removed
+Course does there, and for every weakened or wrongly deleted test.
+
+- The app: no crash, no throw, no row that cannot be opened. Visible
+  effects reported to the owner in the change summary (the silent change
+  of Course; the Inventory naming the Course by its ID with a sentence
+  that cannot come true; Gamification showing the ID; an "Other courses"
+  heading over nothing, which this revision removes).
+- Outside the repository: the owner's private Viterbese and Neapolitan
+  generator imported `qql_v11_builders` from the repository's `tools/`.
+  A copy now stands beside that script.
+- Tests, four points, all acted on: the same-language switching case
+  (said in its comment); a Story case that could depend on timing (it
+  waits for a Continue that can be pressed); the instruction line check
+  (restored); a tap inside a longer entry (restored). A missing test for
+  the one learner-facing effect was added.
+
+Not read by a second reader: the corrections made after the review (one
+condition in the Course selector, the test changes just listed).
+
+### Not tested here
+
+- Two bundled Courses of the same language told apart in the selector
+  (no second English Course is left; the rule is checked without a
+  screen in `bundled_demo_registry_254_test`).
+- A World Flag on a bundled Course (no remaining Course file has one;
+  covered for a custom Course in `course_entry_animation_228_test`).
+- The owner's private generator `make_short_courses.py` was not run: only
+  its imports were checked.
+
+### Complete suite
+
+`flutter test --no-pub --concurrency=1`: **4,629 passed, 1 skipped, 0 failed** (37 min 0 s), once, on the final tree, after the review's corrections.
+
+After the suite, a throwaway test (deleted) imported `demo_courses/edge_case_it_en.json` through the real Course Studio screen with the pop-up on, because the owner reported that the Edge Case Course could not be imported: the pop-up came, Import anyway imported it ("Imported … with 4 Course Audit warnings"). The owner then found the file used had been an old copy.

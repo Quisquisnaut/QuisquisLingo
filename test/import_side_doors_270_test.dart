@@ -80,10 +80,14 @@ void main() {
       }
     });
 
+    // The Laboratory: the one Course file left with both an image element
+    // and a picture answer's icon key naming a bundled file (QQL Demo:
+    // English from Italian was read here until it left the app and the
+    // repository in Build 272 Revision 15).
     Map<String, dynamic> demo() =>
         jsonDecode(
               File(
-                'assets/courses/english_from_italian_it_en.json',
+                'assets/courses/exercise_laboratory_en_it.json',
               ).readAsStringSync(),
             )
             as Map<String, dynamic>;

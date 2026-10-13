@@ -1136,3 +1136,148 @@ line under the rows; Tell me more).
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 15 (2.0.72+272015): QQL Demo: English from Italian leaves
+
+Your decision of 13 October 2026: "Take it out of the repo, like viterbese
+and piedmontese." The model is Build 262 Revision 0, when the two
+Piedmontese Courses left.
+
+### What changes for the user
+
+- QuisquisLingo ships **one** sample Course, QQL Demo: Italian Exercise
+  Lab. QQL Demo: English from Italian is gone from All Courses, Course
+  Studio and the Course selector.
+- If it was the Course you were studying, the next start opens the first
+  Course you can study. Nothing asks you anything.
+- **Progress made on it stays on the device**, without a Course. The
+  Inventory lists it under "Progress on Courses no longer on this device";
+  an admin can reset it there. XP, streak and study days for English are
+  not touched.
+- Its Course ID stays reserved, so no custom Course can take it.
+- The credits page (Course authors) names the Edge Case course alone.
+- **The Course selector shows no "Other courses" heading over nothing.**
+  With one bundled Course left, a learner who has only that one saw the
+  heading with no row under it. I added this one small change: it would
+  have been the first thing every learner noticed.
+
+### What you may notice, and I did not change
+
+The independent reader went through every place that reads a Course by
+its code or ID. Nothing crashes for a device that used the Demo. These
+are the visible effects:
+
+- **The change of Course is silent.** A learner whose Course was the Demo
+  opens on the first Course they can study, with no message.
+- **The Inventory names it by its Course ID**, without a title (the title
+  left with the file), and its line says the progress "comes back if the
+  same Course is installed again". For this Course that cannot happen,
+  because its ID is reserved. The Demos removed earlier show the same way.
+- **Gamification, Last Week XP by course**, shows the Course ID in place
+  of the title for XP earned on it.
+- A Course the learner had hidden with Hide in Learner can become the
+  current one through that fallback. This was already so.
+- Favorite, Hide and the other per-Course settings for it stay stored;
+  they do nothing.
+
+### Where its files are now
+
+In your private folder `D:\QQL_plus\Corsi_Privati`, each copy checked byte
+for byte before the file left the repository:
+
+| File | Folder |
+|---|---|
+| `english_from_italian_it_en.json` (the Course) | `bundled\` |
+| `generate_english_from_italian_260.py`, `qql_v11_builders.py` | `generators\` |
+| `english_from_italian_260_test.dart`, `difficulty_curve_260_test.dart` | `tests\` |
+
+I added a section about them at the end of `LEGGIMI.txt` there.
+
+### The importable version (you asked for it)
+
+`custom\QQL_IT_EN_english_from_italian.json`, made by the new script
+`make_custom_english_from_italian.py` in the same folder, with the recipe
+of the two Piedmontese Courses:
+
+- a new Course ID (the app refuses the bundled file as it is, because its
+  ID is reserved); Lessons, Rounds and exercises keep their IDs;
+- a custom Course whose Maintainer is your profile Tempesta 35932, at
+  Course version 1; title, content and license as in the bundled Course;
+- the script writes this one file and does not touch your other custom
+  Courses (I compared them before and after).
+
+Two things to know before you import it:
+
+- **Progress made on the bundled Course does not pass to it**: it is
+  another Course.
+- It states "All rights reserved" and names no Rights Holder, so the
+  import pop-up lists that and its Audit has the warning. You name the
+  Rights Holder in Course Info Editor.
+
+The history of the repository is not rewritten: the files are still in
+earlier commits, as for the Piedmontese Courses.
+
+### Checked with the app's own import reader
+
+The importable file reads as a custom Course with 0 Audit errors and 1
+warning, the missing Rights Holder.
+
+The same check showed that your four other private importable Courses
+(the two Piedmontese, Viterbese, Neapolitan) are **refused** by the
+current app: they were written on 3 October with the GuideBook shape of
+before Build 266, and the app answers "regenerate the Course". I did not
+touch them.
+
+### Your Viterbese and Neapolitan generator
+
+`corsi_brevi\make_short_courses.py` in your private folder takes
+`qql_v11_builders` from the repository's `tools` folder, which this
+revision removes. So that it keeps working, I put a copy of that file
+beside your script (`corsi_brevi\qql_v11_builders.py`); your script is
+unchanged, and I checked that it finds the copy. The independent reader
+found this.
+
+### Left for Revision 17
+
+App Info and the credits page still say "The bundled demo courses" and
+"The bundled courses titled QQL Demo", in the plural. Revision 17 rewrites
+those texts (no bundled Courses at all), so I did not change them twice.
+
+### Tests
+
+33 test files changed, none weakened:
+
+- Cases that were only about the Demo's own content left with it: its
+  load through the registry (title, languages, flag), its 36 GuideBook
+  entries, its mass nouns without "the", its ordinary Rounds without
+  titles, its one Before you start card per Lesson, its difficulty curve
+  (the two test files moved to your folder), and its package round trip
+  as the one Demo that forbade derivative works.
+- Cases that used it as a sample now use another Course and prove the
+  same thing: the Edge Case fixture (Italian to English) where learners
+  must read Italian, the Korean fixture where an official Course must
+  forbid derivative works, the Laboratory where a bundled file was
+  needed.
+- Lists and counts of bundled Courses follow: one bundled Course; `EN_IT`
+  is among the removed codes; its Course ID is among the reserved ones.
+
+Coverage that left with the Demo and has no replacement: a bundled Course
+that forbids derivative works (an official one that forbids them is still
+covered by the Korean fixture); two bundled Courses of the same language
+switching in the selector (now the Edge Case and the Korean fixtures; the
+rule itself is still checked without a screen); a World Flag on a bundled
+Course (still covered for a custom Course).
+
+### What the independent review found
+
+No crash and no stale row in the app. In the tests, four points, all
+acted on: one migrated case no longer showed two Courses of the same
+language (now said in its comment, with where the rule is still checked);
+one could depend on timing (it now waits for a Continue that can be
+pressed); one had lost its check of the instruction line (restored); one
+no longer tapped a word in the middle of a longer entry (restored). It
+also noted that no test opened Home with a stored Course that no longer
+exists: there is one now.
+
+Course files of other Courses, scoring, progression and learner data are
+unchanged. No new key or folder.

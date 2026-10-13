@@ -31,7 +31,7 @@ class CreditsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const _CreditCard(
-            title: 'English from Italian / Edge Case courses',
+            title: 'Edge Case course',
             text:
                 'Temporary AI-generated sample content; human course authors are still to be added.',
           ),

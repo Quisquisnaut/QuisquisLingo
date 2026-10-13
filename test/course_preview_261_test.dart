@@ -11,14 +11,17 @@ import 'package:quisquislingo_app/services/duel_eligibility_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/korean_fixture.dart';
 import 'support/pump_file_io.dart';
 
 /// Build 261 Revision 2 (owner decisions of 1 October 2026): the Course
 /// preview from the Course Editor.
 const _alice = '11111111-1111-4111-8111-111111112612';
 
-/// QQL Demo: English from Italian with its Lesson, GuideBook and second
-/// Round turned into Drafts, as an author may hold them.
+/// The Korean fixture with its first Lesson, that Lesson's GuideBook and
+/// second Round turned into Drafts, as an author may hold them. (QQL Demo:
+/// English from Italian was the sample until it left the app and the
+/// repository in Build 272 Revision 15, owner decision of 13 October 2026.)
 Course _draftCourse(Course course) {
   final json = course.toJson();
   final lesson = (json['lessons'] as List).first as Map<String, dynamic>;
@@ -37,9 +40,10 @@ Future<Map<String, Object?>> _preferences() async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  late Course english;
+  late Course korean;
 
   setUp(() async {
+    registerKoreanFixture();
     SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
     await ProfileService().createProfile(
       'Alice',
@@ -47,11 +51,11 @@ void main() {
       generateScreenNameSuffix: false,
     );
     await ProfileService().setActiveProfileById(_alice);
-    english = await CourseService().loadCourse('EN_IT');
+    korean = await CourseService().loadCourse('KO');
   });
 
   test('the preview Duel counts Draft content', () {
-    final lesson = _draftCourse(english).lessons.first;
+    final lesson = _draftCourse(korean).lessons.first;
     const service = DuelEligibilityService();
     expect(service.evaluate(lesson).eligibleCount, 0);
     expect(
@@ -63,7 +67,7 @@ void main() {
   testWidgets('the preview shows Drafts on a clean slate and writes nothing', (
     tester,
   ) async {
-    final course = _draftCourse(english);
+    final course = _draftCourse(korean);
     final before = await tester.runAsync(_preferences);
     await tester.pumpWidget(
       MaterialApp(
@@ -164,7 +168,7 @@ void main() {
           builder: (context) => Scaffold(
             body: Center(
               child: FilledButton(
-                onPressed: () => openCoursePreview(context, english),
+                onPressed: () => openCoursePreview(context, korean),
                 child: const Text('Open preview'),
               ),
             ),
@@ -216,9 +220,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: DuelScreen(
-          course: english,
-          lesson: english.lessons.first,
-          ttsLanguage: 'en-GB',
+          course: korean,
+          lesson: korean.lessons.first,
+          ttsLanguage: 'ko-KR',
           previewMode: true,
         ),
       ),
@@ -231,7 +235,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      MaterialApp(home: CourseEditorScreen(course: english)),
+      MaterialApp(home: CourseEditorScreen(course: korean)),
     );
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('course-preview-flag')).evaluate().isNotEmpty,
@@ -243,7 +247,7 @@ void main() {
           .widget<CoursePreviewScreen>(find.byType(CoursePreviewScreen))
           .course
           .courseId,
-      english.courseId,
+      korean.courseId,
     );
     await tester.tap(find.byKey(const Key('course-preview-exit')));
     await tester.pumpAndSettle();
@@ -254,11 +258,11 @@ void main() {
   testWidgets('the Round editor shows the flag left of its title', (
     tester,
   ) async {
-    final lesson = english.lessons.first;
+    final lesson = korean.lessons.first;
     await tester.pumpWidget(
       MaterialApp(
         home: RoundEditorScreen(
-          course: english,
+          course: korean,
           lesson: lesson,
           round: lesson.rounds[1],
           roundIndex: 1,
@@ -283,7 +287,7 @@ void main() {
   testWidgets('from an exercise form the preview leaves out unsaved edits', (
     tester,
   ) async {
-    final lesson = english.lessons.first;
+    final lesson = korean.lessons.first;
     final round = lesson.rounds[1];
     final exercise = round.exercises.first;
     await tester.pumpWidget(
@@ -292,7 +296,7 @@ void main() {
           exercise: exercise,
           title: 'Exercise',
           isNew: false,
-          course: english,
+          course: korean,
           lesson: lesson,
           round: round,
         ),

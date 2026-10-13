@@ -7,14 +7,13 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('Build 262 Revision 0 bundles two demos', () {
+  test('Build 272 Revision 15 bundles one demo', () {
     expect(CourseService.courseAssets, {
       'IT': 'assets/courses/exercise_laboratory_en_it.json',
-      'EN_IT': 'assets/courses/english_from_italian_it_en.json',
     });
     expect(CourseService.hasCourse('ko'), isFalse);
-    expect(CourseService.sourceLabels['EN_IT'], 'Italian');
-    expect(CourseService.targetLabels['EN_IT'], 'English');
+    expect(CourseService.sourceLabels, {'IT': 'English'});
+    expect(CourseService.targetLabels, {'IT': 'Italian'});
   });
 
   test('removed demos are unavailable', () {
@@ -31,6 +30,7 @@ void main() {
       'EN_EDGE',
       'PMS',
       'PMS_MIX',
+      'EN_IT',
     ]) {
       expect(CourseService.hasCourse(code), isFalse, reason: code);
       expect(CourseService.targetLabels.containsKey(code), isFalse);
@@ -59,7 +59,7 @@ void main() {
 
       expect(first, CourseService.courseAssets.keys);
       expect(second, first);
-      expect(first, ['IT', 'EN_IT']);
+      expect(first, ['IT']);
       expect(
         preferences.getStringList(CourseService.bundledCourseIndexStorageKey),
         first,

@@ -103,11 +103,7 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
   'fill_the_slots': {LearnerExerciseKind.assignSlots},
 };
 
-const _bundled = [
-  'exercise_laboratory_en_it.json',
-  'edge_case_it_en.json',
-  'english_from_italian_it_en.json',
-];
+const _bundled = ['exercise_laboratory_en_it.json', 'edge_case_it_en.json'];
 
 // The Edge Case is the Course to import since Build 259 Revision 5.
 Course _load(String file) => Course.fromJson(
