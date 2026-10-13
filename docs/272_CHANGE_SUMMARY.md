@@ -506,3 +506,58 @@ place.
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder. The Beta expiry moves to 12 November 2026 (a new release
 day).
+
+## Revision 8 (2.0.72+272008): one owner for the media reference rule
+
+Nothing an author or a learner sees changes.
+
+### What it is
+
+A Course names its own pictures and recordings by their content, as
+`media:` followed by a long code and the kind of file, never by a path on
+the author's device. That is what lets a Course travel to another device.
+
+The rule that says what such a name looks like was written nine times
+(the media store had two):
+
+| Where | What it checked |
+|---|---|
+| Course models | the cover |
+| Course models | a recording of the Audio Library |
+| Course models | a picture of an exercise |
+| Course models | a picture taken from the shared library |
+| Course models | a Story avatar |
+| Media store | any Course media, and the stored file's name |
+| Package service | a file inside a Course package |
+| Signing tool | the media a signed package must carry |
+
+Nine copies of one rule can drift apart: a new kind of file added in one
+place and forgotten in another would make a Course that one part of the app
+accepts and another refuses. Now there is one, `CourseMediaReference`, and
+the nine places read it. The media store's list of the kinds of file (mp3,
+png, jpg, jpeg, webp) is the owner's too.
+
+The check that refuses a Course file naming a recording or a picture by a
+path of one device moved to the same owner, with the same messages.
+
+### How it was checked
+
+- 28 tests written first, on the code as it was: twenty names (good ones,
+  wrong kinds of file, wrong codes, paths of one device, QQL's own files)
+  asked at every place that decides, and the seven refusals of a Course file
+  with their exact messages. They pass unchanged afterwards.
+- 25 tests on the owner, among them one that reads each pattern and
+  compares it letter for letter with the text written before.
+- An independent review before the complete suite.
+- The complete suite ran twice. The first run was slow (83 minutes instead
+  of 45, the PC was busy) and one older test failed because its wait for
+  Course Studio to read the stored Courses had a limit of 10 seconds. That
+  test passes alone, 4 times out of 4, and nothing of this revision is
+  involved. The limit, which is only there so that a wait cannot last for
+  ever, is 30 seconds now, and 1.2 GB of leftover test files were removed.
+  The second run: 4,471 passed, 1 skipped.
+
+The Course models file goes from 5,809 to 5,748 lines.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

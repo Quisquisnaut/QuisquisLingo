@@ -1,3 +1,25 @@
+# 2.0.72 (Build 272, Revision 8) - modularization: one owner for the media reference rule - 2026-10-13
+
+Nothing an author or a learner sees changes in this revision.
+
+- **How a Course names its own pictures and recordings has one owner**:
+  `CourseMediaReference` (`lib/models/course_media_reference.dart`). The
+  rule `media:<sha256>.<ext>` was written in nine places: five in the Course
+  models, two in the media store, one in the package service and one in the
+  signing tool. They all read the owner now, as does the media store's list
+  of the kinds of file.
+- The check that refuses a Course file naming a recording or a picture by a
+  path of one device moved there too, with the same messages.
+- The Course models file goes from 5,809 to 5,748 lines.
+- **Tests**: `test/course_media_reference_272_test.dart`: 28 cases written
+  before the change (twenty references asked at every entry point, and the
+  seven refusals of a Course file with their exact messages) and 25 on the
+  owner, among them that each pattern is letter for letter the one written
+  before.
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-12 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 7) - modularization: the Timed Round's clock - 2026-10-13
 
 Nothing a learner sees changes in this revision.

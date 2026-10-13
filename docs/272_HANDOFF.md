@@ -34,7 +34,7 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 4 | Lesson Options owner (`LessonOptions`) and panel; then a Windows package for the owner to try |
 | 5 | The exercise editor (`ExerciseEditorScreen`, 3,153 lines) moves whole to its own file (done, `1aa0d72d`) |
 | 6 | Free moves from the Course Editor file: Audio Library, Audit page, Lesson preview, the hierarchy status; `ExerciseLabels` (done, `bd1c2550`) |
-| 7 | `TimedRoundClock` |
+| 7 | `TimedRoundClock` (done, `7d79280c`) |
 | 8 | Media-reference owner |
 | 9 | Shared JSON readers for the models |
 | 10 | Merge selection owner; Merge, Import and Export pages leave Course Studio |
@@ -375,21 +375,68 @@ Gotchas:
   complete suite: one pass does not show a case that fails one run in
   two. This cost a second complete suite here.
 
-## Next: Revision 8, the media-reference owner (not started)
+## Revision 8 (2.0.72+272008), one owner for the media reference rule
 
-Notes in the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), `r8/NOTES.md`: the
-`media:<sha256>.<ext>` rule is written at `course_models.dart` 823
-(`Course.coverImagePattern`), 1287 and 1292 (`_audioReference`,
-`_imageReference`), 3491 (`PromptElement.fromJson`, inline), 3669
-(`StorySpeaker.avatarPattern`), in `course_media_store.dart` 44 and 47,
-`course_package_service.dart` 179 (`media/…`, the path in a package)
-and `tools/sign_course.dart` 220; `Course._validateMediaReferences`
-(1306–1352) walks the raw JSON. Design: a pure file beside
-`lib/models/bundled_asset.dart` with the patterns, `isValidImage` /
-`isValidAudio` and the walk (same messages); `Course`'s public statics
-stay as one-line delegates. First a table of accepted and refused
-references run against every present entry point, with the exact
-`FormatException` texts. An owner: its own complete suite.
+State (13 October 2026, 05:51): done. Analyzer clean; 24 focused files 316 passed; the independent review found no behaviour difference, its follow-ups done. The first complete suite (83 minutes, a busy PC) had ONE failure, in `qql_230_course_persistence_hardening_test` (the 10-second guard of `pumpUntilFileIoState` ran out); the file passes alone 4 of 4; the guard is 30 seconds now and `D:\QQL_test_temp` was emptied. Second complete suite: 4,471 passed, 1 skipped. Committed (hash in `git log`) and pushed, with the Build 274 plan (`docs/274_PLAN.md`: `f9989981`, `d561323d`).
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/models/course_media_reference.dart`: `CourseMediaReference`
+  (patterns `image`, `audio`, `any`, `fileName`, `packagePath`, the
+  text `imageBody`; `isImage`, `isAudio`, `isAny`, `isValidAudio`,
+  `isValidImage`, `checkCourseJson`).
+- Its eight users read it (`r8/apply_r8.py`): four places of
+  `course_models.dart`, two of `course_media_store.dart`,
+  `course_package_service.dart`, `tools/sign_course.dart`.
+- Tests: `course_media_reference_272_test` (28 written before the
+  change + 24 on the owner).
+
+Gotchas:
+
+- `dart format` on a file of `git status` also rewraps old lines of that
+  file that were never formatted (`course_media_store.dart` had one):
+  read the diff after formatting and put such a line back.
+- A pattern built from `const` texts is compared with the old literal
+  in a test (`RegExp.pattern`), not by eye.
+
+## Next: Revision 9, shared JSON readers for the models (not started)
+
+Notes in the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), `r9/NOTES.md`: the
+file-level helpers at the end of `course_models.dart`
+(`_requiredString`, `_optionalString`, `_optionalInt`, `_stringList`,
+`_pairList`, `_mapList`, the three timestamp helpers, `_FirstOrNull`)
+and their copies at the top of `exercise_canonical.dart`
+(`_requiredString`, `_optionalString`, `_stringList`, `_mapList`,
+`_refuseUnknownKeys`, `_listEquals`). Two copies differ: `_stringList`
+(the models' message names only the key, the canonical one the place
+too) and `_mapList` (the models refuse a missing list, the canonical
+one reads it as empty). Revision 9 keeps both rules under their own
+names (`JsonRead.stringListByKey` / `stringList`, `requiredList` /
+`optionalList`): no behaviour change. Prepared in `r9/`: the owner
+(`json_read.dart`), `apply_r9.py` (135 + 32 calls renamed; `--out=`
+for a dry run) and `same_code.py` (the formatted result is the same
+code but for layout). An owner: its own complete suite.
+
+## Then: Revision 10, the two differences fixed (owner, 13 October 2026)
+
+The owner said "Fix the two things", then agreed to this:
+
+1. **Wording**: every refusal of a list names the place and the field
+   ("evaluation.acceptedAnswers must be a list."): the six models'
+   calls of `stringListByKey` and the one of `pairList` get a place;
+   `stringListByKey` goes.
+2. **A missing list**: two readers stay, named for what they are (a list
+   the file must have, a list it may leave out); the seven hand-written
+   "if it is not there, empty" checks of the models (GuideBook module
+   `sentences` / `words`, the v11 interaction's `items` / `layout`, the
+   v11 evaluation's `correctOrders`, the exercise's `items` / `targets`
+   / `layout`) become `optionalList`; **a list written as `null` means
+   "not there" everywhere** (today the GuideBook module refuses it).
+   Side effect to report: the two v11 `is List` checks took any non-list
+   value as empty; they will refuse it.
+
+A behaviour change: a revision of its own, with tests for each rule,
+its own review and suite.
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

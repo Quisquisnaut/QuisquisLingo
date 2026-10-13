@@ -7,6 +7,7 @@ import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
+import '../models/course_media_reference.dart';
 import '../models/course_models.dart';
 import 'course_media_store.dart';
 import 'import/bounded_zip_reader.dart';
@@ -175,9 +176,7 @@ class CoursePackageService {
   static const int maxPackageEntries = 20000;
   static const String manifestName = 'qql-course-package.json';
   static const String courseName = 'course.json';
-  static final RegExp _mediaName = RegExp(
-    r'^media/([0-9a-f]{64})\.(mp3|png|jpg|jpeg|webp)$',
-  );
+  static final RegExp _mediaName = CourseMediaReference.packagePath;
 
   /// Uses the supplied Course serialization unchanged as `course.json`.
   Future<Uint8List> build(

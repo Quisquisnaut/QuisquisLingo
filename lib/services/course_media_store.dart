@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../models/course_media_reference.dart';
 import '../models/course_models.dart';
 import 'course_image_usage.dart';
 import 'import/image_validator.dart';
@@ -30,8 +31,8 @@ class CourseMediaStore {
   /// Build 255 Revision 4 renamed it from `quisquislingo_course_media`, which
   /// is left untouched and no longer read.
   static const rootDirectoryName = 'QQL_CourseMedia';
-  static const audioExtensions = {'mp3'};
-  static const imageExtensions = {'png', 'jpg', 'jpeg', 'webp'};
+  static const audioExtensions = CourseMediaReference.audioExtensions;
+  static const imageExtensions = CourseMediaReference.imageExtensions;
   static const maxAudioBytes = 50 * 1024 * 1024;
   static const maxImageBytes = ImageProfile.courseImageMaxBytes;
 
@@ -40,14 +41,10 @@ class CourseMediaStore {
   /// copied or imported under this limit.
   static const maxCoverBytes = ImageProfile.courseCoverMaxBytes;
 
-  static final RegExp referencePattern = RegExp(
-    r'^media:([0-9a-f]{64})\.(mp3|png|jpg|jpeg|webp)$',
-  );
-  static final RegExp _fileNamePattern = RegExp(
-    r'^[0-9a-f]{64}\.(mp3|png|jpg|jpeg|webp)$',
-  );
+  static final RegExp referencePattern = CourseMediaReference.any;
+  static final RegExp _fileNamePattern = CourseMediaReference.fileName;
 
-  static bool isReference(String value) => referencePattern.hasMatch(value);
+  static bool isReference(String value) => CourseMediaReference.isAny(value);
 
   static bool isAudioReference(String value) =>
       isReference(value) && audioExtensions.contains(extensionOf(value));

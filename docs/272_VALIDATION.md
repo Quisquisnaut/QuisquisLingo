@@ -392,3 +392,82 @@ screen tests written before the change.
 ### Complete suite
 
 First run (13 October 2026, 01:01–01:46): 4,417 passed, 1 skipped, **1 failed**: the case of the new test file named in fault 1 above. Second run on the final tree (01:54–02:40), `flutter test --no-pub --concurrency=1`: **4,418 passed, 1 skipped, 0 failed** (45 min 33 s). Revision 6's suite had 4,400; the 18 more are this revision's 7 and 11.
+
+## Revision 8 (2.0.72+272008), one owner for the media reference rule
+
+13 October 2026, owner's Windows 10 PC, `build-272`.
+
+- **Before the change**: `test/course_media_reference_272_test.dart`, 28
+  cases on the code as it was (twenty references asked of
+  `Course.isValidImageReference`, `isValidAudioReference`,
+  `coverImagePattern`, `CourseMediaStore.isReference` / `isImageReference` /
+  `isAudioReference` and `StorySpeaker.avatarPattern`; the parts of a
+  reference; seven refusals of the Laboratory's own file changed in one
+  place each, with the exact messages): **28 passed** at the first run.
+- **After the change**: the same 28 unchanged, and 25 on the owner (each
+  pattern's text against the earlier literal; the model and the media store
+  hold the owner's own patterns and sets; the kinds of file equal to the
+  ones the patterns name; the twenty references asked of the owner; the
+  stored file's name and the path in a package; the walk of a Course
+  file): **53 passed** (52 before the review's follow-ups, three runs of
+  three).
+- The change was made by `apply_r8.py` (exact texts, each asserted to match
+  once; it also asserts that no copy of the pattern is left in the three
+  `lib/` files). One line the formatter rewrapped in
+  `course_media_store.dart`, unrelated to the change, was put back.
+- Focused files (24): the one above, `course_media_243_test`,
+  the Course package tests (`course_package_243_test`,
+  `course_package_import_247_test`, `course_package_on_disk_tranche4b_test`,
+  `course_package_media_recovery_245_test`, `publisher_package_243_test`,
+  `demo_package_roundtrip_254_test`), `sign_course_media_270_test`, the
+  import tests (`import_side_doors_270_test`, `import_safety_271_test`,
+  `import_route_matrix_revision19_test`), `story_model_256_test`,
+  `course_model_v11_243_test`, `course_model_v12_256_test`,
+  `guidebook_modules_266_test`, `bundled_courses_225_02_test`,
+  `course_merge_media_workflow_246_test`, the backup tests
+  (`course_backups_270_test`, `course_backup_missing_asset_test`),
+  `audio_library_media_248_test`, `publisher_recorded_audio_test`,
+  `media_attribution_test`, `plural_pictures_265_test`:
+  **316 passed**.
+- `flutter analyze --no-pub`: **No issues found**.
+
+### Independent review
+
+A second reader (read only, no access to this session's reasoning) compared
+the change with the commit before it: **no behaviour difference found**.
+
+- The six pattern texts, worked out from the owner's pieces by hand and by a
+  script, are character for character the earlier literals (the Story
+  avatar's included).
+- Groups: the signing tool's pattern now has the hash as group 1 where it
+  had the extension, but the tool only asks whether a text matches; the
+  media store reads group 1, the hash, before and after.
+- `checkCourseJson` and the old `_validateMediaReferences`: the same text
+  after the three renames, called at the same place of `Course.fromJson`, so
+  the same error wins when a file has several faults.
+- The new file imports only the bundled-asset rule: no Flutter, no cycle;
+  the signing tool gains only that import.
+
+What it pointed out, and what was done before the suite:
+
+- The pattern was written in **nine** places, not eight (the media store
+  had two): the documents and the owner's comment say nine.
+- The media store kept its own list of the kinds of file
+  (`audioExtensions`, `imageExtensions`), which had to stay equal to the
+  owner's by hand: the two sets are the owner's now, the store's names
+  point at them, and a test compares the patterns' kinds with the sets.
+- `CourseMediaReference.isAny` had no user: `CourseMediaStore.isReference`
+  asks it.
+
+Left as they are, on purpose: `tools/convert_course_to_v12.dart` (a looser
+pattern that only takes the hash out of a name) and
+`tools/validate_courses.py` (Python, cannot read the Dart owner); the places
+that build a name with `'media:'` in front of a file name (they make a
+name, they do not check one).
+
+After these: analyzer **No issues found**; the new test file 53 passed;
+seven affected files 147 passed.
+
+### Complete suite
+
+First run (13 October 2026, 02:55–04:19; 83 min 34 s instead of the usual 45, the PC was busy): 4,470 passed, 1 skipped, **1 failed**: `qql_230_course_persistence_hardening_test`, "Course Manager surfaces corrupt storage instead of spinning". Its wait for Course Studio to read the stored Courses has a guard against a wait that never ends, and the guard's 10 seconds ran out. Nothing of this revision is involved: the file passed alone 4 times out of 4 (8 tests, about 11 seconds each). Done before the second run: the guard is 30 seconds (`test/support/pump_file_io.dart`, used by 75 test files; it only matters when a wait fails), and the disposable test folder `D:\QQL_test_temp` (4,182 leftover entries, 1.2 GB; D: had 2.1 GB free) was emptied. Second run on the final tree (04:32–05:51, 77 min 47 s, the PC still busy), `flutter test --no-pub --concurrency=1`: **4,471 passed, 1 skipped, 0 failed**. Revision 7's suite had 4,418; the 53 more are this revision's test file.

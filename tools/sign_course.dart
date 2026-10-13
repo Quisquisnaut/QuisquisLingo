@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 
+import 'package:quisquislingo_app/models/course_media_reference.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_checksums.dart';
 import 'package:quisquislingo_app/services/course_image_usage.dart';
@@ -217,7 +218,7 @@ Future<void> packageSignedCourse(
   );
 }
 
-final _mediaPattern = RegExp(r'^media:[0-9a-f]{64}\.(mp3|png|jpg|jpeg|webp)$');
+final _mediaPattern = CourseMediaReference.any;
 
 /// The media a package must carry: the same as the app's
 /// `CourseMediaStore.referencesOf` (Build 270 Revision 7: this tool had its

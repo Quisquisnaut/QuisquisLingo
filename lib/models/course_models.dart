@@ -11,6 +11,7 @@ import '../services/app_metadata.dart';
 import '../services/lesson_icon_catalog.dart';
 import '../services/round_type_compatibility.dart';
 import 'bundled_asset.dart';
+import 'course_media_reference.dart';
 
 export 'canonical/canonical.dart';
 export 'exercise_canonical.dart';
@@ -819,9 +820,7 @@ class Course {
   static const int maxKeywordLength = 32;
 
   /// A cover is a course-media reference: `media:<sha256>.<ext>`.
-  static final RegExp coverImagePattern = RegExp(
-    r'^media:[0-9a-f]{64}\.(png|jpg|jpeg|webp)$',
-  );
+  static final RegExp coverImagePattern = CourseMediaReference.image;
 
   /// This application's build, compared with [minimumAppBuild].
   static final int appBuildNumber = int.parse(AppMetadata.buildNumber);
@@ -1280,76 +1279,18 @@ class Course {
     }
   }
 
-  /// A Course's own images and recordings are named by content
-  /// (`media:<sha256>.<ext>`, see `CourseMediaStore`), never by a path on the
-  /// author's device. Bundled `assets/` media and embedded `data:image/`
-  /// images remain valid.
-  static final RegExp _audioReference = RegExp(r'^media:[0-9a-f]{64}\.mp3$');
-
   /// A file in QQL's own bundle (Build 270 Revision 3, [bundledAsset]).
   static bool isBundledAssetReference(String value) => isBundledAsset(value);
-  static final RegExp _imageReference = RegExp(
-    r'^media:[0-9a-f]{64}\.(png|jpg|jpeg|webp)$',
-  );
 
+  /// A Course's own images and recordings are named by content
+  /// (`media:<sha256>.<ext>`, the rule of [CourseMediaReference]), never by
+  /// a path on the author's device. Bundled `assets/` media and embedded
+  /// `data:image/` images remain valid.
   static bool isValidAudioReference(String value) =>
-      value.isEmpty ||
-      isBundledAssetReference(value) ||
-      _audioReference.hasMatch(value);
+      CourseMediaReference.isValidAudio(value);
 
   static bool isValidImageReference(String value) =>
-      value.isEmpty ||
-      isBundledAssetReference(value) ||
-      value.startsWith('data:image/') ||
-      _imageReference.hasMatch(value);
-
-  static void _validateMediaReferences(Map<String, dynamic> json) {
-    final library = json['audioLibrary'];
-    if (library is List) {
-      for (final clip in library.whereType<Map>()) {
-        final path = clip['filePath'];
-        if (path is String && !isValidAudioReference(path)) {
-          throw FormatException(
-            'Audio Library recording "$path" is not supported. Recordings '
-            'must be bundled assets or course media (media:<sha256>.mp3), '
-            'never a path on one device.',
-          );
-        }
-      }
-    }
-    void visit(Object? node) {
-      if (node is Map) {
-        final asset = node['asset'];
-        if (node['type'] == 'image' &&
-            asset is String &&
-            !isValidImageReference(asset)) {
-          throw FormatException(
-            'Exercise image "${asset.length > 120 ? '${asset.substring(0, 120)}…' : asset}" '
-            'is not supported. Images must be bundled assets, embedded images '
-            'or course media (media:<sha256>.<png|jpg|jpeg|webp>), never a '
-            'path on one device.',
-          );
-        }
-        // A picture answer named by its QQL picture (an icon key) is drawn
-        // from the bundle too.
-        final text = node['text'];
-        if (node['role'] == 'icon' &&
-            text is String &&
-            text.startsWith('assets/') &&
-            !isBundledAssetReference(text)) {
-          throw FormatException(
-            'Picture key "${text.length > 120 ? '${text.substring(0, 120)}…' : text}" '
-            'is not a QQL picture.',
-          );
-        }
-        node.values.forEach(visit);
-      } else if (node is List) {
-        node.forEach(visit);
-      }
-    }
-
-    visit(json['lessons']);
-  }
+      CourseMediaReference.isValidImage(value);
 
   /// Trims keywords, drops blank ones and keeps the first spelling of any
   /// case-insensitive duplicate. Limits are still enforced by the constructor.
@@ -1553,7 +1494,7 @@ class Course {
         json['publisherContact'] is! Map) {
       throw const FormatException('course.publisherContact must be an object.');
     }
-    _validateMediaReferences(json);
+    CourseMediaReference.checkCourseJson(json);
     for (final removed in const [
       'creatorProfileId',
       'ownership',
@@ -3487,9 +3428,7 @@ class PromptElement {
     if (source != null &&
         (source is! Map ||
             j['type'] != 'image' ||
-            !RegExp(
-              r'^media:[0-9a-f]{64}\.(png|jpg|jpeg|webp)$',
-            ).hasMatch(j['asset']?.toString() ?? ''))) {
+            !CourseMediaReference.isImage(j['asset']?.toString() ?? ''))) {
       throw const FormatException(
         'sharedImageSource requires a Course-owned image.',
       );
@@ -3666,7 +3605,7 @@ class StorySpeaker {
   );
 
   static final RegExp avatarPattern = RegExp(
-    r'^(assets/avatars/[a-z0-9_]+\.png|media:[0-9a-f]{64}\.(png|jpg|jpeg|webp))$',
+    '^(assets/avatars/[a-z0-9_]+\\.png|${CourseMediaReference.imageBody})\$',
   );
 
   StorySpeaker copyWith({
