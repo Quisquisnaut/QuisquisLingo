@@ -130,20 +130,27 @@ Working name **Listen and pick the missing word**.
 - **What the learner gets**: the whole sentence is spoken, and shown with a
   gap; the answers are sounds. A tap on an answer plays it; the learner
   picks one and presses Check. Before answering an answer shows no text.
-- **A text for each sound, shown after answering** (owner, 13 October
-  2026): the author may give each sound answer a text of its own; it
-  appears beside its sound only once the learner has answered. It is
-  optional, answer by answer.
+- **After answering, each answer shows its word** (owner, 13 October
+  2026): the text the author wrote for that answer, else the word the sound
+  says. A sound that has no word shows nothing.
+- **An answer may be an MP3 with no text** (owner, 13 October 2026): a
+  recording can be an answer as it is. Giving it a text is recommended (an
+  Info of the Audit when it has none), never required: the exercise plays
+  and can be published without it.
 - **Author's form** (proposed): Instruction or context (optional); the
-  sentence with `___` for the gap; the answers, one per line: what the sound
-  says, then optionally `=` and the text shown after answering
-  (`ship = ship (a boat)`); the number of the correct one; Hint (optional).
+  sentence with `___` for the gap; the answers, each one either a word (the
+  device voice reads it, or its recording plays) or a recording picked from
+  the Audio Library, with an optional text shown after answering; which
+  answer is correct; Hint (optional).
 - **In a Course file**: a Select whose items are sounds, under a spoken
-  sentence with a gap. To verify when building it: that the canonical model
-  expresses it without a new option (the sound, and its text kept back
-  until the answer), and what an earlier build would show
-  for it (it would print the words of the sounds); a Course that uses it
-  takes `minimumAppBuild` of this revision.
+  sentence with a gap. Today an exercise names a sound by its text: the
+  device voice reads that text, or the Audio Library's recording given that
+  text is played. An answer that is a recording with no text cannot be found
+  that way, so the exercise must name the recording itself: the one
+  addition to the Course format this preset needs, to design when building
+  it (with the text kept back until the answer). A Course that uses the
+  preset takes `minimumAppBuild` of this revision; an earlier build would
+  print the words of the sounds.
 - It is an audio exercise: left out while the learner's Audio Exercises is
   off, like the other Listening exercises. Left out of the Duel.
 - **Work**: a new answer layout on the learner's page; the preset's recipe
@@ -192,8 +199,9 @@ Working name **Listen and pick the missing word**.
 
 ## What does not change
 
-Scoring, progression, learner data, the Course format (except the
-`minimumAppBuild` of a Course that uses the new preset), the stored
+Scoring, progression, learner data, the Course format (except what the new
+preset adds: a sound answer that names its recording, and the
+`minimumAppBuild` of a Course that uses the preset), the stored
 categories of pictures, and what an Audit Error is.
 
 ## Order and branch
