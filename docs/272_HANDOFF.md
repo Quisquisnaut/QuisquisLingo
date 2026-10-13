@@ -38,8 +38,9 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 8 | Media-reference owner (done, `6f565380`) |
 | 9 | Shared JSON readers for the models (`JsonRead`), both rules of the differing copies kept (done, `a35c34f3`) |
 | 10 | The two differences between the readers fixed (owner decision of 13 October 2026) (done, `68906c87`) |
-| 11 | Merge selection owner (`CourseMergeSelection`) |
-| 12 | Free moves: the Merge, Import and Export pages leave Course Studio; then the other free moves, two or three per suite |
+| 11 | Merge selection owner (`CourseMergeSelection`) (done, `8fb7a7ff`) |
+| 12 | Free moves: the Merge, Import and Export pages leave Course Studio; the canonical editor's four rows leave its file |
+| then | Home's Round path and Course preview; the small free moves of the plan |
 | then | The other free moves, two or three per complete suite |
 | Build 273 | The plan's medium-risk items: answer grading, Story cast, the publish gate, the profile service split, Audit rule sets, the earlier exercise shapes, the Round screen's state owners, the Course save sequence |
 
@@ -479,26 +480,56 @@ Gotchas:
   the script with the Write tool, or edit the file with Edit. This
   cost three failed attempts in Revisions 10 and 11.
 
-## Next: Revision 12, free moves (not started)
+## Revision 12 (2.0.72+272012), seven widgets leave two files
 
-`CourseImportScreen` (60–129), `CourseExportScreen` (130–205) and
-`CourseMergeScreen` of `lib/screens/course_projects_screen.dart` to
-files of their own, re-exported from it; they use the file-level
-helpers `_folder`, `_file`, `_showMatchingZipFolderWarning` (check who
-else uses them: a shared helper goes to a file both can import). Then,
-from the plan: the canonical editor's four row widgets
-(`primitive_editor_screen.dart`), Home's `LearnerRoundPath` with its
-painters and the Course preview. Pure moves: compare each moved run
-line by line (`r5/diff_region.py`), prune imports
-(`prune_imports.py`), one independent review and one complete suite
-for two or three of them.
+Complete: reviewed, the complete suite passed at its second run (see Gotchas), committed and pushed.
 
-**Open question asked of the owner on 13 October 2026 (07:15), no
-answer yet**: seven lists of the Course root keep checks of their own
-(`sectionNames`, `keywords`, `authors`, `rightsHolders`,
-`lessonIconAssets`, `audioLibrary`, `defaultTimedLimitsSeconds`); bring
-them under the list rule of Revision 10, as a revision of its own?
-Recommended yes.
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `r12/apply_r12.py`: `CourseImportScreen`, `CourseExportScreen`,
+  `CourseMergeScreen` to files of their own;
+  `lib/widgets/course_package_notes.dart` (three helpers).
+- `r12/apply_rows.py`: the canonical editor's four rows and `menuText`
+  to `lib/widgets/primitive_editor_rows.dart`.
+- Tests: `free_moves_272_r12_test` (4).
+
+Gotchas:
+
+- A new file in another folder: rewrite the same-folder imports of the
+  head (`'round_screen.dart'` → `'../screens/round_screen.dart'`) before
+  the first analyzer run, or it reports missing files instead of unused
+  imports.
+- `diff_region.py` looks for the same first line in the new file: when
+  the class itself is renamed, compare with a script that renames the
+  old run first (`r12/compare_rows.py`).
+- `primitive_editor_narrow_261_test` takes about seven minutes: a
+  focused batch with it must run in the background.
+- The first complete suite failed with 122 cases of
+  `exercise_laboratory_254_test` and nothing else: for twenty minutes
+  the PC was about twelve times slower (8 GB of memory, two browsers
+  open; the file took 21 min 38 s against 1 min 46 s in Revision 11's
+  suite) and every wait of that file ran out at its 10 seconds. Alone
+  the file passes (253, 2 min 23 s). Its wait is now 30 seconds, like
+  `pumpUntilFileIoState`. When a suite fails in one file only, read the
+  times of that file in the log before looking for a cause in the code.
+
+## Next (not started)
+
+From the plan's free moves: Home's `LearnerRoundPath` with its painters
+and `_LessonSection` (blocked by the shared private helpers
+`_learnerMascotSeed` and `_learnerPageBackgroundOf`: they need a public
+home first), the Course preview (a `part` of `home_screen.dart` because
+it uses six Home privates). Then the Build's end: the owner's go for
+the merge into `main`.
+
+**Revision 13 (owner: "Next revision", 13 October 2026)**: a pop-up at
+Course import that stays and asks when the file has anomalies; Import
+anyway imports exactly as today; no new refusals (the seven Course-root
+lists `sectionNames`, `keywords`, `authors`, `rightsHolders`,
+`lessonIconAssets`, `audioLibrary`, `defaultTimedLimitsSeconds` keep
+their own checks: the owner chose a warning over a refusal). Drafts in
+the scratchpad folder `r13/` (`apply_r13.py`, `docs_r13.py`, the owner,
+the dialog, two test files).
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

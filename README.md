@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.72+272011 · Build 272, Revision 11 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.72+272012 · Build 272, Revision 12 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.72 Beta — QQL 272 modularization (Course Model v12)**
 
@@ -34,7 +34,10 @@ private copies in two files. Revision 10 makes the two rules those copies
 disagreed on the same everywhere: a wrong list is told its place and its
 field, and a list a file may leave out is also empty when written as `null`.
 Revision 11 gives the choices of the Course Merge page an owner
-(`CourseMergeSelection`).
+(`CourseMergeSelection`). Revision 12 moves the Course Import, Export and
+Merge pages out of the Course Studio file (2,041 lines, from 3,494) and the
+canonical editor's four row widgets out of its file (1,818 lines, from
+2,479).
 
 Build 271 fixes the more relevant findings still open after Build 270 and
 reorganizes the Audio Library ([plan](docs/271_PLAN.md),
@@ -854,7 +857,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.72, Build 272, Revision 11 is a time-limited Beta with an expiry of **2026-11-12 23:59:59 local time** (30 days after the 13 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.72, Build 272, Revision 12 is a time-limited Beta with an expiry of **2026-11-12 23:59:59 local time** (30 days after the 13 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

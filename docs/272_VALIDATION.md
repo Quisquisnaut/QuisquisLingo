@@ -683,3 +683,39 @@ replaced, where it wrote into the new list.
 ### Complete suite
 
 13 October 2026, 08:06–08:48, `flutter test --no-pub --concurrency=1` on the final tree: **4,505 passed, 1 skipped, 0 failed** (41 min 7 s). Revision 10's suite had 4,490; the 15 more are this revision's test file.
+
+## Revision 12 (2.0.72+272012), seven widgets leave two files
+
+13 October 2026, owner's Windows 10 PC, `build-272`. Two pure moves.
+
+- **The three pages** against their old text (`diff_region.py`, blank lines
+  and indentation ignored): the Import page 64 lines, 3 differing; the
+  Export page 74 lines, 1 differing; the Merge page 410 lines, 3
+  differing: all of them the three helper names that became public.
+- **The four rows** against their old text (`compare_rows.py`): 639 lines,
+  **identical** apart from the five names that became public; the one-line
+  menu text has the same body.
+- The imports of each new file: all those of the file the code came from,
+  then the analyzer's unused ones removed (102 for the three pages, 20 for
+  the rows, whose file needs only Flutter and the Course models).
+- New tests: `test/free_moves_272_r12_test.dart`, **4 passed**.
+- Focused files (12): the one above, `course_merge_selection_272_test`,
+  `course_merge_submission_246_test`,
+  `course_merge_media_workflow_246_test`,
+  `course_manager_workflow_249_test`, `course_package_import_ui_247_test`,
+  `courses_screen_250_test`, `primitive_editor_narrow_261_test`,
+  `primitive_editor_256_test`, `canonical_authoring_route_245_test`,
+  `owner_review_261_revision5_test`, `package_naming_regression_test`:
+  **96 passed**.
+- `flutter analyze --no-pub`: **No issues found**.
+
+### Independent review (one for the two moves)
+
+A second reader (read-only) compared the two moves with the old text and
+looked for anything that could behave differently: none found. One tidy-up
+from it was applied before the suite: `dart:async` was imported and not
+needed in the Import and Export pages (removed; the analyzer stays clean).
+
+### Complete suite (one for the two moves)
+
+First run: **4,387 passed, 1 skipped, 122 failed**, all 122 in `exercise_laboratory_254_test` (each a wait of 10 seconds that ran out; the file took 21 min 38 s against 1 min 46 s in Revision 11's suite: the PC ran about twelve times slower for twenty minutes). That file alone on the same tree: **253 passed** (2 min 23 s). Its wait raised to 30 seconds, like `pumpUntilFileIoState`. Second run, `flutter test --no-pub --concurrency=1`: **4,509 passed, 1 skipped, 0 failed** (55 min 56 s).

@@ -720,3 +720,45 @@ The Course Studio file goes from 2,764 to 2,622 lines.
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 12 (2.0.72+272012): seven widgets leave two files
+
+Nothing an author sees changes. Two pure moves.
+
+### Out of the Course Studio file
+
+| What | New file | Lines |
+|---|---|---|
+| Course Import page | `lib/screens/course_import_screen.dart` | 73 |
+| Course Export page | `lib/screens/course_export_screen.dart` | 83 |
+| Course Merge page | `lib/screens/course_merge_screen.dart` | 434 |
+| Three small helpers the pages share with Course Studio | `lib/widgets/course_package_notes.dart` | 28 |
+
+### Out of the canonical editor's file
+
+| What | New file | Lines |
+|---|---|---|
+| The four rows of the canonical editor (an element, an item, a target, a piece of the layout) and their one-line menu text | `lib/widgets/primitive_editor_rows.dart` | 668 |
+
+Each moved piece was compared with its old text line by line: identical
+apart from the names that had to become public (three helpers, four
+widgets, one small function).
+
+### Where the large files stand
+
+| File | Start of Build 272 | Now |
+|---|---|---|
+| Course Editor | 14,839 | 7,927 |
+| Course models | 5,809 | 5,787 |
+| Round screen | 5,826 | 5,794 |
+| Course Wizard | 3,726 | 3,673 |
+| Course Studio | 3,494 | 2,041 |
+| Canonical editor | 2,479 | 1,818 |
+
+### Tests
+
+`test/free_moves_272_r12_test.dart`, 4 cases. One independent review and
+one complete suite for the two moves (your decision for pure file moves).
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

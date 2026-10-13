@@ -1,3 +1,31 @@
+# 2.0.72 (Build 272, Revision 12) - modularization: seven widgets leave two files - 2026-10-13
+
+Nothing an author sees changes in this revision. Two pure moves, each
+compared with its old text line by line.
+
+- **Out of the Course Studio file**: the Course Import page
+  (`lib/screens/course_import_screen.dart`), the Course Export page
+  (`lib/screens/course_export_screen.dart`) and the Course Merge page
+  (`lib/screens/course_merge_screen.dart`). Three small helpers they share
+  with Course Studio (the name of a folder, the name of a file, the notice
+  of a ZIP with its files in a folder) are in
+  `lib/widgets/course_package_notes.dart`. The Course Studio file goes from
+  2,622 to 2,041 lines (2,764 before Revision 11, 3,494 at the start of
+  this Build).
+- **Out of the canonical editor's file**: its four row widgets (an element,
+  an item, a target, a piece of the layout) and the one-line menu text they
+  share with the editor, in `lib/widgets/primitive_editor_rows.dart`. The
+  canonical editor's file goes from 2,479 to 1,818 lines.
+- **Tests**: `test/free_moves_272_r12_test.dart`.
+- **Test support**: the wait of `test/exercise_laboratory_254_test.dart` is
+  30 seconds, like the shared one (was 10). The first complete suite of
+  this revision failed with 122 cases of that file and nothing else,
+  because for twenty minutes the PC ran about twelve times slower; alone
+  the file passes.
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-12 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 11) - modularization: the Merge page's choices - 2026-10-13
 
 Nothing an author sees changes in this revision.
