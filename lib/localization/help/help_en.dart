@@ -1254,9 +1254,9 @@ The learner sees target-language text and picks its correct source-language tran
   'exerciseHelp.preset.word_match.body':
       r'''The learner matches source-language words with their target-language translations. Provide at least two text pairs; three is the usual number. Text is supported. Each visible item must be unique after ordinary normalization. Exercises made with the former Matching preset open here.''',
   'exerciseHelp.preset.super_match.body':
-      r'''The learner matches related target-language items such as synonyms or opposites. Provide exactly three text pairs and an optional instruction or context naming the relationship, in the learners’ language. Text is supported. Do not mix unrelated relationship rules.''',
+      r'''The learner matches related target-language items such as synonyms or opposites. Provide 2 to 5 text pairs (three is usual) and an optional instruction or context naming the relationship, in the learners’ language. Text is supported. Do not mix unrelated relationship rules.''',
   'exerciseHelp.preset.audio_match.body':
-      r'''The learner plays audio items and matches each one to visible text. Provide exactly three audio-text pairs with no distractors. Audio and text are supported. Each audio and visible answer must be unique.''',
+      r'''The learner plays audio items and matches each one to visible text. Provide 2 to 5 audio-text pairs (three is usual) with no distractors. Audio and text are supported. Each audio and visible answer must be unique.''',
   'exerciseHelp.preset.word_order.body':
       r'''The learner rearranges target-language blocks into their correct order. Provide the available text blocks and correct order. Text is supported. No more than two distinct distractors are recommended; this preset tests ordering rather than translation.''',
   'exerciseHelp.preset.image_word.body':
@@ -1629,7 +1629,7 @@ What to enter
 Automatically (when the word appears: on the front, or on the back of a card shown meaning first), On request (the learner taps the speaker) or No read-aloud. The spoken text is the word or expression itself, unless Pronunciation TTS (if different) says otherwise, played with the Course audio mode.
 
 Checks
-None. Read-aloud never makes the card an audio exercise.
+No read-aloud on a Flashcard without a picture gets a note (Info) from the Audit; nothing is refused. Read-aloud never makes the card an audio exercise.
 
 Example
 On request''',
@@ -2315,23 +2315,23 @@ water = acqua''',
       r'''Matches related words, such as synonyms or opposites.
 
 What to enter
-Enter exactly three non-empty lines as left = right, with both sides in the target language. Name the relationship in Instruction or context, in the learners’ language.
+Enter 2 to 5 non-empty lines as left = right (three is usual), with both sides in the target language. Name the relationship in Instruction or context, in the learners’ language.
 
 Checks
-All three pairs need both sides and a usable equals separator. Check that every pair follows the stated relationship and that matching is unambiguous.
+Every pair needs both sides and a usable equals separator. Check that every pair follows the stated relationship and that matching is unambiguous. One pair, or six or more, gets a note (Info) from the Audit.
 
 Example
 grande = piccolo
 caldo = freddo
 aperto = chiuso''',
   'exerciseHelp.field.audio_match.pairs.body':
-      r'''Matches three spoken target-language items to their visible texts.
+      r'''Matches spoken target-language items to their visible texts.
 
 What to enter
-Enter exactly three lines as audio text = visible text. Visible text may be target-language text or its translation. The three right sides become the three visible choices; there is no separate distractor field.
+Enter 2 to 5 lines as audio text = visible text (three is usual). Visible text may be target-language text or its translation. The right sides become the visible choices; there is no separate distractor field.
 
 Checks
-Both sides are required. Avoid duplicate sounds and visible choices, including punctuation-only or capitalization-only differences. No distractors are permitted. Use Course Audio Library for recording mappings.
+Both sides are required. Avoid duplicate sounds and visible choices, including punctuation-only or capitalization-only differences. No distractors are permitted. One pair, or six or more, gets a note (Info) from the Audit. Use Course Audio Library for recording mappings.
 
 Example
 casa = house
@@ -2408,7 +2408,7 @@ What to enter
 First non-empty line: usage sentence. Optional second non-empty line: its translation. The learner view adds “Usage:” automatically. Blank lines are ignored.
 
 Checks
-A missing usage sentence produces an Audit warning. These lines are presentation content, not answer options.
+A usage sentence is recommended, never required: without one the Audit adds a note (Info). These lines are presentation content, not answer options.
 
 Example
 Buongiorno, Maria!

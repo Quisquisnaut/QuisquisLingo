@@ -24,11 +24,8 @@ void main() {
       var aggregateInfo = 0;
       var expectedEmptyCourseWarnings = 0;
       const expectedDemoWarnings = {
-        'IT|qql_lab254_card_minimal|FLASHCARD_EXAMPLE_EMPTY',
-        'IT|qql_lab254_card_minimal|FLASHCARD_AUDIO_EMPTY',
-        'IT|qql_lab254_card_usage|FLASHCARD_AUDIO_EMPTY',
-        'IT|qql_lab254_card_usage_translation|FLASHCARD_AUDIO_EMPTY',
-        'IT|qql_lab254_card_audio|FLASHCARD_EXAMPLE_EMPTY',
+        // Build 272 Revision 16: the Laboratory's five Flashcard warnings
+        // (no usage sentence, no read-aloud) are Infos now.
         // Build 272 Revision 14: the Demos state a license and name no Rights
         // Holder. The owner decided to take them out of the app (Revisions
         // 15 and 16) rather than name one, so their files are unchanged.

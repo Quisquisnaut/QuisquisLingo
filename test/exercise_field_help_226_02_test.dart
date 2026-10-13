@@ -349,13 +349,23 @@ void main() {
 
   test('matching Help preserves ordinary and specialized cardinalities', () {
     // Build 256 Revision 4: Match the words absorbs Matching and takes any
-    // number of pairs from two; Match by meaning keeps three.
+    // number of pairs from two. Build 272 Revision 16: Match by meaning and
+    // Listen and match recommend 2 to 5 pairs (they asked for exactly
+    // three).
     expect(help('word_match', 'pairs').entryRules, contains('at least two'));
-    expect(help('super_match', 'pairs').entryRules, contains('exactly three'));
+    final related = help('super_match', 'pairs');
+    expect(related.title, 'Target-language pairs (2 to 5)');
+    expect(related.entryRules, contains('Enter 2 to 5 non-empty lines'));
+    expect(related.entryRules, isNot(contains('exactly three')));
     final audio = help('audio_match', 'pairs');
-    expect(audio.entryRules, contains('exactly three lines'));
+    expect(audio.title, 'Sound matches (2 to 5)');
+    expect(audio.entryRules, contains('Enter 2 to 5 lines'));
+    expect(audio.entryRules, isNot(contains('exactly three')));
     expect(audio.entryRules, contains('audio text = visible text'));
-    expect(audio.entryRules, contains('three visible choices'));
+    expect(
+      audio.entryRules,
+      contains('The right sides become the visible choices'),
+    );
     expect(audio.validation, contains('No distractors are permitted'));
   });
 

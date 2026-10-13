@@ -1281,3 +1281,125 @@ exists: there is one now.
 
 Course files of other Courses, scoring, progression and learner data are
 unchanged. No new key or folder.
+
+## Revision 16 (2.0.72+272016): two recommendations stop being Warnings
+
+Your decision of 13 October 2026 (points 2 and 5 of your nine), written in
+the Build 274 plan as its Revision 1 and brought forward when you saw the
+Audit still asking for exactly three pairs.
+
+### Why
+
+A Warning turns the exercise, its Round and its Lesson red. These four
+messages are advice, so they are now notes (Info): shown in the Audit,
+never red.
+
+### The number of pairs (Listen and match, Match by meaning)
+
+| Pairs | Before | Now |
+|---|---|---|
+| 1 | Warning | a note (Info) |
+| 2, 4, 5 | Warning | nothing |
+| 3 | nothing | nothing |
+| 6 and more | Warning | a note (Info) |
+
+The note reads, for example, "Listen and match has 6 pairs: 2 to 5 are
+recommended." No pairs at all is still an Error, as before.
+
+### Flashcards
+
+| Card | Before | Now |
+|---|---|---|
+| Flashcard without a usage sentence | Warning | a note (Info) |
+| Picture flashcard without a usage sentence | nothing | a note (Info) |
+| Flashcard without read-aloud | Warning | a note (Info) |
+| Note card | nothing | nothing |
+
+The read-aloud note now reads "Flashcard has no read-aloud." It used to
+speak of a "pronunciation TTS text", which the form stopped asking for
+when read-aloud became a choice; I corrected the wording while changing
+the message. The usage note reads "Flashcard has no usage sentence." for
+both kinds of card.
+
+### What the forms say
+
+- Listen and match: **Sound matches (2 to 5)** (was "Three sound
+  matches").
+- Match by meaning: **Target-language pairs (2 to 5)** (was "Three
+  target-language pairs"), with the hint "2 to 5 lines, usually three".
+- Flashcard and Picture flashcard: **Usage sentence and optional
+  translation (recommended)**.
+
+The field Help (the ? beside each field), the two presets' descriptions
+and the Help in English, Italian and Spanish say the same.
+
+**On a narrow phone the end of the usage label may be cut**, and
+"(recommended)" is at the end. I could not measure it in a test (the test
+font is not the app's font), so the line under the field now starts with
+"Recommended." as well. If you would rather have a shorter label, say so.
+
+### What you will notice besides the colours
+
+- **Apply no longer asks about these four.** When an exercise had only
+  such a Warning, Apply opened "Exercise audit: N warnings" with Keep
+  editing / Use anyway. It does not open for them any more; the notes are
+  in the Audit (All or Info).
+- **Import**: a Course whose only Warnings were these now gets the
+  "checked, no anomalies" pop-up, and "Imported" without "with N Course
+  Audit warnings".
+- **Course Wizard**: every Flashcard the Round Wizard makes had two
+  Warnings (no usage sentence, no read-aloud), so its Rounds were red and
+  Finish said "Still red". They are not red for that now.
+- Export and Merge mention fewer warnings for such Courses.
+
+### What does not change
+
+How these exercises are played and graded; Course files; the learner's
+page, which already laid out any number of pairs (a test now shows five
+pairs on a 360-pixel page for both). A Course you have only loses red
+marks: the Laboratory, for example, loses its five Flashcard warnings.
+
+### One thing to know
+
+A Picture flashcard without a usage sentence now gets a note where it got
+nothing. That is your point 2 ("Info for both kinds of card"). It is a
+note, so nothing turns red. The Round Wizard's Picture flashcards have no
+usage sentence, so each of them gets this note.
+
+### What the independent review found
+
+No fault in the rule: it checked each number of pairs through the form,
+the Audit and the learner's page, and each kind of card. Seven small
+points; five acted on:
+
+- one more line of `docs/COURSE_EDITOR.md` still said "other than three";
+- my usage note called a Flashcard that carries a picture a "Picture
+  flashcard" (one wording for both now);
+- the Read aloud field's Help said "Checks: None" (it now names the
+  note);
+- one sentence of the in-form Help named a field that no longer exists
+  ("Match type / instruction");
+- the usage label may be cut on a phone (the line under the field says
+  "Recommended." too).
+
+Left as they are:
+
+- **The Laboratory's own GuideBook** (Match Lesson) says "Match the words,
+  Match related words and Listen and match use exactly three pairs." It
+  is the Course's text, and correcting it means regenerating the
+  Laboratory, which Revision 17 does.
+- **Match the words** has no note about its number of pairs at all, and
+  Match pictures to words refuses fewer than two: the three kinds of
+  Match follow three rules. This was so before.
+
+### Tests
+
+`test/recommendations_272_r16_test.dart`: each number of pairs from 1 to 7
+for both presets, built through their own forms; both kinds of card and
+the Note card; the four messages are Infos and the registry counts; a
+Course whose only findings are these has no Audit concern anywhere; five
+pairs on a narrow learner page. Four older tests that pinned the earlier
+texts and counts were updated.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

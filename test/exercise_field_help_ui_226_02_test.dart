@@ -131,11 +131,11 @@ const _formFields = <String, Map<String, String>>{
   },
   'super_match': {
     'Instruction or context (optional)': 'prompt',
-    'Three target-language pairs': 'pairs',
+    'Target-language pairs (2 to 5)': 'pairs',
   },
   'audio_match': {
     'Instruction or context (optional)': 'prompt',
-    'Three sound matches': 'pairs',
+    'Sound matches (2 to 5)': 'pairs',
   },
   'word_order': {
     'Instruction or context (optional)': 'prompt',
@@ -155,13 +155,13 @@ const _formFields = <String, Map<String, String>>{
     'Word or expression (target language)': 'prompt',
     'Translation or meaning (source language)': 'question',
     'Pronunciation TTS (if different)': 'tts',
-    'Usage sentence and optional translation': 'answers',
+    'Usage sentence and optional translation (recommended)': 'answers',
   },
   'picture_flashcard': {
     'Word or expression (target language)': 'prompt',
     'Translation or meaning (source language)': 'question',
     'Pronunciation TTS (if different)': 'tts',
-    'Usage sentence and optional translation': 'answers',
+    'Usage sentence and optional translation (recommended)': 'answers',
   },
   'true_false': {
     'Sentence': 'question',
@@ -307,6 +307,27 @@ void main() {
         _assertMountedFieldsHaveHelp(tester, {...form.value, ..._everyForm});
         await _openAndCheck(tester, _help('image'), form.key, 'image');
       }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  // Build 272 Revision 16: the usage field's label ends with
+  // "(recommended)", which a narrow phone may cut; the line under the field
+  // says it too. (The test font is as wide as it is tall, so a test cannot
+  // measure the real label.)
+  for (final preset in const ['flashcard', 'picture_flashcard']) {
+    testWidgets('$preset: the usage field says Recommended under it too', (
+      tester,
+    ) async {
+      await _mount(tester, preset, size: const Size(360, 800));
+      final field = _field(
+        'Usage sentence and optional translation (recommended)',
+      );
+      await _reveal(tester, field);
+      expect(
+        tester.widget<TextField>(field).decoration!.helperText,
+        startsWith('Recommended. '),
+      );
       expect(tester.takeException(), isNull);
     });
   }

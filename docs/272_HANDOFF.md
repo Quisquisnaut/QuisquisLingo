@@ -630,7 +630,16 @@ tests "Maria Rossi", "Anna Bianchi", "mari_88", "Ada", "Ann", "Bo",
 Scripts and logs in the scratchpad `r14/`; the suite log is
 `suite272r14b.log`.
 
-## Revision 15 (2.0.72+272015) READY, waiting for the owner's go to commit: QQL Demo: English from Italian leaves the repository
+## Revision 15 (2.0.72+272015), QQL Demo: English from Italian leaves the repository
+
+Committed `5269153c` on 13 October 2026 (about 21:00) after the owner's go
+on the commit description, and pushed to `origin/build-272`. The notes
+below are the working notes of the revision, kept for the record.
+
+Owner, at the go: "Forget about renaming the folder for now." The rename
+of `demo_courses` to `test_courses` is NOT to be done until the owner asks
+again (`demo_image_banks` likewise untouched).
+
 
 Started 13 October 2026 (night), after Revision 14's commit `b0ffbb04`.
 Owner decision: "Take it out of the repo, like viterbese and piedmontese."
@@ -795,6 +804,88 @@ Owner, same evening:
   of Build 239, 2 Lessons, 10 Rounds, 50 exercises, JSON and ZIP; used by
   about twelve test files as the sample Course for packages and the
   Image Library; Maintainer Tempesta 35932; no author, no Rights Holder).
+
+## Revision 16 (2.0.72+272016) READY, waiting for the owner's go to commit: two recommendations stop being Warnings
+
+STATE (13 October 2026, about 23:00): complete in the working tree and NOT
+committed. Evidence: analyzer clean; the new test file six times in a row;
+the complete suite 4,646 passed, 1 skipped, 0 failed (35 min,
+`suite272r16.log`); `docs/272_VALIDATION.md` has the section. The commit
+description (scratchpad `commit_272016.txt`) was shown to the owner:
+commit only on the owner's go, with an explicit file list (never
+`devtools_options.yaml`, `tools/cloud_setup.sh`; the new file is
+`test/recommendations_272_r16_test.dart`), push `build-272`, beep, update
+the memory file. Then Revision 17 (the Laboratory leaves the app).
+
+The notes below are the working notes of the revision.
+
+
+Started 13 October 2026 (about 21:10), after Revision 15's commit
+`5269153c`. Owner decision ("Agreed"): Build 274's planned Revision 1
+(`docs/274_PLAN.md`) is brought forward. Owner's words about pairs: warn
+only if "fewer than 2" or large numbers.
+
+Done in the working tree (script `r16/apply_r16.py` in the scratchpad):
+- version 272016;
+- `audit_code_registry.dart`: `FLASHCARD_EXAMPLE_EMPTY`,
+  `FLASHCARD_AUDIO_EMPTY`, `AUDIO_MATCH_PAIR_COUNT`, `MATCH_PAIR_COUNT`
+  are Info with new texts (registry 131 rules: 66 Errors, 44 Warnings,
+  21 Info);
+- `course_audit_service.dart`: `recommendedPairs` (2 to 5),
+  `pairCountOutsideAdvice` (1 pair, or more than 5), `pairCountAdvice`;
+  the usage-sentence Info also for a Picture flashcard (Note cards
+  exempt); the read-aloud message reads "Flashcard has no read-aloud.";
+- forms (`exercise_editor_screen.dart`): "Usage sentence and optional
+  translation (recommended)", "Target-language pairs (2 to 5)", "Sound
+  matches (2 to 5)"; `exercise_field_help.dart` and
+  `exercise_authoring.dart` texts; Help EN/IT/ES (the two presets' body,
+  the two pairs fields, the Flashcard usage field);
+  `docs/COURSE_EDITOR.md` line about Audio Match.
+
+Still to do: update the tests that pin the old texts and counts
+(`bundled_courses_225_02_test` five Flashcard warnings of the Laboratory,
+`exercise_field_help_226_02_test`, `exercise_field_help_ui_226_02_test`,
+`audit_code_registry_226_02_test` counts); a new test file
+`test/recommendations_272_r16_test.dart` (pairs 1..6 for both presets,
+both Flashcard kinds, Note card exempt, no Audit concern from these
+alone, the form labels, a Listen and match of five pairs on a narrow
+learner page); mark Revision 1 of `docs/274_PLAN.md` as delivered here;
+documents; independent review; complete suite; the commit description
+for the owner.
+
+Progress (13 October 2026, about 21:40):
+- Tests written: `test/recommendations_272_r16_test.dart` (new; the
+  exercises are built by their own forms with `ExerciseDraftBuilder` and
+  `PresetRecipes.blankFor`); older tests updated by `r16/tests_r16.py`
+  (`bundled_courses_225_02_test`, `audit_code_registry_226_02_test`,
+  `exercise_field_help_226_02_test`, `exercise_field_help_ui_226_02_test`).
+- Documents written by `r16/docs_r16.py`: CHANGELOG, README, AGENTS.md
+  bullet, the Revision 16 section of `docs/272_CHANGE_SUMMARY.md`, the
+  note in `docs/274_PLAN.md` that its Revision 1 was delivered here.
+- Running: analyzer and eleven focused files (`r16/analyze1.log`,
+  `r16/focused1.log`).
+- Still to do: read those results; the independent review; six runs of
+  the two new widget cases; the complete suite; `docs/272_VALIDATION.md`;
+  the commit description for the owner (scratchpad `commit_272016.txt`),
+  commit on the owner's go, push, beep, memory. Then Revision 17.
+
+Progress (13 October 2026, about 22:15):
+- The independent review (one read-only reader) found no fault in the
+  rule and seven small points; five acted on by `r16/review_fix.py` and
+  `r16/label_fix.py`: `docs/COURSE_EDITOR.md` line 214; one wording
+  "Flashcard has no usage sentence." for both kinds of card; the Read
+  aloud field's Help (in-form and EN/IT/ES) names the note; the in-form
+  Help sentence "Match type / instruction" corrected; the note sentence
+  moved under Checks in the audio_match pairs Help; the usage field's
+  helper starts with "Recommended." (a phone may cut the label; a widget
+  test cannot measure it because the test font is 1 em wide).
+- Left for Revision 17: the Laboratory's GuideBook sentence "use exactly
+  three pairs" (regenerate the Laboratory then).
+- The new test file passed six times in a row before the review's
+  corrections (15 cases). Running now: analyzer and nine focused files
+  (`r16/analyze2.log`, `r16/focused2.log`).
+- Then: the complete suite, `docs/272_VALIDATION.md`, the commit
+  description (scratchpad `commit_272016.txt`) for the owner.
 
 ## After Revision 14: owner decisions of 13 October 2026 (evening), not started
 

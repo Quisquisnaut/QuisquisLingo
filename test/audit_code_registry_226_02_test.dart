@@ -39,11 +39,12 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        48,
+        // Build 272 Revision 16: four recommendations became Infos.
+        44,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,
-        17,
+        21,
       );
       for (final rule in definitions) {
         expect(rule.code, matches(RegExp(r'^[A-Z][A-Z0-9_]+$')));

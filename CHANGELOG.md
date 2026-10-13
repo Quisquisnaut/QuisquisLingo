@@ -1,3 +1,47 @@
+# 2.0.72 (Build 272, Revision 16) - two recommendations stop being Warnings - 2026-10-13
+
+Decided by the owner on 13 October 2026 and brought forward from the Build
+274 plan (its Revision 1): a Warning turns an exercise, its Round and its
+Lesson red, and these four messages are advice.
+
+- **Listen and match and Match by meaning: the number of pairs.** The
+  Course Audit warned for any number of pairs other than three. Now it
+  says nothing for 2 to 5 pairs, and adds a note (Info) only for one pair
+  or for six and more: "Listen and match has 6 pairs: 2 to 5 are
+  recommended." Nothing turns red for it.
+- **Flashcards.** A Flashcard without a usage sentence, and a Flashcard
+  without read-aloud, get a note (Info) instead of a Warning. A Picture
+  flashcard without a usage sentence gets the same note (it got no message
+  before). Note cards get neither, as before. The read-aloud note now
+  reads "Flashcard has no read-aloud." (it spoke of a pronunciation TTS
+  text, which the form no longer asks for).
+- **The forms say so.** "Sound matches (2 to 5)" and "Target-language
+  pairs (2 to 5)" (they said "Three ..."), and "Usage sentence and
+  optional translation (recommended)"; the line under that field starts
+  with "Recommended." too, because a narrow phone may cut the end of the
+  label. The field Help and the two presets' descriptions follow; the
+  Read aloud field's Help no longer says "Checks: None".
+- **Apply no longer asks about them.** The "Exercise audit: N warnings"
+  question at Apply (Keep editing / Use anyway) does not open for these
+  four any more; the notes are in the Audit.
+- Nothing changes in how these exercises are played or graded: the
+  learner's page already laid out any number of pairs. Course files are
+  not touched; a stored exercise only loses its red mark.
+- The registry holds 131 rules: 66 Errors, 44 Warnings (were 48), 21 Info
+  (were 17).
+- Help EN/IT/ES: the two presets, their pairs fields, the Flashcard's
+  usage and Read aloud fields. `docs/COURSE_EDITOR.md`.
+- Left for Revision 17: a sentence of the Laboratory's own GuideBook
+  (Match Lesson) still says these presets "use exactly three pairs";
+  correcting it means regenerating the Laboratory.
+- Tests: `test/recommendations_272_r16_test.dart` (each number of pairs
+  from 1 to 7 for both presets; both kinds of card and the Note card;
+  nothing turns red; five pairs on a 360-pixel learner page), and the
+  tests that pinned the earlier texts and counts.
+
+No new key or folder. Course files, scoring, progression and learner data
+are unchanged.
+
 # 2.0.72 (Build 272, Revision 15) - QQL Demo: English from Italian leaves - 2026-10-13
 
 Decided by the owner on 13 October 2026: the Demo leaves the app and its

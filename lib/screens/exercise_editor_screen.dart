@@ -1027,10 +1027,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
           _field(
             _answers,
-            'Usage sentence and optional translation',
+            'Usage sentence and optional translation (recommended)',
             lines: 3,
+            // "Recommended" also here: on a narrow phone the end of the
+            // label may be cut (Build 272 Revision 16).
             helper:
-                'First line: a sentence using the word (target language). Second line, optional: its translation. “Usage:” is added automatically in learner mode.',
+                'Recommended. First line: a sentence using the word (target language). Second line, optional: its translation. Shown as “Usage:”.',
           ),
         ];
       case 'one_word_fills_all':
@@ -1259,9 +1261,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _instructionField(),
           _field(
             _pairs,
-            'Three target-language pairs',
+            'Target-language pairs (2 to 5)',
             lines: 5,
-            helper: 'Exactly three lines: left = right',
+            helper: '2 to 5 lines, usually three: left = right',
           ),
         ];
       case 'audio_match':
@@ -1269,7 +1271,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _instructionField(),
           _field(
             _pairs,
-            'Three sound matches',
+            'Sound matches (2 to 5)',
             lines: 5,
             helper:
                 'target audio text = matching visible text. The visible text may be target-language text or its translation. No distractors.',

@@ -672,7 +672,7 @@ abstract final class ExercisePresetRegistry {
     'word_match':
         'The learner matches target-language words (left) with their source-language meanings (right). Provide at least two text pairs, one per line as left = right, with a short instruction.',
     'super_match':
-        'The learner matches related target-language items such as synonyms, opposites or a word and its definition. Provide exactly three text pairs, one per line as left = right, and an optional instruction or context naming the relationship, in the learners’ language.',
+        'The learner matches related target-language items such as synonyms, opposites or a word and its definition. Provide 2 to 5 text pairs (three is usual), one per line as left = right, and an optional instruction or context naming the relationship, in the learners’ language.',
     'flashcard':
         'The learner sees a target-language word or expression, its source-language translation and an optional usage example, hears the word when read-aloud is on, then chooses Got it or Review again. Choose Automatically, On request or No read-aloud; the spoken text is the word itself unless Pronunciation TTS (if different) says otherwise. Read-aloud never makes the card an audio exercise.',
     'choice_target':
@@ -698,7 +698,7 @@ abstract final class ExercisePresetRegistry {
     'missing_word':
         'The learner hears audio while reading a transcript with one or more gaps, then types each missing word. Provide the transcript with ___ gaps and the missing words in order.',
     'audio_match':
-        'The learner plays audio items and matches each one to visible text. Provide exactly three audio-text pairs with distinct texts.',
+        'The learner plays audio items and matches each one to visible text. Provide 2 to 5 audio-text pairs (three is usual) with distinct texts.',
     'reading_answer_target':
         'The learner reads a short text in the source language that explains the situation, and dialogue lines in the target language written as Speaker: text, then answers a target-language question by choosing. Provide the text, the dialogue or both, the dialogue\'s read-aloud (no, on request or automatic: each line is spoken in turn), the question, at least two answers and the correct answer number. The text to read is never read aloud; the read-aloud is optional, so the exercise also plays with Audio Exercises off.',
     'icon_choice':

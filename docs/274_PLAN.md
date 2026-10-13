@@ -60,6 +60,12 @@ Line numbers below are those of Build 272 Revision 7.
 
 ## Revision 1: two recommendations stop being Warnings
 
+**Delivered early, as Build 272 Revision 16 (2.0.72+272016, 13 October
+2026), by the owner's decision.** Build 274 starts from its Revision 0 and
+goes on to Revision 2; nothing of this section is left to do. One detail
+decided while building it: the read-aloud note reads "Flashcard has no
+read-aloud."
+
 A Warning turns the exercise, its Round and its Lesson red. These four are
 advice, so they become Info (shown, never red).
 

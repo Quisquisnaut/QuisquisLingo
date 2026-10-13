@@ -976,3 +976,65 @@ condition in the Course selector, the test changes just listed).
 `flutter test --no-pub --concurrency=1`: **4,629 passed, 1 skipped, 0 failed** (37 min 0 s), once, on the final tree, after the review's corrections.
 
 After the suite, a throwaway test (deleted) imported `demo_courses/edge_case_it_en.json` through the real Course Studio screen with the pop-up on, because the owner reported that the Edge Case Course could not be imported: the pop-up came, Import anyway imported it ("Imported … with 4 Course Audit warnings"). The owner then found the file used had been an old copy.
+
+## Revision 16 (2.0.72+272016), two recommendations stop being Warnings
+
+13 October 2026, owner's Windows 10 PC, `build-272`. Decided by the owner
+(points 2 and 5 of the nine) and brought forward from the Build 274 plan.
+
+- New tests: `test/recommendations_272_r16_test.dart` **15 passed**: each
+  number of pairs from 1 to 7 for Match by meaning and Listen and match,
+  the exercises built by their own forms (`ExerciseDraftBuilder`,
+  `PresetRecipes.blankFor`); no Error and no Warning for 2 to 5 pairs;
+  both kinds of Flashcard and the Note card; the four codes are Infos and
+  the registry counts are 131 / 66 / 44 / 21; a Course whose only findings
+  are these has no Audit concern on its exercises, Round, Lesson or
+  Course; five pairs of each preset on a 360-pixel learner page.
+- The file six times in a row: **15 passed** each time (before the
+  review's corrections, which changed one expected text); its three
+  widget cases and the two new ones of the form test six times more after
+  them: **7 passed** each time.
+- Older tests updated to the new texts and counts:
+  `bundled_courses_225_02_test` (the Laboratory's five Flashcard
+  warnings are Infos), `audit_code_registry_226_02_test` (44 Warnings, 21
+  Infos), `exercise_field_help_226_02_test` and
+  `exercise_field_help_ui_226_02_test` (the labels and the Help titles;
+  two new cases: the usage field's helper starts with "Recommended.").
+- Focused files (nine, with the Help catalog and Flashcard tests): **138
+  passed**.
+- `flutter analyze --no-pub`: **No issues found**, on the final tree.
+
+### Independent review
+
+One second reader (read-only), asked for every consequence and for
+anything else that still asks for exactly three pairs.
+
+- The rule: clean. It followed 0, 1, 2 to 5 and 6 and more pairs through
+  the form's builder, reopening in the form, the Audit's other Match
+  rules, the learner's page and its grading, the Duel, the Round Wizard
+  and the validator; and each kind of card with each Read aloud setting.
+- Seven small points, five acted on: a second stale line of
+  `docs/COURSE_EDITOR.md`; the usage note named the kind of card from its
+  picture (one wording now); the Read aloud field's Help said "Checks:
+  None"; an in-form Help sentence named a field that no longer exists;
+  the longer usage label may be cut on a phone (the helper says
+  "Recommended." too).
+- Reported to the owner, not changed: Apply's "Exercise audit" question
+  no longer opens for these four; the Laboratory's own GuideBook still
+  says "exactly three pairs" (Revision 17 regenerates the Laboratory);
+  Match the words has no pair-count note at all.
+
+Not read by a second reader: the corrections made after the review
+(wordings, one helper text, two small test cases).
+
+### Not tested here
+
+- Whether the usage label is cut at 360 pixels with the app's real font
+  (the test font is as wide as it is tall, so a widget test cannot say).
+- Reopening a 2-pair or 5-pair Match by meaning or Listen and match in
+  its form (the review read the code path; no test pins it).
+- That Apply's "Exercise audit" question no longer opens for these four.
+
+### Complete suite
+
+`flutter test --no-pub --concurrency=1`: **4,646 passed, 1 skipped, 0 failed** (35 min 15 s), once, on the final tree, after the review's corrections.

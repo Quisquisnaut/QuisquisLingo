@@ -100,7 +100,7 @@ The editor displays only fields used by the current exercise type. Examples:
 - Reading comprehension: Reading passage, Comprehension question, Answers, Correct answer
 - Listening comprehension: Spoken passage, Comprehension question, Answers, Correct answer
 - Word Blocks: Translation prompt, Available word blocks, Correct sentence
-- Audio Match: Three sound matches producing exactly three visible choices, with no distractors
+- Audio Match (Listen and match): Sound matches (2 to 5, usually three), each producing one visible choice, with no distractors
 
 Technical fields such as numeric JSON indices are minimized. Correct choice remains an author-facing answer number for compact editing.
 
@@ -211,7 +211,7 @@ Checks include:
 - hints that repeat the prompt (`HINT_REPEATS_PROMPT` Warning) or reveal any canonical accepted answer (Error)
 - Word Blocks with more than two distractors or with impossible token counts
 - Flashcards without usage or pronunciation
-- Audio Match repeated sounds, repeated correct matches, repeated visible choices, missing matches, or a count other than three sound/text pairs without distractors
+- Audio Match repeated sounds, repeated correct matches, repeated visible choices, missing matches without distractors; and, as a note (Info) only, a single sound/text pair or six and more (2 to 5 are recommended)
 - icon/answer count mismatch
 - fields that do not belong to the selected exercise type
 - likely source/target capitalization inconsistency

@@ -717,12 +717,12 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'good morning',
     ),
     ExerciseAuthoringField.usageSentence => const ExerciseFieldHelp(
-      title: 'Usage sentence and optional translation',
+      title: 'Usage sentence and optional translation (recommended)',
       purpose: 'Shows the Flashcard word in context.',
       entryRules:
           'First non-empty line: usage sentence. Optional second non-empty line: its translation. The learner view adds “Usage:” automatically. Blank lines are ignored.',
       validation:
-          'A missing usage sentence produces an Audit warning. These lines are presentation content, not answer options.',
+          'A usage sentence is recommended, never required: without one the Audit adds a note (Info). These lines are presentation content, not answer options.',
       example: 'Buongiorno, Maria!\nGood morning, Maria!',
     ),
     ExerciseAuthoringField.question => const ExerciseFieldHelp(
@@ -798,7 +798,7 @@ abstract final class ExerciseFieldHelpRegistry {
       entryRules:
           'Automatically (when the card appears), On request (the learner taps the speaker) or No read-aloud. The spoken text is the word or expression itself, unless Pronunciation TTS (if different) says otherwise, played with the Course audio mode (On-Device TTS, Recorded MP3 or Hybrid).',
       validation:
-          'None. Read-aloud never makes the card an audio exercise: the card is shown when Audio Exercises are off.',
+          'No read-aloud on a Flashcard without a picture gets a note (Info) from the Audit; nothing is refused. Read-aloud never makes the card an audio exercise: the card is shown when Audio Exercises are off.',
       example: 'On request',
     ),
     ExerciseAuthoringField.hint => const ExerciseFieldHelp(
@@ -1245,22 +1245,21 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'house = casa\nbread = pane\nwater = acqua',
     ),
     ExerciseAuthoringField.relatedPairs => const ExerciseFieldHelp(
-      title: 'Three target-language pairs',
+      title: 'Target-language pairs (2 to 5)',
       purpose: 'Matches related words, such as synonyms or opposites.',
       entryRules:
-          'Enter exactly three non-empty lines as left = right, with both sides in the target language. State the relationship in Match type / instruction.',
+          'Enter 2 to 5 non-empty lines as left = right (three is usual), with both sides in the target language. Name the relationship in Instruction or context, in the learners’ language.',
       validation:
-          'All three pairs need both sides and a usable equals separator. Check that every pair follows the stated relationship and that matching is unambiguous.',
+          'Every pair needs both sides and a usable equals separator. Check that every pair follows the stated relationship and that matching is unambiguous. One pair, or six or more, gets a note (Info) from the Audit.',
       example: 'grande = piccolo\ncaldo = freddo\naperto = chiuso',
     ),
     ExerciseAuthoringField.soundMatches => const ExerciseFieldHelp(
-      title: 'Three sound matches',
-      purpose:
-          'Matches three spoken target-language items to their visible texts.',
+      title: 'Sound matches (2 to 5)',
+      purpose: 'Matches spoken target-language items to their visible texts.',
       entryRules:
-          'Enter exactly three lines as audio text = visible text. Visible text may be target-language text or its translation. The three right sides become the three visible choices; there is no separate distractor field.',
+          'Enter 2 to 5 lines as audio text = visible text (three is usual). Visible text may be target-language text or its translation. The right sides become the visible choices; there is no separate distractor field.',
       validation:
-          'Both sides are required. Avoid duplicate sounds and visible choices, including punctuation-only or capitalization-only differences. No distractors are permitted. Use Course Audio Library for recording mappings.',
+          'Both sides are required. Avoid duplicate sounds and visible choices, including punctuation-only or capitalization-only differences. No distractors are permitted. One pair, or six or more, gets a note (Info) from the Audit. Use Course Audio Library for recording mappings.',
       example: 'casa = house\npane = bread\nacqua = water',
     ),
     ExerciseAuthoringField.iconKeys => const ExerciseFieldHelp(

@@ -181,6 +181,21 @@ class NumberedAuditIssue {
 /// few high-confidence consistency rules. It intentionally does not claim to
 /// certify grammar, translation quality or pedagogy.
 class CourseAuditService {
+  /// The number of pairs recommended for Listen and match and Match by
+  /// meaning (Build 272 Revision 16, owner decision of 13 October 2026:
+  /// "fewer than 2, or large numbers").
+  static const recommendedPairs = (min: 2, max: 5);
+
+  /// Whether [pairs] is worth a word of advice: one pair, or more than
+  /// [recommendedPairs]. No pair at all is another rule's business.
+  static bool pairCountOutsideAdvice(int pairs) =>
+      pairs == 1 || pairs > recommendedPairs.max;
+
+  /// The advice about the [pairs] of the preset named [presetName].
+  static String pairCountAdvice(String presetName, int pairs) =>
+      '$presetName has $pairs ${pairs == 1 ? 'pair' : 'pairs'}: '
+      '${recommendedPairs.min} to ${recommendedPairs.max} are recommended.';
+
   /// The learner kind each preset's recipe produces ([PresetRecipes.kinds]).
   /// An exercise whose derived kind differs from its preset's gets a
   /// non-blocking PRESET_CANONICAL_MISMATCH: the preset is authoring
@@ -1990,17 +2005,19 @@ class CourseAuditService {
               );
             }
           case 'super_match':
-            if (evaluation.relations.length != 3) {
+            // Build 272 Revision 16 (owner decision of 13 October 2026):
+            // advice, and only outside the recommended number of pairs.
+            if (pairCountOutsideAdvice(evaluation.relations.length)) {
               add(
                 AuditCode.matchPairCount,
-                '${preset.name} requires exactly 3 pairs.',
+                pairCountAdvice(preset.name, evaluation.relations.length),
               );
             }
           case 'audio_match':
-            if (evaluation.relations.length != 3) {
+            if (pairCountOutsideAdvice(evaluation.relations.length)) {
               add(
                 AuditCode.audioMatchPairCount,
-                'Audio Match requires exactly 3 sound/text pairs.',
+                pairCountAdvice(preset.name, evaluation.relations.length),
               );
             }
             if (f.rightItems.length != evaluation.relations.length) {
@@ -2576,17 +2593,17 @@ class CourseAuditService {
             isNote ? 'Note card has no text.' : 'Flashcard meaning is empty.',
           );
         }
-        if (isVocabulary && f.textOf('usage').trim().isEmpty) {
+        // Build 272 Revision 16 (owner decision of 13 October 2026): a usage
+        // sentence is recommended for both kinds of card that are reviewed
+        // later, a Picture flashcard included; both messages are Infos.
+        if (!isNote && f.textOf('usage').trim().isEmpty) {
           add(
             AuditCode.flashcardExampleEmpty,
             'Flashcard has no usage sentence.',
           );
         }
         if (isVocabulary && f.audioOf('audio').trim().isEmpty) {
-          add(
-            AuditCode.flashcardAudioEmpty,
-            'Flashcard has no pronunciation TTS text.',
-          );
+          add(AuditCode.flashcardAudioEmpty, 'Flashcard has no read-aloud.');
         }
       case ExercisePrimitive.assign:
         // Build 256 Revision 7: groups, slots and gaps play; the structure
