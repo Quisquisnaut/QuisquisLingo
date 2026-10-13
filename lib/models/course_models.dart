@@ -5,6 +5,7 @@ import 'canonical/canonical.dart';
 import 'exercise_canonical.dart';
 import 'exercise_image_metadata.dart';
 import 'guidebook_text.dart';
+import 'json_read.dart';
 import 'picture_answer_style.dart';
 import 'preset_successors.dart';
 import '../services/app_metadata.dart';
@@ -123,8 +124,12 @@ class CourseProvenanceIdentity {
 
   factory CourseProvenanceIdentity.fromJson(Map<String, dynamic> json) {
     final type = CourseProvenanceIdentityType.parse(json['type']);
-    final id = _requiredString(json, 'id', 'course.originalCourseCreator');
-    final displayName = _requiredString(
+    final id = JsonRead.requiredString(
+      json,
+      'id',
+      'course.originalCourseCreator',
+    );
+    final displayName = JsonRead.requiredString(
       json,
       'displayName',
       'course.originalCourseCreator',
@@ -160,7 +165,11 @@ class CourseMaintainer {
         'course.maintainer identifies an individual QQL profile and does not support a type field.',
       );
     }
-    final profileId = _requiredString(json, 'profileId', 'course.maintainer');
+    final profileId = JsonRead.requiredString(
+      json,
+      'profileId',
+      'course.maintainer',
+    );
     if (!_stableUuidV4.hasMatch(profileId)) {
       throw const FormatException(
         'course.maintainer.profileId must be a stable UUIDv4 identity.',
@@ -254,13 +263,17 @@ class CourseLessonIconAsset {
   Map<String, dynamic> toJson() => {'assetId': assetId, 'base64Png': base64Png};
 
   factory CourseLessonIconAsset.fromJson(Map<String, dynamic> json) {
-    final assetId = _requiredString(json, 'assetId', 'lessonIconAsset');
+    final assetId = JsonRead.requiredString(json, 'assetId', 'lessonIconAsset');
     if (!RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(assetId)) {
       throw const FormatException(
         'lessonIconAsset.assetId may contain letters, numbers, underscores and hyphens only.',
       );
     }
-    final base64Png = _requiredString(json, 'base64Png', 'lessonIconAsset');
+    final base64Png = JsonRead.requiredString(
+      json,
+      'base64Png',
+      'lessonIconAsset',
+    );
     validateCanonicalPng(base64Png);
     return CourseLessonIconAsset(assetId: assetId, base64Png: base64Png);
   }
@@ -346,7 +359,7 @@ class CourseAuthor {
       );
     }
     return CourseAuthor(
-      name: _requiredString(json, 'name', 'author'),
+      name: JsonRead.requiredString(json, 'name', 'author'),
       roles: parsed,
     );
   }
@@ -376,7 +389,7 @@ class CourseRightsHolder {
   factory CourseRightsHolder.fromJson(Map<String, dynamic> json) =>
       CourseRightsHolder(
         type: CourseRightsHolderType.parse(json['type']),
-        name: _requiredString(json, 'name', 'rightsHolder'),
+        name: JsonRead.requiredString(json, 'name', 'rightsHolder'),
       );
 }
 
@@ -626,17 +639,29 @@ class CourseForkProvenance {
       ),
     );
     return CourseForkProvenance(
-      sourceCourseId: _requiredString(json, 'sourceCourseId', 'forkProvenance'),
-      sourceCourseTitle: _requiredString(
+      sourceCourseId: JsonRead.requiredString(
+        json,
+        'sourceCourseId',
+        'forkProvenance',
+      ),
+      sourceCourseTitle: JsonRead.requiredString(
         json,
         'sourceCourseTitle',
         'forkProvenance',
       ),
-      sourceCourseVersion: _optionalString(json, 'sourceCourseVersion', ''),
+      sourceCourseVersion: JsonRead.optionalString(
+        json,
+        'sourceCourseVersion',
+        '',
+      ),
       sourceOriginType: sourceOriginType,
-      sourcePublisherId: _optionalString(json, 'sourcePublisherId', ''),
-      sourcePublisherName: _optionalString(json, 'sourcePublisherName', ''),
-      sourceOfficialChecksum: _optionalString(
+      sourcePublisherId: JsonRead.optionalString(json, 'sourcePublisherId', ''),
+      sourcePublisherName: JsonRead.optionalString(
+        json,
+        'sourcePublisherName',
+        '',
+      ),
+      sourceOfficialChecksum: JsonRead.optionalString(
         json,
         'sourceOfficialChecksum',
         '',
@@ -647,17 +672,17 @@ class CourseForkProvenance {
                 CourseAuthor.fromJson(Map<String, dynamic>.from(author as Map)),
           )
           .toList(),
-      forkCreatedByProfileId: _requiredString(
+      forkCreatedByProfileId: JsonRead.requiredString(
         json,
         'forkCreatedByProfileId',
         'forkProvenance',
       ),
-      forkCreatedByDisplayName: _requiredString(
+      forkCreatedByDisplayName: JsonRead.requiredString(
         json,
         'forkCreatedByDisplayName',
         'forkProvenance',
       ),
-      forkCreatedAtUtc: _requiredString(
+      forkCreatedAtUtc: JsonRead.requiredString(
         json,
         'forkCreatedAtUtc',
         'forkProvenance',
@@ -698,37 +723,41 @@ class CourseMergeProvenance {
 
   factory CourseMergeProvenance.fromJson(Map<String, dynamic> json) {
     final provenance = CourseMergeProvenance(
-      leftSourceCourseId: _requiredString(
+      leftSourceCourseId: JsonRead.requiredString(
         json,
         'leftSourceCourseId',
         'mergeProvenance',
       ),
-      leftSourceCourseVersion: _requiredString(
+      leftSourceCourseVersion: JsonRead.requiredString(
         json,
         'leftSourceCourseVersion',
         'mergeProvenance',
       ),
-      leftSourceModifiedAtUtc: _optionalString(
+      leftSourceModifiedAtUtc: JsonRead.optionalString(
         json,
         'leftSourceModifiedAtUtc',
         '',
       ),
-      rightSourceCourseId: _requiredString(
+      rightSourceCourseId: JsonRead.requiredString(
         json,
         'rightSourceCourseId',
         'mergeProvenance',
       ),
-      rightSourceCourseVersion: _requiredString(
+      rightSourceCourseVersion: JsonRead.requiredString(
         json,
         'rightSourceCourseVersion',
         'mergeProvenance',
       ),
-      rightSourceModifiedAtUtc: _optionalString(
+      rightSourceModifiedAtUtc: JsonRead.optionalString(
         json,
         'rightSourceModifiedAtUtc',
         '',
       ),
-      mergedAtUtc: _requiredString(json, 'mergedAtUtc', 'mergeProvenance'),
+      mergedAtUtc: JsonRead.requiredString(
+        json,
+        'mergedAtUtc',
+        'mergeProvenance',
+      ),
     );
     final sameCourseRevision =
         provenance.leftSourceCourseId == provenance.rightSourceCourseId &&
@@ -1554,8 +1583,16 @@ class Course {
         'course.restoredFromVersion must be a positive integer.',
       );
     }
-    final learning = _requiredString(json, 'learningLanguage', 'course');
-    final interface = _requiredString(json, 'interfaceLanguage', 'course');
+    final learning = JsonRead.requiredString(
+      json,
+      'learningLanguage',
+      'course',
+    );
+    final interface = JsonRead.requiredString(
+      json,
+      'interfaceLanguage',
+      'course',
+    );
     final originType = CourseOriginType.parse(json);
     if (originType == CourseOriginType.custom) {
       for (final key in const [
@@ -1609,18 +1646,26 @@ class Course {
         'Official courses cannot contain a custom Course Maintainer.',
       );
     }
-    final originalCreatedAtUtc = _requiredString(
+    final originalCreatedAtUtc = JsonRead.requiredString(
       json,
       'originalCreatedAtUtc',
       'course',
     );
-    final modifiedAtUtc = _requiredString(json, 'modifiedAtUtc', 'course');
+    final modifiedAtUtc = JsonRead.requiredString(
+      json,
+      'modifiedAtUtc',
+      'course',
+    );
     final lastVersionEditorProfileId = originType == CourseOriginType.custom
-        ? _requiredString(json, 'lastVersionEditorProfileId', 'course')
-        : _optionalString(json, 'lastVersionEditorProfileId', '');
+        ? JsonRead.requiredString(json, 'lastVersionEditorProfileId', 'course')
+        : JsonRead.optionalString(json, 'lastVersionEditorProfileId', '');
     final lastVersionEditorDisplayName = originType == CourseOriginType.custom
-        ? _requiredString(json, 'lastVersionEditorDisplayName', 'course')
-        : _optionalString(json, 'lastVersionEditorDisplayName', '');
+        ? JsonRead.requiredString(
+            json,
+            'lastVersionEditorDisplayName',
+            'course',
+          )
+        : JsonRead.optionalString(json, 'lastVersionEditorDisplayName', '');
     if (lastVersionEditorProfileId.isEmpty !=
         lastVersionEditorDisplayName.isEmpty) {
       throw const FormatException(
@@ -1629,41 +1674,58 @@ class Course {
     }
     return Course(
       formatVersion: fv as int,
-      courseId: _requiredString(json, 'courseId', 'course'),
+      courseId: JsonRead.requiredString(json, 'courseId', 'course'),
       originType: originType,
-      publisherId: _optionalString(json, 'publisherId', ''),
-      publisherName: _optionalString(json, 'publisherName', ''),
-      officialCourseVersion: _optionalString(json, 'officialCourseVersion', ''),
-      officialReleaseDateUtc: _optionalString(
+      publisherId: JsonRead.optionalString(json, 'publisherId', ''),
+      publisherName: JsonRead.optionalString(json, 'publisherName', ''),
+      officialCourseVersion: JsonRead.optionalString(
+        json,
+        'officialCourseVersion',
+        '',
+      ),
+      officialReleaseDateUtc: JsonRead.optionalString(
         json,
         'officialReleaseDateUtc',
         '',
       ),
-      officialChecksum: _optionalString(json, 'officialChecksum', ''),
-      officialReleaseNotes: _optionalString(json, 'officialReleaseNotes', ''),
-      distributionChannel: _optionalString(json, 'distributionChannel', ''),
+      officialChecksum: JsonRead.optionalString(json, 'officialChecksum', ''),
+      officialReleaseNotes: JsonRead.optionalString(
+        json,
+        'officialReleaseNotes',
+        '',
+      ),
+      distributionChannel: JsonRead.optionalString(
+        json,
+        'distributionChannel',
+        '',
+      ),
       publisherVerificationStatus: PublisherVerificationStatus.parse(json),
-      publisherSignature: _optionalString(json, 'publisherSignature', ''),
+      publisherSignature: JsonRead.optionalString(
+        json,
+        'publisherSignature',
+        '',
+      ),
       originalCourseCreator: CourseProvenanceIdentity.fromJson(
         Map<String, dynamic>.from(originalCourseCreator),
       ),
       maintainer: maintainer is Map
           ? CourseMaintainer.fromJson(Map<String, dynamic>.from(maintainer))
           : null,
-      assignedTeamId: _optionalString(json, 'assignedTeamId', '').isEmpty
+      assignedTeamId:
+          JsonRead.optionalString(json, 'assignedTeamId', '').isEmpty
           ? null
-          : _optionalString(json, 'assignedTeamId', ''),
+          : JsonRead.optionalString(json, 'assignedTeamId', ''),
       originalCreatedAtUtc: originalCreatedAtUtc,
       lastVersionEditorProfileId: lastVersionEditorProfileId,
       lastVersionEditorDisplayName: lastVersionEditorDisplayName,
       modifiedAtUtc: modifiedAtUtc,
-      versionNotes: _optionalString(json, 'versionNotes', ''),
+      versionNotes: JsonRead.optionalString(json, 'versionNotes', ''),
       restoredFromVersion: json['restoredFromVersion'] as int?,
       publicationState: PublicationState.parseRequired(json, 'course'),
       lessonNumberingMode: LessonNumberingMode.parseRequired(json),
-      customLessonLabel: _optionalString(json, 'customLessonLabel', ''),
+      customLessonLabel: JsonRead.optionalString(json, 'customLessonLabel', ''),
       roundNumberingMode: RoundNumberingMode.parse(json),
-      customRoundLabel: _optionalString(json, 'customRoundLabel', ''),
+      customRoundLabel: JsonRead.optionalString(json, 'customRoundLabel', ''),
       defaultTimedLimitsSeconds:
           (json['defaultTimedLimitsSeconds'] as List<dynamic>? ?? const [])
               .map((value) => value as int)
@@ -1674,13 +1736,17 @@ class Course {
       useGuidebook: json['useGuidebook'] as bool? ?? true,
       allowPageSharing: json['allowPageSharing'] as bool? ?? true,
       wordLookup: json['wordLookup'] as bool? ?? true,
-      sectionNames: _stringList(json, 'sectionNames'),
+      sectionNames: JsonRead.stringListByKey(json, 'sectionNames'),
       learningLanguage: learning,
       interfaceLanguage: interface,
-      sourceLanguage: _optionalString(json, 'sourceLanguage', interface),
-      targetLanguage: _optionalString(json, 'targetLanguage', learning),
-      title: _requiredString(json, 'title', 'course'),
-      ttsLanguage: _requiredString(json, 'ttsLanguage', 'course'),
+      sourceLanguage: JsonRead.optionalString(
+        json,
+        'sourceLanguage',
+        interface,
+      ),
+      targetLanguage: JsonRead.optionalString(json, 'targetLanguage', learning),
+      title: JsonRead.requiredString(json, 'title', 'course'),
+      ttsLanguage: JsonRead.requiredString(json, 'ttsLanguage', 'course'),
       audioMode: const {'tts', 'recorded', 'hybrid'}.contains(json['audioMode'])
           ? json['audioMode'] as String
           : 'tts',
@@ -1698,7 +1764,7 @@ class Course {
                   }).toList()
                 : throw const FormatException('course.authors must be a list.')
           : const [],
-      license: _optionalString(json, 'license', 'All rights reserved'),
+      license: JsonRead.optionalString(json, 'license', 'All rights reserved'),
       rightsHolders: (json['rightsHolders'] is List)
           ? (json['rightsHolders'] as List).map((entry) {
               if (entry is! Map) {
@@ -1742,25 +1808,25 @@ class Course {
       estimatedStudyHours: json['estimatedStudyHours'] as int?,
       minimumAge: json['minimumAge'] as int?,
       keywords: [...(json['keywords'] as List? ?? const []).cast<String>()],
-      coverImage: _optionalString(json, 'coverImage', ''),
-      languageVariant: _optionalString(json, 'languageVariant', ''),
-      startLevel: _optionalString(json, 'startLevel', ''),
-      targetLevel: _optionalString(json, 'targetLevel', ''),
-      courseVersion: _optionalString(json, 'courseVersion', ''),
-      courseDescription: _optionalString(json, 'courseDescription', ''),
-      sourceLanguageTag: _optionalString(json, 'sourceLanguageTag', ''),
-      targetLanguageTag: _optionalString(json, 'targetLanguageTag', ''),
-      targetLanguageNameForLearners: _optionalString(
+      coverImage: JsonRead.optionalString(json, 'coverImage', ''),
+      languageVariant: JsonRead.optionalString(json, 'languageVariant', ''),
+      startLevel: JsonRead.optionalString(json, 'startLevel', ''),
+      targetLevel: JsonRead.optionalString(json, 'targetLevel', ''),
+      courseVersion: JsonRead.optionalString(json, 'courseVersion', ''),
+      courseDescription: JsonRead.optionalString(json, 'courseDescription', ''),
+      sourceLanguageTag: JsonRead.optionalString(json, 'sourceLanguageTag', ''),
+      targetLanguageTag: JsonRead.optionalString(json, 'targetLanguageTag', ''),
+      targetLanguageNameForLearners: JsonRead.optionalString(
         json,
         'targetLanguageNameForLearners',
         '',
       ),
-      textDirection: _optionalString(json, 'textDirection', 'ltr'),
-      flagCode: _optionalString(json, 'flagCode', ''),
-      flagImageBase64: _optionalString(json, 'flagImageBase64', ''),
-      worldFlagId: _optionalString(json, 'worldFlagId', ''),
+      textDirection: JsonRead.optionalString(json, 'textDirection', 'ltr'),
+      flagCode: JsonRead.optionalString(json, 'flagCode', ''),
+      flagImageBase64: JsonRead.optionalString(json, 'flagImageBase64', ''),
+      worldFlagId: JsonRead.optionalString(json, 'worldFlagId', ''),
       temporarySample: json['temporarySample'] == true,
-      buyACoffeeUrl: _optionalString(json, 'buyACoffeeUrl', ''),
+      buyACoffeeUrl: JsonRead.optionalString(json, 'buyACoffeeUrl', ''),
       lessonIconAssets: (json['lessonIconAssets'] is List)
           ? (json['lessonIconAssets'] as List).map((entry) {
               if (entry is! Map) {
@@ -1868,9 +1934,9 @@ class CourseAudioClip {
       );
     }
     return CourseAudioClip(
-      id: _requiredString(j, 'id', 'audio clip'),
-      text: _optionalString(j, 'text', ''),
-      filePath: _requiredString(j, 'filePath', 'audio clip'),
+      id: JsonRead.requiredString(j, 'id', 'audio clip'),
+      text: JsonRead.optionalString(j, 'text', ''),
+      filePath: JsonRead.requiredString(j, 'filePath', 'audio clip'),
       originalFileName: original is String ? original.trim() : '',
     );
   }
@@ -2038,7 +2104,7 @@ class GuidebookEntry {
     if (unknown.isNotEmpty) {
       throw FormatException('$where has unknown keys: ${unknown.join(', ')}.');
     }
-    final target = _requiredString(j, 'target', where);
+    final target = JsonRead.requiredString(j, 'target', where);
     final problem = GuidebookText.targetProblem(target);
     if (problem != null) {
       throw FormatException('$where.target “$target”: $problem.');
@@ -2046,7 +2112,7 @@ class GuidebookEntry {
     if (j.containsKey('context') && j['context'] is! String) {
       throw FormatException('$where.context must be a string.');
     }
-    final context = _optionalString(j, 'context', '');
+    final context = JsonRead.optionalString(j, 'context', '');
     if (context.length > GuidebookText.maxContextLength) {
       throw FormatException(
         '$where.context must be at most ${GuidebookText.maxContextLength} characters.',
@@ -2064,9 +2130,9 @@ class GuidebookEntry {
       }
     }
     return GuidebookEntry(
-      id: _requiredString(j, 'id', where),
+      id: JsonRead.requiredString(j, 'id', where),
       target: target,
-      source: _requiredString(j, 'source', where),
+      source: JsonRead.requiredString(j, 'source', where),
       context: context,
       picture: rawPicture is Map
           ? GuidebookPicture.fromJson(
@@ -2143,7 +2209,7 @@ class GuidebookModule {
     }
     List<GuidebookEntry> entries(String key, {required bool allowPicture}) {
       if (!j.containsKey(key)) return const [];
-      return _mapList(
+      return JsonRead.requiredList(
         j,
         key,
         'guidebook module',
@@ -2156,8 +2222,8 @@ class GuidebookModule {
     }
 
     return GuidebookModule(
-      id: _requiredString(j, 'id', 'guidebook module'),
-      title: _requiredString(j, 'title', 'guidebook module'),
+      id: JsonRead.requiredString(j, 'id', 'guidebook module'),
+      title: JsonRead.requiredString(j, 'title', 'guidebook module'),
       sentences: entries('sentences', allowPicture: false),
       words: entries('words', allowPicture: true),
       overview: (j['overview'] as String? ?? '').trim(),
@@ -2244,7 +2310,12 @@ class Guidebook {
       publicationState: j.containsKey('publicationState')
           ? PublicationState.parseRequired(j, 'guidebook')
           : PublicationState.published,
-      modules: _mapList(j, 'modules', 'guidebook', GuidebookModule.fromJson),
+      modules: JsonRead.requiredList(
+        j,
+        'modules',
+        'guidebook',
+        GuidebookModule.fromJson,
+      ),
     );
   }
 }
@@ -2282,7 +2353,7 @@ class Lesson {
     String? themeIconAsset,
     Guidebook? guidebook,
     Duel? duel,
-  }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
+  }) : updatedAt = JsonRead.canonicalUtcTimestamp(updatedAt),
        sectionName = section ? sectionName?.trim() : null,
        themeIconAsset = themeIconAsset?.trim().isEmpty == true
            ? null
@@ -2308,7 +2379,7 @@ class Lesson {
     'lessonId': lessonId,
     'publicationState': publicationState.name,
     if (provisionalDraft) 'provisionalDraft': true,
-    'updatedAt': _timestampToJson(updatedAt),
+    'updatedAt': JsonRead.timestampToJson(updatedAt),
     'title': title,
     'section': section,
     if (section) 'sectionName': sectionName,
@@ -2340,7 +2411,7 @@ class Lesson {
       throw const FormatException('lesson.duel must be an object.');
     }
     final section = j['section'] == true;
-    final sectionName = _optionalString(j, 'sectionName', '').trim();
+    final sectionName = JsonRead.optionalString(j, 'sectionName', '').trim();
     if (j.containsKey('section') && j['section'] is! bool) {
       throw const FormatException('lesson.section must be a boolean.');
     }
@@ -2364,7 +2435,11 @@ class Lesson {
         'lesson.sectionName must be absent when lesson.section is false.',
       );
     }
-    final themeIconAsset = _optionalString(j, 'themeIconAsset', '').trim();
+    final themeIconAsset = JsonRead.optionalString(
+      j,
+      'themeIconAsset',
+      '',
+    ).trim();
     if (j.containsKey('themeIconAsset') &&
         j['themeIconAsset'] != null &&
         j['themeIconAsset'] is! String) {
@@ -2380,12 +2455,17 @@ class Lesson {
       );
     }
     return Lesson(
-      lessonId: _requiredString(j, 'lessonId', 'lesson'),
+      lessonId: JsonRead.requiredString(j, 'lessonId', 'lesson'),
       publicationState: PublicationState.parseRequired(j, 'lesson'),
       provisionalDraft: j['provisionalDraft'] as bool? ?? false,
-      updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'lesson'),
-      title: _requiredString(j, 'title', 'lesson'),
-      rounds: _mapList(j, 'rounds', 'lesson', LearningRound.fromJson),
+      updatedAt: JsonRead.requiredUtcTimestamp(j, 'updatedAt', 'lesson'),
+      title: JsonRead.requiredString(j, 'title', 'lesson'),
+      rounds: JsonRead.requiredList(
+        j,
+        'rounds',
+        'lesson',
+        LearningRound.fromJson,
+      ),
       section: section,
       sectionName: sectionName.isEmpty ? null : sectionName,
       themeIconAsset: themeIconAsset.isEmpty ? null : themeIconAsset,
@@ -2472,7 +2552,7 @@ class LearningRound {
          testPassingPercent == null ||
              (testPassingPercent >= 0 && testPassingPercent <= 100),
        ),
-       updatedAt = _canonicalUtcTimestamp(updatedAt),
+       updatedAt = JsonRead.canonicalUtcTimestamp(updatedAt),
        roundType =
            roundType ??
            (flow == null
@@ -2491,7 +2571,7 @@ class LearningRound {
     'id': id,
     'publicationState': publicationState.name,
     if (provisionalDraft) 'provisionalDraft': true,
-    'updatedAt': _timestampToJson(updatedAt),
+    'updatedAt': JsonRead.timestampToJson(updatedAt),
     if (title.trim().isNotEmpty) 'title': title.trim(),
     'visualType': visualType,
     'roundType': roundType.name,
@@ -2534,7 +2614,12 @@ class LearningRound {
         'round.visualType must be one of ${validVisualTypes.join(', ')}.',
       );
     }
-    final content = _mapList(j, 'content', 'round', LearningContent.fromJson);
+    final content = JsonRead.requiredList(
+      j,
+      'content',
+      'round',
+      LearningContent.fromJson,
+    );
     final roundType = j.containsKey('roundType')
         ? RoundType.fromJson(j['roundType'])
         : rawFlow == null &&
@@ -2590,11 +2675,11 @@ class LearningRound {
       );
     }
     return LearningRound(
-      id: _requiredString(j, 'id', 'round'),
+      id: JsonRead.requiredString(j, 'id', 'round'),
       publicationState: PublicationState.parseRequired(j, 'round'),
       provisionalDraft: j['provisionalDraft'] as bool? ?? false,
-      updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'round'),
-      title: _optionalString(j, 'title', ''),
+      updatedAt: JsonRead.requiredUtcTimestamp(j, 'updatedAt', 'round'),
+      title: JsonRead.optionalString(j, 'title', ''),
       visualType: visualType,
       roundType: roundType,
       testFixedOrder: j['testFixedOrder'] as bool? ?? false,
@@ -2830,7 +2915,7 @@ class LearningContent {
     if (text.isNotEmpty) 'text': text,
   };
   factory LearningContent.fromJson(Map<String, dynamic> j) {
-    final kind = _requiredString(j, 'kind', 'content');
+    final kind = JsonRead.requiredString(j, 'kind', 'content');
     if (j.containsKey('editorTemplate')) {
       throw const FormatException(
         'Course Model formatVersion 12 records the authoring preset in content.authoringMetadata.presetId, not editorTemplate. Convert the Course with tools/convert_course_to_v12.dart.',
@@ -2883,23 +2968,23 @@ class LearningContent {
       throw FormatException('Content of kind $kind cannot carry an exercise.');
     }
     return LearningContent(
-      id: _requiredString(j, 'id', 'content'),
+      id: JsonRead.requiredString(j, 'id', 'content'),
       publicationState: publicationState,
       kind: kind,
       required: j['required'] != false,
       authoringMetadata: metadata,
-      role: _optionalString(j, 'role', ''),
+      role: JsonRead.optionalString(j, 'role', ''),
       exercise: ex is Map
           ? Exercise.fromJson(
               Map<String, dynamic>.from(ex),
-              contentId: _requiredString(j, 'id', 'content'),
+              contentId: JsonRead.requiredString(j, 'id', 'content'),
               authoringMetadata: metadata,
               publicationState: publicationState,
               editorNotes: notes is String ? notes : '',
             )
           : null,
-      text: _optionalString(j, 'text', ''),
-      sourceRefs: _stringList(j, 'sourceRefs'),
+      text: JsonRead.optionalString(j, 'text', ''),
+      sourceRefs: JsonRead.stringListByKey(j, 'sourceRefs'),
     );
   }
   Exercise? asRunnableExercise() {
@@ -2944,9 +3029,14 @@ class Presentation {
   factory Presentation.fromJson(Map<String, dynamic> j) {
     final comp = j['completion'];
     return Presentation(
-      content: _mapList(j, 'content', 'presentation', PromptElement.fromJson),
+      content: JsonRead.requiredList(
+        j,
+        'content',
+        'presentation',
+        PromptElement.fromJson,
+      ),
       actions: comp is Map
-          ? _stringList(Map<String, dynamic>.from(comp), 'actions')
+          ? JsonRead.stringListByKey(Map<String, dynamic>.from(comp), 'actions')
           : const ['understood', 'review_later'],
     );
   }
@@ -3065,11 +3155,15 @@ class SharedImageSource {
     }).isNotEmpty) {
       throw const FormatException('sharedImageSource has unsupported fields.');
     }
-    final id = _requiredString(json, 'id', 'sharedImageSource');
-    final label = _requiredString(json, 'label', 'sharedImageSource');
-    final category = _requiredString(json, 'category', 'sharedImageSource');
-    final origin = _requiredString(json, 'origin', 'sharedImageSource');
-    final tags = _stringList(json, 'tags');
+    final id = JsonRead.requiredString(json, 'id', 'sharedImageSource');
+    final label = JsonRead.requiredString(json, 'label', 'sharedImageSource');
+    final category = JsonRead.requiredString(
+      json,
+      'category',
+      'sharedImageSource',
+    );
+    final origin = JsonRead.requiredString(json, 'origin', 'sharedImageSource');
+    final tags = JsonRead.stringListByKey(json, 'tags');
     final rawAttribution = json['attribution'];
     Map<String, dynamic>? attributionJson;
     if (rawAttribution != null) {
@@ -3457,7 +3551,7 @@ class PromptElement {
     }
     // Build 258 (Page blocks): each attribute belongs to the element types
     // it can shape, and only a value of its vocabulary is read.
-    final type = _requiredString(j, 'type', 'prompt');
+    final type = JsonRead.requiredString(j, 'type', 'prompt');
     T? attribute<T>(
       String key,
       T? Function(Object?) parse,
@@ -3518,7 +3612,7 @@ class PromptElement {
       pageElementAttributeTypes['url']!,
       'a string',
     );
-    final role = _optionalString(j, 'role', 'primary');
+    final role = JsonRead.optionalString(j, 'role', 'primary');
     final plural = attribute(
       'plural',
       (value) => value is bool ? value : null,
@@ -3533,10 +3627,10 @@ class PromptElement {
     return PromptElement(
       role: role,
       type: type,
-      text: _optionalString(j, 'text', ''),
-      asset: _optionalString(j, 'asset', ''),
-      speaker: _optionalString(j, 'speaker', ''),
-      speakerId: _optionalString(j, 'speakerId', ''),
+      text: JsonRead.optionalString(j, 'text', ''),
+      asset: JsonRead.optionalString(j, 'asset', ''),
+      speaker: JsonRead.optionalString(j, 'speaker', ''),
+      speakerId: JsonRead.optionalString(j, 'speakerId', ''),
       sharedImageSource: source == null
           ? null
           : SharedImageSource.fromJson(
@@ -3642,14 +3736,14 @@ class StorySpeaker {
         'story speaker has unsupported fields: ${unknown.join(', ')}.',
       );
     }
-    final id = _optionalString(j, 'id', '').trim();
+    final id = JsonRead.optionalString(j, 'id', '').trim();
     if (character && id.isEmpty) {
       throw const FormatException('storyCharacters entries need an id.');
     }
     if (!character && id.isNotEmpty) {
       throw const FormatException('storyNarrator has no id.');
     }
-    final avatar = _optionalString(j, 'avatar', '').trim();
+    final avatar = JsonRead.optionalString(j, 'avatar', '').trim();
     if (avatar.isNotEmpty && !avatarPattern.hasMatch(avatar)) {
       throw FormatException(
         'story avatar “$avatar” must be assets/avatars/<name>.png or a '
@@ -3674,7 +3768,7 @@ class StorySpeaker {
     }
     return StorySpeaker(
       id: id,
-      name: _optionalString(j, 'name', '').trim(),
+      name: JsonRead.optionalString(j, 'name', '').trim(),
       avatar: avatar,
       language: language,
       voice: voice,
@@ -3751,8 +3845,13 @@ class ExerciseItem {
       }
     }
     return ExerciseItem(
-      id: _requiredString(j, 'id', 'item'),
-      content: _mapList(j, 'content', 'item', PromptElement.fromJson),
+      id: JsonRead.requiredString(j, 'id', 'item'),
+      content: JsonRead.requiredList(
+        j,
+        'content',
+        'item',
+        PromptElement.fromJson,
+      ),
       side: side,
     );
   }
@@ -3823,15 +3922,25 @@ class ExerciseInteraction {
   };
   factory ExerciseInteraction.fromJson(Map<String, dynamic> j) =>
       ExerciseInteraction(
-        kind: _requiredString(j, 'kind', 'interaction'),
-        inputType: _optionalString(j, 'inputType', 'text'),
-        minSelections: _optionalInt(j, 'minSelections', 1),
-        maxSelections: _optionalInt(j, 'maxSelections', 1),
+        kind: JsonRead.requiredString(j, 'kind', 'interaction'),
+        inputType: JsonRead.optionalString(j, 'inputType', 'text'),
+        minSelections: JsonRead.optionalInt(j, 'minSelections', 1),
+        maxSelections: JsonRead.optionalInt(j, 'maxSelections', 1),
         items: (j['items'] is List)
-            ? _mapList(j, 'items', 'interaction', ExerciseItem.fromJson)
+            ? JsonRead.requiredList(
+                j,
+                'items',
+                'interaction',
+                ExerciseItem.fromJson,
+              )
             : const [],
         layout: (j['layout'] is List)
-            ? _mapList(j, 'layout', 'interaction', PromptElement.fromJson)
+            ? JsonRead.requiredList(
+                j,
+                'layout',
+                'interaction',
+                PromptElement.fromJson,
+              )
             : const [],
       );
 }
@@ -3890,13 +3999,18 @@ class ExerciseEvaluation {
         ? Map<String, dynamic>.from(j['normalization'] as Map)
         : <String, dynamic>{};
     return ExerciseEvaluation(
-      kind: _requiredString(j, 'kind', 'evaluation'),
-      correctItemIds: _stringList(j, 'correctItemIds'),
-      accepted: _stringList(j, 'acceptedAnswers'),
+      kind: JsonRead.requiredString(j, 'kind', 'evaluation'),
+      correctItemIds: JsonRead.stringListByKey(j, 'correctItemIds'),
+      accepted: JsonRead.stringListByKey(j, 'acceptedAnswers'),
       correctOrders: j['correctOrders'] == null
           ? const []
-          : _mapList(j, 'correctOrders', 'evaluation', OrderedAnswer.fromJson),
-      pairs: _pairList(j, 'pairs'),
+          : JsonRead.requiredList(
+              j,
+              'correctOrders',
+              'evaluation',
+              OrderedAnswer.fromJson,
+            ),
+      pairs: JsonRead.pairList(j, 'pairs'),
       normalization: normalization,
       gapAssignments: j['gapAssignments'] is Map
           ? Map<String, String>.from(
@@ -3975,7 +4089,7 @@ class Exercise {
     this.hint = '',
     Map<String, Object?>? authoringMetadata,
     this.editorNotes = '',
-  }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
+  }) : updatedAt = JsonRead.canonicalUtcTimestamp(updatedAt),
        options = options ?? PrimitiveOptions.empty,
        authoringMetadata = Map.unmodifiable(
          Map<String, Object?>.from(authoringMetadata ?? const {}),
@@ -4150,7 +4264,7 @@ class Exercise {
   };
 
   Map<String, dynamic> toJson() => {
-    'updatedAt': _timestampToJson(updatedAt),
+    'updatedAt': JsonRead.timestampToJson(updatedAt),
     'primitive': primitive.serialized,
     if (options.isNotEmpty) 'options': options.toJson(),
     'prompt': promptElements.map((e) => e.toJson()).toList(),
@@ -4214,26 +4328,46 @@ class Exercise {
     return Exercise.canonical(
       id: contentId,
       publicationState: publicationState,
-      updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'exercise'),
+      updatedAt: JsonRead.requiredUtcTimestamp(j, 'updatedAt', 'exercise'),
       primitive: primitive,
       options: parsedOptions.options,
-      promptElements: _mapList(j, 'prompt', 'exercise', PromptElement.fromJson),
+      promptElements: JsonRead.requiredList(
+        j,
+        'prompt',
+        'exercise',
+        PromptElement.fromJson,
+      ),
       items: j['items'] == null
           ? const []
-          : _mapList(j, 'items', 'exercise', ExerciseItem.fromJson),
+          : JsonRead.requiredList(
+              j,
+              'items',
+              'exercise',
+              ExerciseItem.fromJson,
+            ),
       targets: j['targets'] == null
           ? const []
-          : _mapList(j, 'targets', 'exercise', ExerciseTarget.fromJson),
+          : JsonRead.requiredList(
+              j,
+              'targets',
+              'exercise',
+              ExerciseTarget.fromJson,
+            ),
       layout: j['layout'] == null
           ? const []
-          : _mapList(j, 'layout', 'exercise', LayoutElement.fromJson),
+          : JsonRead.requiredList(
+              j,
+              'layout',
+              'exercise',
+              LayoutElement.fromJson,
+            ),
       canonicalEvaluation: CanonicalEvaluation.fromJson(
         Map<String, dynamic>.from(e),
       ),
       feedback: rawFeedback is Map
           ? ExerciseFeedback.fromJson(Map<String, dynamic>.from(rawFeedback))
           : ExerciseFeedback.empty,
-      hint: _optionalString(j, 'hint', ''),
+      hint: JsonRead.optionalString(j, 'hint', ''),
       authoringMetadata: authoringMetadata,
       editorNotes: editorNotes,
     );
@@ -5648,96 +5782,10 @@ class Duel {
       );
     }
     return Duel(
-      id: _requiredString(j, 'id', 'duel'),
-      title: _requiredString(j, 'title', 'duel'),
+      id: JsonRead.requiredString(j, 'id', 'duel'),
+      title: JsonRead.requiredString(j, 'title', 'duel'),
     );
   }
-}
-
-DateTime _canonicalUtcTimestamp(DateTime? value) =>
-    (value ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)).toUtc();
-
-String _timestampToJson(DateTime value) => value.toUtc().toIso8601String();
-
-DateTime _requiredUtcTimestamp(
-  Map<String, dynamic> json,
-  String key,
-  String location,
-) {
-  final raw = json[key];
-  if (raw is! String || !raw.endsWith('Z')) {
-    throw FormatException(
-      '$location.$key must be an ISO 8601 UTC timestamp ending in Z.',
-    );
-  }
-  final parsed = DateTime.tryParse(raw);
-  if (parsed == null || !parsed.isUtc) {
-    throw FormatException(
-      '$location.$key must be an unambiguous ISO 8601 UTC timestamp.',
-    );
-  }
-  return parsed;
-}
-
-String _requiredString(Map<String, dynamic> j, String key, String where) {
-  final v = j[key];
-  if (v is! String || v.trim().isEmpty) {
-    throw FormatException('Missing or invalid $where.$key');
-  }
-  return v.trim();
-}
-
-String _optionalString(Map<String, dynamic> j, String key, String fallback) {
-  final v = j[key];
-  return v is String ? v.trim() : fallback;
-}
-
-int _optionalInt(Map<String, dynamic> j, String key, int fallback) {
-  final v = j[key];
-  return v is int ? v : fallback;
-}
-
-List<String> _stringList(Map<String, dynamic> j, String key) {
-  final v = j[key];
-  if (v == null) return const [];
-  if (v is! List) throw FormatException('$key must be a list.');
-  return [
-    for (final x in v)
-      if (x is String)
-        x
-      else
-        throw FormatException('$key must contain strings only.'),
-  ];
-}
-
-List<List<String>> _pairList(Map<String, dynamic> j, String key) {
-  final v = j[key];
-  if (v == null) return const [];
-  if (v is! List) throw FormatException('$key must be a list.');
-  return [
-    for (final x in v)
-      if (x is List && x.length == 2 && x.every((e) => e is String))
-        [x[0] as String, x[1] as String]
-      else
-        throw FormatException('$key entries must contain exactly two strings.'),
-  ];
-}
-
-List<T> _mapList<T>(
-  Map<String, dynamic> j,
-  String key,
-  String where,
-  T Function(Map<String, dynamic>) parser,
-) {
-  final v = j[key];
-  if (v is! List) throw FormatException('$where.$key must be a list.');
-  return [
-    for (final x in v)
-      if (x is Map)
-        parser(Map<String, dynamic>.from(x))
-      else
-        throw FormatException('$where.$key contains a non-object value.'),
-  ];
 }
 
 extension _FirstOrNull<T> on Iterable<T> {

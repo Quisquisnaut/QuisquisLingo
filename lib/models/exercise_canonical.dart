@@ -8,63 +8,7 @@
 library;
 
 import 'canonical/canonical.dart';
-
-String _requiredString(Map<String, dynamic> j, String key, String where) {
-  final v = j[key];
-  if (v is! String || v.trim().isEmpty) {
-    throw FormatException('Missing or invalid $where.$key');
-  }
-  return v.trim();
-}
-
-String _optionalString(Map<String, dynamic> j, String key, String fallback) {
-  final v = j[key];
-  return v is String ? v.trim() : fallback;
-}
-
-List<String> _stringList(Map<String, dynamic> j, String key, String where) {
-  final v = j[key];
-  if (v == null) return const [];
-  if (v is! List) throw FormatException('$where.$key must be a list.');
-  return [
-    for (final x in v)
-      if (x is String)
-        x
-      else
-        throw FormatException('$where.$key must contain strings only.'),
-  ];
-}
-
-List<T> _mapList<T>(
-  Map<String, dynamic> j,
-  String key,
-  String where,
-  T Function(Map<String, dynamic>) parser,
-) {
-  final v = j[key];
-  if (v == null) return const [];
-  if (v is! List) throw FormatException('$where.$key must be a list.');
-  return [
-    for (final x in v)
-      if (x is Map)
-        parser(Map<String, dynamic>.from(x))
-      else
-        throw FormatException('$where.$key contains a non-object value.'),
-  ];
-}
-
-void _refuseUnknownKeys(
-  Map<String, dynamic> j,
-  Set<String> known,
-  String where,
-) {
-  final unknown = j.keys.where((key) => !known.contains(key)).toList();
-  if (unknown.isNotEmpty) {
-    throw FormatException(
-      '$where contains unsupported fields: ${unknown.join(', ')}.',
-    );
-  }
-}
+import 'json_read.dart';
 
 bool _listEquals<T>(List<T> a, List<T> b) {
   if (a.length != b.length) return false;
@@ -276,7 +220,7 @@ final class TargetRegion {
   };
 
   factory TargetRegion.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownKeys(j, _keys, 'target.region');
+    JsonRead.refuseUnknownKeys(j, _keys, 'target.region');
     double read(String key) {
       final v = j[key];
       if (v is! num) {
@@ -334,7 +278,7 @@ final class ExerciseTarget {
   };
 
   factory ExerciseTarget.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownKeys(j, _keys, 'target');
+    JsonRead.refuseUnknownKeys(j, _keys, 'target');
     TargetReveal? reveal;
     if (j.containsKey('reveal')) {
       reveal = TargetReveal.tryParse(j['reveal']);
@@ -349,7 +293,7 @@ final class ExerciseTarget {
       throw const FormatException('target.region must be an object.');
     }
     return ExerciseTarget(
-      id: _requiredString(j, 'id', 'target'),
+      id: JsonRead.requiredString(j, 'id', 'target'),
       reveal: reveal,
       region: region is Map
           ? TargetRegion.fromJson(Map<String, dynamic>.from(region))
@@ -418,19 +362,22 @@ final class LayoutElement {
     }
     switch (type) {
       case LayoutElementType.text:
-        _refuseUnknownKeys(j, const {'type', 'text'}, 'layout text element');
+        JsonRead.refuseUnknownKeys(j, const {
+          'type',
+          'text',
+        }, 'layout text element');
         final text = j['text'];
         if (text is! String) {
           throw const FormatException('layout text element needs text.');
         }
         return LayoutElement.text(text);
       case LayoutElementType.target:
-        _refuseUnknownKeys(j, const {
+        JsonRead.refuseUnknownKeys(j, const {
           'type',
           'targetId',
         }, 'layout target element');
         return LayoutElement.target(
-          _requiredString(j, 'targetId', 'layout target element'),
+          JsonRead.requiredString(j, 'targetId', 'layout target element'),
         );
     }
   }
@@ -457,10 +404,13 @@ final class OrderedAnswer {
   Map<String, dynamic> toJson() => {'text': text, 'itemIds': itemIds};
 
   factory OrderedAnswer.fromJson(Map<String, dynamic> json) {
-    _refuseUnknownKeys(json, const {'text', 'itemIds'}, 'ordered answer');
+    JsonRead.refuseUnknownKeys(json, const {
+      'text',
+      'itemIds',
+    }, 'ordered answer');
     return OrderedAnswer(
-      text: _requiredString(json, 'text', 'ordered answer'),
-      itemIds: _stringList(json, 'itemIds', 'ordered answer'),
+      text: JsonRead.requiredString(json, 'text', 'ordered answer'),
+      itemIds: JsonRead.stringList(json, 'itemIds', 'ordered answer'),
     );
   }
 
@@ -485,10 +435,10 @@ final class TargetAssignment {
   Map<String, dynamic> toJson() => {'targetId': targetId, 'itemIds': itemIds};
 
   factory TargetAssignment.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownKeys(j, const {'targetId', 'itemIds'}, 'assignment');
+    JsonRead.refuseUnknownKeys(j, const {'targetId', 'itemIds'}, 'assignment');
     return TargetAssignment(
-      targetId: _requiredString(j, 'targetId', 'assignment'),
-      itemIds: _stringList(j, 'itemIds', 'assignment'),
+      targetId: JsonRead.requiredString(j, 'targetId', 'assignment'),
+      itemIds: JsonRead.stringList(j, 'itemIds', 'assignment'),
     );
   }
 
@@ -521,15 +471,19 @@ final class TargetAnswers {
   };
 
   factory TargetAnswers.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownKeys(j, const {
+    JsonRead.refuseUnknownKeys(j, const {
       'targetId',
       'answers',
       'literalAnswers',
     }, 'target answers');
     return TargetAnswers(
-      targetId: _requiredString(j, 'targetId', 'target answers'),
-      answers: _stringList(j, 'answers', 'target answers'),
-      literalAnswers: _stringList(j, 'literalAnswers', 'target answers'),
+      targetId: JsonRead.requiredString(j, 'targetId', 'target answers'),
+      answers: JsonRead.stringList(j, 'answers', 'target answers'),
+      literalAnswers: JsonRead.stringList(
+        j,
+        'literalAnswers',
+        'target answers',
+      ),
     );
   }
 
@@ -568,7 +522,7 @@ final class NumericAnswer {
   };
 
   factory NumericAnswer.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownKeys(j, _keys, 'evaluation.numeric');
+    JsonRead.refuseUnknownKeys(j, _keys, 'evaluation.numeric');
     double? read(String key) {
       if (!j.containsKey(key)) return null;
       final v = j[key];
@@ -608,10 +562,13 @@ final class AcceptedTarget {
   Map<String, dynamic> toJson() => {'itemId': itemId, 'targetIds': targetIds};
 
   factory AcceptedTarget.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownKeys(j, const {'itemId', 'targetIds'}, 'accepted target');
+    JsonRead.refuseUnknownKeys(j, const {
+      'itemId',
+      'targetIds',
+    }, 'accepted target');
     return AcceptedTarget(
-      itemId: _requiredString(j, 'itemId', 'accepted target'),
-      targetIds: _stringList(j, 'targetIds', 'accepted target'),
+      itemId: JsonRead.requiredString(j, 'itemId', 'accepted target'),
+      targetIds: JsonRead.stringList(j, 'targetIds', 'accepted target'),
     );
   }
 
@@ -727,7 +684,7 @@ final class CanonicalEvaluation {
   };
 
   factory CanonicalEvaluation.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownKeys(j, knownKeys, 'evaluation');
+    JsonRead.refuseUnknownKeys(j, knownKeys, 'evaluation');
     final mode = EvaluationMode.tryParse(j['mode']);
     if (mode == null) {
       throw FormatException(
@@ -756,16 +713,16 @@ final class CanonicalEvaluation {
     }
     return CanonicalEvaluation(
       mode: mode,
-      correctItemIds: _stringList(j, 'correctItemIds', 'evaluation'),
-      assignments: _mapList(
+      correctItemIds: JsonRead.stringList(j, 'correctItemIds', 'evaluation'),
+      assignments: JsonRead.optionalList(
         j,
         'assignments',
         'evaluation',
         TargetAssignment.fromJson,
       ),
-      answers: _stringList(j, 'answers', 'evaluation'),
-      literalAnswers: _stringList(j, 'literalAnswers', 'evaluation'),
-      targetAnswers: _mapList(
+      answers: JsonRead.stringList(j, 'answers', 'evaluation'),
+      literalAnswers: JsonRead.stringList(j, 'literalAnswers', 'evaluation'),
+      targetAnswers: JsonRead.optionalList(
         j,
         'targetAnswers',
         'evaluation',
@@ -774,15 +731,15 @@ final class CanonicalEvaluation {
       numeric: numeric is Map
           ? NumericAnswer.fromJson(Map<String, dynamic>.from(numeric))
           : null,
-      pattern: _optionalString(j, 'pattern', ''),
-      correctOrders: _mapList(
+      pattern: JsonRead.optionalString(j, 'pattern', ''),
+      correctOrders: JsonRead.optionalList(
         j,
         'correctOrders',
         'evaluation',
         OrderedAnswer.fromJson,
       ),
       relations: relations,
-      acceptedTargets: _mapList(
+      acceptedTargets: JsonRead.optionalList(
         j,
         'acceptedTargets',
         'evaluation',
@@ -866,7 +823,7 @@ final class ExerciseFeedback {
   };
 
   factory ExerciseFeedback.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownKeys(j, _keys, 'feedback');
+    JsonRead.refuseUnknownKeys(j, _keys, 'feedback');
     var alternatives = FeedbackAlternatives.none;
     if (j.containsKey('showAlternatives')) {
       final parsed = FeedbackAlternatives.tryParse(j['showAlternatives']);
@@ -878,8 +835,8 @@ final class ExerciseFeedback {
       alternatives = parsed;
     }
     return ExerciseFeedback(
-      correct: _optionalString(j, 'correct', ''),
-      incorrect: _optionalString(j, 'incorrect', ''),
+      correct: JsonRead.optionalString(j, 'correct', ''),
+      incorrect: JsonRead.optionalString(j, 'incorrect', ''),
       showAlternatives: alternatives,
     );
   }

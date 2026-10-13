@@ -35,9 +35,10 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 5 | The exercise editor (`ExerciseEditorScreen`, 3,153 lines) moves whole to its own file (done, `1aa0d72d`) |
 | 6 | Free moves from the Course Editor file: Audio Library, Audit page, Lesson preview, the hierarchy status; `ExerciseLabels` (done, `bd1c2550`) |
 | 7 | `TimedRoundClock` (done, `7d79280c`) |
-| 8 | Media-reference owner |
-| 9 | Shared JSON readers for the models |
-| 10 | Merge selection owner; Merge, Import and Export pages leave Course Studio |
+| 8 | Media-reference owner (done, `6f565380`) |
+| 9 | Shared JSON readers for the models (`JsonRead`), both rules of the differing copies kept |
+| 10 | The two differences between the readers fixed (owner decision of 13 October 2026) |
+| 11 | Merge selection owner; Merge, Import and Export pages leave Course Studio |
 | then | The other free moves, two or three per complete suite |
 | Build 273 | The plan's medium-risk items: answer grading, Story cast, the publish gate, the profile service split, Audit rule sets, the earlier exercise shapes, the Round screen's state owners, the Course save sequence |
 
@@ -399,23 +400,30 @@ Gotchas:
 - A pattern built from `const` texts is compared with the old literal
   in a test (`RegExp.pattern`), not by eye.
 
-## Next: Revision 9, shared JSON readers for the models (not started)
+## Revision 9 (2.0.72+272009), shared readers for a Course file
 
-Notes in the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), `r9/NOTES.md`: the
-file-level helpers at the end of `course_models.dart`
-(`_requiredString`, `_optionalString`, `_optionalInt`, `_stringList`,
-`_pairList`, `_mapList`, the three timestamp helpers, `_FirstOrNull`)
-and their copies at the top of `exercise_canonical.dart`
-(`_requiredString`, `_optionalString`, `_stringList`, `_mapList`,
-`_refuseUnknownKeys`, `_listEquals`). Two copies differ: `_stringList`
-(the models' message names only the key, the canonical one the place
-too) and `_mapList` (the models refuse a missing list, the canonical
-one reads it as empty). Revision 9 keeps both rules under their own
-names (`JsonRead.stringListByKey` / `stringList`, `requiredList` /
-`optionalList`): no behaviour change. Prepared in `r9/`: the owner
-(`json_read.dart`), `apply_r9.py` (135 + 32 calls renamed; `--out=`
-for a dry run) and `same_code.py` (the formatted result is the same
-code but for layout). An owner: its own complete suite.
+State (13 October 2026, 06:44): done. Analyzer clean; 26 focused files 334 passed; the independent review found no behaviour difference; complete suite 4,486 passed, 1 skipped. Committed (hash in `git log`) and pushed. Revision 10 is prepared in `r10/` (`apply_r10.py`, `tests_r10.py`).
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/models/json_read.dart`: `JsonRead` (`requiredString`,
+  `optionalString`, `optionalInt`, `stringListByKey`, `stringList`,
+  `pairList`, `requiredList`, `optionalList`, `refuseUnknownKeys`,
+  the three timestamp functions).
+- `course_models.dart` (135 calls) and `exercise_canonical.dart` (32)
+  call it (`r9/apply_r9.py`; `r9/same_code.py` compares a formatted
+  file with the renamed old text).
+- Tests: `json_read_272_test` (6 written before the change + 9).
+
+Gotchas:
+
+- `dart format` in a scratch folder uses another style than in the
+  repository (no `pubspec.yaml` there): the line counts of a dry run
+  differ from the real ones. Compare code, not layout.
+- A check of its own can stand before a reader: `course.sectionNames`
+  and an exercise without `prompt` never reach `JsonRead`. Run a
+  characterization test before believing what a file is told.
+- The models file grows (5,748 to 5,796 lines): longer names wrap.
 
 ## Then: Revision 10, the two differences fixed (owner, 13 October 2026)
 

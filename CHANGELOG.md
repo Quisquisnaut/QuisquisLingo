@@ -1,3 +1,30 @@
+# 2.0.72 (Build 272, Revision 9) - modularization: shared readers for a Course file - 2026-10-13
+
+Nothing an author or a learner sees changes in this revision.
+
+- **The Course models read a file through shared readers**: `JsonRead`
+  (`lib/models/json_read.dart`): a text that must be there, a text or a
+  number that may be missing, a list of texts, a list of objects the file
+  must have or may leave out, a moment in UTC, fields nobody knows. The two
+  model files each kept private copies; 167 calls now use the shared ones.
+- **Two of the copies had grown different, and both rules are kept here,
+  each under its own name**: the wording when a list of texts is wrong
+  (`stringListByKey` names only the field, `stringList` the place too), and
+  a missing list of objects (`requiredList` refuses it, `optionalList` reads
+  it as empty). Revision 10 makes them the same, by the owner's decision.
+- What a broken Course file is told stays word for word.
+- **Tests**: `test/json_read_272_test.dart`: 6 cases written before the
+  change on the Laboratory's own file broken in one place each, and 9 on the
+  readers themselves.
+
+The Course models file goes from 5,748 to 5,796 lines: the readers' longer
+names wrap more lines than the removed copies took. The gain is that the
+models' classes no longer share private helpers of one file, which is what
+kept them from being split.
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-12 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 8) - modularization: one owner for the media reference rule - 2026-10-13
 
 Nothing an author or a learner sees changes in this revision.

@@ -471,3 +471,73 @@ seven affected files 147 passed.
 ### Complete suite
 
 First run (13 October 2026, 02:55–04:19; 83 min 34 s instead of the usual 45, the PC was busy): 4,470 passed, 1 skipped, **1 failed**: `qql_230_course_persistence_hardening_test`, "Course Manager surfaces corrupt storage instead of spinning". Its wait for Course Studio to read the stored Courses has a guard against a wait that never ends, and the guard's 10 seconds ran out. Nothing of this revision is involved: the file passed alone 4 times out of 4 (8 tests, about 11 seconds each). Done before the second run: the guard is 30 seconds (`test/support/pump_file_io.dart`, used by 75 test files; it only matters when a wait fails), and the disposable test folder `D:\QQL_test_temp` (4,182 leftover entries, 1.2 GB; D: had 2.1 GB free) was emptied. Second run on the final tree (04:32–05:51, 77 min 47 s, the PC still busy), `flutter test --no-pub --concurrency=1`: **4,471 passed, 1 skipped, 0 failed**. Revision 7's suite had 4,418; the 53 more are this revision's test file.
+
+## Revision 9 (2.0.72+272009), shared readers for a Course file
+
+13 October 2026, owner's Windows 10 PC, `build-272`.
+
+- **Before the change**: `test/json_read_272_test.dart`, 6 cases on the
+  Laboratory's own file broken in one place each, with the exact words:
+  **6 passed**. Two of my first expectations were wrong and were corrected
+  to what the code says (never the code): an exercise without `prompt` is
+  refused by a check of its own ("Exercise requires prompt[] and an
+  evaluation object."), and so is `course.sectionNames` ("course.sectionNames
+  must be a list of strings."), so the models' wording for a list of texts
+  is pinned on a content's `sourceRefs` instead.
+- **After the change**: the same 6 unchanged and 9 on the readers
+  themselves: **15 passed**, three runs of three.
+- The renaming (`apply_r9.py`): 135 calls in `course_models.dart`, 32 in
+  `exercise_canonical.dart`; no old name is left (asserted). `same_code.py`
+  compared each formatted file with the renamed old text, all white space
+  and the commas before a closing bracket ignored: **the same code**
+  (151,936 and 19,531 characters).
+- Both files were fully formatted before (checked on their committed
+  versions), so every re-wrapped line of the diff comes from a longer name.
+- Focused files (26): the one above,
+  `course_media_reference_272_test`, the Course model tests
+  (`course_model_v12_256_test`, `course_model_v11_243_test`,
+  `course_model_v6_test`, `course_model_v9_clean_cut_test`),
+  `negative_cases_256_test`, `semantic_equality_256_test`,
+  `canonical_primitives_256_test`, `runtime_canonical_256_test`,
+  `laboratory_future_256_test`, `exercise_architecture_224_test`,
+  `imported_course_v6_regression_test`, `bundled_courses_225_02_test`,
+  `story_model_256_test`, `guidebook_modules_266_test`,
+  `import_side_doors_270_test`, `import_route_matrix_revision19_test`,
+  `course_package_243_test`, `demo_package_roundtrip_254_test`,
+  `editor_notes_267_test`, `plural_pictures_265_test`,
+  `page_card_258_test`, `stored_course_edge_cases_266_test`,
+  `publisher_verification_test`, `sign_course_media_270_test`:
+  **334 passed**.
+- `flutter analyze --no-pub`: **No issues found**.
+
+### Independent review
+
+A second reader (read only, no access to this session's reasoning) compared
+the three files with the commit before them, with a small lexer of its own:
+**no behaviour difference found**.
+
+- The 14 old helpers equal their `JsonRead` function token for token: the
+  same conditions in the same order, the same values returned, the same
+  `FormatException`, every message byte for byte. Each of the two pairs that
+  differed is the faithful copy of the right old helper.
+- Calls, counted before and after: `course_models.dart` 135 and 135
+  (`_stringList` 6 → `stringListByKey` 6, `_mapList` 13 → `requiredList` 13);
+  `exercise_canonical.dart` 32 and 32 (`_stringList` 8 → `stringList` 8,
+  `_mapList` 4 → `optionalList` 4). No call crossed from one rule to the
+  other.
+- All 167 calls were paired in order and their arguments compared: 0
+  differences, the 56 calls that span several lines included. Each whole
+  file, renamed and without its helper block, is the new file token for
+  token (30,200 and 4,284 tokens).
+- No old name is left, none was passed as a value, no other file used them;
+  `json_read.dart` imports nothing, so the tools that run with `dart run`
+  are unaffected.
+
+What reading alone could not show (that the files compile, and that the
+tests pass) is covered by the analyzer run and the suite. One visible
+difference outside the app's behaviour: a logged stack trace names
+`JsonRead.requiredString` where it named `_requiredString`.
+
+### Complete suite
+
+13 October 2026, 06:03–06:44, `flutter test --no-pub --concurrency=1` on the final tree: **4,486 passed, 1 skipped, 0 failed** (39 min 48 s). Revision 8's suite had 4,471; the 15 more are this revision's test file.

@@ -561,3 +561,53 @@ The Course models file goes from 5,809 to 5,748 lines.
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 9 (2.0.72+272009): shared readers for a Course file
+
+Nothing an author or a learner sees changes.
+
+### What it is
+
+When QQL opens a Course file it reads thousands of small values: a title
+that must be there, a note that may be missing, a list of answers, a date.
+For each kind of value there is a small reader that also says what is wrong
+when the file is broken ("Missing or invalid lesson.title").
+
+Those readers were private to the file they were written in, and the two
+files of the Course models each had their own copies. Now there is one set,
+`JsonRead`, and 167 calls use it.
+
+This matters for what comes later: the Course models are one file of almost
+6,000 lines, and its classes could not be moved to files of their own while
+they all leaned on helpers private to that one file.
+
+### Two copies were not the same
+
+| Reader | In the Course models | In the canonical exercise |
+|---|---|---|
+| A list of texts that is wrong | "tags must be a list." | "evaluation.answers must be a list." (the place too) |
+| A list of objects that is missing | refused | read as empty |
+
+In this revision both rules are kept exactly, each under its own name, so
+that nothing changes. You decided on 13 October that they be fixed: that is
+Revision 10.
+
+### How it was checked
+
+- 6 tests written first, on the Laboratory's own file broken in one place
+  each (a missing title, a date without its time zone, a Lesson without its
+  Rounds, a list of the wrong kind, an unknown field), with the exact words
+  the file is told. They pass unchanged afterwards.
+- 9 tests on the readers themselves.
+- The renaming was done by a script, and a second script confirmed that
+  each file is the same code as before apart from the names and the layout.
+- An independent review before the complete suite.
+
+### Size
+
+The Course models file goes from 5,748 to 5,796 lines. The readers' longer
+names make the formatter wrap more lines than the removed copies took, so
+this revision does not shrink it; it removes what kept it from being split.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.
