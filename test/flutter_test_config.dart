@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/spoken_line_pace.dart';
+import 'package:quisquislingo_app/widgets/course_import_check_dialog.dart';
 import 'package:quisquislingo_app/widgets/exercise_editor_intro.dart';
 import 'package:quisquislingo_app/widgets/exercise_mascot.dart';
 import 'package:quisquislingo_app/widgets/primitive_intro.dart';
@@ -51,6 +52,9 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Round of a Course with GuideBook vocabulary; its test turns it on.
   WordLookupNotice.enabled = false;
   SharedDeviceNotice.enabled = false;
+  // The pop-up of a Course import (Build 272 Revision 13) would stop
+  // every import test written before it. Its own tests turn it on.
+  CourseImportCheckDialog.enabled = false;
   // A Course save flushes its folder through the system's `sync` on Linux
   // and macOS (Build 271 Revision 1): no test starts a process for it; the
   // Course store's own test uses a recording one.

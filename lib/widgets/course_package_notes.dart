@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/course_import_check.dart';
 import '../services/storage/qql_storage.dart';
 
 // Small texts the Course Import, Export and Merge pages and Course Studio
@@ -20,9 +21,7 @@ void showMatchingZipFolderWarning(BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(
     const SnackBar(
       duration: Duration(seconds: 10),
-      content: Text(
-        'Accepted a matching ZIP folder. Course package files normally belong at the ZIP root.',
-      ),
+      content: Text(CourseImportCheck.matchingZipFolderText),
     ),
   );
 }

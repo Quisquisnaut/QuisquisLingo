@@ -29,6 +29,10 @@ class CoursePackageImport {
 
   Course get course => _package.course;
 
+  /// The Course file as written (`course.json` of a package, or the JSON
+  /// file itself): what the import's check compares the read Course with.
+  List<int> get courseJsonBytes => _package.courseJson;
+
   /// True when the ZIP's files sat in one folder matching the ZIP's name.
   bool get hadMatchingFolderWrapper => _package.hadMatchingFolderWrapper;
 

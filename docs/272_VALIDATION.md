@@ -719,3 +719,94 @@ needed in the Import and Export pages (removed; the analyzer stays clean).
 ### Complete suite (one for the two moves)
 
 First run: **4,387 passed, 1 skipped, 122 failed**, all 122 in `exercise_laboratory_254_test` (each a wait of 10 seconds that ran out; the file took 21 min 38 s against 1 min 46 s in Revision 11's suite: the PC ran about twelve times slower for twenty minutes). That file alone on the same tree: **253 passed** (2 min 23 s). Its wait raised to 30 seconds, like `pumpUntilFileIoState`. Second run, `flutter test --no-pub --concurrency=1`: **4,509 passed, 1 skipped, 0 failed** (55 min 56 s).
+
+## Revision 13 (2.0.72+272013), a Course import shows what its check found
+
+13 October 2026, owner's Windows 10 PC, `build-272`. A behaviour change the
+owner asked for, in a revision of its own.
+
+- New tests: `test/course_import_check_272_test.dart` **68 passed** (the
+  anomalies read with the app's own reader and, where the Course Audit
+  decides, with the Audit itself; the labels; the facts; the Merge use;
+  the check through `reviewImport` and `checkCourseFile`);
+  `test/course_import_check_dialog_272_test.dart` **29 passed** (Course
+  Studio's import, the learner's Import page, the pop-up itself at 320
+  pixels, the Merge page).
+- The two new files together, six runs in a row: **97 passed** each time.
+- A new case in `test/course_manager_workflow_249_test.dart`: Course
+  Studio gives the Merge page its check.
+- Focused files (19): `course_package_import_ui_247_test`,
+  `course_manager_workflow_249_test`,
+  `course_library_operations_249_test`, `import_safety_271_test`,
+  `courses_screen_250_test`, `import_route_matrix_revision19_test`,
+  `course_package_243_test`, `stored_course_edge_cases_266_test`,
+  `editor_help_translation_test`, `free_moves_272_r12_test`,
+  `course_merge_selection_272_test`, `course_merge_submission_246_test`,
+  `course_merge_media_workflow_246_test`, `editor_help_qa_256_test` and
+  the five files that pin the version: **220 passed**.
+- `flutter analyze --no-pub`: **No issues found**.
+- "Import anyway imports exactly as before" is checked by importing the
+  same file twice under two Course IDs, once with the pop-up off (the
+  path of every earlier import test) and once through Import anyway: the
+  two stored Courses are equal but for the ID.
+
+### Independent reviews (two)
+
+Two second readers (read-only), one on the first draft and one on the
+reworked code. Both were asked for every observable consequence, intended
+or not, and for every claimed line that the flow cannot reach.
+
+**First review, thirteen points, all acted on.** The ones that changed
+the behaviour:
+
+- Two listed anomalies could never show: a Round with nothing in it
+  (`ROUND_CONTENT_EMPTY`) and a Course that plays only its recordings and
+  has none (`RECORDED_AUDIO_LIBRARY_EMPTY`) are Audit errors, and a file
+  with Audit errors is refused before the pop-up. Both removed.
+- `LESSON_ROUNDS_EMPTY` and `COURSE_LESSONS_EMPTY` were said twice, in
+  words and in the Audit's count. The count now leaves them out.
+- An unreadable Teams list made `reviewImport` throw: a new refusal. Now
+  guarded.
+- Two taps on Quick Import opened two pop-ups; the second answer would
+  have replaced the Course without the Matching Course ID question. One
+  import at a time now.
+- Texts of the file were shown whole (a megabyte is allowed in one).
+  Now cut to one line.
+- "can be imported" was said before checks that can still refuse.
+- A Rights Holder is not "something QuisquisLingo never leaves empty":
+  New Course writes none. Taken to the owner, who decided to keep the
+  anomaly and to fix New Course in the next revision.
+- Merge reads a Course file without the pop-up. Taken to the owner, who
+  asked for the same check there.
+
+**Second review, nine points, all acted on.**
+
+- In a Merge the pop-up spoke of "the import" and listed credits and
+  audio that a Merge takes from the stored Course. The check now follows
+  its use.
+- `shown` could cut an emoji in half, and Flutter then draws the whole
+  line as a replacement mark. It now cuts between characters.
+- Only the Teams lookup was guarded: any other failure of the check would
+  have stopped an import or a Merge. `checkCourseFile` now logs it and
+  returns no check.
+- The Merge page did not let the read package go when it was closed
+  during the check.
+- Wordings: "Course Studio (⋮ › Audit)" names a place a learner with a
+  locked Course Studio cannot open; "is set to On-Device TTS" was also
+  said of a file that left its audio mode out.
+- Test gaps closed: Course Studio gives the Merge page its check; Cancel
+  in a Merge lets the package go; a check that could not be made;
+  `rightsGivenUp` against the license list; a test that could not fail.
+- A leftover of the first draft in `reviewImport` removed.
+
+Left open and written in the change summary: no test imports a Publisher
+Course with the pop-up on.
+
+**After the two reviews**, two changes the owner asked for on the same day
+were made and were not read by a second reader: the author and license
+anomalies are listed in a Merge too (one function split in two), and See
+the Audit (one helper, three buttons). Both have tests of their own.
+
+### Complete suite
+
+`flutter test --no-pub --concurrency=1`: **4,605 passed, 1 skipped, 0 failed** (39 min 52 s), on the revision before the owner's last two decisions (author and license in a Merge; See the Audit). Not run again for them, by the owner's instruction: analyzer clean, the two new files 97 passed six times in a row, 19 related files 220 passed.

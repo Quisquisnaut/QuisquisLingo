@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/course_models.dart';
+import '../services/course_import_check.dart';
 import '../services/course_merge_selection.dart';
 import '../services/course_merge_service.dart';
 import '../services/course_package_service.dart';
@@ -8,6 +9,7 @@ import '../services/sound_effect_service.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../services/storage/qql_storage.dart';
 import '../widgets/quick_import_access.dart';
+import '../widgets/course_import_check_dialog.dart';
 import '../widgets/course_package_notes.dart';
 
 class CourseMergeScreen extends StatefulWidget {
@@ -16,6 +18,7 @@ class CourseMergeScreen extends StatefulWidget {
     required this.leftCourse,
     required this.onMerge,
     this.mergeService,
+    this.checkCourse,
   });
 
   final Course leftCourse;
@@ -26,6 +29,12 @@ class CourseMergeScreen extends StatefulWidget {
   )
   onMerge;
   final CourseMergeService? mergeService;
+
+  /// The check of the second Course's file (Build 272 Revision 13): its
+  /// pop-up is shown once, when the Course is loaded, as an import shows it.
+  /// Course Studio gives it; without it, or when it gives no check, the page
+  /// takes the Course at once.
+  final Future<CourseImportCheck?> Function(CoursePackage package)? checkCourse;
 
   @override
   State<CourseMergeScreen> createState() => _CourseMergeScreenState();
@@ -83,7 +92,21 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
       }
       final right = loaded.course;
       _merge.validateCompatibility(widget.leftCourse, right);
-      if (!mounted) return;
+      final check = await widget.checkCourse?.call(loaded);
+      final goesOn =
+          check == null ||
+          (mounted &&
+              await confirmCourseFile(
+                context,
+                course: right,
+                check: check,
+                use: CourseFileUse.merge,
+              ));
+      if (!goesOn || !mounted) {
+        // The Merge stays as it was; a file read for nothing is let go.
+        if (!identical(_rightPackage, loaded)) unawaited(loaded.discard());
+        return;
+      }
       // The package being replaced no longer needs its staged media.
       final previous = _rightPackage;
       if (previous != null && !identical(previous, loaded)) {
@@ -148,6 +171,12 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             'restore metadata, Last Version Editor details, merge provenance and Lessons '
             'may differ. Lessons are the merge payload. Check each selected Lesson '
             'carefully before merging.\n\n'
+            'When the second Course is loaded, a window shows what the check '
+            'of its file found, as at import: its anomalies to look at '
+            '(Continue anyway or Cancel), or that none were found, with the '
+            'Course’s authors, Maintainer, Team, last edit, license and '
+            'numbers (Continue or Cancel). See the Audit opens the Course '
+            'Audit of that file.\n\n'
             'The new Course gets a fresh ID and “ merged” title suffix. It retains the '
             'earliest Original Course Created date, records the merge-time Modified date '
             'and active Last Version Editor, starts at version 1, and records both source '

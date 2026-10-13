@@ -762,3 +762,186 @@ one complete suite for the two moves (your decision for pure file moves).
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 13 (2.0.72+272013): a Course import shows what its check found
+
+A change of behaviour, asked by you on 13 October 2026. It is not part of
+the modularization; it has a revision of its own.
+
+### What changes for the user
+
+Every Course import now shows a pop-up before anything is stored, and the
+pop-up stays on screen until you answer.
+
+- **The file has anomalies**: the pop-up lists them. **Import anyway**
+  imports the file exactly as before this revision; **Cancel** stores
+  nothing.
+- **The file has none**: the pop-up says that QuisquisLingo checked the
+  file and found no anomalies, and tells you about the Course. **Import**
+  or **Cancel** (you confirmed Cancel: the facts may show it is the wrong
+  file).
+
+A file that was refused before is still refused, with its message. Nothing
+that was accepted before is refused now.
+
+### What counts as an anomaly at import
+
+| Anomaly | What the pop-up says |
+|---|---|
+| No author | The file names no author. |
+| No license | The file states no license: QuisquisLingo reads it as "All rights reserved". |
+| A license, no Rights Holder (not for CC0 1.0) | A license is stated (its name) but no Rights Holder is named. |
+| An audio mode QQL does not know | It is read as On-Device TTS. |
+| The Audio Library is not written as a list | The Course will be imported without recordings. |
+| Entries of the Audio Library that are not recordings | They will be skipped (with their number). |
+| Set to play recordings first (Hybrid), and has none | Said, with the reminder below. |
+| No Lessons, Lessons without Rounds | "Lessons without Rounds: 2." |
+| Other Audit warnings | Their number; the Course's Audit lists them after the import. |
+| Exercises this version cannot play | Their number. |
+
+### Two things that are not in the list, and why
+
+The independent review found that two lines I had promised you could never
+appear: **a Round with nothing in it** and **a Course set to play only its
+recordings that has none**. The Course Audit counts both as errors, and a
+file with Audit errors is refused before the pop-up, as it was before this
+revision. So they are not in the pop-up; the refusal names them.
+
+### What the pop-up tells about a Course without anomalies
+
+Your list: authors (with their roles), Maintainer, Team, last edited,
+license (with its Rights Holders), number of Lessons, Rounds and exercises.
+
+- **Maintainer**: a Course file holds only the Maintainer's ID. When that
+  person is a learner of this device, their name here is shown. When not,
+  the name the file records for them as the Course's creator or last
+  editor, followed by "(not a learner on this device)"; when the file
+  records none, "Not a learner on this device". A Publisher Course shows
+  its Publisher instead, and no Team line.
+- **Team**: its name when the Team is on this device, "A Team that is not
+  on this device" when it is not, "None" when no Team is assigned.
+- **Last edited**: the date and time as Course Info writes them, and by
+  whom when the file says it.
+- **Exercises** are counted as the Course Editor counts them (cards and
+  Story lines included).
+
+### The Course's own labels
+
+When a Course gives its Lessons or Rounds another label in Lesson Options,
+both pop-ups use it: "Units: 4 · Rounds: 12 · Exercises: 96". A label the
+author wrote ("Unità") is shown exactly as written; QuisquisLingo cannot
+know its plural, so the pop-ups write the label and then the number
+("Unità: 4", "Unità without Tappa: 2.") and never add an "s" to it.
+
+### Reminders (never anomalies)
+
+- A Course without recordings that the device's voice reads: your wording,
+  QuisquisLingo will use the device's voice; please check that
+  Text-to-speech is set up correctly for the language studied (named).
+- Recordings in a Course whose audio mode is On-Device TTS: they are not
+  played. A file that has recordings but leaves its audio mode out, or
+  writes one QuisquisLingo does not know, loses them this way, so the
+  pop-up says it.
+- A ZIP with its files inside a folder of its name: accepted. The notice
+  at the bottom of the page is still shown; the pop-up covers it, so it
+  repeats it.
+
+### Course Merge
+
+The same pop-up, once, when the second Course is loaded (you decided: both
+pop-ups, as at import). Its buttons say **Continue anyway** / **Continue**
+and **Cancel**; Cancel leaves the Merge as it was.
+
+In a Merge the pop-up lists:
+
+- the file's **author and license** anomalies, as at import (you decided:
+  they may be relevant when merging);
+- what concerns its **Lessons**: Lessons without Rounds, the Audit's
+  warnings, exercises that cannot be played;
+- the Audit's **errors**, because a Merge does not refuse the file for
+  them when it is loaded ("The Course Audit has 2 errors in this Course: a
+  Merge whose result has Audit errors is refused.").
+
+The facts are shown as at import. The audio lines and the device-voice
+reminder are left out: a Merge keeps the recordings and the audio mode of
+the Course already stored.
+
+### See the Audit
+
+You asked whether the user can open the Audit of a file. Before, no: a
+refused file showed "Course import blocked" with the number of errors and
+the first eight of them, and nothing else. Now **See the Audit** is in
+that dialog and in both pop-ups. It opens the Course Audit of the file:
+every error, warning and note, the page's filter and sorting, Copy report
+and Export report. Nothing is stored by opening it, and when you close it
+the dialog is still there, waiting for its answer.
+
+### What the two independent reviews found, all corrected
+
+- A damaged Teams list on the device could have stopped an import that
+  worked before. It no longer can; the pop-up then says the Team is not
+  known.
+- Any failure of the check itself now goes to the Diagnostic Log, and the
+  import or the Merge goes on without the pop-up.
+- A double click on Quick Import would have opened two pop-ups. One import
+  runs at a time now.
+- Very long or odd texts in a file (a license of a megabyte, an audio mode
+  that is a list) are shortened to one line before they are shown, never
+  in the middle of an emoji.
+- An empty Lesson was said twice, in words and among the Audit warnings.
+- The pop-up said the Course "can be imported" before later checks, which
+  can still refuse it, had run.
+- In a Merge the pop-up spoke of "the import".
+- "License" is written as in the rest of the app.
+
+### Decided with you for the next revision
+
+A license without a Rights Holder is a weakness of the Course itself, so
+QuisquisLingo will fix it at the source: New Course and the Course Wizard
+name the author of the form as Rights Holder (not the app's creator name);
+a Course Audit warning, which never blocks; Export as Publisher Course
+refuses without one; CC0 1.0 is exempt; the Courses already stored are
+audited one by one, never changed automatically. Until then a Course made
+with the defaults shows the Rights Holder anomaly at import.
+
+### Three things I decided, for you to confirm or change
+
+1. **The pop-up also comes before a Publisher Course's confirmation.** The
+   same rule for every Course file.
+2. **The Audit warnings are counted in the pop-up, not written out.**
+   Their own lines say "Lesson 2" and "Round 1" whatever labels the Course
+   uses, which would break your rule about labels inside the pop-up. See
+   the Audit shows them in full.
+3. **In a Merge, no line about audio** (see above).
+
+### About the complete suite
+
+It passed (4,605 passed, 1 skipped, 0 failed) on the revision as it stood
+before your last two decisions: author and license in a Merge, and See the
+Audit. As you said, I did not run it again for those two. They were
+checked with the analyzer, the two new test files run six times, and the
+related test files. The next revision's complete suite will cover them.
+
+### Not tested here
+
+The import of a Publisher Course with the pop-up on (it needs a signed
+file driven through the screen). The pop-up is called before the Publisher
+branch, on the same line of code as for every other import.
+
+### Tests
+
+`test/course_import_check_272_test.dart` (the anomalies, each line checked
+against what the reader and the Course Audit really do with the file; the
+labels; the facts; the Merge; the check through the import's review) and
+`test/course_import_check_dialog_272_test.dart` (the pop-ups in Course
+Studio and on the Merge page: each stays, Cancel stores nothing and lets
+the read file go, Import anyway stores the same Course as an import
+without the pop-up, one import at a time, the pop-up comes before the
+question about a Course ID already in use, a file with Audit errors is
+refused as before, See the Audit opens the Audit and comes back to a
+dialog that still waits), and one case in
+`course_manager_workflow_249_test` (Course Studio gives the Merge page its
+check).
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

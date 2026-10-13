@@ -1,3 +1,80 @@
+# 2.0.72 (Build 272, Revision 13) - a Course import shows what its check found - 2026-10-13
+
+A behaviour change, asked by the owner on 13 October 2026: the import's
+result was shown only for a few seconds, so a file with something missing
+or wrong went by unnoticed.
+
+- **A pop-up that stays, before anything is stored.** Every Course import
+  now shows what the check of the file found and waits for an answer.
+- **With anomalies**: the pop-up lists them in plain words, with **Import
+  anyway** and **Cancel**. Import anyway imports the file exactly as
+  before; Cancel stores nothing. No file is refused that was accepted
+  before, and a file refused before is still refused with its message.
+- **What counts as an anomaly.** No author; no license (and how it is
+  read: "All rights reserved"); a license without a Rights Holder (CC0 1.0
+  needs none); an audio mode QuisquisLingo does not know (read as
+  On-Device TTS); an Audio Library not written as a list (the Course is
+  imported without recordings) or with entries that are not recordings
+  (skipped); a Course set to Hybrid that has no recordings; no Lessons,
+  Lessons without Rounds; the Course Audit's other warnings (their
+  number); exercises this version cannot play.
+- **Not listed, because the Course Audit already refuses the file for
+  them**: a Round with nothing in it, and a Course set to play only its
+  recordings that has none.
+- **Without anomalies**: the pop-up says that the file was checked and
+  none were found, and tells the Course's authors, Maintainer (Publisher
+  for a Publisher Course), Team, last edit, license with its Rights Holder
+  and its number of Lessons, Rounds and exercises, with **Import** and
+  **Cancel**.
+- **The Course's own labels.** Where Lessons and Rounds are counted or
+  named, both pop-ups use the label the Course gives them in Lesson
+  Options ("Units", or a label of the author's own, as written).
+- **Reminders, never anomalies.** A Course without recordings that the
+  device's voice reads: the device's voice will be used, check that
+  Text-to-speech is set up for the language studied. Recordings in a
+  Course whose audio mode is On-Device TTS: they are not played. A ZIP
+  with its files in a folder of its name: accepted (the notice at the
+  bottom of the page is shown as before; the pop-up, which covers it,
+  repeats it).
+- **Course Merge** shows the same pop-up once for its second Course, when
+  it is loaded (**Continue anyway** / **Continue**, and **Cancel**, which
+  leaves the Merge as it was). It lists the file's author and license
+  anomalies as at import, what concerns its Lessons (Lessons without
+  Rounds, the Audit's warnings, exercises that cannot be played) and the
+  Audit's errors, which a Merge does not refuse the file for when it is
+  loaded. The audio lines are left out: a Merge keeps the recordings and
+  the audio mode of the Course already stored.
+- **See the Audit**, in both pop-ups and in the refusal of a file whose
+  Audit has errors: it opens the Course Audit of the file, with every
+  finding, the page's filter and its report, and stores nothing. Before,
+  a refused file showed only its first eight errors.
+- **One import at a time**: a second tap on Quick Import or Open from…
+  while an import waits for its answer does nothing.
+- **The check never stops an import or a Merge.** If it cannot be made,
+  the reason goes to the Diagnostic Log and the import or the Merge goes
+  on without the pop-up, as before this revision.
+- **Where.** After the refusal of a file whose Audit has errors (which
+  comes first, without the pop-up), before the question about a Course ID
+  already in use and before the confirmation of a Publisher Course.
+- `CourseImportCheck` (`lib/services/course_import_check.dart`, pure Dart)
+  owns the anomalies, the reminders and the facts;
+  `CourseLibraryOperations.checkCourseFile` makes the check for an import
+  and for a Merge; the pop-up is
+  `lib/widgets/course_import_check_dialog.dart`.
+- **Help** (English, Italian, Spanish): Import a custom course; the Merge
+  page's own Help.
+- **Tests**: `test/course_import_check_272_test.dart`,
+  `test/course_import_check_dialog_272_test.dart`, one case in
+  `test/course_manager_workflow_249_test.dart`.
+
+Until the next revision, a Course made with QuisquisLingo's defaults
+("All rights reserved", no Rights Holder) shows the Rights Holder anomaly
+at import: the next revision makes New Course name one.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder. The Beta expiry stays 2026-11-12 23:59:59 local time (same
+release day).
+
 # 2.0.72 (Build 272, Revision 12) - modularization: seven widgets leave two files - 2026-10-13
 
 Nothing an author sees changes in this revision. Two pure moves, each

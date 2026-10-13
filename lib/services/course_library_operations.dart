@@ -1,12 +1,14 @@
 import '../models/course_flag_selection.dart';
 import '../models/course_metadata_options.dart';
 import '../models/course_models.dart';
+import 'app_errors.dart';
 import 'course_access_policy.dart';
 import 'audit_code_registry.dart';
 import 'course_audit_service.dart';
 import 'course_editor_service.dart';
 import 'course_file_store.dart';
 import 'course_flag_service.dart';
+import 'course_import_check.dart';
 import 'course_import_refusals.dart';
 import 'course_language_resolver.dart';
 import 'course_learner_visibility_service.dart';
@@ -19,6 +21,7 @@ import 'course_study.dart';
 import 'course_wizard.dart';
 import 'course_wizard_memory.dart';
 import 'custom_course_transfer_service.dart';
+import 'diagnostic_log_service.dart';
 import 'file_dialog_service.dart';
 import 'formal_name_policy.dart';
 import 'new_course_structure.dart';
@@ -284,6 +287,7 @@ class CourseImportReview {
     this.notExecutableCount = 0,
     this.existingUnopenable,
     this.existingHidden = false,
+    this.check,
   });
 
   final Course course;
@@ -304,6 +308,13 @@ class CourseImportReview {
   /// Whether the stored Course is someone else's Private course (Build 271
   /// Revision 4): the import names it "a Private course", never by title.
   final bool existingHidden;
+
+  /// What the file leaves out or writes wrongly, and what it says about
+  /// the Course (Build 272 Revision 13): the import shows it and waits
+  /// before it goes on, and never refuses for it. Null when the check could
+  /// not be made (the import then goes on without its pop-up) and for a
+  /// review made without a read package.
+  final CourseImportCheck? check;
 
   /// Offered for a matching custom Course ID; Cancel is always offered.
   final List<CourseImportChoice> choices;
@@ -569,6 +580,77 @@ class CourseLibraryOperations {
   Future<void> _refuseHiddenPrivate(Course course) =>
       CourseImportRefusals.checkPrivate(course, profiles: profiles);
 
+  /// The check of a Course file that an import or a Merge is about to use
+  /// (Build 272 Revision 13): its anomalies, its reminders and what it says
+  /// about the Course. [issues] are the Course Audit's findings when the
+  /// caller has them already.
+  ///
+  /// It only reads, and it never stops what it is made for: when the check
+  /// itself fails, the failure goes to the Diagnostic Log and null comes
+  /// back, so the import or the Merge goes on without its pop-up, as before
+  /// this revision.
+  Future<CourseImportCheck?> checkCourseFile(
+    Course course, {
+    required CourseFileUse use,
+    required List<int> courseJsonBytes,
+    bool matchingZipFolder = false,
+    List<CourseAuditIssue>? issues,
+  }) async {
+    try {
+      final found = issues ?? CourseAuditService().auditCourse(course).issues;
+      // A Course file holds only the IDs of its Maintainer and Team.
+      final maintainerId = course.maintainer?.profileId;
+      final maintainerHere = maintainerId == null
+          ? null
+          : await profiles.getProfileById(maintainerId);
+      final teamId = course.assignedTeamId;
+      String? teamHere;
+      var teamsRead = true;
+      try {
+        teamHere = teamId == null
+            ? null
+            : (await teams.teamById(teamId))?.displayName;
+      } catch (error) {
+        // An unreadable Teams list names no Team, and the pop-up says so.
+        teamsRead = false;
+        await DiagnosticLogService().log(
+          AppErrorCode.localStorageError,
+          context: 'Course file check: the Teams of this device',
+          exception: error,
+        );
+      }
+      return CourseImportCheck.of(
+        course,
+        use: use,
+        fileJson: CourseImportCheck.fileJsonOf(courseJsonBytes),
+        warnings: [
+          for (final issue in found)
+            if (issue.severity == AuditSeverity.warning) issue,
+        ],
+        auditErrors: found
+            .where((issue) => issue.severity == AuditSeverity.error)
+            .length,
+        notExecutable: found
+            .where(
+              (issue) => issue.code == AuditCode.exerciseNotExecutable.code,
+            )
+            .length,
+        maintainerOnDevice: maintainerHere?.presentationName,
+        teamOnDevice: teamHere,
+        teamsRead: teamsRead,
+        matchingZipFolder: matchingZipFolder,
+      );
+    } catch (error, stackTrace) {
+      await DiagnosticLogService().log(
+        AppErrorCode.unexpectedError,
+        context: 'Course file check (${use.name})',
+        exception: error,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   Future<CourseImportReview> reviewImport(
     CoursePackageImport attempt,
     CourseManagerLibrary library,
@@ -624,6 +706,13 @@ class CourseLibraryOperations {
       notExecutableCount: audit.issues
           .where((issue) => issue.code == AuditCode.exerciseNotExecutable.code)
           .length,
+      check: await checkCourseFile(
+        course,
+        use: CourseFileUse.import,
+        courseJsonBytes: attempt.courseJsonBytes,
+        matchingZipFolder: attempt.hadMatchingFolderWrapper,
+        issues: audit.issues,
+      ),
       existing: existing,
       existingUnopenable: unopenable,
       existingHidden: existing != null
@@ -1104,9 +1193,8 @@ abstract final class CourseLibraryReports {
   static String privateCourseRefused(Course course) =>
       CourseImportRefusals.privateCourse(course);
 
-  static String notExecutableNote(int count) => count == 0
-      ? ''
-      : ' $count exercise${count == 1 ? '' : 's'} cannot be played by this version of QuisquisLingo and ${count == 1 ? 'is' : 'are'} kept unchanged.';
+  static String notExecutableNote(int count) =>
+      count == 0 ? '' : ' ${CourseImportCheck.notExecutableText(count)}';
 
   static String publisherInstalled(
     Course course,

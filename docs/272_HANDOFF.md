@@ -40,6 +40,8 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 10 | The two differences between the readers fixed (owner decision of 13 October 2026) (done, `68906c87`) |
 | 11 | Merge selection owner (`CourseMergeSelection`) (done, `8fb7a7ff`) |
 | 12 | Free moves: the Merge, Import and Export pages leave Course Studio; the canonical editor's four rows leave its file |
+| 13 | A Course import shows what its check found; the same check in Merge (owner request, a behaviour change) |
+| 14 | A license names its Rights Holder (owner decisions of 13 October 2026, below) |
 | then | Home's Round path and Course preview; the small free moves of the plan |
 | then | The other free moves, two or three per complete suite |
 | Build 273 | The plan's medium-risk items: answer grading, Story cast, the publish gate, the profile service split, Audit rule sets, the earlier exercise shapes, the Round screen's state owners, the Course save sequence |
@@ -513,7 +515,75 @@ Gotchas:
   `pumpUntilFileIoState`. When a suite fails in one file only, read the
   times of that file in the log before looking for a cause in the code.
 
-## Next (not started)
+## Revision 13 (2.0.72+272013), a Course import shows what its check found
+
+Complete: reviewed twice and reworked, committed and pushed on the owner's go ("Go on and commit", 13 October 2026). The owner's last two decisions (author and license in a Merge; See the Audit) were made after the complete suite and, by the owner's instruction ("Don't run the suite now"), checked with the analyzer and the focused tests only: the next revision's suite covers them.
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/services/course_import_check.dart` (`CourseImportCheck`,
+  `CourseImportFacts`, `CourseFileUse`, pure Dart) and
+  `lib/widgets/course_import_check_dialog.dart` (two pop-ups: with
+  anomalies, without; the words follow the use, import or Merge).
+- `CourseLibraryOperations.checkCourseFile` (the one maker of a check;
+  it never stops an import or a Merge), `CourseImportReview.check`,
+  `CoursePackageImport.courseJsonBytes`, the call in
+  `CourseProjectsScreen._importCourse` (one import at a time) and
+  `CourseMergeScreen.checkCourse`.
+- Help EN/IT/ES (`editorHelp.importCustomCourse.body`), the Merge
+  page's Help.
+- Tests: `course_import_check_272_test`,
+  `course_import_check_dialog_272_test`, a case in
+  `course_manager_workflow_249_test`.
+
+Owner decisions of 13 October 2026 taken while it was made: a second
+pop-up for a file without anomalies, with the author, Maintainer, Team,
+last edit, license and the number of Lessons, Rounds and exercises, and
+with Cancel too; the Course's own labels for Lessons and Rounds in the
+pop-ups; the same check in Merge, for its second Course, both pop-ups.
+
+Three decisions of mine reported to the owner for confirmation (in the
+change summary): the pop-up also comes before a Publisher Course's
+confirmation; the Audit warnings are counted, not written out (their
+lines say Lesson and Round whatever the Course's labels); in a Merge no
+line about authors, license or audio (they are the stored Course's).
+
+Gotchas:
+
+- The pop-up is off in every test (`test/flutter_test_config.dart`):
+  the import tests written before it answer no question there. A test
+  about the pop-up turns it on in its `setUp` and off in its
+  `tearDown`.
+- Before promising the owner a line of a pop-up, check that the flow
+  can reach it: two anomalies of the first draft were Audit errors that
+  refuse the file earlier (found by the first independent review).
+- A fixture with a Lesson and a Round of the same ID has an Audit
+  error (`ID_DUPLICATE`): an import review of it is refused.
+- A Python script with apostrophes or backslashes goes through the
+  Write tool, never a shell heredoc (three more failures today).
+
+## Next: Revision 14, a license names its Rights Holder (not started)
+
+Owner decisions of 13 October 2026 ("Discuss", then numbered answers):
+
+1. New Course and the Course Wizard name a Rights Holder by default: the
+   AUTHOR named in the form, not the app's creator name ("someone could
+   create a course using someone else's material, or use a nickname in
+   the app and another name as author").
+2. A Course Audit Warning for a license without a Rights Holder is
+   enough: the forms do not refuse.
+3. Export as Publisher Course refuses a Course without a Rights Holder
+   (it already refuses one without a license).
+4. CC0 1.0 is exempt (`CourseImportCheck.rightsGivenUp`).
+5. Courses already stored are never changed automatically: "let's audit
+   them one by one". Ask the owner what the bundled QQL Demos should
+   name (their generators write the Course files).
+
+The rule belongs in `CourseCredits` (Revision 1's rule: the three
+screens never differ on a credits or licence rule). It changes what New
+Course writes: a revision of its own, with its suite.
+
+## After that (not started)
 
 From the plan's free moves: Home's `LearnerRoundPath` with its painters
 and `_LessonSection` (blocked by the shared private helpers
@@ -521,15 +591,6 @@ and `_LessonSection` (blocked by the shared private helpers
 home first), the Course preview (a `part` of `home_screen.dart` because
 it uses six Home privates). Then the Build's end: the owner's go for
 the merge into `main`.
-
-**Revision 13 (owner: "Next revision", 13 October 2026)**: a pop-up at
-Course import that stays and asks when the file has anomalies; Import
-anyway imports exactly as today; no new refusals (the seven Course-root
-lists `sectionNames`, `keywords`, `authors`, `rightsHolders`,
-`lessonIconAssets`, `audioLibrary`, `defaultTimedLimitsSeconds` keep
-their own checks: the owner chose a warning over a refusal). Drafts in
-the scratchpad folder `r13/` (`apply_r13.py`, `docs_r13.py`, the owner,
-the dialog, two test files).
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

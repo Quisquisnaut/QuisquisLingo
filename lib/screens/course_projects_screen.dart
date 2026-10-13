@@ -14,6 +14,7 @@ import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_study.dart';
 import '../services/course_wizard.dart';
+import '../services/course_import_check.dart';
 import '../services/course_library_operations.dart';
 import '../services/course_library_categories.dart';
 import '../services/course_library_presentation.dart';
@@ -37,6 +38,7 @@ import 'team_manager_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'publisher_course_export_screen.dart';
 import '../widgets/quick_import_access.dart';
+import '../widgets/course_import_check_dialog.dart';
 import '../widgets/course_package_notes.dart';
 import 'course_export_screen.dart';
 import 'course_import_screen.dart';
@@ -338,6 +340,12 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
             leftCourse: course,
             onMerge: (right, choices, options) =>
                 _completeMerge(course, right, choices, options),
+            checkCourse: (package) => _ops.checkCourseFile(
+              package.course,
+              use: CourseFileUse.merge,
+              courseJsonBytes: package.courseJson,
+              matchingZipFolder: package.hadMatchingFolderWrapper,
+            ),
           ),
         ),
       )
@@ -906,7 +914,22 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     if (widget.importOnly && mounted) Navigator.of(context).pop(course);
   }
 
+  /// One import at a time (Build 272 Revision 13): its pop-up waits for an
+  /// answer, and a second tap on the button meanwhile would read the file
+  /// again and ask again.
+  bool _importing = false;
+
   Future<void> _importCourse({bool fromDialog = false}) async {
+    if (_importing) return;
+    _importing = true;
+    try {
+      await _importOneCourse(fromDialog: fromDialog);
+    } finally {
+      _importing = false;
+    }
+  }
+
+  Future<void> _importOneCourse({required bool fromDialog}) async {
     if (!fromDialog) {
       switch (await ensureQuickImportAccess(
         context,
@@ -915,7 +938,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         case QuickImportAccess.ready:
           break;
         case QuickImportAccess.openFrom:
-          return _importCourse(fromDialog: true);
+          return _importOneCourse(fromDialog: true);
         case QuickImportAccess.stop:
           return;
       }
@@ -977,6 +1000,13 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
               ),
             ),
             actions: [
+              // Build 272 Revision 13 (owner decision): every finding,
+              // not only the first eight errors.
+              TextButton(
+                key: const Key('import-blocked-audit'),
+                onPressed: () => showCourseFileAudit(ctx, course),
+                child: const Text('See the Audit'),
+              ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
                 child: const Text('OK'),
@@ -986,6 +1016,15 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         );
         return;
       }
+      // Build 272 Revision 13 (owner decisions): the file's anomalies, or
+      // that it has none, before anything is stored; going on imports
+      // exactly as an import without the pop-up.
+      final check = review.check;
+      if (check != null &&
+          !await confirmCourseFile(context, course: course, check: check)) {
+        return;
+      }
+      if (!mounted) return;
       if (review.isPublisherCourse) {
         final existing = review.existing;
         final proceed = await showDialog<bool>(

@@ -17,6 +17,7 @@ import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:quisquislingo_app/widgets/course_import_check_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/publisher_fixtures.dart';
@@ -1042,6 +1043,47 @@ void main() {
     )).singleWhere((c) => c.courseId != 'left');
     expect(merged.title, 'Mine merged');
     expect(find.textContaining('Course changes confirmed.'), findsOneWidget);
+  });
+
+  testWidgets('Merge shows the check of its second Course before it takes '
+      'it (Build 272 Revision 13)', (tester) async {
+    // Off for every test (`flutter_test_config.dart`); this one is about it.
+    CourseImportCheckDialog.enabled = true;
+    addTearDown(() => CourseImportCheckDialog.enabled = false);
+    await setUpDevice(tester);
+    await install(tester, _course('left', title: 'Mine'));
+    await tester.runAsync(() async {
+      final merges = Directory(
+        '${documents.path}/QuisquisLingo/ToBeMerged/Courses',
+      );
+      await merges.create(recursive: true);
+      await File(
+        '${merges.path}/merge.json',
+      ).writeAsString(jsonEncode(_course('right', title: 'Mine').toJson()));
+    });
+    await pumpManager(tester);
+
+    await openMenu(tester, actionsOf('left'));
+    await choose(tester, 'Merge');
+    await tester.tap(find.byKey(const Key('merge-course-json-primary')));
+    final popUp = find.byWidgetPredicate(
+      (widget) =>
+          widget.key == const Key('import-anomalies') ||
+          widget.key == const Key('import-checked'),
+    );
+    await tester.pumpUntilFileIoState(() => popUp.evaluate().isNotEmpty);
+    expect(find.text('Select all Left'), findsNothing);
+    // The words of a Merge.
+    expect(
+      find.widgetWithText(FilledButton, 'Continue anyway').evaluate().length +
+          find.widgetWithText(FilledButton, 'Continue').evaluate().length,
+      1,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpUntilFileIoState(() => popUp.evaluate().isEmpty);
+    expect(find.text('Select all Left'), findsNothing);
+    expect(find.byType(CourseMergeScreen), findsOneWidget);
   });
 }
 
