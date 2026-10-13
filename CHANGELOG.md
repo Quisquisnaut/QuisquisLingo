@@ -1,3 +1,43 @@
+# 2.0.72 (Build 272, Revision 10) - reading a Course file: one wording, one rule for a list that may be left out - 2026-10-13
+
+Owner decision of 13 October 2026 on the two differences Revision 9 found
+between the readers of a Course file ("Fix the two things"). A change of
+behaviour, on purpose in a revision of its own. It concerns files that are
+wrong or unusual; a Course that QQL wrote reads exactly as before.
+
+- **A wrong list is told its place and its field, everywhere.** Six lists
+  of the Course models named only the field ("sourceRefs must be a list.");
+  they now say "content.sourceRefs must be a list.", as the canonical
+  exercise already did. The same for a list of pairs.
+- **One rule for a list a file may leave out.** Such a list is empty when it
+  is missing or written as `null`, and refused when it is anything else that
+  is not a list. Seven places of the Course models each had a check of
+  their own, and the checks did not agree:
+  - a GuideBook module's `sentences` and `words` written as `null` were
+    refused; they now read as empty;
+  - the earlier exercise shape (read by the converter from v11) took any
+    value that was not a list as an empty list; it is now refused
+    ("interaction.items must be a list.").
+- A list a file must have (a Lesson's Rounds, a Round's content, an
+  exercise's prompt, a GuideBook's modules) is refused when missing, as
+  before.
+- `JsonRead.stringListByKey` is gone; `JsonRead.pairList` takes the place.
+- A list left out is an empty list of its own kind (found by the
+  independent review before the suite: the shared reader gave back an empty
+  list "of nothing", in which a search with a fallback throws).
+- **Not changed here**: seven lists of the Course's own root
+  (`sectionNames`, `keywords`, `authors`, `rightsHolders`,
+  `lessonIconAssets`, `audioLibrary`, `defaultTimedLimitsSeconds`) are read
+  by checks of their own, with wordings of their own.
+- `docs/COURSE_JSON_FORMAT.md` states the rule for lists.
+- **Tests**: `test/json_read_272_test.dart`, 19 cases (4 new: every list of
+  the models tells its place; a list written as `null`; a list that is not
+  a list; a list left out can be searched like any other).
+
+Course files written by QQL, scoring, progression and learner data are
+unchanged. The Beta expiry stays 2026-11-12 23:59:59 local time (same
+release day).
+
 # 2.0.72 (Build 272, Revision 9) - modularization: shared readers for a Course file - 2026-10-13
 
 Nothing an author or a learner sees changes in this revision.

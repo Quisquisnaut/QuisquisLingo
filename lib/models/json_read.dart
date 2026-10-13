@@ -1,11 +1,18 @@
 /// The readers the Course models share for a Course file's JSON (Build 272
 /// Revision 9). Before, `course_models.dart` and `exercise_canonical.dart`
-/// each kept private copies, and two of the copies had grown different:
-/// both rules are here, each under its own name.
+/// each kept private copies, and two of the copies had grown different.
+/// Revision 10 (owner decision of 13 October 2026) made them the same:
+/// every refusal of a list names the place and the field, and a list read
+/// here is read by [requiredList] (the file must have it) or by
+/// [optionalList], [stringList] or [pairList] (the file may leave it out),
+/// never behind a check written at the place that reads it. (The Course
+/// root still reads some lists of its own with checks of its own:
+/// `sectionNames`, `keywords`, `authors`, `rightsHolders`,
+/// `lessonIconAssets`, `audioLibrary`, `defaultTimedLimitsSeconds`.)
 ///
-/// Reading is strict: a value of the wrong kind is a [FormatException] whose
-/// text names the place, never a default. The texts are part of what an
-/// author reads when a file is refused: do not reword them.
+/// A list of the wrong kind is a [FormatException] whose text names the
+/// place. The texts are part of what an author reads when a file is
+/// refused: do not reword them.
 ///
 /// Pure Dart.
 abstract final class JsonRead {
@@ -39,23 +46,8 @@ abstract final class JsonRead {
     return v is int ? v : fallback;
   }
 
-  /// The texts at [key]; a missing list is empty. The refusal names only
-  /// the key (the Course models' rule; see [stringList]).
-  static List<String> stringListByKey(Map<String, dynamic> j, String key) {
-    final v = j[key];
-    if (v == null) return const [];
-    if (v is! List) throw FormatException('$key must be a list.');
-    return [
-      for (final x in v)
-        if (x is String)
-          x
-        else
-          throw FormatException('$key must contain strings only.'),
-    ];
-  }
-
-  /// The texts at [key]; a missing list is empty. The refusal names the
-  /// place too (the canonical exercise's rule; see [stringListByKey]).
+  /// The texts at [key]; a missing list, or one written as null, is
+  /// empty. The refusal names the place and the field.
   static List<String> stringList(
     Map<String, dynamic> j,
     String key,
@@ -73,18 +65,23 @@ abstract final class JsonRead {
     ];
   }
 
-  /// The pairs of texts at [key]; a missing list is empty.
-  static List<List<String>> pairList(Map<String, dynamic> j, String key) {
+  /// The pairs of texts at [key]; a missing list, or one written as null,
+  /// is empty. The refusal names the place and the field.
+  static List<List<String>> pairList(
+    Map<String, dynamic> j,
+    String key,
+    String where,
+  ) {
     final v = j[key];
     if (v == null) return const [];
-    if (v is! List) throw FormatException('$key must be a list.');
+    if (v is! List) throw FormatException('$where.$key must be a list.');
     return [
       for (final x in v)
         if (x is List && x.length == 2 && x.every((e) => e is String))
           [x[0] as String, x[1] as String]
         else
           throw FormatException(
-            '$key entries must contain exactly two strings.',
+            '$where.$key entries must contain exactly two strings.',
           ),
     ];
   }
@@ -108,8 +105,13 @@ abstract final class JsonRead {
     ];
   }
 
-  /// The objects at [key], each read by [parser]. **A missing list is
-  /// empty**: a list the file may leave out (see [requiredList]).
+  /// The objects at [key], each read by [parser]. **A missing list, or one
+  /// written as null, is empty**: a list the file may leave out (see
+  /// [requiredList]). A value of another kind is refused.
+  ///
+  /// The empty list is a list of [T] that cannot be changed. A bare
+  /// `const []` here would be a list of nothing, whatever [T] is, and
+  /// looking in it with a fallback (`firstWhere(…, orElse: …)`) would throw.
   static List<T> optionalList<T>(
     Map<String, dynamic> j,
     String key,
@@ -117,7 +119,7 @@ abstract final class JsonRead {
     T Function(Map<String, dynamic>) parser,
   ) {
     final v = j[key];
-    if (v == null) return const [];
+    if (v == null) return List<T>.unmodifiable(const <Never>[]);
     if (v is! List) throw FormatException('$where.$key must be a list.');
     return [
       for (final x in v)

@@ -1736,7 +1736,7 @@ class Course {
       useGuidebook: json['useGuidebook'] as bool? ?? true,
       allowPageSharing: json['allowPageSharing'] as bool? ?? true,
       wordLookup: json['wordLookup'] as bool? ?? true,
-      sectionNames: JsonRead.stringListByKey(json, 'sectionNames'),
+      sectionNames: JsonRead.stringList(json, 'sectionNames', 'course'),
       learningLanguage: learning,
       interfaceLanguage: interface,
       sourceLanguage: JsonRead.optionalString(
@@ -2208,8 +2208,7 @@ class GuidebookModule {
       );
     }
     List<GuidebookEntry> entries(String key, {required bool allowPicture}) {
-      if (!j.containsKey(key)) return const [];
-      return JsonRead.requiredList(
+      return JsonRead.optionalList(
         j,
         key,
         'guidebook module',
@@ -2984,7 +2983,7 @@ class LearningContent {
             )
           : null,
       text: JsonRead.optionalString(j, 'text', ''),
-      sourceRefs: JsonRead.stringListByKey(j, 'sourceRefs'),
+      sourceRefs: JsonRead.stringList(j, 'sourceRefs', 'content'),
     );
   }
   Exercise? asRunnableExercise() {
@@ -3036,7 +3035,11 @@ class Presentation {
         PromptElement.fromJson,
       ),
       actions: comp is Map
-          ? JsonRead.stringListByKey(Map<String, dynamic>.from(comp), 'actions')
+          ? JsonRead.stringList(
+              Map<String, dynamic>.from(comp),
+              'actions',
+              'presentation.completion',
+            )
           : const ['understood', 'review_later'],
     );
   }
@@ -3163,7 +3166,7 @@ class SharedImageSource {
       'sharedImageSource',
     );
     final origin = JsonRead.requiredString(json, 'origin', 'sharedImageSource');
-    final tags = JsonRead.stringListByKey(json, 'tags');
+    final tags = JsonRead.stringList(json, 'tags', 'sharedImageSource');
     final rawAttribution = json['attribution'];
     Map<String, dynamic>? attributionJson;
     if (rawAttribution != null) {
@@ -3926,22 +3929,18 @@ class ExerciseInteraction {
         inputType: JsonRead.optionalString(j, 'inputType', 'text'),
         minSelections: JsonRead.optionalInt(j, 'minSelections', 1),
         maxSelections: JsonRead.optionalInt(j, 'maxSelections', 1),
-        items: (j['items'] is List)
-            ? JsonRead.requiredList(
-                j,
-                'items',
-                'interaction',
-                ExerciseItem.fromJson,
-              )
-            : const [],
-        layout: (j['layout'] is List)
-            ? JsonRead.requiredList(
-                j,
-                'layout',
-                'interaction',
-                PromptElement.fromJson,
-              )
-            : const [],
+        items: JsonRead.optionalList(
+          j,
+          'items',
+          'interaction',
+          ExerciseItem.fromJson,
+        ),
+        layout: JsonRead.optionalList(
+          j,
+          'layout',
+          'interaction',
+          PromptElement.fromJson,
+        ),
       );
 }
 
@@ -4000,17 +3999,15 @@ class ExerciseEvaluation {
         : <String, dynamic>{};
     return ExerciseEvaluation(
       kind: JsonRead.requiredString(j, 'kind', 'evaluation'),
-      correctItemIds: JsonRead.stringListByKey(j, 'correctItemIds'),
-      accepted: JsonRead.stringListByKey(j, 'acceptedAnswers'),
-      correctOrders: j['correctOrders'] == null
-          ? const []
-          : JsonRead.requiredList(
-              j,
-              'correctOrders',
-              'evaluation',
-              OrderedAnswer.fromJson,
-            ),
-      pairs: JsonRead.pairList(j, 'pairs'),
+      correctItemIds: JsonRead.stringList(j, 'correctItemIds', 'evaluation'),
+      accepted: JsonRead.stringList(j, 'acceptedAnswers', 'evaluation'),
+      correctOrders: JsonRead.optionalList(
+        j,
+        'correctOrders',
+        'evaluation',
+        OrderedAnswer.fromJson,
+      ),
+      pairs: JsonRead.pairList(j, 'pairs', 'evaluation'),
       normalization: normalization,
       gapAssignments: j['gapAssignments'] is Map
           ? Map<String, String>.from(
@@ -4337,30 +4334,24 @@ class Exercise {
         'exercise',
         PromptElement.fromJson,
       ),
-      items: j['items'] == null
-          ? const []
-          : JsonRead.requiredList(
-              j,
-              'items',
-              'exercise',
-              ExerciseItem.fromJson,
-            ),
-      targets: j['targets'] == null
-          ? const []
-          : JsonRead.requiredList(
-              j,
-              'targets',
-              'exercise',
-              ExerciseTarget.fromJson,
-            ),
-      layout: j['layout'] == null
-          ? const []
-          : JsonRead.requiredList(
-              j,
-              'layout',
-              'exercise',
-              LayoutElement.fromJson,
-            ),
+      items: JsonRead.optionalList(
+        j,
+        'items',
+        'exercise',
+        ExerciseItem.fromJson,
+      ),
+      targets: JsonRead.optionalList(
+        j,
+        'targets',
+        'exercise',
+        ExerciseTarget.fromJson,
+      ),
+      layout: JsonRead.optionalList(
+        j,
+        'layout',
+        'exercise',
+        LayoutElement.fromJson,
+      ),
       canonicalEvaluation: CanonicalEvaluation.fromJson(
         Map<String, dynamic>.from(e),
       ),

@@ -611,3 +611,72 @@ this revision does not shrink it; it removes what kept it from being split.
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 10 (2.0.72+272010): one wording, one rule for a list that may be left out
+
+Your decision of 13 October 2026 on the two differences Revision 9 found
+("Fix the two things", then yes to the proposal). This revision changes
+behaviour, on purpose and alone, for Course files that are wrong or unusual.
+A Course that QQL wrote reads exactly as before.
+
+### 1. A wrong list is told where it is
+
+| Field | Before | Now |
+|---|---|---|
+| A content's `sourceRefs` | "sourceRefs must be a list." | "content.sourceRefs must be a list." |
+| A shared picture's `tags` | "tags must be a list." | "sharedImageSource.tags must be a list." |
+| A card's `actions` | "actions must be a list." | "presentation.completion.actions must be a list." |
+| Earlier exercise shape: `correctItemIds`, `acceptedAnswers`, `pairs` | "pairs must be a list." | "evaluation.pairs must be a list." |
+
+The canonical exercise already named the place; now every list does. (The
+Course's `sectionNames` has a check of its own that was already complete.)
+
+### 2. A list the file may leave out
+
+Two kinds of list stay, because they are two different things:
+
+- **a list the file must have** (a Lesson's Rounds, a Round's content, an
+  exercise's prompt, a GuideBook's modules): refused when missing, as
+  before;
+- **a list the file may leave out** (an exercise's items, targets, layout,
+  the accepted answers, a module's sentences and words): QQL does not write
+  it when it is empty.
+
+What changes is that the second kind now has **one** rule, where seven
+places each had a check of their own:
+
+| The file has | GuideBook module `sentences`, `words` | Earlier exercise shape `items`, `layout` | The other four |
+|---|---|---|---|
+| no such list | empty | empty | empty |
+| the list written as `null` | **was refused, now empty** | empty | empty |
+| a text, a number or an object instead of a list | refused | **was read as empty, now refused** | refused |
+| a list holding something that is not an object | refused | refused | refused |
+
+So one case is more lenient (a `null` in a GuideBook module) and one is
+stricter (a wrong value in the earlier exercise shape, which only the
+converter from v11 reads). QQL itself never writes either.
+
+### How it was checked
+
+- What the code said before was recorded by a probe on ten cases, then the
+  tests were written for the new rules: 19 cases in
+  `test/json_read_272_test.dart`.
+- An independent review of the change against the two decisions, before
+  the complete suite. It confirmed the table above cell by cell, and found
+  one thing I had not seen: the shared reader gave back, for a list left
+  out, an empty list "of nothing" instead of an empty list of exercise
+  items (or targets, or layout pieces). Looking in such a list with a
+  fallback would have stopped with an error. It is fixed and has a test.
+
+### What this revision does not cover
+
+Seven lists of the Course's own root are read by checks written at their
+place, not by the shared readers: Section names, keywords, authors, Rights
+Holders, custom Lesson icons, the Audio Library and the default Timed
+limits. They have wordings of their own, and they do not all follow the rule
+above: five of them refuse a list written as `null`, and an Audio Library
+that is not a list is read as empty. They were not among the differences
+you decided on; I am listing them so that you can decide.
+
+Course files written by QQL, scoring, progression and learner data are
+unchanged. No new key or folder.

@@ -36,7 +36,7 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 6 | Free moves from the Course Editor file: Audio Library, Audit page, Lesson preview, the hierarchy status; `ExerciseLabels` (done, `bd1c2550`) |
 | 7 | `TimedRoundClock` (done, `7d79280c`) |
 | 8 | Media-reference owner (done, `6f565380`) |
-| 9 | Shared JSON readers for the models (`JsonRead`), both rules of the differing copies kept |
+| 9 | Shared JSON readers for the models (`JsonRead`), both rules of the differing copies kept (done, `a35c34f3`) |
 | 10 | The two differences between the readers fixed (owner decision of 13 October 2026) |
 | 11 | Merge selection owner; Merge, Import and Export pages leave Course Studio |
 | then | The other free moves, two or three per complete suite |
@@ -425,26 +425,46 @@ Gotchas:
   characterization test before believing what a file is told.
 - The models file grows (5,748 to 5,796 lines): longer names wrap.
 
-## Then: Revision 10, the two differences fixed (owner, 13 October 2026)
+## Revision 10 (2.0.72+272010), one wording, one rule for a list that may be left out
 
-The owner said "Fix the two things", then agreed to this:
+State (13 October 2026, 07:49): done. Analyzer clean; 26 focused files 605 passed; the independent review confirmed the two fixes and found one side effect, fixed (`optionalList` returns `List<T>.unmodifiable`, not a bare `const []`); complete suite 4,490 passed, 1 skipped. Committed (hash in `git log`) and pushed. **Asked of the owner, no answer yet**: seven lists of the Course root keep checks of their own (`sectionNames`, `keywords`, `authors`, `rightsHolders`, `lessonIconAssets`, `audioLibrary`, `defaultTimedLimitsSeconds`); bring them under the same rule as the next revision? Recommended yes.
 
-1. **Wording**: every refusal of a list names the place and the field
-   ("evaluation.acceptedAnswers must be a list."): the six models'
-   calls of `stringListByKey` and the one of `pairList` get a place;
-   `stringListByKey` goes.
-2. **A missing list**: two readers stay, named for what they are (a list
-   the file must have, a list it may leave out); the seven hand-written
-   "if it is not there, empty" checks of the models (GuideBook module
-   `sentences` / `words`, the v11 interaction's `items` / `layout`, the
-   v11 evaluation's `correctOrders`, the exercise's `items` / `targets`
-   / `layout`) become `optionalList`; **a list written as `null` means
-   "not there" everywhere** (today the GuideBook module refuses it).
-   Side effect to report: the two v11 `is List` checks took any non-list
-   value as empty; they will refuse it.
+The owner said "Fix the two things" (13 October 2026), then yes to:
 
-A behaviour change: a revision of its own, with tests for each rule,
-its own review and suite.
+1. **Wording**: every refusal of a list names the place and the field.
+2. **A missing list**: two readers stay (`requiredList`, `optionalList`);
+   the seven hand-written checks of the models are `optionalList`; a
+   list written as `null` means "not there" everywhere.
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `JsonRead.stringListByKey` removed; `pairList(j, key, where)`.
+- `course_models.dart`: seven calls name their place, seven checks are
+  `optionalList` (`r10/apply_r10.py`; the tests by `r10/tests_r10.py`).
+- What changes for a file: a GuideBook module's `sentences` / `words`
+  as `null` (refused, now empty); the earlier exercise shape's `items`
+  / `layout` when not a list (empty, now refused).
+- `docs/COURSE_JSON_FORMAT.md`: the section Lists.
+- Tests: `json_read_272_test` (18).
+
+Gotchas:
+
+- A script that edits a test by exact text must be written after the
+  formatter has run on that test: its layout is the formatter's.
+- A probe test (`zz_probe…`, printing what the code says for a list of
+  cases, then deleted) is a quick way to record the "before" of a
+  behaviour change.
+
+## Next: Revision 11, Merge selection owner; the Merge, Import and Export pages leave Course Studio (not started)
+
+Plan (`docs/272_MODULARIZATION_PLAN.md`): `CourseMergeScreen` keeps pure
+selection logic in the widget; `CourseImportScreen` and
+`CourseExportScreen` are stateless. First the characterization of the
+selection rules on the present screen (`course_merge_*` tests exist),
+then the owner, then the three pages to files of their own (free moves:
+they may share a suite with the owner only if the owner's suite has
+run; the owner gets its own). Scratch notes go in `C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`,
+`r11/`.
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

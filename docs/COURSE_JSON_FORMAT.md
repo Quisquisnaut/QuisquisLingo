@@ -306,3 +306,24 @@ The standard Duel uses 25 unique questions and 4 lives. There is no score or pas
 ## Compatibility
 
 Course Model v12 is the only native runtime, bundled, editor-storage, import and export format. v11, v10, v9, v8 and every other `formatVersion` are unsupported and rejected with a clear error that names `tools/convert_course_to_v12.dart` (v11 to v12; JSON or Course ZIP, media kept, manifest regenerated, Publisher signatures stripped, anything not mapped exactly listed). Stored Courses live in `<AppSupport>/QQL_Courses_v12/Custom|Publisher`; Build 255's `QQL_Courses` is retired (never read, listed by the Inventory among the earlier private folders, removed by Wipe everything), and `tools/convert_stored_courses_256.dart` converts its custom Courses once, never overwriting or deleting. Course Backups stay in `Backups/Courses` with manifest format v12; v11 backups are listed as unreadable. Preference keys keep the established names, which still contain `v9`: `quisquislingo_user_courses_v9_233030`, `quisquislingo_external_official_courses_v9_233030`, `quisquislingo_course_editor_corrupt_backup_v9_233030` and `quisquislingo_bundled_course_codes_v9_233030`. No compatibility migration or fallback read runs. Older files and folders are not read, transformed or deleted, and export writes v12 only.
+
+### Lists (Build 272 Revision 10)
+
+A list is one of two kinds, and each is read by one rule:
+
+- **A list the file must have** (a Lesson's `rounds`, a Round's `content`,
+  an exercise's `prompt`, a GuideBook's `modules`, an item's `content`):
+  missing, `null` or any value that is not a list is refused.
+- **A list the file may leave out** (an exercise's `items`, `targets` and
+  `layout`, the lists of an `evaluation`, a GuideBook module's `sentences`
+  and `words`, `sourceRefs`, and the like): missing or `null` is an empty
+  list; any other value that is not a list is refused. QQL never writes
+  such a list as `null`.
+
+A refusal names the place and the field: `content.sourceRefs must be a
+list.`, `lesson.rounds contains a non-object value.`
+
+The Course root's own lists (`sectionNames`, `keywords`, `authors`,
+`rightsHolders`, `lessonIconAssets`, `audioLibrary`,
+`defaultTimedLimitsSeconds`) are read by checks of their own, with their own
+messages, and are not under this rule.

@@ -7,8 +7,13 @@ import 'package:quisquislingo_app/services/course_service.dart';
 
 /// Build 272 Revision 9: the Course models read a file's JSON through shared
 /// readers. This first group was written before the readers were shared, on
-/// the Laboratory's own file changed in one place each, and is unchanged by
-/// the change: what a broken file is told stays word for word.
+/// the Laboratory's own file changed in one place each: what a broken file
+/// is told stayed word for word.
+///
+/// Revision 10 (owner decision of 13 October 2026) then made two rules the
+/// same everywhere: a wrong list is told its place and its field, and a list
+/// a file may leave out is also empty when written as null. The cases that
+/// changed say so.
 Map<String, dynamic> _copy(Map<String, dynamic> json) =>
     jsonDecode(jsonEncode(json)) as Map<String, dynamic>;
 
@@ -192,19 +197,19 @@ void main() {
       );
     });
 
-    test('a list of texts: the Course models name the field, the canonical '
-        'exercise the place too', () {
+    test('a list of texts: the place and the field are named (Revision 10; '
+        'the Course models named only the field)', () {
       var json = _copy(laboratory);
       contentOf(json)['sourceRefs'] = 'one';
       expect(
         () => Course.fromJson(json),
-        _refuses('sourceRefs must be a list.'),
+        _refuses('content.sourceRefs must be a list.'),
       );
       json = _copy(laboratory);
       contentOf(json)['sourceRefs'] = ['one', 2];
       expect(
         () => Course.fromJson(json),
-        _refuses('sourceRefs must contain strings only.'),
+        _refuses('content.sourceRefs must contain strings only.'),
       );
       json = _copy(laboratory);
       evaluationOf(json)['correctItemIds'] = 'one';
@@ -265,26 +270,7 @@ void main() {
       expect(JsonRead.optionalInt({'n': 3.5}, 'n', 1), 1);
     });
 
-    test('a list of texts: missing is empty; the two wordings', () {
-      expect(JsonRead.stringListByKey({}, 'tags'), isEmpty);
-      expect(JsonRead.stringListByKey({'tags': null}, 'tags'), isEmpty);
-      expect(
-        JsonRead.stringListByKey({
-          'tags': ['a', ' b '],
-        }, 'tags'),
-        ['a', ' b '],
-      );
-      expect(
-        () => JsonRead.stringListByKey({'tags': 'a'}, 'tags'),
-        _refuses('tags must be a list.'),
-      );
-      expect(
-        () => JsonRead.stringListByKey({
-          'tags': ['a', 1],
-        }, 'tags'),
-        _refuses('tags must contain strings only.'),
-      );
-
+    test('a list of texts: missing or null is empty', () {
       expect(JsonRead.stringList({}, 'answers', 'evaluation'), isEmpty);
       expect(
         JsonRead.stringList({'answers': null}, 'answers', 'evaluation'),
@@ -317,22 +303,30 @@ void main() {
     });
 
     test('a list of pairs of texts', () {
-      expect(JsonRead.pairList({}, 'pairs'), isEmpty);
+      expect(JsonRead.pairList({}, 'pairs', 'evaluation'), isEmpty);
       expect(
-        JsonRead.pairList({
-          'pairs': [
-            ['a', 'b'],
-            ['c', 'd'],
-          ],
-        }, 'pairs'),
+        JsonRead.pairList({'pairs': null}, 'pairs', 'evaluation'),
+        isEmpty,
+      );
+      expect(
+        JsonRead.pairList(
+          {
+            'pairs': [
+              ['a', 'b'],
+              ['c', 'd'],
+            ],
+          },
+          'pairs',
+          'evaluation',
+        ),
         [
           ['a', 'b'],
           ['c', 'd'],
         ],
       );
       expect(
-        () => JsonRead.pairList({'pairs': 'a'}, 'pairs'),
-        _refuses('pairs must be a list.'),
+        () => JsonRead.pairList({'pairs': 'a'}, 'pairs', 'evaluation'),
+        _refuses('evaluation.pairs must be a list.'),
       );
       for (final entry in <Object?>[
         ['a'],
@@ -341,10 +335,16 @@ void main() {
         'ab',
       ]) {
         expect(
-          () => JsonRead.pairList({
-            'pairs': [entry],
-          }, 'pairs'),
-          _refuses('pairs entries must contain exactly two strings.'),
+          () => JsonRead.pairList(
+            {
+              'pairs': [entry],
+            },
+            'pairs',
+            'evaluation',
+          ),
+          _refuses(
+            'evaluation.pairs entries must contain exactly two strings.',
+          ),
           reason: '$entry',
         );
       }
@@ -502,6 +502,150 @@ void main() {
       );
       expect(JsonRead.canonicalUtcTimestamp(local), local.toUtc());
       expect(JsonRead.canonicalUtcTimestamp(local).isUtc, isTrue);
+    });
+  });
+
+  group('Revision 10: one wording, one rule for a list that may be left '
+      'out', () {
+    test('every list of the models tells its place and its field', () {
+      expect(
+        () => ExerciseEvaluation.fromJson({
+          'kind': 'exact',
+          'correctItemIds': 'a',
+        }),
+        _refuses('evaluation.correctItemIds must be a list.'),
+      );
+      expect(
+        () => ExerciseEvaluation.fromJson({
+          'kind': 'exact',
+          'acceptedAnswers': ['a', 1],
+        }),
+        _refuses('evaluation.acceptedAnswers must contain strings only.'),
+      );
+      expect(
+        () => ExerciseEvaluation.fromJson({'kind': 'exact', 'pairs': 'a'}),
+        _refuses('evaluation.pairs must be a list.'),
+      );
+      expect(
+        () => ExerciseEvaluation.fromJson({
+          'kind': 'exact',
+          'pairs': [
+            ['a'],
+          ],
+        }),
+        _refuses('evaluation.pairs entries must contain exactly two strings.'),
+      );
+      expect(
+        () => Presentation.fromJson({
+          'content': <Object>[],
+          'completion': {'actions': 'understood'},
+        }),
+        _refuses('presentation.completion.actions must be a list.'),
+      );
+    });
+
+    test('a list written as null is a list left out, everywhere', () {
+      // A GuideBook module refused it before.
+      final module = GuidebookModule.fromJson({
+        'id': 'module-1',
+        'title': 'Greetings',
+        'sentences': null,
+        'words': null,
+      });
+      expect(module.sentences, isEmpty);
+      expect(module.words, isEmpty);
+      // The others already read it so.
+      final evaluation = ExerciseEvaluation.fromJson({
+        'kind': 'exact',
+        'correctOrders': null,
+        'correctItemIds': null,
+        'pairs': null,
+      });
+      expect(evaluation.correctOrders, isEmpty);
+      expect(evaluation.correctItemIds, isEmpty);
+      expect(evaluation.pairs, isEmpty);
+      final interaction = ExerciseInteraction.fromJson({
+        'kind': 'select',
+        'items': null,
+        'layout': null,
+      });
+      expect(interaction.items, isEmpty);
+      expect(interaction.layout, isEmpty);
+    });
+
+    test('a list that may be left out, but is not a list, is refused '
+        '(the earlier exercise shape read it as empty)', () {
+      expect(
+        () => ExerciseInteraction.fromJson({'kind': 'select', 'items': 'a'}),
+        _refuses('interaction.items must be a list.'),
+      );
+      expect(
+        () => ExerciseInteraction.fromJson({
+          'kind': 'select',
+          'layout': <String, Object>{},
+        }),
+        _refuses('interaction.layout must be a list.'),
+      );
+      expect(
+        () => GuidebookModule.fromJson({
+          'id': 'module-1',
+          'title': 'Greetings',
+          'words': 'ciao',
+        }),
+        _refuses('guidebook module.words must be a list.'),
+      );
+    });
+
+    test('a list left out is an empty list of its own kind: it can be '
+        'searched like any other', () async {
+      // An empty list made in a reader shared by every kind of list would
+      // otherwise be a list of nothing, and asking it for an element throws.
+      final texts = JsonRead.optionalList<String>(
+        {},
+        'words',
+        'module',
+        (json) => json['word'] as String,
+      );
+      expect(texts.indexOf('ciao'), -1);
+      expect(texts.contains('ciao'), isFalse);
+      expect(
+        texts.firstWhere((text) => text == 'ciao', orElse: () => 'none'),
+        'none',
+      );
+      expect([...texts, 'ciao'], ['ciao']);
+      expect(() => texts.add('ciao'), throwsUnsupportedError);
+
+      // Through the models: the Laboratory's exercises that leave a list
+      // out.
+      final course = await CourseService().loadBundledCourse('IT');
+      var withoutTargets = 0;
+      var withoutItems = 0;
+      for (final lesson in course.lessons) {
+        for (final round in lesson.rounds) {
+          for (final exercise in round.exercises) {
+            if (exercise.targets.isEmpty) {
+              withoutTargets++;
+              expect(
+                exercise.targets.indexOf(const ExerciseTarget(id: 'none')),
+                -1,
+                reason: exercise.id,
+              );
+            }
+            if (exercise.items.isEmpty) {
+              withoutItems++;
+              expect(
+                exercise.items.indexOf(
+                  const ExerciseItem(id: 'none', content: []),
+                ),
+                -1,
+                reason: exercise.id,
+              );
+            }
+          }
+        }
+      }
+      expect(withoutTargets, greaterThan(10));
+      expect(withoutItems, greaterThan(3));
     });
   });
 }

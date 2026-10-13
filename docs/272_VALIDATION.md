@@ -541,3 +541,92 @@ difference outside the app's behaviour: a logged stack trace names
 ### Complete suite
 
 13 October 2026, 06:03–06:44, `flutter test --no-pub --concurrency=1` on the final tree: **4,486 passed, 1 skipped, 0 failed** (39 min 48 s). Revision 8's suite had 4,471; the 15 more are this revision's test file.
+
+## Revision 10 (2.0.72+272010), one wording, one rule for a list that may be left out
+
+13 October 2026, owner's Windows 10 PC, `build-272`. A behaviour change by
+the owner's decision.
+
+- **What the code said before** (a probe run on Revision 9, then removed):
+
+  | Case | Before |
+  |---|---|
+  | GuideBook module, `sentences` and `words` written as `null` | refused: "guidebook module.sentences must be a list." |
+  | GuideBook module, `words` a text | refused: "guidebook module.words must be a list." |
+  | Earlier exercise shape, `items` a text | read as an empty list |
+  | Earlier exercise shape, `items` and `layout` as `null` | read as empty |
+  | Earlier evaluation, `correctItemIds` a text | refused: "correctItemIds must be a list." |
+  | Earlier evaluation, `acceptedAnswers` holding a number | refused: "acceptedAnswers must contain strings only." |
+  | Earlier evaluation, `pairs` a text | refused: "pairs must be a list." |
+  | Earlier evaluation, a pair of one text | refused: "pairs entries must contain exactly two strings." |
+  | Earlier evaluation, `correctOrders`, `correctItemIds`, `pairs` as `null` | read as empty |
+  | A card's `actions` a text | refused: "actions must be a list." |
+
+- **After**: `test/json_read_272_test.dart`, **19 passed**, three runs of
+  three: the 15 of Revision 9 with the cases that changed rewritten (the
+  models' wording; the readers' own cases without `stringListByKey`,
+  `pairList` with its place), and 4 new (every list of the models tells its
+  place and its field; a list written as `null` is a list left out; a list
+  that may be left out but is not a list is refused; a list left out is an
+  empty list of its own kind, run on every exercise of the Laboratory that
+  leaves `targets` or `items` out).
+- The change was made by `apply_r10.py` (exact texts, each asserted to
+  match once); the diff of `course_models.dart` read whole: seven renamed
+  calls and seven checks replaced, nothing else.
+- No other code matches on the old wordings (`tools/validate_courses.py`
+  has messages of its own, in Python).
+- Focused files (26): the one above, the Course model tests,
+  `negative_cases_256_test`, `semantic_equality_256_test`,
+  `canonical_primitives_256_test`, `runtime_canonical_256_test`,
+  `laboratory_future_256_test`, `exercise_architecture_224_test`,
+  `imported_course_v6_regression_test`, `bundled_courses_225_02_test`,
+  `story_model_256_test`, `guidebook_modules_266_test`,
+  `guidebook_authoring_aids_266_test`, the import and package tests,
+  `editor_notes_267_test`, `plural_pictures_265_test`, `page_card_258_test`,
+  `stored_course_edge_cases_266_test`, `exercise_laboratory_254_test`,
+  `course_media_reference_272_test`: **605 passed**.
+- `flutter analyze --no-pub`: **No issues found**.
+
+### Independent review
+
+A second reader (read only, no access to this session's reasoning) checked
+the change against the two decisions.
+
+**Confirmed**: every change in the two files is one of the two; the seven
+replaced checks, input by input (absent, `null`, a list of objects, an empty
+list, a list holding a non-object, a text, an object, a number): only two
+cells change, the ones intended (a GuideBook module's `sentences` / `words`
+as `null`: refused, now empty; the earlier exercise shape's `items` /
+`layout` when not a list: empty, now refused); each new wording is the old
+one with its place in front, and the place is the one each factory uses in
+its other messages. No other code matches on the old wordings. Every writer
+of QQL writes a real list or leaves the key out, so no file QQL wrote is
+refused now or was before; no bundled Course or fixture holds a `null` list.
+
+**Found, and fixed before the suite**: a list left out came back from the
+shared reader as an empty list "of nothing" (a bare `const []` in a generic
+function is a `List<Never>`), where the checks written at each place gave an
+empty list of exercise items, targets or layout pieces. Nothing in `lib/`
+was found to stumble on it, but a search with a fallback
+(`firstWhere(…, orElse: …)`) or an `add` on such a list throws. The reader
+now returns `List<T>.unmodifiable(…)`; a test first showed the fault
+(`type 'String' is not a subtype of type 'Never'`) and passes with the fix.
+
+**Corrected in the documents**: the readers' comment and the format
+document claimed more than is true. Seven lists of the Course root
+(`sectionNames`, `keywords`, `authors`, `rightsHolders`, `lessonIconAssets`,
+`audioLibrary`, `defaultTimedLimitsSeconds`) are still read by checks of
+their own and are named as such; a module's `sentences` / `words` are always
+written, so "written only when not empty" was wrong.
+
+**Known and left**: the earlier exercise shape is read only by the converter
+from v11 (`tools/convert_course_to_v12.dart`,
+`tools/convert_stored_courses_256.dart`), never by the app: a v11 file with
+`items` that is not a list now stops the conversion with
+"interaction.items must be a list.". `tools/validate_courses.py` still
+reports a module's `sentences` / `words` written as `null`; it checks QQL's
+own files, which never have one.
+
+### Complete suite
+
+13 October 2026, 07:11–07:49, `flutter test --no-pub --concurrency=1` on the final tree (after the review's fix; 12 affected files had been run again first, 359 passed): **4,490 passed, 1 skipped, 0 failed** (37 min 55 s). Revision 9's suite had 4,486; the 4 more are this revision's new cases.
