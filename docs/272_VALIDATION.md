@@ -319,3 +319,76 @@ Analyzer after them: **No issues found** (65.0 s).
 ### Complete suite for Revisions 5 and 6 (one suite for both)
 
 13 October 2026, 00:05–00:51, `flutter test --no-pub --concurrency=1` on the final tree (after the review's two tidy-ups): **4,400 passed, 1 skipped, 0 failed** (45 min 29 s). Revision 4's suite had 4,391; the 9 more are Revision 5's 4 and Revision 6's 5.
+
+## Revision 7 (2.0.72+272007), the Timed Round's clock
+
+13 October 2026, owner's Windows 10 PC, `build-272`.
+
+- **Before the change**: `test/timed_round_screen_272_test.dart`, 7 cases on
+  the Round screen as it was, **7 passed** (the first run had one wrong
+  expectation of mine, the label of the last button, "Review mistakes";
+  the test was corrected, never the app). The same file after the change:
+  **7 passed**.
+- **Two faults of that test file, found by the first complete suite and by
+  repeating the file** (the app was right both times):
+  1. one case tapped the answer of question 1, but a Round shows its
+     questions in a new order each time, so the case failed about one run
+     in two; it now taps the answer shown;
+  2. the file did not keep the Crash Log out, as the other Round screen
+     tests do (`keepCrashLogUnavailable()`): a real file write left
+     unfinished at the end of one case could hold every later case (seen
+     once in nine runs).
+  With both corrected: **12 runs of 12 passed** on the changed screen, and
+  **4 of 4** on the screen as it was before the change (the old file put
+  back for those runs, then the change restored and compared byte by byte).
+- New: `test/timed_round_clock_272_test.dart`, **11 passed** (the limit
+  shown whole; no start without a limit; a started second counts until it
+  ends; the deadline told at the next refresh and again until the page ends
+  the attempt; the deadline told after the limit of timer time whatever the
+  time read; the deadline itself is due, one moment before is not; a second
+  start keeps the first deadline; nothing refreshed while the page cannot
+  refresh; the last answer in time; no start after the time ran out; stopped
+  timers leave the state).
+- The Round screen's diff, read whole: 29 lines added, 61 removed; every
+  one of the eight old names is gone from the file (asserted by the script
+  that made the change, `apply_r7.py`).
+- Focused files (16): the two above, `timed_round_261_test`,
+  `round_type_compatibility_test`, `content_plays_right_271_test`,
+  `test_round_attempt_test`, `round_xp_completion_regression_test`,
+  `before_you_start_card_257_test`, `celebrations_264_test`,
+  `sequence_round_256_test`, `story_runtime_256_test`,
+  `spoken_lines_269_test`, `page_card_258_test`,
+  `two_sided_flashcards_268_test`, `exercise_mascot_256_test`,
+  `learning_completion_service_test`: **171 passed**.
+- `flutter analyze --no-pub`: **No issues found**.
+
+### Independent review
+
+A second reader (read only, no access to this session's reasoning) compared
+the Round screen and the new clock with the commit before them
+(`bd1c2550`): **no behaviour difference found**.
+
+- Starting: the five old conditions (the Round's type, a deadline already
+  set, the time already out, no limit, an empty queue) are all still there,
+  shared between the screen and `start()`.
+- Timers: the deadline's timer is created first, then the refresh every
+  250 ms, as before; both are cancelled at the same four moments (the time
+  ran out, the last answer in time, finishing, leaving the page). In every
+  state (page gone, finishing, already out of time, finished in time) a
+  timer that fires does what it did before.
+- The seconds become 0 a moment earlier (inside `expire()`, before the
+  keyboard is dismissed and the notice closed). Not visible: once the time
+  is out the page draws the Time's up page, which shows no seconds.
+- `late final`: creating the clock builds only closures; nothing reads
+  `widget`, `mounted` or `context` at that moment, also when the first use
+  is in `dispose` for a Round that is not Timed.
+- No old name is left in `lib/` or `test/`; nothing outside the Round screen
+  reads its Timed state.
+
+What reading alone could not show (that the files compile and lint clean,
+and the frame-level timing) is covered by the analyzer run and by the seven
+screen tests written before the change.
+
+### Complete suite
+
+First run (13 October 2026, 01:01–01:46): 4,417 passed, 1 skipped, **1 failed**: the case of the new test file named in fault 1 above. Second run on the final tree (01:54–02:40), `flutter test --no-pub --concurrency=1`: **4,418 passed, 1 skipped, 0 failed** (45 min 33 s). Revision 6's suite had 4,400; the 18 more are this revision's 7 and 11.

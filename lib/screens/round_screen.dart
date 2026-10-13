@@ -26,6 +26,7 @@ import '../services/exercise_difficulty.dart';
 import '../services/learner_panel_text.dart';
 import '../services/learning_completion_service.dart';
 import '../services/xp_calculator.dart';
+import '../services/timed_round_clock.dart';
 import '../services/timed_round_rules.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
@@ -271,57 +272,34 @@ class _RoundScreenState extends State<RoundScreen> {
   int _errorsThisAttempt = 0;
   bool _reviewPhase = false;
   bool _finishing = false;
-  Timer? _timedTicker;
-  Timer? _timedExpiryTimer;
-  DateTime? _timedDeadline;
-  int? _activeTimedLimitSeconds;
-  int _timedSecondsLeft = 0;
-  bool _timedOut = false;
-  bool _timedCompletedBeforeZero = false;
+
+  /// The countdown of this attempt at a Timed Round: its limit, its
+  /// deadline, the seconds shown and how it ended (Build 272 Revision 7).
+  late final TimedRoundClock _timed = TimedRoundClock(
+    now: () => (widget.timedClock ?? DateTime.now)(),
+    canRefresh: () => mounted && !_finishing,
+    onSecondsChanged: () => setState(() {}),
+    onDue: _expireTimedAttempt,
+  );
   bool _timedReviewDialogOpen = false;
   bool _timeoutSaving = false;
   bool _timeoutSaved = false;
   int _timeoutXp = 0;
   String? _timeoutError;
 
-  DateTime get _timedNow => (widget.timedClock ?? DateTime.now)();
-
   void _startTimedCountdown() {
-    if (widget.round.roundType != RoundType.timed ||
-        _timedDeadline != null ||
-        _timedOut ||
-        _activeTimedLimitSeconds == null ||
-        _queue.isEmpty) {
-      return;
-    }
-    _timedDeadline = _timedNow.add(
-      Duration(seconds: _activeTimedLimitSeconds!),
-    );
-    _timedExpiryTimer = Timer(
-      Duration(seconds: _activeTimedLimitSeconds!),
-      _expireTimedAttempt,
-    );
-    _timedTicker = Timer.periodic(const Duration(milliseconds: 250), (_) {
-      if (!mounted || _timedOut || _finishing) return;
-      final millis = _timedDeadline!.difference(_timedNow).inMilliseconds;
-      if (millis <= 0) {
-        _expireTimedAttempt();
-      } else {
-        setState(() => _timedSecondsLeft = (millis + 999) ~/ 1000);
-      }
-    });
+    if (widget.round.roundType != RoundType.timed || _queue.isEmpty) return;
+    _timed.start();
   }
 
   void _expireTimedAttempt() {
-    if (_timedOut || _finishing) return;
-    _timedTicker?.cancel();
-    _timedExpiryTimer?.cancel();
-    _timedOut = true; // Input is locked before any persistence await.
+    if (_timed.expired || _finishing) return;
+    _timed.expire(); // Input is locked before any persistence await.
     FocusManager.instance.primaryFocus?.unfocus();
     if (_timedReviewDialogOpen && mounted) {
       Navigator.of(context).pop();
     }
-    setState(() => _timedSecondsLeft = 0);
+    setState(() {});
     unawaited(_saveTimedTimeoutXp());
   }
 
@@ -832,11 +810,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 courseId: widget.course.courseId,
               );
         if (!mounted) return;
-        _activeTimedLimitSeconds = TimedRoundRules.activeLimit(
-          widget.round,
-          completed,
-        );
-        _timedSecondsLeft = _activeTimedLimitSeconds ?? 0;
+        _timed.setLimit(TimedRoundRules.activeLimit(widget.round, completed));
       }
       setState(() => _ready = true);
       if (_queue.isNotEmpty) {
@@ -884,8 +858,7 @@ class _RoundScreenState extends State<RoundScreen> {
 
   @override
   void dispose() {
-    _timedTicker?.cancel();
-    _timedExpiryTimer?.cancel();
+    _timed.stop();
     _lineTimer?.cancel();
     _lineWatchdog?.cancel();
     _lineCeiling?.cancel();
@@ -1672,10 +1645,8 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   void _mark(bool correct) {
-    if (_answered || _timedOut) return;
-    if (widget.round.roundType == RoundType.timed &&
-        _timedDeadline != null &&
-        !_timedNow.isBefore(_timedDeadline!)) {
+    if (_answered || _timed.expired) return;
+    if (widget.round.roundType == RoundType.timed && _timed.isDue) {
       _expireTimedAttempt();
       return;
     }
@@ -1702,9 +1673,7 @@ class _RoundScreenState extends State<RoundScreen> {
     if (widget.round.roundType == RoundType.timed &&
         _position + 1 == _queue.length &&
         (_reviewPhase || _wrongFirstPass.isEmpty)) {
-      _timedTicker?.cancel();
-      _timedExpiryTimer?.cancel();
-      _timedCompletedBeforeZero = true;
+      _timed.completeInTime();
     }
     if (widget.round.roundType != RoundType.test) _revealFeedback();
   }
@@ -2187,7 +2156,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Future<void> _advance() async {
-    if (_finishing || _timedOut) return;
+    if (_finishing || _timed.expired) return;
     _logStoryItem();
     if (_position + 1 < _queue.length) {
       setState(() => _position++);
@@ -2239,7 +2208,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
       );
       _timedReviewDialogOpen = false;
-      if (!mounted || _timedOut) return;
+      if (!mounted || _timed.expired) return;
       setState(() {
         _reviewPhase = true;
         _queue = _wrongFirstPass.toList();
@@ -2327,9 +2296,8 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
       );
     }
-    if (!mounted || _timedOut) return;
-    _timedTicker?.cancel();
-    _timedExpiryTimer?.cancel();
+    if (!mounted || _timed.expired) return;
+    _timed.stop();
     setState(() => _finishing = true);
     var persistenceStarted = false;
     var persistenceCompleted = false;
@@ -2391,11 +2359,11 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
           claimOnTimeBonus:
               widget.round.roundType == RoundType.timed &&
-                  _timedCompletedBeforeZero &&
-                  _activeTimedLimitSeconds != null
+                  _timed.completedInTime &&
+                  _timed.limitSeconds != null
               ? () => _progress.claimTimedLimit(
                   widget.round.id,
-                  _activeTimedLimitSeconds!,
+                  _timed.limitSeconds!,
                   courseId: widget.course.courseId,
                 )
               : null,
@@ -5354,7 +5322,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
       );
     }
-    if (_timedOut) {
+    if (_timed.expired) {
       return Scaffold(
         backgroundColor: background,
         appBar: _simpleRoundAppBar(background),
@@ -5561,7 +5529,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 child: Text(
                   _t('timed.timeLeft', {
                     'time':
-                        '${_timedSecondsLeft ~/ 60}:${(_timedSecondsLeft % 60).toString().padLeft(2, '0')}',
+                        '${_timed.secondsLeft ~/ 60}:${(_timed.secondsLeft % 60).toString().padLeft(2, '0')}',
                   }),
                   key: const Key('timed-countdown'),
                   style: Theme.of(context).textTheme.titleMedium,

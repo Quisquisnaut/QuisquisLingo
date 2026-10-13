@@ -33,7 +33,7 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 3 | New Course form owner; the New Course dialog in its own file (done) |
 | 4 | Lesson Options owner (`LessonOptions`) and panel; then a Windows package for the owner to try |
 | 5 | The exercise editor (`ExerciseEditorScreen`, 3,153 lines) moves whole to its own file (done, `1aa0d72d`) |
-| 6 | Free moves from the Course Editor file: Audio Library, Audit page, Lesson preview, the hierarchy status; `ExerciseLabels` |
+| 6 | Free moves from the Course Editor file: Audio Library, Audit page, Lesson preview, the hierarchy status; `ExerciseLabels` (done, `bd1c2550`) |
 | 7 | `TimedRoundClock` |
 | 8 | Media-reference owner |
 | 9 | Shared JSON readers for the models |
@@ -337,25 +337,59 @@ Gotchas:
   in `lib/` or `test/`; wait for the independent review before the
   complete suite.
 
-## Next: Revision 7, `TimedRoundClock` (not started)
+## Revision 7 (2.0.72+272007), the Timed Round's clock
 
-Read so far (`lib/screens/round_screen.dart`, read only): the Timed
-Round's state is eight fields of `_RoundScreenState` (`_timedTicker`,
-`_timedExpiryTimer`, `_timedDeadline`, `_activeTimedLimitSeconds`,
-`_timedSecondsLeft`, `_timedOut`, `_timedCompletedBeforeZero`,
-`_timedReviewDialogOpen`) and `_startTimedCountdown`,
-`_expireTimedAttempt`, the deadline check at the top of `_mark`, the
-stop on the last answer in `_mark`, the stop when finishing (about line
-2330), `dispose`, the claim of the limit (about line 2394) and the clock
-text (about line 5564). Design: a pure Dart owner (`dart:async` only)
-with the injected `now` (the screen's `timedClock`), `limitSeconds`,
-`secondsLeft`, `expired`, `completedInTime`, `start`, the deadline check,
-`expire`, `completeInTime`, `stop`; the screen keeps what the screen
-does on expiry (unfocus, close the review dialog, save the timeout XP)
-and the `mounted` / `_finishing` guards. First the characterization
-tests on the present screen (`round_types_261_test.dart` has Timed
-cases to start from), then the owner, then its own complete suite (an
-owner, not a move).
+State (13 October 2026, 02:41): done. Analyzer clean; 16 focused files 171 passed; the independent review found no behaviour difference. The first complete suite had ONE failure, in the new `timed_round_screen_272_test` (it tapped 'Right q1', but a Round shuffles its questions); corrected, and `keepCrashLogUnavailable()` added to its setUp; 12 of 12 runs pass, 4 of 4 on the screen before the change. Second complete suite: 4,418 passed, 1 skipped. Committed (hash in `git log`) and pushed. Also on this branch: `docs/274_PLAN.md` (the owner's nine points for Build 274, planned while this suite ran; a documents-only commit).
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/services/timed_round_clock.dart`: `TimedRoundClock` (`now`,
+  `canRefresh`, `onSecondsChanged`, `onDue`; `setLimit`, `start`,
+  `isDue`, `expire`, `completeInTime`, `stop`).
+- `RoundScreen._timed` (a `late final` field) replaces eight names of
+  the screen's State; made by `r7/apply_r7.py` (exact texts, each
+  asserted to match once; it also asserts that no old name is left).
+- Tests: `timed_round_screen_272_test` (7, written before the change),
+  `timed_round_clock_272_test` (11).
+- The Beta expiry moved to 2026-11-12 (release day 13 October 2026):
+  `expiry.py 12 13` in the scratchpad, run after `bump.py`, changes the
+  service, every date of `test/beta_lifecycle_test.dart` and the
+  README's line.
+
+Gotchas:
+
+- A pure owner that uses `Timer` is tested with `testWidgets` only for
+  its clock of timers (`tester.pump(d)` lets `d` pass); the time the
+  owner reads is set by hand.
+- On a Timed Round's last question with mistakes to repeat the button
+  reads "Review mistakes", not Continue.
+- A Round shows its questions in a new order each time: a test taps the
+  answer shown (`find.textContaining('Right q').first`), never the
+  answer of a numbered question.
+- A test file that opens the Round screen calls
+  `keepCrashLogUnavailable()` in its `setUp`
+  (`test/support/test_directories.dart`); without it a real Crash Log
+  write left unfinished at the end of one case can hold every later
+  case of the file (seen once in nine runs).
+- A new widget test file is run several times (six or more) before the
+  complete suite: one pass does not show a case that fails one run in
+  two. This cost a second complete suite here.
+
+## Next: Revision 8, the media-reference owner (not started)
+
+Notes in the scratchpad (`C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`), `r8/NOTES.md`: the
+`media:<sha256>.<ext>` rule is written at `course_models.dart` 823
+(`Course.coverImagePattern`), 1287 and 1292 (`_audioReference`,
+`_imageReference`), 3491 (`PromptElement.fromJson`, inline), 3669
+(`StorySpeaker.avatarPattern`), in `course_media_store.dart` 44 and 47,
+`course_package_service.dart` 179 (`media/…`, the path in a package)
+and `tools/sign_course.dart` 220; `Course._validateMediaReferences`
+(1306–1352) walks the raw JSON. Design: a pure file beside
+`lib/models/bundled_asset.dart` with the patterns, `isValidImage` /
+`isValidAudio` and the walk (same messages); `Course`'s public statics
+stay as one-line delegates. First a table of accepted and refused
+references run against every present entry point, with the exact
+`FormatException` texts. An owner: its own complete suite.
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

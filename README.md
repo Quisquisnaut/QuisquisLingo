@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.72+272006 · Build 272, Revision 6 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.72+272007 · Build 272, Revision 7 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.72 Beta — QQL 272 modularization (Course Model v12)**
 
@@ -25,7 +25,8 @@ Wizard's options step both use. Revision 5 moves the exercise editor, 3,153
 lines, to a file of its own; Revision 6 does the same for the Audio Library,
 the Audit page, the Lesson preview and the status rule of the Editor's
 lists, so the Course Editor file is at 7,927 lines (14,839 before this
-Build).
+Build). Revision 7 gives the countdown of a Timed Round an owner
+(`TimedRoundClock`), tested without a screen.
 
 Build 271 fixes the more relevant findings still open after Build 270 and
 reorganizes the Audio Library ([plan](docs/271_PLAN.md),
@@ -845,7 +846,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.72, Build 272, Revision 6 is a time-limited Beta with an expiry of **2026-11-11 23:59:59 local time** (30 days after the 12 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.72, Build 272, Revision 7 is a time-limited Beta with an expiry of **2026-11-12 23:59:59 local time** (30 days after the 13 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

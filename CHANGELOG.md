@@ -1,3 +1,26 @@
+# 2.0.72 (Build 272, Revision 7) - modularization: the Timed Round's clock - 2026-10-13
+
+Nothing a learner sees changes in this revision.
+
+- **The countdown of a Timed Round has an owner**: `TimedRoundClock`
+  (`lib/services/timed_round_clock.dart`). It holds the limit of the
+  attempt, the deadline, the two timers, the seconds shown and the two ends
+  an attempt can have (the time ran out, or the last answer came in time).
+  It was eight fields and four pieces of code of the Round screen.
+- The Round screen keeps what the screen does at either end: it locks the
+  page, closes the mistakes notice, saves the answer XP when the time runs
+  out and claims the limit when the Round is finished in time.
+- **Tests**: `test/timed_round_screen_272_test.dart` (7 cases that pass on
+  the screen before the change and after it: the seconds shown, the time
+  running out by the device clock and by the wait, an answer after the
+  deadline, the last answer in time, the mistakes notice, the Preview) and
+  `test/timed_round_clock_272_test.dart` (11 cases on the clock alone).
+- The Round screen file goes from 5,826 to 5,794 lines.
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry is 2026-11-12 23:59:59 local time (30 days from this release day,
+13 October 2026).
+
 # 2.0.72 (Build 272, Revision 6) - modularization: four more pages leave the Course Editor file - 2026-10-12
 
 Nothing an author or a learner sees changes in this revision.

@@ -454,3 +454,55 @@ moves).
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 7 (2.0.72+272007): the Timed Round's clock
+
+Nothing a learner sees changes.
+
+### What it is
+
+A Timed Round counts down from its limit. Until now the Round screen itself
+kept everything about that countdown, spread over eight fields and four
+pieces of code: when the time ends, two timers, the seconds shown, whether
+the time ran out, whether the last answer came in time.
+
+That is one job, and it now has one owner, `TimedRoundClock`, in a file of
+its own. It can be tested without drawing a screen: a test sets the time and
+lets timer time pass.
+
+### What stayed in the Round screen
+
+What the screen does when the countdown ends, because those are the screen's
+own actions:
+
+- when the time runs out: lock the page, close the "Review your mistakes"
+  notice if it is open, save the XP of the answers given, show the Time's
+  up page;
+- when the Round is finished in time: claim the limit for the On Time bonus.
+
+### How it was checked
+
+- Seven tests of the Round screen were written first, on the screen as it
+  was; they pass on that screen and on the changed one: the seconds shown
+  second by second,
+  the time running out when the device clock passes the deadline, and also
+  after the limit of waiting when the device clock does not move, an answer
+  tapped after the deadline (not taken), the last answer in time (the clock
+  stops where it is), the mistakes notice closed by the time running out,
+  and the Preview (nothing kept).
+- Eleven tests of the clock alone.
+- An independent line-by-line review before the complete suite.
+- The complete suite ran twice. Its first run had one failure, in the new
+  screen test file itself: one case tapped the answer of "question 1", and a
+  Round shows its questions in a new order each time, so the case failed
+  about one run in two. The app was right; the test was corrected and
+  repeated (12 runs of 12 pass, and 4 of 4 on the screen before the change).
+  The second run: 4,418 passed, 1 skipped.
+
+The Round screen file goes from 5,826 to 5,794 lines. The gain here is not
+the size: it is that the Timed rules can now be read and tested in one
+place.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder. The Beta expiry moves to 12 November 2026 (a new release
+day).
