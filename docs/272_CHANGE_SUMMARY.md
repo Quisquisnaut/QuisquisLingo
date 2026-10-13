@@ -945,3 +945,194 @@ check).
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 14 (2.0.72+272014): a license names its Rights Holder
+
+A change of behaviour you decided on 13 October 2026. It is not part of
+the modularization; it has a revision of its own.
+
+### Why
+
+A Course that says "All rights reserved" and names nobody who holds those
+rights does not say whom to ask. Revision 13's import pop-up showed this
+as an anomaly for every Course made with the defaults, because New Course
+wrote none.
+
+### What changes for the user
+
+- **New Course**: when the Rights Holder rows are left empty, the Course
+  names its Author as Rights Holder. A line under the rows says so. A
+  Rights Holder you write is kept as written.
+- **Course Wizard**: the same. The Wizard creates the Course with your
+  name in the app as its Author, so that is the Rights Holder at first;
+  when you change the Author at step 3, the Rights Holder follows. Under
+  Advanced the Rights Holder rows are empty, with the same line, as long
+  as the Rights Holder is simply the Author. The step's Tell me more says
+  it too, because Advanced is closed at first.
+- **Course Audit**: a new Warning, "A license is stated (its name) but no
+  Rights Holder is named." A warning never blocks anything.
+- **Export as Publisher Course** refuses a Course whose license has no
+  Rights Holder, and says where to name one.
+- **CC0 1.0** needs none (it gives the rights up). A Course without any
+  license is not concerned.
+
+### Which Author is named (your decision 1)
+
+The Author written in the form, not the name used in the app. Exactly:
+
+1. every person the form credits with the role **Author** (a person in
+   two rows is named once);
+2. when nobody has that role, the **first person named**, whatever the
+   role;
+3. when the form names nobody, nobody (the Audit then warns).
+
+They are named as persons. To name a school or a company, write it in a
+Rights Holder row and choose Organization.
+
+### Courses already stored: nothing is changed (your decision 5)
+
+No stored Course is rewritten. Course Info Editor, Fork, Copy as New
+Course, Merge and import fill nothing by themselves. You name the Rights
+Holder in Course Info Editor, and the warning goes.
+
+**A Course Wizard paused before this revision** was stored without a
+Rights Holder. Opening its step 3, or passing through it, changes nothing.
+The line under the Rights Holder rows then reads: "This Course names no
+Rights Holder yet. Add one below, or change the Author or the license:
+the Author is then named (not with CC0 1.0)."
+
+### What you will newly see because of the warning
+
+For any Course with a license and no Rights Holder:
+
+- its row in **Course Studio** has the red border, where it may have been
+  green;
+- its Audit, the Audit's counts and the Audit report have one more
+  warning;
+- exporting it adds "Course Audit found 1 warning: the file imports, but
+  review them before sharing it.";
+- importing it says "with 1 Course Audit warning" (and the import pop-up
+  lists the missing Rights Holder);
+- a Merge shows its notice about Audit warnings;
+- the Course Wizard says "Still red: 1 warning to fix" at Finish and "The
+  Course itself: 1 warning" at Check and publish.
+
+This also happens for Courses you cannot edit: a Publisher Course or a
+received Course without a Rights Holder shows the red border, and only
+its publisher or Maintainer can remove it. Nothing is blocked for anyone.
+
+### The two Demos inside the app
+
+Both state "All rights reserved" and name no Rights Holder, so both show
+the new warning; QQL Demo: English from Italian had no warning before. I
+did not change their files and did not invent a Rights Holder for them:
+you decided to take them out of the app (Revisions 15 and 16).
+
+### Two things I changed beyond your list, for you to confirm
+
+1. **Add a Rights Holder** in the Course Wizard opened with one row
+   holding your name in the app. Now it opens with one row for each
+   Author the form names (so two Authors are two rows and adding a third
+   name drops nobody); a further press adds an empty row.
+2. **The import pop-up**, for a file that states no license at all, now
+   adds "No Rights Holder is named either." QuisquisLingo reads such a
+   file as "All rights reserved", so its Audit has the new warning.
+
+### Faults found before the commit
+
+**One I found myself.** My first draft showed the default Rights Holder as
+a filled row of the Wizard. If you changed the Author and pressed **Save
+now** on the same step, the row still showed the earlier name, and the
+next save stored that earlier name as if you had written it. Now the form
+shows the rows empty while the Rights Holder is simply the Author.
+
+**Four the first independent review found**, all corrected, each with a
+test:
+
+- Step 3 of a Wizard Course stored without a Rights Holder looked unsaved
+  as soon as it was shown: leaving asked about changes you had not made,
+  and Next gave the Course a Rights Holder. Now such a Course keeps none
+  until you change its credits.
+- The Audit message printed the whole text of a custom license, which can
+  be 2,000 characters over several lines. It is now one short line.
+- For a file without a license, the import pop-up neither said the
+  missing Rights Holder nor counted it among the Audit warnings.
+- Add a Rights Holder with two Authors kept only the first.
+
+**Four more the second review found, in those corrections**, all corrected,
+each with a test:
+
+- A Course stored without a Rights Holder still got one at step 3 when
+  its authors' roles were stored in another order than the form writes
+  them (a form puts Author before Editor, for example).
+- The line under the Rights Holder rows said "the Author is the Rights
+  Holder" while a row existed with no name in it; a row without a name
+  names nobody. The line now follows what is typed.
+- Add a Rights Holder showed only the first of two Authors while the
+  license shown asked for no Rights Holder (CC0 1.0, or a custom license
+  not typed yet).
+- The new sentence of Tell me more ("The Author you name is also the
+  Course's Rights Holder") was not true for a Course stored without one.
+  For such a Course it now says "This Course names no Rights Holder yet:
+  see Rights Holders under Advanced."
+
+One consequence, accepted: if you write a Rights Holder by hand with
+exactly the Author's own name (as a person), the Course file cannot tell
+it from the default. It is shown as rows left empty and follows the Author
+if you change the Author later.
+
+### Known, and left as they are
+
+- The Author named by default is always a person. A school or a company
+  is written in a Rights Holder row.
+- Only the license written exactly "CC0 1.0", as in the list, needs no
+  Rights Holder. A custom license typed "CC0" or "cc0 1.0" gets the
+  warning.
+- A Wizard Course that is left before step 3 keeps your name in the app as
+  its Author, as before, and so as its Rights Holder. When your profile
+  has a Discord handle, that handle is the name the Wizard starts with.
+- A Course exported before its Rights Holder was named no longer merges
+  with the later copy: Merge asks for the same Rights Holders in both, as
+  it always did.
+
+### Made-up names in the tests
+
+Nine older test files build small made-up Courses and expect them to have
+no Audit concern. Those made-up Courses now name a made-up Rights Holder,
+"Test Author", as a new Course does. The Publisher export test uses
+"Alice", the made-up creator it already had. The new tests use "Maria
+Rossi", "Anna Bianchi", "mari_88" (a nickname), "Ada", "Ann", "Bo" and
+"Scuola Verde". None of these names is in the app, in a Demo or in any
+stored Course.
+
+Two tests state how many Audit rules exist: 130 became 131, and 47
+warnings became 48.
+
+### Decided with you for the next revisions
+
+- **Revision 15**: QQL Demo: English from Italian leaves the repository,
+  like the Piedmontese Courses.
+- **Revision 16**: the Laboratory leaves the app and stays in the
+  repository like the Edge Case Course. Its file stays inside the app only
+  as the source of **Fill with an example**. The learner's page with no
+  Course shows Import a Course and New Course, explains how to use them,
+  how to turn the Course Editor on and where Courses come from, with some
+  drawn graphics. It does not mention the Laboratory or the Edge Case
+  Course. App Info says there are currently no bundled Courses and that
+  Courses can be created or imported.
+
+### Tests
+
+`test/rights_holder_272_test.dart` (the rule; New Course; the Wizard's
+credits, including the form read and stored again and a Course stored
+without a Rights Holder; the Audit warning and its one-line message; the
+Publisher export's refusal; the import pop-up, also for a file without a
+license), one case in `test/course_wizard_267_test.dart` (the Wizard's
+screen: change the Author, Save now, Next, leave) and two cases and two
+checks in `test/course_credits_272_test.dart` (the Wizard's screen on a
+Course stored without a Rights Holder, also with roles stored in another
+order; Add a Rights Holder with two Authors, whatever the license; the
+line under the rows; Tell me more).
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

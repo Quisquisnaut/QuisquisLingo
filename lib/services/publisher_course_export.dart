@@ -3,6 +3,7 @@ import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
 import 'course_audit_service.dart';
 import 'course_checksums.dart';
+import 'course_credits.dart';
 import 'trusted_publishers.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
@@ -97,6 +98,10 @@ abstract final class PublisherCourseExport {
             'Course Editor.',
       if (course.license.trim().isEmpty)
         'The Course states no License: set it in Course Info Editor.',
+      if (CourseCredits.needsRightsHolder(course.license) &&
+          course.rightsHolders.isEmpty)
+        'The Course names no Rights Holder for its License: name one in '
+            'Course Info Editor.',
       if (errors > 0)
         'The Audit finds $errors ${errors == 1 ? 'error' : 'errors'}.',
     ];

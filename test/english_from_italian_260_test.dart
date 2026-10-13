@@ -154,14 +154,18 @@ void main() {
     expect(LearnerPanelText.of(course, 'check'), 'Controlla');
   });
 
-  test('passes the Audit with no error or warning', () {
+  test('passes the Audit with no error and one warning, its missing '
+      'Rights Holder', () {
     final audit = CourseAuditService().auditCourse(course);
     expect(audit.count(AuditSeverity.error), 0);
+    // Build 272 Revision 14: the Demos state a license and name no Rights
+    // Holder. The owner decided to take them out of the app (Revisions
+    // 15 and 16) rather than name one, so their files are unchanged.
     expect(
       audit.issues
           .where((issue) => issue.severity == AuditSeverity.warning)
           .map((issue) => '${issue.code}:${issue.exerciseId}'),
-      isEmpty,
+      ['LICENSE_RIGHTS_HOLDER_MISSING:null'],
     );
   });
 }

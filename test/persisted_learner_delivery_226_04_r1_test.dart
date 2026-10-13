@@ -399,6 +399,9 @@ const _rawDraftLessonCourse = r'''
   "courseVersion": "1",
   "audioMode": "tts",
   "license": "All rights reserved",
+  "rightsHolders": [
+    {"type": "person", "name": "Test Author"}
+  ],
   "textDirection": "ltr",
   "flagCode": "IT",
   "temporarySample": false,
@@ -497,6 +500,12 @@ Course _course({required PublicationState lessonState}) => Course(
   targetLanguage: 'Italian',
   title: 'Persisted published delivery',
   ttsLanguage: 'it-IT',
+  rightsHolders: const [
+    CourseRightsHolder(
+      type: CourseRightsHolderType.person,
+      name: 'Test Author',
+    ),
+  ],
   flagCode: 'IT',
   lessons: [
     Lesson(

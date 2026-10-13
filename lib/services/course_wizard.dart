@@ -5,6 +5,7 @@ import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import 'authoring_duplication_service.dart';
 import 'course_audit_service.dart';
+import 'course_credits.dart';
 import 'duel_eligibility_service.dart';
 import 'guidebook_module_sample.dart';
 import 'guidebook_round_generator.dart';
@@ -321,11 +322,15 @@ class CourseWizardCredits {
     this.publisherContact,
   });
 
+  /// The credits of [course] as the Wizard's form shows them: the Rights
+  /// Holders are the ones written by hand (Build 272 Revision 14; none
+  /// while the Course names its Author, see
+  /// [CourseCredits.rightsHoldersByHand]).
   factory CourseWizardCredits.of(Course course) => CourseWizardCredits(
     authors: course.authors,
     license: course.license,
     derivativePolicy: course.derivativeWorksPolicy,
-    rightsHolders: course.rightsHolders,
+    rightsHolders: CourseCredits.rightsHoldersByHand(course),
     buyACoffeeUrl: course.buyACoffeeUrl,
     publisherContact: course.publisherContact,
   );
@@ -355,7 +360,18 @@ class CourseWizardCredits {
       'authors': [for (final author in authors) author.toJson()],
       'license': license,
       'derivativeWorksPolicy': derivativePolicy.name,
-      'rightsHolders': [for (final holder in rightsHolders) holder.toJson()],
+      // Build 272 Revision 14: rows left empty name the Author of the
+      // form, as in New Course; a Course stored without a Rights Holder
+      // keeps none until its credits change.
+      'rightsHolders': [
+        for (final holder in CourseCredits.rightsHoldersOfWizardCredits(
+          named: rightsHolders,
+          stored: course,
+          authors: authors,
+          license: license,
+        ))
+          holder.toJson(),
+      ],
       'buyACoffeeUrl': buyACoffeeUrl.trim(),
       if (publisherContact != null)
         'publisherContact': publisherContact!.toJson(),
@@ -1078,13 +1094,9 @@ abstract final class CourseWizardSample {
     ],
     license: 'CC BY 4.0',
     derivativePolicy: DerivativeWorksPolicy.allowed,
-    rightsHolders: [
-      if (authorName.trim().isNotEmpty)
-        CourseRightsHolder(
-          type: CourseRightsHolderType.person,
-          name: authorName.trim(),
-        ),
-    ],
+    // Build 272 Revision 14: the rows are left empty, so the Author is the
+    // Rights Holder (the example named the same person in a row, which the
+    // form now shows as rows left empty).
   );
 
   /// The recommended options: Lessons numbered, Word Lookup on, Duels off

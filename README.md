@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.72+272013 · Build 272, Revision 13 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.72+272014 · Build 272, Revision 14 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.72 Beta — QQL 272 modularization (Course Model v12)**
 
@@ -44,7 +44,13 @@ written wrongly, empty Lessons, Audit warnings and the like) it lists them
 and waits for Import anyway or Cancel; without, it says so and tells the
 Course's authors, Maintainer, Team, last edit, license and size. Nothing
 is refused that was accepted before. Course Merge shows the same pop-up
-for its second Course.
+for its second Course. Revision 14, also a change of behaviour the owner
+decided: a license names its Rights Holder. New Course and the Course
+Wizard name the Author written in the form (not the name used in the app)
+when the Rights Holder is left empty; the Course Audit warns, without
+blocking, about a license that has none; Export as Publisher Course
+refuses without one; CC0 1.0, which gives the rights up, needs none.
+Courses already stored are not changed.
 
 Build 271 fixes the more relevant findings still open after Build 270 and
 reorganizes the Audio Library ([plan](docs/271_PLAN.md),
@@ -864,7 +870,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.72, Build 272, Revision 13 is a time-limited Beta with an expiry of **2026-11-12 23:59:59 local time** (30 days after the 13 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.72, Build 272, Revision 14 is a time-limited Beta with an expiry of **2026-11-12 23:59:59 local time** (30 days after the 13 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

@@ -73,6 +73,10 @@ Future<Course> _custom({
     'versionNotes': 'Edition $version.',
     'lastVersionEditorProfileId': _alice,
     'lastVersionEditorDisplayName': 'Alice',
+    // Build 272 Revision 14: a license names its Rights Holder.
+    'rightsHolders': [
+      {'type': 'person', 'name': 'Alice'},
+    ],
     ...changes,
   }..removeWhere((_, value) => value == null);
   return Course.fromJson(merged);
@@ -143,6 +147,15 @@ void main() {
       expect(await refusals({'license': ''}), [
         'The Course states no License: set it in Course Info Editor.',
       ]);
+      expect(await refusals({'rightsHolders': <Object>[]}), [
+        'The Course names no Rights Holder for its License: name one in '
+            'Course Info Editor.',
+      ]);
+      // CC0 1.0 gives the rights up: nobody to name.
+      expect(
+        await refusals({'license': 'CC0 1.0', 'rightsHolders': <Object>[]}),
+        isEmpty,
+      );
       final course = await _custom();
       final firstRound = course.lessons.first.rounds.first;
       final withDraft = Course.fromJson({

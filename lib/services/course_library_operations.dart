@@ -1064,6 +1064,16 @@ class CourseLibraryOperations {
     List<CourseMediaAttribution> mediaAttributions = const [],
   }) {
     final nowUtc = updatedAt.toIso8601String();
+    final authors = [
+      for (final credit in credits)
+        if (CourseCredits.author(
+              name: credit.name,
+              standardRoles: credit.roles,
+              customRoles: credit.customRoles,
+            )
+            case final author?)
+          author,
+    ];
     return Course(
       // Create new course allocates the ID first when it stores a cover
       // before the Course exists (Build 255 Revision 7).
@@ -1090,23 +1100,20 @@ class CourseLibraryOperations {
           : CourseLanguageResolver.codeFromMetadata([targetLanguage]) ?? 'und',
       originType: CourseOriginType.custom,
       courseVersion: '',
-      authors: [
-        for (final credit in credits)
-          if (CourseCredits.author(
-                name: credit.name,
-                standardRoles: credit.roles,
-                customRoles: credit.customRoles,
-              )
-              case final author?)
-            author,
-      ],
+      authors: authors,
       license: license,
-      rightsHolders: [
-        for (final holder in rightsHolders)
-          if (CourseCredits.rightsHolder(holder.type, holder.name)
-              case final rightsHolder?)
-            rightsHolder,
-      ],
+      // Build 272 Revision 14 (owner decision): a new Course whose form
+      // names an author never states a license without a Rights Holder.
+      rightsHolders: CourseCredits.rightsHoldersOfNewCourse(
+        named: [
+          for (final holder in rightsHolders)
+            if (CourseCredits.rightsHolder(holder.type, holder.name)
+                case final rightsHolder?)
+              rightsHolder,
+        ],
+        authors: authors,
+        license: license,
+      ),
       derivativeWorksPolicy: derivativeWorksPolicy,
       languageVariant: languageVariant,
       startLevel: startLevel,

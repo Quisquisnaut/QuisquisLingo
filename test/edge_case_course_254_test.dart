@@ -165,6 +165,10 @@ void main() {
           'EXERCISE_TEXT_LONG:${_prefix}e07_long',
           // The Story of covers alone (Build 256 Revision 5 follow-up).
           'STORY_WITHOUT_DIALOGUE:null',
+          // Build 272 Revision 14: the Demos state a license and name no Rights
+          // Holder. The owner decided to take them out of the app (Revisions
+          // 15 and 16) rather than name one, so their files are unchanged.
+          'LICENSE_RIGHTS_HOLDER_MISSING:null',
         ]),
       );
       _expectReferencesResolve(source);
@@ -378,6 +382,8 @@ void main() {
         'CHOICE_ANSWER_DUPLICATE:${_prefix}e04_duplicate',
         'EXERCISE_TEXT_LONG:${_prefix}e07_long',
         'STORY_WITHOUT_DIALOGUE:null',
+        // Build 272 Revision 14: see the shipped demo above.
+        'LICENSE_RIGHTS_HOLDER_MISSING:null',
       ]),
     );
     final rights = CourseAccessPolicy.evaluate(imported, profileId: _actor);

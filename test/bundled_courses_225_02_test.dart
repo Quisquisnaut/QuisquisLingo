@@ -30,6 +30,11 @@ void main() {
         'IT|qql_lab254_card_usage|FLASHCARD_AUDIO_EMPTY',
         'IT|qql_lab254_card_usage_translation|FLASHCARD_AUDIO_EMPTY',
         'IT|qql_lab254_card_audio|FLASHCARD_EXAMPLE_EMPTY',
+        // Build 272 Revision 14: the Demos state a license and name no Rights
+        // Holder. The owner decided to take them out of the app (Revisions
+        // 15 and 16) rather than name one, so their files are unchanged.
+        'IT|null|LICENSE_RIGHTS_HOLDER_MISSING',
+        'EN_IT|null|LICENSE_RIGHTS_HOLDER_MISSING',
         // The Edge Case's three intentional warnings are checked by
         // edge_case_course_254_test since it left the bundle (Build 259
         // Revision 5).

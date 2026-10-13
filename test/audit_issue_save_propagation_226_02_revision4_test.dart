@@ -135,6 +135,12 @@ Course _course() => Course(
   targetLanguage: 'Italian',
   title: 'Audit save propagation',
   ttsLanguage: 'it-IT',
+  rightsHolders: const [
+    CourseRightsHolder(
+      type: CourseRightsHolderType.person,
+      name: 'Test Author',
+    ),
+  ],
   lessons: [
     Lesson(
       lessonId: 'lesson',

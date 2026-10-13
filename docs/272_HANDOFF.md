@@ -562,7 +562,125 @@ Gotchas:
 - A Python script with apostrophes or backslashes goes through the
   Write tool, never a shell heredoc (three more failures today).
 
-## Next: Revision 14, a license names its Rights Holder (not started)
+## Revision 14 (2.0.72+272014), a license names its Rights Holder: READY, waiting for the owner's go to commit
+
+Revision 13 is committed and pushed (`082646c6`). Revision 14 is complete
+in the working tree (13 October 2026, night) and NOT committed: the owner
+asked to see the commit description first. It is in the session scratchpad
+(`commit_272014.txt`) and was shown to the owner; commit only on the
+owner's go, with an explicit file list (never `devtools_options.yaml`,
+`tools/cloud_setup.sh`; the new files are `lib/models/one_line_text.dart`
+and `test/rights_holder_272_test.dart`), then push `build-272`, beep,
+update the memory file. If the scratchpad is gone, write the message again
+from the Revision 14 sections of `CHANGELOG.md` and
+`docs/272_VALIDATION.md`.
+
+What it is:
+- The rule in `CourseCredits`: `rightsGivenUp`, `needsRightsHolder`,
+  `mainAuthors`, `defaultRightsHolders` (each name once),
+  `rightsHoldersOfNewCourse`, `rightsHoldersOfWizardCredits`,
+  `rightsHoldersByHand`, `sameRightsHolders`, `sameAuthors`,
+  `authorsAsFormsWrite`, `rightsHolderDefaultNote`,
+  `rightsHolderMissingNote`, `rightsHolderNoteFor`.
+- New Course: `CourseLibraryOperations._draftCourse` stores
+  `rightsHoldersOfNewCourse`; note `new-course-rights-holder-note`.
+- Course Wizard: `CourseWizardCredits.of` gives the form
+  `rightsHoldersByHand`, `applyTo` stores `rightsHoldersOfWizardCredits`
+  (a Course stored without a Rights Holder keeps none until its credits
+  change); `CourseWizardSample.credits` leaves the rows empty; Add a
+  Rights Holder opens with `_firstHolderRows()` (every main Author); the
+  note `course-wizard-rights-holder-note` is `_holderNote` in a
+  `ListenableBuilder`; a conditional sentence ends the About step's Tell
+  me more.
+- Audit Warning `LICENSE_RIGHTS_HOLDER_MISSING` (registry 131 rules, 66
+  Errors, 48 Warnings, 17 Info), its license through `oneLineText`
+  (`lib/models/one_line_text.dart`, new; `CourseImportCheck.shown`
+  delegates to it); Export as Publisher Course refuses; the import pop-up
+  says the missing Rights Holder under the Audit's own condition, also
+  for a file without a license ("No Rights Holder is named either.").
+- Help EN/IT/ES (`editorHelp.qa.authors.a`,
+  `editorHelp.exportAsPublisherCourse.body`); a paragraph in
+  `docs/COURSE_JSON_FORMAT.md`.
+- Tests: `test/rights_holder_272_test.dart` (39), a widget case in
+  `course_wizard_267_test`, two widget cases and two checks in
+  `course_credits_272_test`, two cases of `course_import_check_272_test`
+  updated. Older tests: the made-up Courses of nine test files name the
+  made-up Rights Holder "Test Author" (the raw JSON of
+  `persisted_learner_delivery_226_04_r1_test` too), the Publisher export
+  test "Alice"; counts 130 → 131 and 47 → 48; the three Demo tests expect
+  the new warning (Demo files unchanged).
+
+Evidence (`docs/272_VALIDATION.md`): analyzer clean; focused files green;
+each new widget case six times in a row; the complete suite **4,649
+passed, 1 skipped, 0 failed** (84 min 46 s, a busy PC), once, on the final
+tree. Two independent read-only reviews: the first of the whole revision
+(three defects and smaller points), the second of the first one's
+corrections (four more points); all acted on. The corrections after the
+second review were not read by a third reader.
+
+Left as they are and told to the owner in the change summary: what a
+Warning newly shows, also on Courses the user cannot edit (red row in
+Course Studio, export and import messages, Merge notice, the Wizard's
+"Still red"); the default Rights Holder is always a person; only "CC0
+1.0" written exactly is exempt; a Wizard Course left before step 3 keeps
+the app name (a Discord handle when there is one) as Author and Rights
+Holder; a Rights Holder typed with the Author's own name is the default.
+Two things done beyond the owner's list, to confirm: Add a Rights Holder
+opens with every Author of the form; the pop-up's "No Rights Holder is
+named either." for a file without a license.
+
+Owner questions answered on 13 October 2026 (evening): the made-up Rights
+Holders are only in test files ("Test Author", "Alice", and in the new
+tests "Maria Rossi", "Anna Bianchi", "mari_88", "Ada", "Ann", "Bo",
+"Scuola Verde"); no Demo, stored Course or app text names them.
+
+Scripts and logs in the scratchpad `r14/`; the suite log is
+`suite272r14b.log`.
+
+## After Revision 14: owner decisions of 13 October 2026 (evening), not started
+
+Asked which Rights Holder the Demo Courses should name, the owner instead
+decided what happens to the Demos themselves:
+
+- **Revision 15: QQL Demo: English from Italian leaves the repository**,
+  "like viterbese and piedmontese" (Build 262 Revision 0 is the model): the
+  bundled JSON, its generator `tools/generate_english_from_italian_260.py`
+  (and `tools/qql_v11_builders.py` if nothing else uses it), its own tests
+  and fixtures move to the owner's private folder
+  `D:\QQL_plus\Corsi_Privati` (outside the repository, never commit
+  them); `CourseService.courseAssets` loses `EN_IT`; its Course ID stays
+  reserved in `CourseEditorService`; `tools/validate_courses.py` and the
+  tests that list the bundled Courses follow.
+- **Revision 16: the Lab leaves the app and stays in the repository "like
+  the Edge Case Course"** (an importable file in `demo_courses/` and a test
+  fixture registered through `CourseService.debugExtraAssets`): the app
+  ships with NO bundled Course.
+  - "Fill with an example": owner chose option 1. The Lab's file stays
+    inside the app only as the source of those examples (`PresetExamples`);
+    it is not a Course anyone can open, list, study, inspect or fork.
+  - The learner's page with no Course: an empty state with **Import a
+    Course** and **New Course**, and, in the owner's words, "some more
+    words in order to be clear as to: 1. how to use import and new course,
+    2. how to activate QQL Editor in order to create or edit a course,
+    3. where courses could be found so to import them. Use some
+    autogenerated graphics too."
+  - "Update the App Info to say there are no bundled courses currently but
+    courses can be created or imported" (EN/IT/ES).
+  - Owner, same evening: on that page **do not mention the Lab course and
+    the Edge course**. "Where Courses can be found" says only that a Course
+    is a file someone gives you (a friend, a teacher, your Team, a
+    publisher) and how to import it.
+  - Home defaults to the Course code `IT` today
+    (`home_screen.dart`: `_selectedLanguage`, `_selectedCourseRef`,
+    `getLastSelectedCourseCode() ?? 'IT'`): that default goes.
+  - The Lab's Course ID stays reserved; progress on it is listed by the
+    Inventory ("Progress on Courses no longer on this device").
+- With no Course shipped, the Rights Holder of the Demos matters only for
+  the files in `demo_courses/` (the owner has not named one; a Rights
+  Holder is a person or a legal body, never the app: explained to the
+  owner, who answered by removing the Demos from the app).
+
+## Decisions for Revision 14
 
 Owner decisions of 13 October 2026 ("Discuss", then numbered answers):
 
@@ -574,7 +692,7 @@ Owner decisions of 13 October 2026 ("Discuss", then numbered answers):
    enough: the forms do not refuse.
 3. Export as Publisher Course refuses a Course without a Rights Holder
    (it already refuses one without a license).
-4. CC0 1.0 is exempt (`CourseImportCheck.rightsGivenUp`).
+4. CC0 1.0 is exempt (`CourseCredits.rightsGivenUp`).
 5. Courses already stored are never changed automatically: "let's audit
    them one by one". Ask the owner what the bundled QQL Demos should
    name (their generators write the Course files).
@@ -585,12 +703,18 @@ Course writes: a revision of its own, with its suite.
 
 ## After that (not started)
 
-From the plan's free moves: Home's `LearnerRoundPath` with its painters
-and `_LessonSection` (blocked by the shared private helpers
+Owner decision of 13 October 2026 (evening, "Yes, leave them for later"):
+the plan's two remaining free moves are NOT part of Build 272. They go to
+Build 273: Home's `LearnerRoundPath` with its painters and
+`_LessonSection` (blocked by the shared private helpers
 `_learnerMascotSeed` and `_learnerPageBackgroundOf`: they need a public
-home first), the Course preview (a `part` of `home_screen.dart` because
-it uses six Home privates). Then the Build's end: the owner's go for
-the merge into `main`.
+home first), and the Course preview (a `part` of `home_screen.dart`
+because it uses six Home privates).
+
+So Build 272 ends with Revision 16: Revision 14 (this one), Revision 15
+(English from Italian leaves the repository), Revision 16 (the Lab leaves
+the app; the start page with no Course; App Info), then the owner's go
+for the merge into `main`.
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

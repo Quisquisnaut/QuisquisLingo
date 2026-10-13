@@ -1,3 +1,98 @@
+# 2.0.72 (Build 272, Revision 14) - a license names its Rights Holder - 2026-10-13
+
+A behaviour change, decided by the owner on 13 October 2026: a Course that
+states a license and names nobody who holds the rights does not say whom
+to ask, so the license has little worth.
+
+- **New Course names the Author as Rights Holder.** When the Rights Holder
+  rows are left empty, the Course names the person the form credits as
+  Author (every person with the role Author; when nobody has that role,
+  the first person named). It is the Author written in the form, not the
+  name its creator uses in the app: an author may use a nickname in the
+  app, or create a Course from someone else's material. A Rights Holder
+  written in the form is kept as written.
+- **The Course Wizard does the same.** It creates the Course with its
+  creator's name as Author, so that name is the Rights Holder at first;
+  when the Author is changed at step 3, the Rights Holder follows. The
+  Rights Holder rows (under Advanced) are shown empty while the Rights
+  Holder is simply the Author, with a line that says so, as in New
+  Course; the step's Tell me more says it too. **Add a Rights Holder**
+  opens with one row for each Author the form names (it opened with one
+  row holding the name used in the app), so that adding one never drops
+  another.
+- **A Wizard Course stored without a Rights Holder keeps none** until its
+  author changes the Author, the license or the Rights Holder rows at
+  step 3. Opening the step, or passing through it, changes nothing; the
+  line under the rows then says that the Course names no Rights Holder
+  yet and how to name one.
+- **A person credited as Author in two rows** is one Rights Holder.
+- **CC0 1.0 needs none.** It gives the rights up, so nobody is named, and
+  nothing below applies to it. A Course without any license is not
+  concerned either.
+- **Course Audit: a new Warning**, `LICENSE_RIGHTS_HOLDER_MISSING`: "A
+  license is stated (its name) but no Rights Holder is named." A long
+  custom license is shortened to one line there. A warning never blocks:
+  the Course can be saved, published, studied, exported and imported as
+  before. The registry now holds 131 rules (66 Errors, 48 Warnings, 17
+  Info).
+- **What a warning shows**, for any Course with a license and no Rights
+  Holder, also one the user cannot edit (a Publisher Course, a received
+  Course): the red border of its row in Course Studio; one more warning
+  in the Audit's counts and report; "Course Audit found 1 warning" when
+  the Course is exported; "with 1 Course Audit warning" after its import;
+  the Audit-warnings notice of a Merge; and in the Course Wizard "Still
+  red: 1 warning to fix" at Finish and "The Course itself: 1 warning" at
+  Check and publish.
+- **Export as Publisher Course refuses** a Course whose license has no
+  Rights Holder, with "The Course names no Rights Holder for its License:
+  name one in Course Info Editor."
+- **Courses already stored are not changed.** A stored Course with a
+  license and no Rights Holder now shows the warning. That is the intended
+  signal: the owner decided to look at these Courses one by one. Course
+  Info Editor, Fork, Copy as New Course, Merge and import fill nothing by
+  themselves.
+- **The two Demos inside the app show the warning too.** Both state "All
+  rights reserved" and name no Rights Holder. Their files are unchanged:
+  the owner decided to take them out of the app in the next revisions
+  rather than name someone.
+- **The import pop-up** (Revision 13) says a missing Rights Holder once, in
+  its own words, and no longer counts it again among "other Audit
+  warnings". For a file that states no license at all (read as "All rights
+  reserved") it now adds "No Rights Holder is named either."
+- **Faults of this revision's drafts, found before the commit.** By me: in
+  the Course Wizard, after the Author was changed and **Save now** pressed
+  on the same step, the next save stored the earlier name again as Rights
+  Holder. By the first independent review: step 3 of a Wizard Course
+  stored without a Rights Holder looked unsaved as soon as it was shown,
+  and Next gave it one; the Audit message carried the whole text of a
+  custom license; the import pop-up neither said nor counted the warning
+  for a file without a license; Add a Rights Holder with two Authors kept
+  only the first. By the second review, which read those corrections:
+  such a Course still got a Rights Holder when its authors' roles were
+  stored in another order than the form writes; the line under the rows
+  was wrong while a row had no name; Add a Rights Holder kept only the
+  first Author while the license shown asked for none; the new sentence
+  of Tell me more was not true for such a Course. All corrected, each
+  with a test.
+- Help EN/IT/ES: the Authors answer of the Editor Help and Export as
+  Publisher Course.
+- `CourseCredits` (the one owner of the credits and licence rules) gains
+  `needsRightsHolder`, `rightsGivenUp`, `mainAuthors`,
+  `defaultRightsHolders`, `rightsHoldersOfNewCourse`,
+  `rightsHoldersOfWizardCredits`, `rightsHoldersByHand`,
+  `sameRightsHolders`, `sameAuthors`, `authorsAsFormsWrite` and the
+  forms' notes;
+  `oneLineText` (`lib/models/one_line_text.dart`) is the one shortener of
+  a Course's text in a message.
+- Tests: `test/rights_holder_272_test.dart`, a case in
+  `course_wizard_267_test`, two cases and two checks in
+  `course_credits_272_test`. The made-up Courses of nine older test files
+  now name a made-up Rights Holder ("Test Author"), as a new Course does;
+  the tests of the Demos expect the new warning.
+
+No new key or folder. Course files, scoring, progression and learner data
+are unchanged; no stored Course is rewritten.
+
 # 2.0.72 (Build 272, Revision 13) - a Course import shows what its check found - 2026-10-13
 
 A behaviour change, asked by the owner on 13 October 2026: the import's

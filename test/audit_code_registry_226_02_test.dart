@@ -22,8 +22,9 @@ void main() {
       // recommendations; Build 265 Revision 4 adds the three Audio Match
       // duplicates (AUDIO_MATCH_ANSWER/SOUND/TEXT_DUPLICATE). Build 266:
       // GUIDEBOOK_MODULE_EMPTY and ROUND_FOCUS_MODULE_MISSING (Warnings),
-      // GUIDEBOOK_MODULE_OVERVIEW_LONG (Info).
-      expect(definitions.length, 130);
+      // GUIDEBOOK_MODULE_OVERVIEW_LONG (Info). Build 272 Revision 14:
+      // LICENSE_RIGHTS_HOLDER_MISSING (Warning).
+      expect(definitions.length, 131);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -38,7 +39,7 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        47,
+        48,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,
@@ -408,6 +409,12 @@ Course _course(List<Exercise> exercises) => Course(
   targetLanguage: 'Italian',
   title: 'Audit registry',
   ttsLanguage: 'it-IT',
+  rightsHolders: const [
+    CourseRightsHolder(
+      type: CourseRightsHolderType.person,
+      name: 'Test Author',
+    ),
+  ],
   lessons: [
     Lesson(
       lessonId: 'lesson',

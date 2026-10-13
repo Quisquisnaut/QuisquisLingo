@@ -2,8 +2,10 @@ import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import '../models/exercise_authoring.dart';
 import '../models/guidebook_text.dart';
+import '../models/one_line_text.dart';
 import '../models/preset_successors.dart';
 import 'answer_engine.dart';
+import 'course_credits.dart';
 import 'first_letter_answer_service.dart';
 import 'portable_exercise_image.dart';
 import 'audit_code_registry.dart';
@@ -321,6 +323,20 @@ class CourseAuditService {
           AuditCode.courseAuthorsMany,
           message:
               'Course has more than 50 author entries. Check for accidental duplicates.',
+          location: 'Course info',
+        ),
+      );
+    }
+    if (CourseCredits.needsRightsHolder(course.license) &&
+        course.rightsHolders.isEmpty) {
+      issues.add(
+        CourseAuditIssue.fromCode(
+          AuditCode.licenseRightsHolderMissing,
+          message:
+              // One line, as the import pop-up writes it: a custom
+              // license may be 2,000 characters over several lines.
+              'A license is stated (${oneLineText(course.license)}) but no '
+              'Rights Holder is named.',
           location: 'Course info',
         ),
       );

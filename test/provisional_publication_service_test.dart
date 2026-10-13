@@ -657,6 +657,12 @@ Course _course({
   learningLanguage: 'Italian',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
+  rightsHolders: const [
+    CourseRightsHolder(
+      type: CourseRightsHolderType.person,
+      name: 'Test Author',
+    ),
+  ],
   title: 'Preserved course',
   courseVersion: origin == CourseOriginType.custom ? '7' : '',
   courseDescription: 'Keep this metadata.',

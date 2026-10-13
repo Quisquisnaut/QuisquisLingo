@@ -95,6 +95,14 @@ enum AuditCode {
     'The description exceeds 5,000 characters.',
     'Shorten the description if the length is unintended.',
   ),
+  licenseRightsHolderMissing(
+    'LICENSE_RIGHTS_HOLDER_MISSING',
+    AuditSeverity.warning,
+    'Course Info',
+    'The Course states a license but names no Rights Holder.',
+    'The license is not CC0 1.0 and the Rights Holder list is empty, so the Course does not say who holds its rights or whom to ask.',
+    'Name the Rights Holder in Course Info Editor, under License / Rights. CC0 1.0 needs none.',
+  ),
   courseLessonsEmpty(
     'COURSE_LESSONS_EMPTY',
     AuditSeverity.warning,

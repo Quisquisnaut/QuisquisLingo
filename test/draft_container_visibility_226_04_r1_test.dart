@@ -348,6 +348,12 @@ Course _course({
   sourceLanguage: 'English',
   targetLanguage: 'Italian',
   ttsLanguage: 'it-IT',
+  rightsHolders: const [
+    CourseRightsHolder(
+      type: CourseRightsHolderType.person,
+      name: 'Test Author',
+    ),
+  ],
   useGuidebook: false,
   createDuels: false,
   lessons: [

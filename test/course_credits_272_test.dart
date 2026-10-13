@@ -458,7 +458,10 @@ void main() {
           .course;
       expect(course.license, 'CC BY-NC-SA 4.0');
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(course.rightsHolders, isEmpty);
+      // Build 272 Revision 14: left empty, the Author of the form is the
+      // Rights Holder.
+      expect(course.rightsHolders.single.name, course.authors.first.name);
+      expect(course.rightsHolders.single.type, CourseRightsHolderType.person);
     });
   });
 
@@ -532,6 +535,10 @@ void main() {
       });
       expect(saved.license, 'CC BY 4.0');
       expect(saved.derivativeWorksPolicy, DerivativeWorksPolicy.unspecified);
+      // Build 272 Revision 14: the Rights Holder rows were left empty, so
+      // the person credited as Author is named.
+      expect(saved.rightsHolders.single.name, 'Ann');
+      expect(saved.rightsHolders.single.type, CourseRightsHolderType.person);
 
       await _choose(tester, 'Course content license', 'All rights reserved');
       await _choose(tester, 'Course content license', 'Other / Custom license');
@@ -567,12 +574,194 @@ void main() {
         tester,
         find.byKey(const Key('course-wizard-add-rights-holder')),
       );
+      // Build 272 Revision 14: the first row starts from the Author named
+      // in the form.
+      expect(_texts(tester, 'Rights Holder'), ['Ann']);
       await _enter(tester, _field('Rights Holder'), ' Org ');
 
       saved = await saveNow();
       expect(saved.license, 'My terms');
       expect(saved.derivativeWorksPolicy, DerivativeWorksPolicy.forbidden);
       expect(saved.rightsHolders.single.name, 'Org');
+    });
+
+    testWidgets('a Course stored without a Rights Holder keeps none until '
+        'its credits change; Add a Rights Holder shows every Author (Build '
+        '272 Revision 14)', (tester) async {
+      tester.view.physicalSize = const Size(1000, 3200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      // A Course of before this revision: a license, two Authors, nobody
+      // named as Rights Holder.
+      final stored = (await tester.runAsync(
+        () => _store(
+          _course(
+            license: 'CC BY 4.0',
+            policy: DerivativeWorksPolicy.allowed,
+            authors: const [
+              CourseAuthor(name: 'Ann', roles: ['Author']),
+              CourseAuthor(name: 'Bo', roles: ['Author', 'Editor']),
+            ],
+          ),
+        ),
+      ))!;
+      expect(stored.rightsHolders, isEmpty);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CourseWizardScreen(
+            course: stored,
+            access: CourseAccessPolicy.evaluate(stored, profileId: _profileId),
+            pause: CourseWizardPause(
+              step: CourseWizardStep.about,
+              savedAtUtc: DateTime.utc(2026, 10, 13),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await _tapFinder(tester, find.byKey(const Key('course-wizard-advanced')));
+      String note() => tester
+          .widget<Text>(
+            find.byKey(const Key('course-wizard-rights-holder-note')),
+          )
+          .data!;
+      expect(note(), CourseCredits.rightsHolderMissingNote);
+      expect(_texts(tester, 'Rights Holder'), isEmpty);
+
+      Future<Course> saveNow() async {
+        final save = find.byKey(const Key('course-wizard-save-now'));
+        await tester.ensureVisible(save);
+        await tester.tap(save);
+        await tester.pumpUntilFileIoState(
+          () => find.text('Saved.').evaluate().isNotEmpty,
+        );
+        ScaffoldMessenger.of(
+          tester.element(find.byType(CourseWizardScreen)),
+        ).clearSnackBars();
+        await tester.pumpAndSettle();
+        return (await tester.runAsync(
+          () => CourseEditorService().listUserCourses(),
+        ))!.single;
+      }
+
+      // The step was only opened. Next stages nothing, so Save now writes
+      // no new version and the Course still names nobody.
+      await _tapFinder(tester, find.byKey(const Key('course-wizard-next')));
+      expect(find.text('Step 4 of 8: Course options'), findsOneWidget);
+      var saved = await saveNow();
+      expect(saved.courseVersion, stored.courseVersion);
+      expect(saved.rightsHolders, isEmpty);
+
+      // Add a Rights Holder shows who would be named: both Authors, so
+      // that adding one drops nobody.
+      await _tapFinder(tester, find.byKey(const Key('course-wizard-back')));
+      expect(find.text('Step 3 of 8: About the Course'), findsOneWidget);
+      final add = find.byKey(const Key('course-wizard-add-rights-holder'));
+      if (add.evaluate().isEmpty) {
+        await _tapFinder(
+          tester,
+          find.byKey(const Key('course-wizard-advanced')),
+        );
+      }
+      await _tapFinder(tester, add);
+      expect(_texts(tester, 'Rights Holder'), ['Ann', 'Bo']);
+      expect(note(), CourseCredits.rightsHolderDefaultNote);
+      // One more press adds an empty row.
+      await _tapFinder(tester, add);
+      expect(_texts(tester, 'Rights Holder'), ['Ann', 'Bo', '']);
+      await _enter(tester, _field('Rights Holder').at(2), ' Scuola Verde ');
+
+      saved = await saveNow();
+      expect(
+        [for (final holder in saved.rightsHolders) holder.name],
+        ['Ann', 'Bo', 'Scuola Verde'],
+      );
+      expect(saved.courseVersion, isNot(stored.courseVersion));
+    });
+
+    testWidgets('a Course stored without a Rights Holder and with roles in '
+        'another order still keeps none; the note follows the names in the '
+        'rows; Add a Rights Holder lists every Author whatever the license '
+        '(Build 272 Revision 14, second review)', (tester) async {
+      tester.view.physicalSize = const Size(1000, 3200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final stored = (await tester.runAsync(
+        () => _store(
+          _course(
+            license: 'CC BY 4.0',
+            policy: DerivativeWorksPolicy.allowed,
+            authors: const [
+              // Not the order a form writes.
+              CourseAuthor(name: 'Ann', roles: ['Editor', 'Author']),
+              CourseAuthor(name: 'Bo', roles: ['Author']),
+            ],
+          ),
+        ),
+      ))!;
+      expect(stored.rightsHolders, isEmpty);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CourseWizardScreen(
+            course: stored,
+            access: CourseAccessPolicy.evaluate(stored, profileId: _profileId),
+            pause: CourseWizardPause(
+              step: CourseWizardStep.about,
+              savedAtUtc: DateTime.utc(2026, 10, 13),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Tell me more says what is true for this Course.
+      await _tapFinder(
+        tester,
+        find.byKey(const Key('course-wizard-explanation-more')),
+      );
+      expect(
+        find.textContaining('This Course names no Rights Holder yet: see'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('The Author you name is also'), findsNothing);
+      await _tapFinder(tester, find.byKey(const Key('course-wizard-advanced')));
+      String note() => tester
+          .widget<Text>(
+            find.byKey(const Key('course-wizard-rights-holder-note')),
+          )
+          .data!;
+      expect(note(), CourseCredits.rightsHolderMissingNote);
+
+      // While the license shown asks for no Rights Holder, the button still
+      // lists both Authors.
+      await _choose(tester, 'Course content license', 'CC0 1.0');
+      final add = find.byKey(const Key('course-wizard-add-rights-holder'));
+      await _tapFinder(tester, add);
+      expect(_texts(tester, 'Rights Holder'), ['Ann', 'Bo']);
+      expect(note(), CourseCredits.rightsHolderDefaultNote);
+
+      // Rows without a name name nobody, and the note says so again.
+      await _enter(tester, _field('Rights Holder').at(1), '');
+      expect(note(), CourseCredits.rightsHolderDefaultNote);
+      await _enter(tester, _field('Rights Holder').at(0), '  ');
+      expect(note(), CourseCredits.rightsHolderMissingNote);
+
+      // The license as it was: the step holds no change of the credits but
+      // the order of the roles, so the Course still names nobody.
+      await _choose(tester, 'Course content license', 'CC BY 4.0');
+      await _tapFinder(tester, find.byKey(const Key('course-wizard-next')));
+      expect(find.text('Step 4 of 8: Course options'), findsOneWidget);
+      final save = find.byKey(const Key('course-wizard-save-now'));
+      await tester.ensureVisible(save);
+      await tester.tap(save);
+      await tester.pumpUntilFileIoState(
+        () => find.text('Saved.').evaluate().isNotEmpty,
+      );
+      final saved = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(saved.rightsHolders, isEmpty);
+      expect(saved.license, 'CC BY 4.0');
+      expect(saved.authors.first.roles, ['Author', 'Editor']);
     });
   });
 }
@@ -586,6 +775,7 @@ const _profile = LearnerProfile(
 Course _course({
   required String license,
   required DerivativeWorksPolicy policy,
+  List<CourseAuthor>? authors,
 }) => Course(
   courseId: 'credits-272',
   originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
@@ -601,13 +791,16 @@ Course _course({
   title: 'Credits Course',
   ttsLanguage: 'it-IT',
   courseVersion: '1',
-  authors: const [
-    // Stored out of the standard order, with two roles of the author's own.
-    CourseAuthor(
-      name: 'Ann',
-      roles: ['Editor', 'Voice', 'Author', 'Subtitles'],
-    ),
-  ],
+  authors:
+      authors ??
+      const [
+        // Stored out of the standard order, with two roles of the author's
+        // own.
+        CourseAuthor(
+          name: 'Ann',
+          roles: ['Editor', 'Voice', 'Author', 'Subtitles'],
+        ),
+      ],
   license: license,
   derivativeWorksPolicy: policy,
   lessons: [Lesson(lessonId: 'credits-lesson', title: 'Lesson', rounds: [])],

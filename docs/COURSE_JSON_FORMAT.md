@@ -111,6 +111,8 @@ Every custom Course requires one individual `maintainer.profileId`. A Team can n
 
 `rightsHolders[]` may contain one or more `person` and/or `organization` entries. Rights Holder records descriptive legal information and need not name a QQL user. It neither confers QQL access nor determines Original Course Creator, Maintainer, Team membership or attribution. Any user with ordinary edit permission may edit this metadata; a view-only user cannot. The standard license choices remain All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, and Other / Custom license.
 
+A Course that states a license which keeps rights (any license but CC0 1.0) is expected to name at least one Rights Holder (Build 272 Revision 14). The list stays optional in the file: a Course without one is read, stored, studied and imported as before. QQL's New Course and Course Wizard write the Author named in their form when the Rights Holder is left empty; the Course Audit reports the Warning `LICENSE_RIGHTS_HOLDER_MISSING`; Export as Publisher Course refuses a Course without one.
+
 Optional `derivativeWorksPolicy` is `allowed`, `forbidden` or `unspecified`. Missing/null means unspecified, which is omitted by canonical serialization. The Maintainer and every current member of the assigned Team retain course-content Edit and Copy-as-new rights regardless of this value. Only the Maintainer receives maintenance-transfer and Team-assignment controls. For users outside that operational boundary, only `allowed` enables **Fork**. It never grants direct mutation of the source.
 
 ### Fork provenance

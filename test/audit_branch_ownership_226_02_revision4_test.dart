@@ -222,7 +222,8 @@ void main() {
     // READING_ANSWER_IN_TEXT; Build 266: GUIDEBOOK_MODULE_EMPTY,
     // GUIDEBOOK_MODULE_OVERVIEW_LONG and ROUND_FOCUS_MODULE_MISSING; Build
     // 267: GUIDEBOOK_MODULE_SIZE and GUIDEBOOK_MODULE_COUNT.
-    expect(AuditCode.values, hasLength(130));
+    // Build 272 Revision 14: LICENSE_RIGHTS_HOLDER_MISSING.
+    expect(AuditCode.values, hasLength(131));
   });
 
   test(
@@ -357,6 +358,12 @@ Course _course({
   targetLanguage: 'Italian',
   title: 'Branch ownership',
   ttsLanguage: 'it-IT',
+  rightsHolders: const [
+    CourseRightsHolder(
+      type: CourseRightsHolderType.person,
+      name: 'Test Author',
+    ),
+  ],
   lessons: [
     Lesson(
       lessonId: 'reviewed-lesson',

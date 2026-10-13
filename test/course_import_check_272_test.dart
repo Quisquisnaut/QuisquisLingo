@@ -6,6 +6,7 @@ import 'package:quisquislingo_app/models/course_metadata_options.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/audit_code_registry.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
+import 'package:quisquislingo_app/services/course_credits.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_import_check.dart';
 import 'package:quisquislingo_app/services/course_library_operations.dart';
@@ -241,8 +242,8 @@ void main() {
       }
     });
 
-    test('what New Course writes today, All rights reserved and nobody '
-        'named, is one', () {
+    test('what New Course wrote before Build 272 Revision 14, All rights '
+        'reserved and nobody named, is one', () {
       final found = of(
         file(set: {'license': 'All rights reserved', 'rightsHolders': []}),
       );
@@ -270,13 +271,25 @@ void main() {
       expect(found.anomalies, isEmpty);
       expect(
         CourseMetadataOptions.standardLicenses,
-        contains(CourseImportCheck.rightsGivenUp),
+        contains(CourseCredits.rightsGivenUp),
       );
     });
 
-    test('no license and no Rights Holder: one line, about the license', () {
+    test('no license and no Rights Holder: both are said, because the file '
+        'is read as All rights reserved and the Audit warns', () {
+      // Build 272 Revision 14. Revision 13 said one line, about the
+      // license; the Audit then had no warning about the Rights Holder.
       final found = of(file(remove: ['license', 'rightsHolders']));
-      expect(kinds(found), [CourseImportAnomalyKind.noLicense]);
+      expect(kinds(found), [
+        CourseImportAnomalyKind.noLicense,
+        CourseImportAnomalyKind.noRightsHolder,
+      ]);
+      expect(found.anomalies.last.text, 'No Rights Holder is named either.');
+
+      // An empty license stays empty: nothing asks for a Rights Holder.
+      expect(kinds(of(file(set: {'license': ''}, remove: ['rightsHolders']))), [
+        CourseImportAnomalyKind.noLicense,
+      ]);
     });
   });
 
@@ -1049,6 +1062,7 @@ void main() {
       expect(kinds(of(written)), [
         CourseImportAnomalyKind.noAuthor,
         CourseImportAnomalyKind.noLicense,
+        CourseImportAnomalyKind.noRightsHolder,
         CourseImportAnomalyKind.audioModeUnknown,
         CourseImportAnomalyKind.audioLibraryNotAList,
       ]);
@@ -1056,6 +1070,7 @@ void main() {
       expect(kinds(found), [
         CourseImportAnomalyKind.noAuthor,
         CourseImportAnomalyKind.noLicense,
+        CourseImportAnomalyKind.noRightsHolder,
       ]);
       expect(found.reminders, isEmpty);
 

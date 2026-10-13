@@ -774,6 +774,82 @@ void main() {
       expect(find.byKey(const Key('course-wizard-step-done-3')), findsOne);
     });
 
+    testWidgets('step 3: the Author written is the Rights Holder, and stays '
+        'so after a Save now on the step (Build 272 Revision 14)', (
+      tester,
+    ) async {
+      await _openStudio(tester);
+      await tester.tap(find.byKey(const Key('create-course-icon-action')));
+      await tester.pumpAndSettle();
+      await tester.enterText(_field('Course title *'), 'Italian at the bar');
+      await tester.enterText(_field('Source language *'), 'English');
+      await tester.enterText(_field('Target language *'), 'Italian');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('course-wizard-continue')));
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.text('Step 2 of 8: Flag or cover image').evaluate().isNotEmpty,
+      );
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Step 3 of 8: About the Course').evaluate().isNotEmpty,
+      );
+      // The creator's own name is the Author; the Rights Holder rows are
+      // left empty and the note says who is named.
+      expect(_fieldText(tester, 'Name'), 'Wizard Author');
+      await tester.tap(find.byKey(const Key('course-wizard-advanced')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('course-wizard-rights-holder-note')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('course-wizard-rights-holder-0')),
+        findsNothing,
+      );
+
+      // The author signs with another name than the one used in the app.
+      await tester.enterText(_field('Name'), 'Maria Rossi');
+      await tester.pump();
+      final saveNow = find.byKey(const Key('course-wizard-save-now'));
+      await tester.ensureVisible(saveNow);
+      await tester.tap(saveNow);
+      await tester.pumpUntilFileIoState(
+        () => find.text('Saved.').evaluate().isNotEmpty,
+      );
+      expect(find.text('Step 3 of 8: About the Course'), findsOneWidget);
+      var stored = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(stored.courseVersion, '1');
+      expect(stored.authors.single.name, 'Maria Rossi');
+      expect(stored.rightsHolders.single.name, 'Maria Rossi');
+      expect(stored.originalCourseCreator.displayName, 'Wizard Author');
+      expect(
+        find.byKey(const ValueKey('course-wizard-rights-holder-0')),
+        findsNothing,
+      );
+
+      // The save stayed on the step. Next finds nothing to change (the
+      // first draft of this revision stored "Wizard Author" again here, as
+      // a Rights Holder written by hand), so leaving asks nothing.
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Step 4 of 8: Course options').evaluate().isNotEmpty,
+      );
+      await tester.pageBack();
+      final paused = find.byKey(
+        ValueKey('course-wizard-paused-${stored.courseId}'),
+      );
+      await tester.pumpUntilFileIoState(() => paused.evaluate().isNotEmpty);
+      expect(find.byType(CourseWizardScreen), findsNothing);
+      stored = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(stored.courseVersion, '1');
+      expect(stored.rightsHolders.single.name, 'Maria Rossi');
+    });
+
     testWidgets('Lessons, then each GuideBook approved, then the Rounds', (
       tester,
     ) async {

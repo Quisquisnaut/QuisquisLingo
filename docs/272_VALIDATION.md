@@ -810,3 +810,99 @@ the Audit (one helper, three buttons). Both have tests of their own.
 ### Complete suite
 
 `flutter test --no-pub --concurrency=1`: **4,605 passed, 1 skipped, 0 failed** (39 min 52 s), on the revision before the owner's last two decisions (author and license in a Merge; See the Audit). Not run again for them, by the owner's instruction: analyzer clean, the two new files 97 passed six times in a row, 19 related files 220 passed.
+
+## Revision 14 (2.0.72+272014), a license names its Rights Holder
+
+13 October 2026, owner's Windows 10 PC, `build-272`. A behaviour change the
+owner decided, in a revision of its own.
+
+- New tests: `test/rights_holder_272_test.dart` **39 passed** (the
+  rule; New Course; the Course Wizard's credits, also read and stored
+  again and on a Course stored without a Rights Holder, also with roles
+  stored in another order; the Audit warning and its one-line message; the
+  Publisher export's refusal; the import pop-up, also for a file without
+  a license).
+- Three new cases that drive the Course Wizard's screen, each run six
+  times in a row, **passed** each time: in `course_wizard_267_test` (the
+  Author changed, Save now on the step, Next, leave: version 1 and the
+  Author as Rights Holder), and two in `course_credits_272_test` (a
+  Course stored without a Rights Holder keeps none through Next and Save
+  now; Add a Rights Holder shows both Authors, whatever the license; the
+  line under the rows; Tell me more).
+- Older tests updated, never the rule: the made-up Courses of nine test
+  files name a made-up Rights Holder ("Test Author"; "Alice" in the
+  Publisher export test); the pinned Audit counts are 131 rules and 48
+  warnings; the three tests of the Demos expect the new warning (the
+  Demos' files are unchanged); two cases of
+  `course_import_check_272_test` that pinned one line for a file without
+  a license now expect two.
+- How the affected older tests were found: a complete suite run only for
+  that (`4,601 passed, 1 skipped, 29 failed` in 15 files), then those
+  files rerun until green (**278 passed** in 19 files; the three Demo
+  files passed in the run before).
+- Focused files after the first review's corrections (nine: the five
+  below, `course_import_check_dialog_272_test`,
+  `publisher_course_export_262_test`, `course_audit_report_225_test`,
+  `editor_help_translation_test`): 216 of 218 passed; the two failures
+  were the two older import-check cases, then updated (**68 passed**).
+  After the second review's corrections (five: `rights_holder_272_test`,
+  `course_credits_272_test`, `course_import_check_272_test`,
+  `course_wizard_267_test`, `wizard_wording_267_test`): **157 passed**.
+- `flutter analyze --no-pub`: **No issues found**, on the final tree.
+
+### Independent reviews (two)
+
+Two second readers (read-only). The first read the whole revision and was
+asked for every observable consequence, intended or not. The second read
+only the corrections made after the first, and was asked to break them.
+
+**First review: three defects and several smaller points, all acted on.**
+
+- Step 3 of a Wizard Course stored without a Rights Holder looked
+  unsaved as soon as it was shown; Next, Back and Save now gave it a
+  Rights Holder nobody had touched. Now `rightsHoldersOfWizardCredits`
+  keeps none until the credits change.
+- The Audit message carried the whole license text (2,000 characters
+  from the forms, more from a file). Now one line through `oneLineText`.
+- For a file without a license (read as All rights reserved) the import
+  pop-up neither said nor counted the new warning. Now it says "No
+  Rights Holder is named either."
+- Add a Rights Holder with two Authors kept only the first; a person
+  credited in two rows was named twice; the note and the Help said less
+  than the rule.
+- Reported to the owner in the change summary, not changed: what a
+  Warning newly shows (also on Courses the user cannot edit); the default
+  is always a person; only "CC0 1.0" written exactly is exempt; a Wizard
+  Course left before step 3 keeps the app name as Author and Rights
+  Holder.
+
+**Second review, of those corrections: four points, all acted on.**
+
+- A Course stored without a Rights Holder still got one when its
+  authors' roles were stored in another order than the form writes
+  (`authorsAsFormsWrite`).
+- The note under the rows was chosen by "no rows", not by "no row with a
+  name".
+- Add a Rights Holder kept only the first Author while the license shown
+  asked for no Rights Holder.
+- The new sentence of Tell me more was unconditional.
+
+It found the import pop-up's condition, the one-line message and the
+deduplication clean, with the combinations it checked listed in its
+report.
+
+**Not read by a third reader:** the corrections made after the second
+review (one helper, one getter, a `ListenableBuilder`, one conditional
+sentence). Each has a test.
+
+### Not tested here
+
+- The import of a Publisher Course with the pop-up on (open since
+  Revision 13).
+- Fork, Copy as New Course and Course Info Editor on a Course with a
+  license and no Rights Holder: the revision does not touch their code
+  (checked by the first review); no new test pins that they fill nothing.
+
+### Complete suite
+
+`flutter test --no-pub --concurrency=1`: **4,649 passed, 1 skipped, 0 failed** (84 min 46 s; the PC was busy), once, on the final tree, after both reviews' corrections. It also covers Revision 13's last two changes (author and license in a Merge; See the Audit), which had only focused tests.

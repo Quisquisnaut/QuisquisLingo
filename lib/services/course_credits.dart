@@ -18,6 +18,30 @@ abstract final class CourseCredits {
   /// The role of the row a form fills with the Course creator's own name.
   static const creatorRole = 'Author';
 
+  /// The one license of QQL's list that gives the rights up: nobody holds
+  /// them, so it asks for no Rights Holder (owner decision of 13 October
+  /// 2026).
+  static const rightsGivenUp = 'CC0 1.0';
+
+  /// What the forms of a new Course say under the Rights Holder rows.
+  static const rightsHolderDefaultNote =
+      'Left empty, the Rights Holder is the Author named above (everyone '
+      'with the role Author, else the first person named). CC0 1.0 needs '
+      'none: it gives the rights up.';
+
+  /// What the Course Wizard says instead for a Course that names no Rights
+  /// Holder and whose license asks for one: a Course stored before a new
+  /// Course named one, or one whose credits name nobody.
+  static const rightsHolderMissingNote =
+      'This Course names no Rights Holder yet. Add one below, or change the '
+      'Author or the license: the Author is then named (not with CC0 1.0).';
+
+  /// The line under the Wizard's empty Rights Holder rows for [stored].
+  static String rightsHolderNoteFor(Course stored) =>
+      stored.rightsHolders.isEmpty && needsRightsHolder(stored.license)
+      ? rightsHolderMissingNote
+      : rightsHolderDefaultNote;
+
   /// What a form says when Other / Custom license is chosen and no text is
   /// typed.
   static const customLicenseMissing =
@@ -73,6 +97,142 @@ abstract final class CourseCredits {
     final trimmed = name.trim();
     if (trimmed.isEmpty) return null;
     return CourseRightsHolder(type: type, name: trimmed);
+  }
+
+  /// Whether a Course with [license] should name a Rights Holder: it states
+  /// a license, and the license keeps rights. A license with nobody holding
+  /// the rights does not say whom to ask (Build 272 Revision 14).
+  static bool needsRightsHolder(String license) =>
+      license.trim().isNotEmpty && license.trim() != rightsGivenUp;
+
+  /// The Rights Holders a new Course names when its form names none: the
+  /// people the form credits as [creatorRole] (Author), or the first person
+  /// it names when none has that role. They are the AUTHOR of the form, not
+  /// the app's own name of who is creating the Course (owner decision: an
+  /// author may use another name in the app, or create a Course from
+  /// someone else's material). None for a license that needs none.
+  static List<CourseRightsHolder> defaultRightsHolders(
+    List<CourseAuthor> authors,
+    String license,
+  ) {
+    if (!needsRightsHolder(license)) return const [];
+    // A person credited in two rows is one Rights Holder.
+    final names = <String>{
+      for (final author in mainAuthors(authors)) author.name.trim(),
+    };
+    return [
+      for (final name in names)
+        CourseRightsHolder(type: CourseRightsHolderType.person, name: name),
+    ];
+  }
+
+  /// The people [authors] credit as [creatorRole] (Author), or the first
+  /// person named when none has that role.
+  static List<CourseAuthor> mainAuthors(List<CourseAuthor> authors) {
+    final named = [
+      for (final author in authors)
+        if (author.name.trim().isNotEmpty) author,
+    ];
+    final main = [
+      for (final author in named)
+        if (author.roles.contains(creatorRole)) author,
+    ];
+    return main.isNotEmpty ? main : named.take(1).toList();
+  }
+
+  /// The Rights Holders New Course stores: the ones its form [named], else
+  /// [defaultRightsHolders].
+  static List<CourseRightsHolder> rightsHoldersOfNewCourse({
+    required List<CourseRightsHolder> named,
+    required List<CourseAuthor> authors,
+    required String license,
+  }) => named.isNotEmpty ? named : defaultRightsHolders(authors, license);
+
+  /// The Rights Holders [course]'s author wrote by hand: none when the
+  /// Course names exactly the default of its own authors and license. The
+  /// Course Wizard creates the Course before its author has written the
+  /// credits, so its form shows that default as rows left empty, as New
+  /// Course's form does, and what it stores is what
+  /// [rightsHoldersOfWizardCredits] makes of the fields on screen. (A form
+  /// that showed the default as a row stored the earlier Author's name
+  /// again after a save that stayed on the step.)
+  static List<CourseRightsHolder> rightsHoldersByHand(Course course) =>
+      sameRightsHolders(
+        course.rightsHolders,
+        defaultRightsHolders(course.authors, course.license),
+      )
+      ? const []
+      : course.rightsHolders;
+
+  /// The Rights Holders the Course Wizard's credits store in the Course
+  /// [stored]: the ones its rows name ([named]), else the default of the
+  /// form's [authors] and [license], with one exception. A Course stored
+  /// without a Rights Holder (made before a new Course named one, or
+  /// emptied in Course Info Editor) keeps none while the form leaves its
+  /// authors and its license as they are: a stored Course is never changed
+  /// by a step its author only opened (owner decision of 13 October 2026;
+  /// found by the independent review: the step looked unsaved as soon as
+  /// it was shown).
+  static List<CourseRightsHolder> rightsHoldersOfWizardCredits({
+    required List<CourseRightsHolder> named,
+    required Course stored,
+    required List<CourseAuthor> authors,
+    required String license,
+  }) {
+    if (named.isNotEmpty) return named;
+    // The stored authors as a form writes them: a form puts the roles in
+    // its own order, which is no change of the credits (found by the
+    // second review: roles stored in another order named the Author).
+    if (stored.rightsHolders.isEmpty &&
+        stored.license == license &&
+        sameAuthors(authorsAsFormsWrite(stored.authors), authors)) {
+      return const [];
+    }
+    return defaultRightsHolders(authors, license);
+  }
+
+  /// [authors] as a form that shows them stores them again untouched: the
+  /// standard roles first, in their order, then the author's own.
+  static List<CourseAuthor> authorsAsFormsWrite(List<CourseAuthor> authors) => [
+    for (final stored in authors)
+      if (author(
+            name: stored.name,
+            standardRoles: standardRolesIn(stored.roles),
+            customRoles: customRolesIn(stored.roles),
+          )
+          case final written?)
+        written,
+  ];
+
+  /// Whether two lists credit the same people with the same roles in the
+  /// same order.
+  static bool sameAuthors(List<CourseAuthor> a, List<CourseAuthor> b) {
+    if (a.length != b.length) return false;
+    for (var index = 0; index < a.length; index++) {
+      final one = a[index];
+      final other = b[index];
+      if (one.name != other.name || one.roles.length != other.roles.length) {
+        return false;
+      }
+      for (var role = 0; role < one.roles.length; role++) {
+        if (one.roles[role] != other.roles[role]) return false;
+      }
+    }
+    return true;
+  }
+
+  /// Whether two lists name the same Rights Holders in the same order.
+  static bool sameRightsHolders(
+    List<CourseRightsHolder> a,
+    List<CourseRightsHolder> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (var index = 0; index < a.length; index++) {
+      if (a[index].type != b[index].type || a[index].name != b[index].name) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Whether [choice] is the entry of the licence list that opens the

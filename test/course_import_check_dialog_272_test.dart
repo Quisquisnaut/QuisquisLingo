@@ -250,10 +250,15 @@ void main() {
           .issues
           .where((issue) => issue.severity.name == 'warning')
           .toList();
+      // Said in words: the empty Lesson and the missing Rights Holder.
       final others = warnings
-          .where((issue) => issue.code != 'LESSON_ROUNDS_EMPTY')
+          .where(
+            (issue) =>
+                issue.code != 'LESSON_ROUNDS_EMPTY' &&
+                issue.code != 'LICENSE_RIGHTS_HOLDER_MISSING',
+          )
           .length;
-      expect(warnings.length - others, 1);
+      expect(warnings.length - others, 2);
 
       await openImport(tester, incoming: jsonOf(course));
       await quickImport(tester, anomalies);

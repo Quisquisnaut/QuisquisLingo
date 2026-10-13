@@ -19,6 +19,12 @@ Course _course({required bool useGuidebook}) {
     targetLanguage: 'Italian',
     title: 'Guidebook off',
     ttsLanguage: 'it-IT',
+    rightsHolders: const [
+      CourseRightsHolder(
+        type: CourseRightsHolderType.person,
+        name: 'Test Author',
+      ),
+    ],
     useGuidebook: useGuidebook,
     lessons: [lesson],
   );
@@ -60,6 +66,12 @@ void main() {
       targetLanguage: 'Italian',
       title: 'Valid',
       ttsLanguage: 'it-IT',
+      rightsHolders: const [
+        CourseRightsHolder(
+          type: CourseRightsHolderType.person,
+          name: 'Test Author',
+        ),
+      ],
       useGuidebook: useGuidebook,
       lessons: [lesson],
     );

@@ -410,6 +410,32 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         storedPolicy: _working.derivativeWorksPolicy,
       );
 
+  /// The rows Add a Rights Holder opens with while the form shows none:
+  /// one for each Author the form names (everyone with the role Author,
+  /// else the first person named), whatever the license shown at that
+  /// moment, so that adding a Rights Holder never drops another; the
+  /// creator's own name when the form names no author.
+  List<CourseRightsHolderRow> _firstHolderRows() {
+    final names = <String>{
+      for (final author in CourseCredits.mainAuthors([
+        for (final row in _creditRows)
+          if (row.value case final author?) author,
+      ]))
+        author.name.trim(),
+    };
+    return [
+      for (final name in names.isEmpty ? {_authorName} : names)
+        CourseRightsHolderRow(name: name),
+    ];
+  }
+
+  /// The line under the Rights Holder rows. While no row has a name, a
+  /// Course stored without a Rights Holder is told so: its empty rows do
+  /// not name the Author until its credits change.
+  String get _holderNote => _holderRows.any((row) => row.value != null)
+      ? CourseCredits.rightsHolderDefaultNote
+      : CourseCredits.rightsHolderNoteFor(_working);
+
   /// Throws a [FormatException] for an address that cannot be stored.
   CourseWizardCredits get _creditsValue => CourseWizardCredits(
     authors: [
@@ -1876,7 +1902,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     ),
     CourseWizardStep.about => (
       short: 'Tell learners what the Course is about and who made it.',
-      more: const [
+      more: [
         'Description: two or three sentences, for example “Order an '
             'espresso and a pastry in an Italian bar and ask for the bill.” '
             'Authors: the '
@@ -1887,6 +1913,13 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             'Course), Rights Holders, Buy a Coffee and the publisher\'s '
             'contact. They can wait. Until you choose a license, the Course is '
             '“All rights reserved” and nobody may Fork it.',
+        // Build 272 Revision 14: the Rights Holder rows are under Advanced.
+        CourseCredits.rightsHolderNoteFor(_working) ==
+                CourseCredits.rightsHolderMissingNote
+            ? 'This Course names no Rights Holder yet: see Rights Holders '
+                  'under Advanced.'
+            : 'The Author you name is also the Course’s Rights Holder, '
+                  'unless you name another under Advanced.',
       ],
     ),
     CourseWizardStep.options => (
@@ -2336,6 +2369,15 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       'Rights Holders',
       tooltip: 'Who owns the rights: a person or an organization.',
     ),
+    // The note follows the names typed in the rows.
+    ListenableBuilder(
+      listenable: Listenable.merge([for (final row in _holderRows) row.name]),
+      builder: (context, _) => Text(
+        _holderNote,
+        key: const Key('course-wizard-rights-holder-note'),
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    ),
     for (final (index, row) in _holderRows.indexed)
       Card(
         key: ValueKey('course-wizard-rights-holder-$index'),
@@ -2403,9 +2445,14 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       child: TextButton.icon(
         key: const Key('course-wizard-add-rights-holder'),
         onPressed: () => setState(() {
-          _holderRows.add(
-            CourseRightsHolderRow(name: _holderRows.isEmpty ? _authorName : ''),
-          );
+          // Build 272 Revision 14 (owner decision): the first row starts
+          // from the Author named in the form, not from the name its
+          // creator uses in the app.
+          if (_holderRows.isEmpty) {
+            _holderRows.addAll(_firstHolderRows());
+          } else {
+            _holderRows.add(CourseRightsHolderRow());
+          }
           _generation++;
         }),
         icon: const Icon(Icons.add),

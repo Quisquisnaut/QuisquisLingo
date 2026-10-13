@@ -384,6 +384,15 @@ class _NewCourseDialogState extends State<NewCourseDialog> {
                   'Rights Holder records rights ownership information. It does not control QQL permissions.',
                 ),
               ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  CourseCredits.rightsHolderDefaultNote,
+                  key: const Key('new-course-rights-holder-note'),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
               const SizedBox(height: 8),
               for (
                 var rightsIndex = 0;

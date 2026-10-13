@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:characters/characters.dart';
-
 import '../models/course_models.dart';
+import '../models/one_line_text.dart';
 import 'audit_code_registry.dart';
 import 'course_audit_service.dart';
+import 'course_credits.dart';
 import 'lesson_presentation_service.dart';
 
 /// What a Course file is about to be used for: the check and its pop-up
@@ -259,16 +259,13 @@ class CourseImportCheck {
       'Accepted a matching ZIP folder. Course package files normally belong '
       'at the ZIP root.';
 
-  /// The one license of QQL's list that gives the rights up: nobody holds
-  /// them, so no Rights Holder is asked for (owner decision).
-  static const rightsGivenUp = 'CC0 1.0';
-
   static const _audioModes = {'tts', 'recorded', 'hybrid'};
 
   /// The Audit warnings the pop-up says in its own words.
   static final _saidInWords = {
     AuditCode.courseLessonsEmpty.code,
     AuditCode.lessonRoundsEmpty.code,
+    AuditCode.licenseRightsHolderMissing.code,
   };
 
   /// The one wording for exercises this version cannot play.
@@ -281,12 +278,7 @@ class CourseImportCheck {
   /// characters. A file may hold a megabyte in any of its texts. The cut
   /// never falls inside a character (half an emoji would make Flutter draw
   /// the whole line as a replacement mark).
-  static String shown(String value, [int max = 80]) {
-    final line = value.trim().replaceAll(RegExp(r'\s+'), ' ');
-    if (line.length <= max) return line;
-    final characters = line.characters;
-    return characters.length <= max ? line : '${characters.take(max)}…';
-  }
+  static String shown(String value, [int max = 80]) => oneLineText(value, max);
 
   /// The Course file as written, or null when it is not a JSON object (the
   /// reader has refused such a file before this is asked).
@@ -412,7 +404,8 @@ class CourseImportCheck {
     final writtenLicense = fileJson == null
         ? course.license
         : fileJson['license'];
-    if (writtenLicense is! String || writtenLicense.trim().isEmpty) {
+    final stated = writtenLicense is String && writtenLicense.trim().isNotEmpty;
+    if (!stated) {
       add(
         CourseImportAnomalyKind.noLicense,
         course.license.isEmpty
@@ -420,12 +413,19 @@ class CourseImportCheck {
             : 'The file states no license: QuisquisLingo reads it as '
                   '“${shown(course.license)}”.',
       );
-    } else if (course.rightsHolders.isEmpty &&
-        course.license != rightsGivenUp) {
+    }
+    // The Course Audit's condition, so that its warning is said here
+    // whenever [_saidInWords] leaves it out of the count: also for a file
+    // without a license, which is read as All rights reserved (Build 272
+    // Revision 14, found by the independent review).
+    if (course.rightsHolders.isEmpty &&
+        CourseCredits.needsRightsHolder(course.license)) {
       add(
         CourseImportAnomalyKind.noRightsHolder,
-        'A license is stated (${shown(course.license)}) but no Rights Holder '
-        'is named.',
+        stated
+            ? 'A license is stated (${shown(course.license)}) but no Rights '
+                  'Holder is named.'
+            : 'No Rights Holder is named either.',
       );
     }
   }
