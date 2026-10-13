@@ -1,3 +1,22 @@
+# 2.0.72 (Build 272, Revision 11) - modularization: the Merge page's choices - 2026-10-13
+
+Nothing an author sees changes in this revision.
+
+- **What an author chooses on the Course Merge page has an owner**:
+  `CourseMergeSelection` (`lib/services/course_merge_selection.dart`): where
+  each Lesson comes from (the left Course, the right one, neither), Select
+  all Left / Right, whether there is anything to merge, which settings the
+  two Courses differ on, the side chosen for each, and the settings of the
+  merged Course. It was twelve fields and three functions of the page.
+- The page keeps the loading of the second Course, its package, the
+  dialogs, the messages and the layout.
+- **Tests**: `test/course_merge_selection_272_test.dart`: 10 cases written
+  on the page before the change and unchanged by it, 5 on the owner.
+- The Course Studio file goes from 2,764 to 2,622 lines.
+
+Course files, scoring, progression and learner data are unchanged. The Beta
+expiry stays 2026-11-12 23:59:59 local time (same release day).
+
 # 2.0.72 (Build 272, Revision 10) - reading a Course file: one wording, one rule for a list that may be left out - 2026-10-13
 
 Owner decision of 13 October 2026 on the two differences Revision 9 found

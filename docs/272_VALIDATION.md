@@ -630,3 +630,56 @@ own files, which never have one.
 ### Complete suite
 
 13 October 2026, 07:11–07:49, `flutter test --no-pub --concurrency=1` on the final tree (after the review's fix; 12 affected files had been run again first, 359 passed): **4,490 passed, 1 skipped, 0 failed** (37 min 55 s). Revision 9's suite had 4,486; the 4 more are this revision's new cases.
+
+## Revision 11 (2.0.72+272011), the Merge page's choices
+
+13 October 2026, owner's Windows 10 PC, `build-272`.
+
+- **Before the change**: `test/course_merge_selection_272_test.dart`, 10
+  cases on the Course Merge page as it was (no side offered for equal
+  settings; the ten sides offered in order; what is handed to the merge
+  with every setting Left, with four Right, with all Right; the rows and
+  the cell that cannot be ticked; Select all Right, Select all Left after
+  it, Select all Left with the shorter Course on the left; a Lesson from
+  one Course or from neither): **10 passed, six runs of six**. Two of my
+  first cases opened the page twice in one test and were split; the app
+  was right.
+- **After the change**: the same 10 unchanged and 5 on the owner: **15
+  passed, six runs of six**.
+- The change to the page was made by `apply_r11.py` (exact texts, each
+  asserted to match once; it asserts that no old name is left); the diff
+  read whole: 34 lines added, 177 removed.
+- Focused files (8): the one above,
+  `course_merge_submission_246_test`, `course_merge_media_workflow_246_test`,
+  `course_merge_service_test`, `course_manager_workflow_249_test`,
+  `course_package_import_ui_247_test`, `courses_screen_250_test`,
+  `course_library_operations_249_test`: **104 passed**.
+- `flutter analyze --no-pub`: **No issues found**.
+
+### Independent review
+
+A second reader (read only, no access to this session's reasoning) compared
+the page and the owner with the commit before them: **no behaviour
+difference found**.
+
+- The ten settings: the same order, the same labels, the same conditions
+  for offering a side, and every field of the merged Course's settings
+  taken from the same side as before (the numbering with its custom label,
+  the flag with its three fields).
+- The choices: the same rows and starting values, the same Select all, the
+  same tick and untick, DO MERGE! greyed in the same states (also with no
+  rows), and the list handed to the merge still a copy of its own.
+- The page: the same branch in every state; the dropdowns' keys the same
+  texts; each change of the selection once, inside `setState`; loading that
+  fails leaves the selection as it was, as the old fields were left.
+- No other code used the removed members; no test reads this page's source.
+
+Two differences in theory, neither reachable in the app: the left Course is
+taken once when the second is loaded, where the old code read it at each
+use (the one caller always passes the same Course); and a tap delivered
+between two overlapping loads would now write into the selection being
+replaced, where it wrote into the new list.
+
+### Complete suite
+
+13 October 2026, 08:06–08:48, `flutter test --no-pub --concurrency=1` on the final tree: **4,505 passed, 1 skipped, 0 failed** (41 min 7 s). Revision 10's suite had 4,490; the 15 more are this revision's test file.

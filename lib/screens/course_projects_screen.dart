@@ -18,6 +18,7 @@ import '../services/course_library_operations.dart';
 import '../services/course_library_categories.dart';
 import '../services/course_library_presentation.dart';
 import '../services/course_media_store.dart';
+import '../services/course_merge_selection.dart';
 import '../services/course_merge_service.dart';
 import '../services/course_package_import.dart';
 import '../services/course_package_service.dart';
@@ -227,19 +228,11 @@ class CourseMergeScreen extends StatefulWidget {
 class _CourseMergeScreenState extends State<CourseMergeScreen> {
   late final CourseMergeService _merge =
       widget.mergeService ?? CourseMergeService();
-  Course? _rightCourse;
+
+  /// What the author has chosen for the two Courses; null until the second
+  /// Course is loaded (Build 272 Revision 11).
+  CourseMergeSelection? _selection;
   CoursePackage? _rightPackage;
-  List<LessonMergeChoice> _choices = const [];
-  CourseMergeSide _createDuelsSide = CourseMergeSide.left;
-  CourseMergeSide _useGuidebookSide = CourseMergeSide.left;
-  CourseMergeSide _lessonNumberingSide = CourseMergeSide.left;
-  CourseMergeSide _sectionNamesSide = CourseMergeSide.left;
-  CourseMergeSide _titleSide = CourseMergeSide.left;
-  CourseMergeSide _buyACoffeeSide = CourseMergeSide.left;
-  CourseMergeSide _descriptionSide = CourseMergeSide.left;
-  CourseMergeSide _flagSide = CourseMergeSide.left;
-  CourseMergeSide _startLevelSide = CourseMergeSide.left;
-  CourseMergeSide _targetLevelSide = CourseMergeSide.left;
   bool _showInternalIds = false;
   bool _loading = false;
   bool _submitting = false;
@@ -291,25 +284,8 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
         unawaited(previous.discard());
       }
       setState(() {
-        _rightCourse = right;
+        _selection = CourseMergeSelection(widget.leftCourse, right);
         _rightPackage = loaded;
-        _choices = List.filled(
-          [
-            widget.leftCourse.lessons.length,
-            right.lessons.length,
-          ].reduce((a, b) => a > b ? a : b),
-          LessonMergeChoice.exclude,
-        );
-        _createDuelsSide = CourseMergeSide.left;
-        _useGuidebookSide = CourseMergeSide.left;
-        _lessonNumberingSide = CourseMergeSide.left;
-        _sectionNamesSide = CourseMergeSide.left;
-        _titleSide = CourseMergeSide.left;
-        _buyACoffeeSide = CourseMergeSide.left;
-        _descriptionSide = CourseMergeSide.left;
-        _flagSide = CourseMergeSide.left;
-        _startLevelSide = CourseMergeSide.left;
-        _targetLevelSide = CourseMergeSide.left;
       });
       if (loaded.hadMatchingFolderWrapper) {
         _showMatchingZipFolderWarning(context);
@@ -336,16 +312,9 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   }
 
   void _selectAll(LessonMergeChoice choice) {
-    final right = _rightCourse;
-    if (right == null) return;
-    setState(() {
-      _choices = List.generate(_choices.length, (index) {
-        final available = choice == LessonMergeChoice.left
-            ? index < widget.leftCourse.lessons.length
-            : index < right.lessons.length;
-        return available ? choice : LessonMergeChoice.exclude;
-      });
-    });
+    final selection = _selection;
+    if (selection == null) return;
+    setState(() => selection.selectAll(choice));
   }
 
   void _showHelp() {
@@ -391,7 +360,8 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final right = _rightCourse;
+    final selection = _selection;
+    final right = selection?.right;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Course Merge'),
@@ -420,7 +390,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (right == null) ...[
+          if (selection == null || right == null) ...[
             FilledButton.icon(
               key: const Key('merge-course-json-primary'),
               onPressed: _loading || _submitting ? null : _loadMergeCourse,
@@ -484,7 +454,13 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             const Text(
               'Choose the left or right source for each Lesson. An unchecked row is omitted; a Lesson cannot come from both Courses.',
             ),
-            ..._optionChoices(right),
+            for (final setting in selection.differing)
+              _sideChoice(
+                label: setting.label,
+                value: selection.sideOf(setting),
+                onChanged: (side) =>
+                    setState(() => selection.setSide(setting, side)),
+              ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -504,21 +480,18 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _lessonChoiceTable(right),
+            _lessonChoiceTable(selection),
             const SizedBox(height: 16),
             FilledButton(
-              onPressed:
-                  _loading ||
-                      _submitting ||
-                      _choices.every(
-                        (choice) => choice == LessonMergeChoice.exclude,
-                      )
+              onPressed: _loading || _submitting || !selection.hasSelection
                   ? null
                   : () async {
                       if (_submitting) return;
                       final package = _rightPackage!;
-                      final choices = List<LessonMergeChoice>.of(_choices);
-                      final options = _options(right);
+                      final choices = List<LessonMergeChoice>.of(
+                        selection.choices,
+                      );
+                      final options = selection.options;
                       setState(() => _submitting = true);
                       try {
                         await package.withInstalledMedia(
@@ -550,119 +523,6 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
     );
   }
 
-  CourseMergeOptions _options(Course right) {
-    final createDuels = _createDuelsSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    final useGuidebook = _useGuidebookSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    final numbering = _lessonNumberingSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    final sections = _sectionNamesSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    final title = _titleSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    final buyACoffee = _buyACoffeeSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    final description = _descriptionSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    final flag = _flagSide == CourseMergeSide.left ? widget.leftCourse : right;
-    final startLevel = _startLevelSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    final targetLevel = _targetLevelSide == CourseMergeSide.left
-        ? widget.leftCourse
-        : right;
-    return CourseMergeOptions(
-      title: title.title,
-      createDuels: createDuels.createDuels,
-      useGuidebook: useGuidebook.useGuidebook,
-      lessonNumberingMode: numbering.lessonNumberingMode,
-      customLessonLabel: numbering.customLessonLabel,
-      sectionNames: sections.sectionNames,
-      buyACoffeeUrl: buyACoffee.buyACoffeeUrl,
-      courseDescription: description.courseDescription,
-      startLevel: startLevel.startLevel,
-      targetLevel: targetLevel.targetLevel,
-      flagCode: flag.flagCode,
-      worldFlagId: flag.worldFlagId,
-      flagImageBase64: flag.flagImageBase64,
-    );
-  }
-
-  List<Widget> _optionChoices(Course right) => [
-    if (widget.leftCourse.title != right.title)
-      _sideChoice(
-        label: 'Course title',
-        value: _titleSide,
-        onChanged: (side) => setState(() => _titleSide = side),
-      ),
-    if (widget.leftCourse.createDuels != right.createDuels)
-      _sideChoice(
-        label: 'Create Duels',
-        value: _createDuelsSide,
-        onChanged: (side) => setState(() => _createDuelsSide = side),
-      ),
-    if (widget.leftCourse.useGuidebook != right.useGuidebook)
-      _sideChoice(
-        label: 'Use GuideBooks',
-        value: _useGuidebookSide,
-        onChanged: (side) => setState(() => _useGuidebookSide = side),
-      ),
-    if (widget.leftCourse.lessonNumberingMode != right.lessonNumberingMode ||
-        widget.leftCourse.customLessonLabel != right.customLessonLabel)
-      _sideChoice(
-        label: 'Lesson label and numbering',
-        value: _lessonNumberingSide,
-        onChanged: (side) => setState(() => _lessonNumberingSide = side),
-      ),
-    if (widget.leftCourse.sectionNames.join('\u0000') !=
-        right.sectionNames.join('\u0000'))
-      _sideChoice(
-        label: 'Section names',
-        value: _sectionNamesSide,
-        onChanged: (side) => setState(() => _sectionNamesSide = side),
-      ),
-    if (widget.leftCourse.buyACoffeeUrl != right.buyACoffeeUrl)
-      _sideChoice(
-        label: 'Buy a Coffee',
-        value: _buyACoffeeSide,
-        onChanged: (side) => setState(() => _buyACoffeeSide = side),
-      ),
-    if (widget.leftCourse.courseDescription != right.courseDescription)
-      _sideChoice(
-        label: 'Course description',
-        value: _descriptionSide,
-        onChanged: (side) => setState(() => _descriptionSide = side),
-      ),
-    if (widget.leftCourse.flagCode != right.flagCode ||
-        widget.leftCourse.worldFlagId != right.worldFlagId ||
-        widget.leftCourse.flagImageBase64 != right.flagImageBase64)
-      _sideChoice(
-        label: 'Course flag',
-        value: _flagSide,
-        onChanged: (side) => setState(() => _flagSide = side),
-      ),
-    if (widget.leftCourse.startLevel != right.startLevel)
-      _sideChoice(
-        label: 'Start level',
-        value: _startLevelSide,
-        onChanged: (side) => setState(() => _startLevelSide = side),
-      ),
-    if (widget.leftCourse.targetLevel != right.targetLevel)
-      _sideChoice(
-        label: 'Target level',
-        value: _targetLevelSide,
-        onChanged: (side) => setState(() => _targetLevelSide = side),
-      ),
-  ];
-
   Widget _sideChoice({
     required String label,
     required CourseMergeSide value,
@@ -689,7 +549,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
     ),
   );
 
-  Widget _lessonChoiceTable(Course right) => Table(
+  Widget _lessonChoiceTable(CourseMergeSelection selection) => Table(
     defaultVerticalAlignment: TableCellVerticalAlignment.middle,
     columnWidths: const {
       0: FixedColumnWidth(30),
@@ -707,7 +567,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
           Padding(padding: EdgeInsets.all(2), child: Text('Right')),
         ],
       ),
-      for (var index = 0; index < _choices.length; index++)
+      for (var index = 0; index < selection.rowCount; index++)
         TableRow(
           children: [
             Padding(
@@ -715,18 +575,16 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
               child: Text('${index + 1}'),
             ),
             _lessonChoiceCell(
+              selection: selection,
               index: index,
               choice: LessonMergeChoice.left,
-              lesson: index < widget.leftCourse.lessons.length
-                  ? widget.leftCourse.lessons[index]
-                  : null,
+              lesson: selection.lessonAt(LessonMergeChoice.left, index),
             ),
             _lessonChoiceCell(
+              selection: selection,
               index: index,
               choice: LessonMergeChoice.right,
-              lesson: index < right.lessons.length
-                  ? right.lessons[index]
-                  : null,
+              lesson: selection.lessonAt(LessonMergeChoice.right, index),
             ),
           ],
         ),
@@ -734,6 +592,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
   );
 
   Widget _lessonChoiceCell({
+    required CourseMergeSelection selection,
     required int index,
     required LessonMergeChoice choice,
     required Lesson? lesson,
@@ -745,13 +604,11 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
         SizedBox(
           height: 30,
           child: Checkbox(
-            value: _choices[index] == choice,
+            value: selection.choiceAt(index) == choice,
             onChanged: lesson == null || _submitting
                 ? null
                 : (selected) => setState(
-                    () => _choices[index] = selected!
-                        ? choice
-                        : LessonMergeChoice.exclude,
+                    () => selection.choose(index, choice, selected: selected!),
                   ),
           ),
         ),

@@ -37,8 +37,9 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
 | 7 | `TimedRoundClock` (done, `7d79280c`) |
 | 8 | Media-reference owner (done, `6f565380`) |
 | 9 | Shared JSON readers for the models (`JsonRead`), both rules of the differing copies kept (done, `a35c34f3`) |
-| 10 | The two differences between the readers fixed (owner decision of 13 October 2026) |
-| 11 | Merge selection owner; Merge, Import and Export pages leave Course Studio |
+| 10 | The two differences between the readers fixed (owner decision of 13 October 2026) (done, `68906c87`) |
+| 11 | Merge selection owner (`CourseMergeSelection`) |
+| 12 | Free moves: the Merge, Import and Export pages leave Course Studio; then the other free moves, two or three per suite |
 | then | The other free moves, two or three per complete suite |
 | Build 273 | The plan's medium-risk items: answer grading, Story cast, the publish gate, the profile service split, Audit rule sets, the earlier exercise shapes, the Round screen's state owners, the Course save sequence |
 
@@ -455,16 +456,49 @@ Gotchas:
   cases, then deleted) is a quick way to record the "before" of a
   behaviour change.
 
-## Next: Revision 11, Merge selection owner; the Merge, Import and Export pages leave Course Studio (not started)
+## Revision 11 (2.0.72+272011), the Merge page's choices
 
-Plan (`docs/272_MODULARIZATION_PLAN.md`): `CourseMergeScreen` keeps pure
-selection logic in the widget; `CourseImportScreen` and
-`CourseExportScreen` are stateless. First the characterization of the
-selection rules on the present screen (`course_merge_*` tests exist),
-then the owner, then the three pages to files of their own (free moves:
-they may share a suite with the owner only if the owner's suite has
-run; the owner gets its own). Scratch notes go in `C:\Users\Domenico\AppData\Local\Temp\claude\C--QQL-QuisquisLingo\2f6486fd-094d-4fc7-b18f-9a9c8e7b76ba\scratchpad`,
-`r11/`.
+State (13 October 2026, 08:48): done. Analyzer clean; 8 focused files 104 passed; the independent review found no behaviour difference; complete suite 4,505 passed, 1 skipped. Committed (hash in `git log`) and pushed. Revision 12 (the three pages out of Course Studio) is prepared in the scratchpad, `r12/apply_r12.py`.
+
+What was done (details in `docs/272_CHANGE_SUMMARY.md`):
+
+- `lib/services/course_merge_selection.dart`: `CourseMergeSelection`
+  and `enum CourseMergeSetting`.
+- `_CourseMergeScreenState` holds `_selection` instead of twelve fields
+  (`r11/apply_r11.py`); `_options` and `_optionChoices` are gone.
+- Tests: `course_merge_selection_272_test` (10 on the page, written
+  before the change; 5 on the owner).
+
+Gotchas:
+
+- A widget test that pumps the same page twice reuses its State: one
+  opening of the page for each test.
+- After a merge the page's package is discarded: one DO MERGE! for each
+  test.
+- Python given through a Bash heredoc breaks on `\'` and `\n`: write
+  the script with the Write tool, or edit the file with Edit. This
+  cost three failed attempts in Revisions 10 and 11.
+
+## Next: Revision 12, free moves (not started)
+
+`CourseImportScreen` (60–129), `CourseExportScreen` (130–205) and
+`CourseMergeScreen` of `lib/screens/course_projects_screen.dart` to
+files of their own, re-exported from it; they use the file-level
+helpers `_folder`, `_file`, `_showMatchingZipFolderWarning` (check who
+else uses them: a shared helper goes to a file both can import). Then,
+from the plan: the canonical editor's four row widgets
+(`primitive_editor_screen.dart`), Home's `LearnerRoundPath` with its
+painters and the Course preview. Pure moves: compare each moved run
+line by line (`r5/diff_region.py`), prune imports
+(`prune_imports.py`), one independent review and one complete suite
+for two or three of them.
+
+**Open question asked of the owner on 13 October 2026 (07:15), no
+answer yet**: seven lists of the Course root keep checks of their own
+(`sectionNames`, `keywords`, `authors`, `rightsHolders`,
+`lessonIconAssets`, `audioLibrary`, `defaultTimedLimitsSeconds`); bring
+them under the list rule of Revision 10, as a revision of its own?
+Recommended yes.
 
 Tests that read screen source as text (they need care when code moves, in
 Revisions 1 and 2): `course_editor_layout_regression_test`,

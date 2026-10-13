@@ -680,3 +680,43 @@ you decided on; I am listing them so that you can decide.
 
 Course files written by QQL, scoring, progression and learner data are
 unchanged. No new key or folder.
+
+## Revision 11 (2.0.72+272011): the Merge page's choices
+
+Nothing an author sees changes.
+
+### What it is
+
+On the Course Merge page an author decides, for two versions of a Course,
+where each Lesson comes from and, for each setting the two differ on (title,
+Create Duels, Use GuideBooks, Lesson numbering, Section names, Buy a Coffee,
+description, flag, start and target level), which Course gives it.
+
+Those rules lived inside the page: twelve fields and three functions among
+the buttons and the layout. They now have an owner, `CourseMergeSelection`,
+that can be tested without drawing the page:
+
+- a Lesson comes from the left Course, from the right one or from neither,
+  never from both;
+- Select all takes a side wherever that Course has a Lesson;
+- there is something to merge once one Lesson is chosen;
+- a side is offered only for the settings that differ, always in the same
+  order;
+- every setting starts on the left Course.
+
+The page keeps what is a page's: loading the second Course, the dialogs,
+the messages, the layout.
+
+### How it was checked
+
+- 10 tests written first, on the page as it was: which settings are
+  offered, what is handed to the merge with every setting Left, with some
+  Right and with all Right, the rows and the ticks, Select all with Courses
+  of different length. They pass unchanged afterwards (six runs of six).
+- 5 tests on the owner.
+- An independent review before the complete suite.
+
+The Course Studio file goes from 2,764 to 2,622 lines.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.
