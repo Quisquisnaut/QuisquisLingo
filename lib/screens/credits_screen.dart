@@ -17,23 +17,7 @@ class CreditsScreen extends StatelessWidget {
           const _CreditCard(
             title: 'QuisquisLingo',
             text:
-                'Project and code design: Quisquisnaut (Quisquis on Discord)\nCode generation and software development assistance: ChatGPT\n\nThe bundled courses titled QQL Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
-          ),
-          const SizedBox(height: 22),
-          Text(
-            'Course authors',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 10),
-          const _CreditCard(
-            title: 'Italian Exercise Lab (English → Italian)',
-            text: 'AI-generated model and exercise workflow test content.',
-          ),
-          const SizedBox(height: 8),
-          const _CreditCard(
-            title: 'Edge Case course',
-            text:
-                'Temporary AI-generated sample content; human course authors are still to be added.',
+                'Project and code design: Quisquisnaut (Quisquis on Discord)\nCode generation and software development assistance: ChatGPT\n\nQuisquisLingo currently comes with no bundled courses. The project’s test courses (QQL Test in their titles), which can be imported to try the app, and the examples that Fill with an example puts into an exercise form are AI-generated and unreviewed: they are not reliable learning material. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.',
           ),
           const SizedBox(height: 22),
           ListTile(

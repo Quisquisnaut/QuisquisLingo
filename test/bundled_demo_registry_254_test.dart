@@ -20,7 +20,7 @@ void main() {
       // automatic one: Edge Case said "GB" until Revision 7.
       final courses = CourseService();
       final worldFlags = WorldFlagRepository();
-      for (final code in CourseService.courseAssets.keys) {
+      for (final code in CourseService.bundledAssets.keys) {
         final course = await courses.loadBundledCourse(code);
         final flag = CourseFlagService.resolve(course, fallbackCode: code);
         switch (flag.kind) {
@@ -48,10 +48,15 @@ void main() {
   );
 
   test('Build 254 replaces the three requested bundled demos', () {
+    // Build 272 Revision 17 removed the last one, the Exercise Laboratory:
+    // its file stays in the app as the source of Fill with an example, and
+    // the test configuration registers it as the bundled test Course IT.
+    expect(CourseService.courseAssets, isEmpty);
     expect(
-      CourseService.courseAssets['IT'],
+      CourseService.laboratoryAsset,
       'assets/courses/exercise_laboratory_en_it.json',
     );
+    expect(CourseService.bundledAssets, {'IT': CourseService.laboratoryAsset});
     expect(CourseService.hasCourse('FI'), isFalse);
     expect(CourseService.hasCourse('NL'), isFalse);
     // Build 262 Revision 0 removed the two Piedmontese demos.

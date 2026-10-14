@@ -2,11 +2,12 @@
 
 This document and the JSON are generated together by `tools/generate_exercise_laboratory_254.py`. Run its `--check` mode to detect drift. The current repository model, editor and learner are the source of truth; the Course does not add a new primitive or engine feature.
 
-- Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
+- Course: **QQL Test: En-It Exercise Lab** (the Exercise Laboratory), `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
+- Since Build 272 Revision 17 it is no Course of the app: `assets/courses/exercise_laboratory_en_it.json` stays in the app only as the source of Fill with an example (and as a bundled test Course for the tests); people import `demo_courses/exercise_laboratory_en_it.json`, the same Course as a custom Course, `course_5df44010-fd64-4c81-a2c8-deb49207f980`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
-- Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
+- Model 12, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
 - Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 124 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
-- Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
+- Course rights explicitly allow Fork, so the imported Course can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
 
@@ -207,7 +208,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 - Input uses the editor's normal case/punctuation/whitespace normalization with accents preserved. Answer expressions have a hard 128-result limit. The examples demonstrate literal lines, optional text, independent and linked alternatives, scoped/whole reorder, and combinations. Invalid syntax, zero-result/overflow expansions, arbitrary normalization settings and unexposed input modes are not learner exercises.
 - Type the missing word expects a complete word whose first Unicode grapheme is shared by all accepted alternatives. It is not an Input-style character-recognition direction. Listen for missing words uses distinct complete transcript words in displayed order.
 - Build the translation records literal complete answers and distinct block occurrences; expressions, typo tolerance and similarity-ranked acceptance do not apply. Word order and Image-prompt ordering each expose one correct authored order. Image-prompt ordering has no distractors.
-- Match the pairs supports a variable count; the three named specialised Match presets require exactly three pairs. Images as matching operands and arbitrary many-to-many relationships are not exposed by the current authoring/learner paths.
+- Match the words supports a variable count; for Match by meaning and Listen and match the Course Audit recommends 2 to 5 pairs (a note since Build 272 Revision 16; the examples here have three). Images as matching operands and arbitrary many-to-many relationships are not exposed by the current authoring/learner paths.
 - Assign (Build 256 Revision 7) plays groups (categories in columns) and slots by tapping an item and then its destination, graded as exact assignments; the Laboratory authors them with Sort into groups and Fill the slots (Revision 7 follow-up, 29 September 2026). A group takes any number of items; a slot takes one; a reusable item stays in the bank; a word that belongs nowhere stays in the bank. Gaps in a text play too but have no preset and no Laboratory example (the owner prefers the inline gap presets); picture regions, grid cells, drag placement and the other Assign evaluation modes stay readable but not executable.
 - Flashcard coverage includes all six meaningful combinations of optional audio, usage, and usage translation (a translation requires usage). The learner buttons currently read Got it / Review again; JSON completion actions remain understood / review_later. Cards are non-evaluable and earn no correct-answer base XP. Optional omissions produce existing informational/warning Audit findings, not invalid content.
 - Flashcard image content is excluded: the current Presentation↔Exercise projection does not preserve images on an authoring round trip. Rich textual explanation/example/vocabulary/text/dialogue kinds share the presentation path but are not additional current Exercise picker presets. GuideBook explanations and Round introductions demonstrate explanatory text through their normal authoring surfaces.

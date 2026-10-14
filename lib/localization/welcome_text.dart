@@ -21,9 +21,10 @@ const _english = <String, String>{
       'account, no ads, no cloud. Everything you learn stays on this device.',
   'step2.title': 'Courses made by others',
   'step2.body':
-      'Friends, teachers and publishers can make Courses too, and share them '
-      'as a file. Tap the flag at the top, choose Import Course, and start '
-      'learning from what they made.',
+      'Courses are made by people: friends, teachers and publishers write '
+      'them and share them as a file. Choose Import a Course on the start '
+      'page, or later tap the flag at the top and choose Import Course, and '
+      'start learning from what they made.',
   'step3.title': 'Lessons, Rounds, Laurels',
   'step3.body':
       'A Lesson is a path of short Rounds. Finish a Round without mistakes to '
@@ -52,9 +53,10 @@ const _italian = <String, String>{
       'questo dispositivo.',
   'step2.title': 'Corsi fatti da altri',
   'step2.body':
-      'Anche amici, insegnanti ed editori possono creare corsi e condividerli '
-      'come file. Tocca la bandiera in alto, scegli Import Course e comincia '
-      'a imparare da quello che hanno preparato.',
+      'I corsi li fanno le persone: amici, insegnanti ed editori li scrivono '
+      'e li condividono come file. Scegli Import a Course nella pagina '
+      'iniziale, oppure più avanti tocca la bandiera in alto e scegli Import '
+      'Course, e comincia a imparare da quello che hanno preparato.',
   'step3.title': 'Lesson, Round, Laurel',
   'step3.body':
       'Una Lesson è un percorso di Round brevi. Completa un Round senza errori '
@@ -85,9 +87,10 @@ const _spanish = <String, String>{
       'dispositivo.',
   'step2.title': 'Cursos hechos por otras personas',
   'step2.body':
-      'Amigos, profesores y editoriales también pueden crear cursos y '
-      'compartirlos como archivo. Toca la bandera de arriba, elige Import '
-      'Course y empieza a aprender con lo que han preparado.',
+      'Los cursos los hacen las personas: amigos, profesores y editoriales '
+      'los escriben y los comparten como archivo. Elige Import a Course en '
+      'la página inicial, o más adelante toca la bandera de arriba y elige '
+      'Import Course, y empieza a aprender con lo que han preparado.',
   'step3.title': 'Lessons, Rounds, Laurels',
   'step3.body':
       'Una Lesson es un camino de Rounds cortos. Termina un Round sin errores '

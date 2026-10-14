@@ -91,7 +91,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final courses = <Course>[];
-    for (final assetPath in CourseService.courseAssets.values) {
+    for (final assetPath in CourseService.bundledAssets.values) {
       courses.add(
         Course.fromJson(
           jsonDecode(File(assetPath).readAsStringSync())

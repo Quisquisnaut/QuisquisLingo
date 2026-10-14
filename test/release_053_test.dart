@@ -8,7 +8,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('all bundled sample courses use the direct Lesson model', () async {
-    for (final asset in CourseService.courseAssets.values) {
+    for (final asset in CourseService.bundledAssets.values) {
       final raw = await rootBundle.loadString(asset);
       final json = jsonDecode(raw) as Map<String, dynamic>;
       final course = Course.fromJson(json);

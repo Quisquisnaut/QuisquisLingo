@@ -12,7 +12,12 @@ import 'course_language_resolver.dart';
 /// Loads immutable bundled official courses.
 ///
 /// There is intentionally no language fallback: asking for an unavailable
-/// course must fail rather than silently opening Italian or another course.
+/// course must fail rather than silently opening another course.
+///
+/// Since Build 272 Revision 17 no Course comes with the app
+/// ([courseAssets] is empty): Courses are created or imported. The
+/// machinery stays, and the tests exercise it with Courses they register
+/// through [debugExtraAssets].
 class CourseService {
   final DiagnosticLogService _log = DiagnosticLogService();
   // Build 255 Revision 6 removed the German, Spanish, English-from-Spanish,
@@ -25,18 +30,36 @@ class CourseService {
   // QQL Demo: Piedmontese (sorted by exercise type) and QQL Demo:
   // Piedmontese, and Build 272 Revision 15 QQL Demo: English from Italian
   // (added in Build 260 Revision 2), which left the app and its public
-  // repository (owner decisions of 2 and 13 October 2026).
-  static const Map<String, String> courseAssets = {
-    'IT': 'assets/courses/exercise_laboratory_en_it.json',
-  };
+  // repository (owner decisions of 2 and 13 October 2026). Build 272
+  // Revision 17 removed the last one, the Exercise Laboratory (owner
+  // decision of 13 October 2026): people import it from
+  // demo_courses/exercise_laboratory_en_it.json, a custom Course with its
+  // own identity. Its file stays in the app at [laboratoryAsset], only as
+  // the source of the preset forms' Fill with an example (PresetExamples),
+  // and its bundled identity stays reserved in CourseEditorService.
+  static const Map<String, String> courseAssets = {};
+
+  /// The Exercise Laboratory's file: no Course of the app, the source of
+  /// the preset forms' examples. The tests register it as the bundled
+  /// Course `IT` (`test/support/laboratory_fixture.dart`).
+  static const laboratoryAsset =
+      'assets/courses/exercise_laboratory_en_it.json';
 
   /// The Course IDs of [courseAssets], for callers that must know which
   /// Courses come with the app without loading them (Build 271 Revision 1:
   /// the Inventory tells progress on a Course no longer on this device from
   /// progress on a bundled one). A test keeps it equal to the assets.
-  static const bundledCourseIds = <String>{
-    'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
-  };
+  static Set<String> get bundledCourseIds => debugExtraCourseIds.isEmpty
+      ? _shippedCourseIds
+      : {..._shippedCourseIds, ...debugExtraCourseIds};
+
+  static const _shippedCourseIds = <String>{};
+
+  /// Test-only: the Course IDs of [debugExtraAssets] Courses that a test
+  /// wants known as bundled, as [bundledCourseIds] knew the Courses that
+  /// came with the app. Never set in production.
+  @visibleForTesting
+  static final Set<String> debugExtraCourseIds = {};
 
   /// Test-only: Courses registered by a test beside the bundle, such as the
   /// former Korean demo (`test/fixtures/v12/korean_en.json`), whose nine
@@ -57,12 +80,6 @@ class CourseService {
 
   static const bundledCourseIndexStorageKey =
       'quisquislingo_bundled_course_codes_v9_233030';
-
-  static const Map<String, String> targetLabels = {'IT': 'Italian'};
-
-  static const Map<String, String> sourceLabels = {'IT': 'English'};
-
-  Future<Course> loadItalianCourse() => loadCourse('IT');
 
   /// Reconciles the device-local discovery index with the authoritative
   /// bundled registry. This is normal startup initialization: it does not

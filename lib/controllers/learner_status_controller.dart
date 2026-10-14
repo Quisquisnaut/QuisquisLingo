@@ -92,7 +92,12 @@ class LearnerStatusController extends ChangeNotifier
       return null;
     }
 
-    final code = saved != null && CourseService.hasCourse(saved) ? saved : 'IT';
+    // Without a saved Course the first bundled one stands in; no Course
+    // comes with the app (Build 272 Revision 17), so usually there is none.
+    final code = saved != null && CourseService.hasCourse(saved)
+        ? saved
+        : CourseService.bundledAssets.keys.firstOrNull;
+    if (code == null) return null;
     try {
       return await _courses.loadCourse(code);
     } catch (_) {

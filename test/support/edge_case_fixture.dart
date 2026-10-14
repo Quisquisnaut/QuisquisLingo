@@ -1,7 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
+
+import 'laboratory_fixture.dart';
 
 /// The former bundled Edge Case demo. Build 259 Revision 5 took it out of
 /// the bundle at the owner's request: people import it from
@@ -19,7 +19,7 @@ const edgeCaseImportPath = 'demo_courses/edge_case_it_en.json';
 /// start of a `setUp`; the registration is undone with the test.
 void registerEdgeCaseFixture() {
   CourseService.debugExtraAssets['EN_EDGE'] = edgeCaseFixturePath;
-  CourseService.debugAssetReader = (path) => File(path).readAsString();
+  CourseService.debugAssetReader = readFixtureCourse;
   addTearDown(() {
     CourseService.debugExtraAssets.remove('EN_EDGE');
     CourseService.debugAssetReader = null;

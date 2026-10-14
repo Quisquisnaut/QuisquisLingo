@@ -245,9 +245,13 @@ void main() {
       },
     );
 
-    test('the bundled and demo Courses open every Lesson with a card', () {
+    test('the Laboratory and the Courses to import open every Lesson with a '
+        'card', () {
       for (final path in [
+        // The Laboratory's file in the app, and the Course to import (Build
+        // 272 Revision 17).
         'assets/courses/exercise_laboratory_en_it.json',
+        'demo_courses/exercise_laboratory_en_it.json',
         // The Edge Case to import (Build 259 Revision 5).
         'demo_courses/edge_case_it_en.json',
       ]) {

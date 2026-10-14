@@ -13,6 +13,7 @@ import 'package:quisquislingo_app/widgets/exercise_mascot.dart';
 import 'package:quisquislingo_app/widgets/primitive_intro.dart';
 import 'package:quisquislingo_app/widgets/shared_device_notice.dart';
 import 'package:quisquislingo_app/widgets/word_lookup_view.dart';
+import 'support/laboratory_fixture.dart';
 import 'support/test_directories.dart';
 
 /// Runs once per test file, before its `main()`.
@@ -59,10 +60,17 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // and macOS (Build 271 Revision 1): no test starts a process for it; the
   // Course store's own test uses a recording one.
   CourseFileStore.syncDirectory = (_) async {};
+  // No Course comes with the app (Build 272 Revision 17). The tests written
+  // while the Exercise Laboratory was bundled keep it as a bundled test
+  // Course: registered here for a file's setUpAll, and again before every
+  // test, because a test of the app as it ships removes it
+  // (unregisterLaboratoryFixture).
+  registerLaboratoryFixture();
   const pathProvider = MethodChannel('plugins.flutter.io/path_provider');
   late Directory root;
   var installedHandler = false;
   setUp(() {
+    registerLaboratoryFixture();
     // The Round screen's seams and the pace of spoken Story lines are
     // static (Build 271 Revision 5): every test starts from the app's own,
     // so one test's stand-in or measured pace never reaches the next.

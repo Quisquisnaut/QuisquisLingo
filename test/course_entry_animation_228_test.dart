@@ -321,7 +321,7 @@ void main() {
   group('Home course-switch wiring', () {
     setUp(() async {
       registerKoreanFixture();
-      for (final asset in CourseService.courseAssets.values) {
+      for (final asset in CourseService.bundledAssets.values) {
         rootBundle.evict(asset);
       }
       SharedPreferences.setMockInitialValues({

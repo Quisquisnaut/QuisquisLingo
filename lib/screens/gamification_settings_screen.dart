@@ -54,7 +54,7 @@ class _GamificationSettingsScreenState
         names[course.courseId] = course.title;
         names[code] = course.title;
       } catch (_) {
-        names[code] = CourseService.targetLabels[code] ?? code;
+        names[code] = code;
       }
     }
     // Course names only label the rows: a store that cannot be listed is

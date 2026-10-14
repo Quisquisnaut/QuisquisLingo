@@ -1,15 +1,22 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+
 import '../models/course_models.dart';
+import 'app_errors.dart';
 import 'course_service.dart';
+import 'diagnostic_log_service.dart';
 
 /// Fill with an example in a preset form (Build 263 Revision 1, owner
 /// decisions of 4 October 2026): each preset's example is one exercise of
-/// QQL Demo: Italian Exercise Lab, the bundled Course that shows every
-/// preset. The example is in English and Italian whatever the Course's
-/// languages; its pictures are QQL pictures, which every installation has.
+/// the Exercise Laboratory, the Course that shows every preset. The example
+/// is in English and Italian whatever the Course's languages; its pictures
+/// are QQL pictures, which every installation has.
+///
+/// Since Build 272 Revision 17 the Laboratory is no Course of the app
+/// (owner decision of 13 October 2026): its file stays in the app only as
+/// the source of these examples, read here and nowhere else.
 abstract final class PresetExamples {
-  /// The bundled code of QQL Demo: Italian Exercise Lab.
-  static const laboratoryCode = 'IT';
-
   /// The Laboratory exercise that shows each preset best.
   static const exampleIds = <String, String>{
     'translation_choice_to_target': 'qql_lab254_translation_target_five',
@@ -60,9 +67,32 @@ abstract final class PresetExamples {
     'page': 'qql_lab254_page_textbook',
   };
 
-  /// The bundled Laboratory.
-  static Future<Course> loadBundled() =>
-      CourseService().loadBundledCourse(laboratoryCode);
+  /// The Laboratory, read from its file in the app. Read as bytes and
+  /// decoded here: `loadString` decodes a file of this size in another
+  /// isolate, which never finishes under a widget test's clock.
+  ///
+  /// A file that cannot be read is written to the Diagnostic Log, as it was
+  /// while the Laboratory was read as a bundled Course: the form only says
+  /// that no example could be read.
+  static Future<Course> loadBundled() async {
+    try {
+      final data = await rootBundle.load(CourseService.laboratoryAsset);
+      final decoded = jsonDecode(
+        utf8.decode(
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+        ),
+      );
+      return Course.fromJson(Map<String, dynamic>.from(decoded as Map));
+    } catch (error, stackTrace) {
+      await DiagnosticLogService().log(
+        AppErrorCode.invalidCourseData,
+        context: CourseService.laboratoryAsset,
+        exception: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
 
   /// Test seam: where the Laboratory comes from.
   static Future<Course> Function() loadLaboratory = loadBundled;

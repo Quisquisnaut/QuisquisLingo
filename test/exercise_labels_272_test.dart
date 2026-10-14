@@ -32,7 +32,7 @@ void main() {
 
     setUpAll(() async {
       exercises = [
-        for (final code in CourseService.courseAssets.keys)
+        for (final code in CourseService.bundledAssets.keys)
           for (final lesson in (await CourseService().loadBundledCourse(
             code,
           )).lessons)

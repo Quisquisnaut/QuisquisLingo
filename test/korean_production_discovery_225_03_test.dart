@@ -25,7 +25,7 @@ void main() {
   setUp(() async {
     registerKoreanFixture();
     registerEdgeCaseFixture();
-    for (final asset in CourseService.courseAssets.values) {
+    for (final asset in CourseService.bundledAssets.values) {
       rootBundle.evict(asset);
     }
     final messenger =
@@ -94,7 +94,7 @@ void main() {
     await _openHome(tester);
     UnifiedLearnerTopBar current() =>
         tester.widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar));
-    expect(current().course.title, 'Temporary Demo: Edge Case Course');
+    expect(current().course.title, 'QQL Test: It-En Edge Case Course');
     expect(current().course.sourceLanguage, 'Italian');
     await _openCoursePicker(tester);
     await _expectCourseTile(
@@ -115,7 +115,7 @@ void main() {
     await _expectCourseTile(
       tester,
       const ValueKey('recent-course-EN_EDGE'),
-      'Temporary Demo: Edge Case Course',
+      'QQL Test: It-En Edge Case Course',
       selected: false,
     );
     await tester.tap(find.byKey(const ValueKey('recent-course-EN_EDGE')));
@@ -125,7 +125,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await _pumpIo(tester, frames: 4);
     await _openHome(tester);
-    expect(current().course.title, 'Temporary Demo: Edge Case Course');
+    expect(current().course.title, 'QQL Test: It-En Edge Case Course');
     expect(await settings.getLastSelectedCourseCode(), 'EN_EDGE');
     expect(tester.takeException(), isNull);
   });
@@ -147,7 +147,7 @@ void main() {
     final current = tester.widget<UnifiedLearnerTopBar>(
       find.byType(UnifiedLearnerTopBar),
     );
-    expect(current.course.title, 'QQL Demo: Italian Exercise Lab');
+    expect(current.course.title, 'QQL Test: En-It Exercise Lab');
     expect(await settings.getLastSelectedCourseCode(), 'IT');
     await _openCoursePicker(tester);
     expect(find.byKey(const ValueKey('recent-course-EN_IT')), findsNothing);
@@ -160,7 +160,10 @@ void main() {
   // that one saw the heading with nothing under it.
   testWidgets('with one Course in the library the selector shows no Other '
       'courses heading', (tester) async {
-    CourseService.debugExtraAssets.clear();
+    // Only the Laboratory, the bundled test Course of every test.
+    CourseService.debugExtraAssets
+      ..remove('KO')
+      ..remove('EN_EDGE');
     await _openHome(tester);
     await _openCoursePicker(tester);
     expect(find.text('Current course'), findsOneWidget);
@@ -340,12 +343,12 @@ void main() {
           await _expectCourseTile(
             tester,
             const Key('current-course'),
-            selectCustom ? custom.title : 'QQL Demo: Italian Exercise Lab',
+            selectCustom ? custom.title : 'QQL Test: En-It Exercise Lab',
             selected: true,
           );
           for (final entry in {
             'KO': 'AI-Slop Demo: Korean for English Speakers',
-            'EN_EDGE': 'Temporary Demo: Edge Case Course',
+            'EN_EDGE': 'QQL Test: It-En Edge Case Course',
             'custom:${otherCustom.courseId}': otherCustom.title,
           }.entries) {
             await _expectCourseTile(
@@ -361,7 +364,7 @@ void main() {
             await _expectCourseTile(
               tester,
               const ValueKey('bundled-course-IT'),
-              'QQL Demo: Italian Exercise Lab',
+              'QQL Test: En-It Exercise Lab',
               selected: false,
             );
           }
@@ -374,7 +377,7 @@ void main() {
           await _expectCourseTile(
             tester,
             const ValueKey('recent-course-EN_EDGE'),
-            'Temporary Demo: Edge Case Course',
+            'QQL Test: It-En Edge Case Course',
             selected: false,
           );
           await _expectCourseTile(

@@ -32,6 +32,12 @@ COURSE_ID = "course_6f6a1fa3-b834-4936-b324-92fb57f73502"
 # (UUIDv4) in Build 259 Revision 5.
 EXTERNAL_COURSE_ID = "course_ef03d1b5-dccc-4fbb-88da-100473cddaad"
 EXTERNAL_MAINTAINER = "afb065f8-701c-48d2-85f7-c80d44abecb9"
+# Build 272 Revision 17 renamed the Course (owner decision of 13 October
+# 2026). The Course to import is version 2, so that a device which already
+# has version 1 under the earlier title can take it as an update: a received
+# Course is updated only by a newer Course version.
+EXTERNAL_VERSION = "2"
+EXTERNAL_MODIFIED = "2026-10-13T00:00:00.000Z"
 OFFICIAL_ONLY_KEYS = (
     "publisherId", "publisherName", "officialCourseVersion", "officialReleaseDateUtc",
     "officialReleaseNotes", "distributionChannel", "publisherVerificationStatus",
@@ -390,7 +396,7 @@ def build_course() -> dict:
         "learningLanguage": "English", "interfaceLanguage": "Italian",
         "sourceLanguage": "Italian", "targetLanguage": "English",
         "sourceLanguageTag": "it-IT", "targetLanguageTag": "en-GB",
-        "title": "Temporary Demo: Edge Case Course",
+        "title": "QQL Test: It-En Edge Case Course",
         "ttsLanguage": "en-GB", "audioMode": "hybrid",
         "authors": [{"name": "QuisquisLingo — AI-generated test content", "roles": ["Author"]}],
         "license": "All rights reserved",
@@ -437,10 +443,11 @@ def build_external_course() -> dict:
         "originalCourseCreator": creator,
         "maintainer": {"profileId": EXTERNAL_MAINTAINER},
         "originalCreatedAtUtc": STAMP,
-        "courseVersion": "1",
+        "courseVersion": EXTERNAL_VERSION,
         "lastVersionEditorProfileId": EXTERNAL_MAINTAINER,
         "lastVersionEditorDisplayName": "QuisquisLingo",
         **rest,
+        "modifiedAtUtc": EXTERNAL_MODIFIED,
     }
 
 

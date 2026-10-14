@@ -1403,3 +1403,240 @@ texts and counts were updated.
 
 Course files, scoring, progression and learner data are unchanged. No new
 key or folder.
+
+## Revision 17 (2.0.72+272017): no Course comes with the app; a start page
+
+Your decisions of 13 October 2026. The last revision of Build 272.
+
+### What you will see
+
+- **No Course in the app.** A new learner, after Create Profile and the
+  Welcome Wizard, lands on a page titled **Start here**. So does anyone
+  whose library has no Course that can be studied.
+- **The start page** has, from the top: a mascot and one sentence
+  ("QuisquisLingo comes with no Course inside: you bring the Courses.");
+  **Where do Courses come from?** (a file someone gives you: a friend, a
+  teacher, your Team, a publisher; by e-mail, chat, USB stick, shared
+  folder; QuisquisLingo has no shop and downloads nothing by itself), with
+  three small pictures; **Import a Course** with four numbered steps and
+  the button; **Make your own Course** with five numbered steps (Settings,
+  Version and Build ten times, New Course and its Wizard, how to edit
+  later, Draft and Publish), a small drawing of "Version and Build × 10",
+  a line saying whether Course Studio is on for your profile, and the
+  button **New Course**; **Courses already on this device** with **All
+  Courses** and, once unlocked, **Course Studio**. Settings is the gear at
+  the top.
+- The explanations are in the learner's Help Language (English, Italian,
+  Spanish). The names of buttons and screens stay in English, as in Help.
+  **See point 1 below: this touches your decision of 12 October.**
+- **New Course while Course Studio is locked** opens "Course Studio
+  locked" with the usual sentence and two buttons: Settings and OK. The
+  sentence now says "Tap Version and Build in Settings ten times" (it said
+  "Version"; the row is called Version and Build).
+- **The page names no Course**, as you asked: not the Lab, not the Edge
+  Case Course. A test checks it in the three languages.
+- **Fill with an example** in an exercise form works as before.
+- **App Info** (Course content and AI) says: "QuisquisLingo currently
+  comes with no bundled courses: you create a course with Course Studio or
+  import one from a file." The credits page says the same and no longer
+  lists the Lab and the Edge Case Course under "Course authors" (that
+  heading is gone: the app holds no Course of its own). The Welcome
+  Wizard's second step now sends a new learner to "Import a Course on the
+  start page" (it said "Tap the flag at the top": there is no flag without
+  a Course). All Courses Help and the Editor Help describe the start page.
+
+### The two files to import, in `demo_courses/`
+
+- `exercise_laboratory_en_it.json`: **QQL Test: En-It Exercise Lab**. New
+  file. A custom Course with its own Course ID, written by the same
+  generator as the file inside the app, with the same exercises.
+- `edge_case_it_en.json`: **QQL Test: It-En Edge Case Course**. Renamed,
+  and now Course version 2: your device has version 1 under the earlier
+  title, and a received Course is replaced only by a newer version. With
+  version 1 in the file the Matching Course ID dialog would not have let
+  you replace it (it would have offered Cancel, and Fork while Course
+  Studio is on).
+
+Both import with Quick Import (as `import.json`) or Open from….
+
+### What you should know
+
+1. **The start page is translated, and your rule of 12 October says
+   "until then no further text is translated".** I translated it because
+   it is explanation, like the Welcome Wizard a new learner reads just
+   before it (an Italian learner would otherwise read the Wizard in
+   Italian and then land on an English page), but you did not decide it.
+   If you want it in English only, it is a one-line change; say so.
+2. **A learner who was studying the Lab** finds the start page after the
+   update (or their next Course, if they have another). What they earned
+   stays: XP, streak and study days belong to the language. Their
+   completed Rounds and Laurels on the Lab stay stored too, but nothing
+   shows them: the Inventory lists them under "Progress on Courses no
+   longer on this device", where an admin can reset them. **Importing the
+   Lab from its file does not bring that progress back**: the file to
+   import has a Course ID of its own (the bundled one stays reserved, as
+   for every Course that left the app). Three things look odd for such a
+   learner, all three as for English from Italian in Revision 15, and I
+   left them:
+   - Profile › Gamification › Last Week XP by course shows the Lab as its
+     ID (`course_50d6…`) for one week;
+   - the Inventory says that progress "comes back if the same Course is
+     installed again", which cannot happen for a Course that left the
+     app;
+   - while they have no Course, the Profile page shows the avatar in the
+     first Status colour and no "Current Status" line (the Status belongs
+     to the language of the current Course). Nothing is lost; it comes
+     back with the next Course of that language.
+3. **The import pop-up lists an anomaly for each of the two test
+   Courses: no Rights Holder.** They say "All rights reserved" and name
+   the author "QuisquisLingo", and you told me a Rights Holder is a person
+   or a legal body, never the app, so I did not invent one. Tell me the
+   name to write (yours, or Quisquisnaut) and the Lab's pop-up will be
+   clean. The Edge Case Course's pop-up also says "The Course Audit has 3
+   other warnings": those three are deliberate (repeated answers, a very
+   long text, a Story without lines), it is what that Course is for. The
+   Lab's pop-up adds the usual reminder that the Course has no recordings
+   and will use the device's voice. (Checked by running the app's own
+   import check on both files.)
+4. **Who can edit the imported Lab**: nobody on your device. Its
+   Maintainer is a made-up profile, as for the Edge Case Course, so you
+   can open it View only and Fork it (derivative works are allowed). This
+   is how the Edge Case Course already behaved.
+5. **The start page also appears when you have Courses but none is
+   Published** (for example right after New Course). It then shows a note
+   at the top: "You have 1 Course, but it cannot be studied yet…" and how
+   to publish it. Before, that case showed the same bare page as an empty
+   library.
+6. **A second learner on the same device.** A new learner no longer gets
+   a Course by default. If someone else on the device already imported a
+   Course, importing the same file again ends at the Matching Course ID
+   dialog, where a learner with Course Studio locked can only choose
+   Cancel. So when the device holds Courses the learner could study and
+   does not have among their own, the start page says so first, above
+   everything else: "This device already has 1 Course you can study that
+   is not among your courses. Open All Courses and choose Add to my
+   courses: no file is needed." Without any, that card is the last one
+   and says there is none to add yet. (The count also includes a Course
+   you took out of your own courses with Added · Remove.)
+7. **All Courses still shows a "Bundled Courses" section**, now always
+   empty ("No courses in this section."). You said "currently", so I kept
+   everything that handles a bundled Course, and the section with it. Say
+   so if you would rather hide the section while it is empty.
+8. **Where to find Courses.** The page says who gives you a Course, and
+   names no place and no Course, as agreed. A learner alone, with no
+   friend or teacher who has a Course, finds nothing to import: App Info
+   says the project's test Courses "can be imported to try the app" but
+   not where they are. If you want a neutral pointer (the project's page,
+   without naming a Course), tell me the sentence.
+9. **The Lab's file is still inside the app** (about 330 KB), only for
+   the examples. That is your Option 1.
+10. **The pictures are QQL's own**: the reading cat, and from the image
+    library the friends, the headteacher, the bookshop, the folder, the
+    smartphone and the pencil. No new picture file.
+11. **A file exported from a renamed Course is named after its title**:
+    `QQL_IT_EN_qql_test_it_en_edge_case_course.zip`.
+12. **The folder is still `demo_courses`**, as you said.
+
+### What the independent review found
+
+One reader, read-only, asked for every consequence and for anything that
+still says a Course comes with the app. No crash, endless wait or loss
+of data. It confirmed that asking who is learning from the start page was
+needed (a learner with an Access PIN and no Course would have been stuck
+after a restart). Acted on:
+
+- The reset explanations of Advanced (Admin) promised to keep "the bundled
+  official courses"; App Info still spoke of "sample courses" and said Course Studio opens only from the Course Selector;
+  the Editor Help still described the earlier empty page; the README's
+  list said "One bundled sample course".
+- `docs/LOCALIZATION_CURRENT_STATE.md` was not brought up to date (a rule
+  of Build 271): done, with the start page's texts.
+- The Edge Case rename could not reach a device that has the Course
+  (point above: version 2).
+- The second learner's dead end (point 6).
+- Italian: "finché QuisquisLingo non dice…"; "studente" and "estudiante"
+  as in Help, not "utente" and "usuario"; Spanish "las dos lenguas" and
+  "Lessons, GuideBooks, Rounds" as its Welcome Wizard writes them.
+- "Tap Version in Settings" in the locked message (now Version and
+  Build).
+- A Laboratory file that cannot be read for Fill with an example was no
+  longer written to the Diagnostic Log.
+- Study now after the first import did nothing (the Course was already
+  shown): it is offered only when there is something to switch to.
+- The step numbers could be cut in their circles at a very large text
+  size.
+- With nobody logged in, the page said "You have N Courses…" to nobody.
+- My tests: the "import" test did not import (it does now, through Quick
+  Import and the pop-up); the All Courses test passed with any empty
+  section; four older tests had names that were no longer true.
+
+### The second review, of the corrections
+
+Corrections made after a review have brought faults before, so a second
+reader read only what I changed after the first. No fault in the counts
+or in the logic; it compared the earlier Edge Case file with the new one
+field by field and confirmed a device with version 1 is offered "Update
+to version 2". Acted on:
+
+- One more place told how to unlock Course Studio with "tap Version": the
+  Matching Course ID dialog. Corrected.
+- The card said "another learner made or imported it", which is false for
+  a Course you took out of your own courses. It now says "that is not
+  among your courses".
+- In the Editor Help, after the new sentence about the start page, the
+  next one ("The page has its own Help…") read as if it described the
+  start page; it names Course Library now. The Italian still said the
+  official Courses "included with QuisquisLingo" without "currently
+  none"; the technical reference said "Bundled samples".
+- I wrote "only Cancel" for the Matching Course ID dialog; with Course
+  Studio on it also offers Fork. Worded exactly now.
+- Tests: the Edge Case update test now writes out the identity every
+  earlier file had (so a file that changed its Maintainer or its dates
+  would fail it); two tests accepted any error and now name the one
+  expected; the Settings pages test waits for a text of each page; the
+  360-pixel tests also lay out the page with nothing to add.
+
+Left as they are, for you to decide or because they were so before:
+
+- Three names for one command: **Import a Course** (the start page, your
+  words), **Import Course** (the Course selector), **Course Import** (the
+  page's title).
+- The Welcome Wizard's last button is "Start learning" and it now lands
+  on a page with nothing to learn yet.
+- "Tap the Course: the Course Editor opens" is not true for a Course
+  whose Wizard is paused (the tap opens the Wizard).
+- "A teacher" stands under the picture named Headteacher, "A friend"
+  under Friends.
+- On the start page an update notice that was put off is not offered
+  again after coming back from Settings (so on the earlier empty page).
+- The Laboratory's file for the examples is no longer checked against its
+  checksum (it only matters for a file changed inside the app).
+- The Edge Case Course's own description still says "three intentional
+  Audit warnings": the three are intentional, the fourth is the missing
+  Rights Holder.
+
+### For the code
+
+- `CourseService.courseAssets` and `bundledCourseIds` are empty;
+  `CourseService.laboratoryAsset` names the Lab's file;
+  `PresetExamples.loadBundled` reads it itself. `targetLabels`,
+  `sourceLabels` and `loadItalianCourse` are gone (they only named the
+  Lab).
+- `CourseStartPage` (`lib/screens/course_start_page.dart`) only draws;
+  its words are in `lib/localization/start_page_text.dart`. Home decides
+  what the buttons do (`_importCourse`, shared with the Course selector's
+  Import Course; `_newCourseFromStart`) and counts the Courses to tell
+  about.
+- The tests: the Laboratory is registered as the bundled test Course `IT`
+  for every test (`test/support/laboratory_fixture.dart`,
+  `test/flutter_test_config.dart`), so the about ninety test files written
+  around it are unchanged; `test/no_bundled_course_272_r17_test.dart`
+  removes it and tests the app as it ships. **This means the older Home,
+  Selector and Course Studio tests run with a bundled Course the app no
+  longer has.** What only the new tests cover is listed in the validation
+  document, with what no test covers.
+- The two v11 fixtures keep their earlier titles: they are earlier
+  originals and the converter test compares exercises, not titles.
+
+Course files of learners, scoring, progression and learner data are
+unchanged. No new key or folder.

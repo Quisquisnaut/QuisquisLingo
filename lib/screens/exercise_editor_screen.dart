@@ -2201,7 +2201,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       true;
 
   /// Fill with an example (Build 263 Revision 1, owner request of 4 October
-  /// 2026): the Italian Exercise Lab's example of this preset, as in the
+  /// 2026): the Exercise Laboratory's example of this preset, as in the
   /// canonical editor, after a confirmation when the form holds something.
   Future<void> _fillWithExample() async {
     if (widget.readOnly || !widget.isNew) return;

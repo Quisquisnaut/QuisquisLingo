@@ -1,12 +1,12 @@
 abstract final class AppMetadata {
   static const String releaseVersion = '2.0.72';
-  static const String buildNumber = '272016';
+  static const String buildNumber = '272017';
   static const String developmentPhase = '272';
-  static const int correctiveRevision = 16;
+  static const int correctiveRevision = 17;
   static const String build = developmentPhase;
   static const String platformBuildNumber = buildNumber;
   static const String technicalVersion = '$releaseVersion+$platformBuildNumber';
-  static const String publicBuildLabel = 'Build 272, Revision 16';
+  static const String publicBuildLabel = 'Build 272, Revision 17';
 
   /// Compatibility name for technical diagnostics and existing report callers.
   static const String version = technicalVersion;

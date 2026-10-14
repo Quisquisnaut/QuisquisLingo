@@ -11,6 +11,8 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/laboratory_fixture.dart';
+
 const _firstLearnerId = '00000000-0000-4000-8000-000000000901';
 const _existingLearnerId = '00000000-0000-4000-8000-000000000902';
 const _reducedMotionLearnerId = '00000000-0000-4000-8000-000000000903';
@@ -187,6 +189,56 @@ void main() {
       expect(await SettingsService().hasCompletedWelcomeWizard(), isTrue);
     },
   );
+
+  // Build 272 Revision 17: no Course comes with the app. The other tests
+  // here keep the bundled test Course of the test configuration; this one
+  // runs the first start as it ships.
+  testWidgets('Build 272 Revision 17: a first run without any Course ends on '
+      'the start page, in the language chosen in Create Profile', (
+    tester,
+  ) async {
+    unregisterLaboratoryFixture();
+    final profiles = ProfileService(
+      idGenerator: () => _firstLearnerId,
+      numericSuffixGenerator: () => 12345,
+      randomIndex: (_) => 0,
+    );
+    await tester.pumpWidget(QuisquisLingoApp(profileService: profiles));
+    await _pumpUntil(tester, find.text('Create Profile'));
+    await tester.enterText(
+      find.byKey(const Key('new-learner-screen-name')),
+      'Prima',
+    );
+    final italian = find.descendant(
+      of: find.byKey(const Key('new-learner-language')),
+      matching: find.text('Italiano'),
+    );
+    await tester.ensureVisible(italian);
+    await tester.pumpAndSettle();
+    await tester.tap(italian);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.widgetWithText(FilledButton, 'Done'),
+      300,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+    await _finishStartupGate(tester);
+    await _pumpUntilHome(tester);
+
+    // The Welcome Wizard first, then the start page.
+    expect(find.byKey(const Key('welcome-wizard')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('welcome-wizard-skip')));
+    await _pumpUntil(tester, find.text('Comincia da qui'));
+    expect(find.byKey(const Key('welcome-wizard')), findsNothing);
+    expect(find.byKey(const Key('course-start-page')), findsOneWidget);
+    expect(find.byKey(const Key('start-import-course')), findsOneWidget);
+    expect(find.byKey(const Key('start-new-course')), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'existing-user startup enters the normal startup path without profile creation',

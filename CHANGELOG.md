@@ -1,3 +1,77 @@
+# 2.0.72 (Build 272, Revision 17) - no Course comes with the app; a start page - 2026-10-14
+
+Decided by the owner on 13 October 2026. The last revision of Build 272.
+Released on 14 October 2026: the Beta expiry moves to 2026-11-13.
+
+- **The Exercise Laboratory leaves the app.** No Course comes with
+  QuisquisLingo any more: Courses are imported or created. The Laboratory
+  stays in the repository as a Course to import,
+  `demo_courses/exercise_laboratory_en_it.json` (a custom Course with its
+  own identity, like the Edge Case Course beside it), and as a test Course
+  for the tests.
+- **Fill with an example still works.** The Laboratory's file stays inside
+  the app only as the source of the examples of the exercise forms. It is
+  not a Course anyone can open, list, study or fork.
+- **A start page.** A learner with no Course to study sees **Start here**
+  instead of "No courses available for study in your library.": **Import a
+  Course** and **New Course**, with where Courses come from (a file someone
+  gives you: a friend, a teacher, your Team, a publisher), how to import
+  one in four steps (Open from… or Quick Import), and how to turn on Course
+  Studio and the Course Editor (Settings, Version and Build, ten taps), in
+  the learner's Help Language (English, Italian, Spanish), with QQL's own
+  pictures. It also says so when the learner has Courses that cannot be
+  studied yet (not Published), and keeps All Courses, Settings and, once
+  unlocked, Course Studio. The page names no Course.
+- **A shared device.** When the device already holds Courses this
+  learner could study and does not have among their own (usually another
+  learner's), the start page says so first ("This device already has 2
+  Courses you can study that are not among your courses. Open All Courses
+  and choose Add to my courses: no file is needed"): importing a file the
+  device already holds ends at the Matching Course ID dialog, which cannot
+  simply add the Course.
+- **Nobody logged in.** The start page asks who is learning, as the
+  learner's page does (after Log out, with Ask who is learning, or when
+  the learner has an Access PIN): that question was asked only from the
+  learner's page, which needs a Course.
+- **New Course while Course Studio is locked** explains how to unlock it
+  and offers to open Settings (the Course selector's New Course only
+  showed the message).
+- **Two renames** (owner): the Laboratory is **QQL Test: En-It Exercise
+  Lab**, the Edge Case Course **QQL Test: It-En Edge Case Course**, in the
+  files to import and in the test fixtures. The Edge Case Course to import
+  is Course version 2, so that a device which already has it takes the
+  renamed file as an update.
+- **App Info, the credits page, the Welcome Wizard and Help** say that no
+  Course comes with the app currently and that Courses are created or
+  imported (EN/IT/ES). The credits page no longer lists two Courses the app
+  does not hold. The reset explanations of Advanced (Admin) no longer
+  promise to keep "the bundled official courses", and the two messages
+  about unlocking Course Studio name the row as Settings shows it, Version
+  and Build.
+- After an import, **Study now** is offered only for a Course that is not
+  already the one shown.
+- A Laboratory file that cannot be read for Fill with an example is
+  written to the Diagnostic Log, as before.
+- The Laboratory's own GuideBook no longer says that Match by meaning and
+  Listen and match "use exactly three pairs" (2 to 5 are recommended since
+  Revision 16).
+- A learner who studied the Laboratory keeps what they earned (XP, streak,
+  study days). Their progress on it is listed in Advanced (Admin) ›
+  Inventory under "Progress on Courses no longer on this device", where an
+  admin can reset it. Importing the Laboratory from its file starts it
+  anew: the file has its own Course ID.
+- Tests: `test/no_bundled_course_272_r17_test.dart` (the app as it ships:
+  the empty registry, Fill with an example, the two files to import, the
+  start page with Course Studio locked and unlocked, the ten taps, a real
+  import of the Laboratory through Quick Import and its pop-up, a Course of
+  another learner added from All Courses, nobody logged in, the three
+  languages on a 360-pixel phone, also with text twice as large and in the
+  dark theme), and a first run without any Course in
+  `startup_profile_gate_test`. The older tests keep the Laboratory as a
+  bundled test Course, registered for every test in
+  `test/flutter_test_config.dart`.
+- `docs/LOCALIZATION_CURRENT_STATE.md` lists the start page's texts.
+
 # 2.0.72 (Build 272, Revision 16) - two recommendations stop being Warnings - 2026-10-13
 
 Decided by the owner on 13 October 2026 and brought forward from the Build

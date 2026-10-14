@@ -1038,3 +1038,122 @@ Not read by a second reader: the corrections made after the review
 ### Complete suite
 
 `flutter test --no-pub --concurrency=1`: **4,646 passed, 1 skipped, 0 failed** (35 min 15 s), once, on the final tree, after the review's corrections.
+
+## Revision 17 (2.0.72+272017), no Course comes with the app; a start page
+
+13 and 14 October 2026, owner's Windows 10 PC, `build-272`. Decided by the
+owner on 13 October 2026. Released on 14 October (the work ran past
+midnight): the Beta expiry is 2026-11-13.
+
+- New tests: `test/no_bundled_course_272_r17_test.dart` **28 passed**, the
+  app with no bundled Course (the bundled test Course of the other tests
+  is removed first):
+  - the registry and discovery are empty; the Laboratory cannot be opened
+    as a Course; a learner whose saved Course was the Laboratory has no
+    current Course and nothing fails;
+  - Fill with an example has an example for every preset, read from the
+    file in the app;
+  - progress on the Laboratory's bundled ID is listed by the Inventory;
+  - the Laboratory to import: read by the app's import reader, its own
+    Course ID, the same exercises as the file in the app, no Audit Error,
+    one Warning (no Rights Holder); it is stored in an app without
+    Courses and its importer can Fork it; its bundled ID stays reserved;
+  - the Edge Case Course: its new title in both files; a device that has
+    version 1 under the earlier title (the identity written out in the
+    test) takes the file as an update, and would not with the same
+    version;
+  - the start page from Home: every part of it; Course Studio locked (the
+    dialog, Settings, the ten taps, back: Course Studio on); unlocked (New
+    Course opens the Course Wizard); **a real import of the Laboratory**
+    through Quick Import with the pop-up on (the anomaly listed, Import
+    anyway, the Course opens for study, no Study now); a Course not
+    published (the note); a Course another learner imported (the card
+    first, Add to my courses in All Courses, the Course opens); nobody
+    logged in (the learner chooser, no note); All Courses with an empty
+    Bundled Courses section; Settings, Profile, Gamification and
+    Statistics without a Course; Italian;
+  - the page alone at 360 pixels in English, Italian and Spanish, with
+    and without Courses to add, also with text twice as large in the dark
+    theme; each button calls Home;
+  - the catalogs: the same 27 keys in the three languages, no Course
+    named, QQL's names in English, no placeholder left; the Welcome
+    Wizard's second step.
+- `test/startup_profile_gate_test.dart`: a new case, **a first run
+  without any Course** (Create Profile in Italian, the Welcome Wizard,
+  then the start page in Italian).
+- Its widget cases with the first-run file six times in a row before the
+  first review: **31 passed** each time. After the two reviews' corrections, the final
+  file with the first-run file six times more: **36 passed** each time.
+- Older tests updated: sixteen files loop over `bundledAssets` (the test
+  registry) instead of `courseAssets`; `course_service_test`,
+  `bundled_demo_registry_254_test`, `course_official_provenance_225_04_test`,
+  `bundled_courses_225_02_test`, `deleting_a_course_271_test` (what the
+  app itself ships: nothing); `course_library_test`,
+  `courses_study_review_261_test` (the earlier empty page);
+  `korean_production_discovery_225_03_test`, `leaderboard_navigation_test`,
+  `lab_vocabulary_265_test`, `edge_case_course_254_test` (titles, the
+  export file name, Course version 2); four test names that were no
+  longer true.
+- Two batches of older test files after the changes: 21 files, **196
+  passed, 1 failed** (the export file name that follows the Edge Case
+  title: corrected); after the first review's corrections 20 files,
+  **479 passed, 0 failed**.
+- The two generators with `--check`: every generated file matches.
+  `tools/validate_courses.py`: the Laboratory's file OK.
+- The app's own import check run on the two files to import (a throwaway
+  test, deleted): the Laboratory 0 Errors, 1 Warning (no Rights Holder), 1
+  anomaly and the reminder about the device's voice; the Edge Case Course
+  0 Errors, 4 Warnings (no Rights Holder and its three deliberate ones), 2
+  anomalies.
+- The start page rendered to pictures with the app's fonts and colours
+  (a throwaway test, deleted): English with Course Studio locked, Italian
+  with Course Studio on and the note, Spanish in the dark theme. Sent to
+  the owner.
+- `flutter analyze --no-pub`: **No issues found**, on the final tree.
+
+### Independent reviews
+
+Two, both read-only.
+
+- The first read the whole change and looked for every place that still
+  assumed a Course in the app. No crash, endless wait or loss of data. It
+  confirmed the fix made before it (the start page asks who is learning:
+  a learner with an Access PIN and no Course would have been stuck after
+  a restart). Its findings, and which were acted on, are in
+  `docs/272_CHANGE_SUMMARY.md`.
+- The second read only the corrections made after the first. No fault in
+  the counts or the logic; five small leftovers and several weak test
+  checks, all acted on (same document). It compared the earlier Edge Case
+  file with the new one field by field: only the title, the Course
+  version and the date of the last change differ.
+
+Not read by a second reader: the corrections made after the second
+review (wordings in two Help catalogs and the start page catalog, one
+dialog line, test checks, and the one-day move of the Beta expiry).
+
+### What the older tests no longer show
+
+The Laboratory is registered as a bundled test Course for every test, so
+the older Home, Course selector, Course Studio and Settings tests run in
+a state the app as shipped cannot reach: with a bundled Course. The app
+as shipped is covered only by the new file and the new first-run case.
+
+### Not tested here
+
+- Log out, switching learner, a learner with an Access PIN and adding a
+  second learner **from the start page** (the chooser appearing with
+  nobody logged in is tested; the rest was read, not run).
+- Deleting a learner's only Course, Remove custom courses and Wipe
+  everything ending on the start page (the same state is reached in the
+  tests by having no Course).
+- The import pop-up of the Edge Case Course in the app's window (its
+  content was checked through the import check; the Laboratory's pop-up
+  is driven in a test).
+- A large text size and the dark theme with the app's real font (the
+  test font is as wide as it is tall): the pictures sent to the owner use
+  the real font at the normal size only.
+- Android, a screen reader, the packaged Windows build.
+
+### Complete suite
+
+`flutter test --no-pub --concurrency=1`: **4,675 passed, 1 skipped, 0 failed** (35 min 49 s), once, on the final tree, after the two reviews' corrections.

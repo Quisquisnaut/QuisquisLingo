@@ -25,6 +25,7 @@ import 'package:quisquislingo_app/services/xp_service.dart';
 import 'package:quisquislingo_app/widgets/folder_opener.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/laboratory_fixture.dart';
 import 'support/publisher_fixtures.dart';
 import 'support/pump_file_io.dart';
 import 'support/test_directories.dart';
@@ -1401,11 +1402,18 @@ void main() {
     );
 
     test('the Courses that come with the app are known by their IDs', () {
-      final ids = {
+      // The bundled test Course the test configuration registers.
+      expect(CourseService.bundledCourseIds, {
+        for (final asset in CourseService.bundledAssets.values)
+          (jsonDecode(File(asset).readAsStringSync()) as Map)['courseId'],
+      });
+      // The app itself: no Course (Build 272 Revision 17).
+      unregisterLaboratoryFixture();
+      expect(CourseService.bundledCourseIds, {
         for (final asset in CourseService.courseAssets.values)
           (jsonDecode(File(asset).readAsStringSync()) as Map)['courseId'],
-      };
-      expect(CourseService.bundledCourseIds, ids);
+      });
+      expect(CourseService.bundledCourseIds, isEmpty);
     });
 
     testWidgets(

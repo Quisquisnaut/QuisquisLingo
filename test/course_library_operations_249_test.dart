@@ -133,7 +133,7 @@ void main() {
 
         expect(
           library.bundledCourses,
-          hasLength(CourseService.courseAssets.length),
+          hasLength(CourseService.bundledAssets.length),
         );
         expect(library.bundledCourses.first.toJson(), italian.toJson());
         expect(

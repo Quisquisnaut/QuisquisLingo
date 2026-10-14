@@ -454,7 +454,7 @@ const _plans = <_ResetPlan>[
       'Imported audio files, if you tick Audio files: the recorded MP3 files, with their descriptions',
     ],
     keeps: [
-      'The media that comes with QQL itself: the built-in image library, flags, lesson icons, mascots and the recordings of the bundled courses',
+      'The media that comes with QQL itself: the built-in image library, flags, lesson icons, mascots and the sample recordings',
       'Learners and progress',
       'Courses (which may then show missing media until it is imported again)',
       'The original files you placed in the Import folder, backups and logs',
@@ -475,7 +475,7 @@ const _plans = <_ResetPlan>[
     ],
     keeps: [
       'Learners, PINs and settings',
-      'The bundled official courses',
+      'Bundled official courses, when the app has any (currently none)',
       'Backups and logs',
     ],
     warning:
@@ -495,7 +495,7 @@ const _plans = <_ResetPlan>[
     ],
     keeps: [
       'Only the Export, Logs, Import, ToBeMerged and Backups folders, unless you untick them in the first step. Import and ToBeMerged hold the original files you copied there yourself; Backups holds the automatic Course Backups.',
-      'The bundled official courses (part of the app)',
+      'Bundled official courses, when the app has any (currently none)',
     ],
     warning:
         'This cannot be undone. The next person who opens QQL will see the first-run setup.',

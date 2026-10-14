@@ -16,6 +16,8 @@ import '../services/update_service.dart';
 import '../models/course_models.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_service.dart';
+import '../services/course_access_policy.dart';
+import '../services/course_privacy.dart';
 import '../services/course_study.dart';
 import '../services/course_editor_service.dart';
 import '../services/publication_service.dart';
@@ -41,6 +43,7 @@ import 'review_screen.dart';
 import 'course_info_screen.dart';
 import 'course_projects_screen.dart';
 import 'courses_screen.dart';
+import 'course_start_page.dart';
 import 'duel_screen.dart';
 import 'guidebook_screen.dart';
 import 'info_screen.dart';
@@ -315,6 +318,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Course? _course;
   bool _libraryEmpty = false;
   bool _emptyLibraryEditorUnlocked = false;
+
+  /// The learner's Courses that cannot be studied yet, for the start page.
+  int _emptyLibraryWaitingCourses = 0;
+
+  /// The Courses of this device the learner could add and study, for the
+  /// start page.
+  int _emptyLibraryAddableCourses = 0;
   Set<String> _completedRounds = {};
   Set<String> _completedLessons = {};
   Set<String> _perfectRounds = {};
@@ -327,8 +337,10 @@ class _HomeScreenState extends State<HomeScreen> {
   LearnerLessonExpansionMode _lessonExpansionMode =
       LearnerLessonExpansionMode.expanded;
   LearnerFlagBackgroundMode _flagBackgroundMode = LearnerFlagBackgroundMode.off;
-  String _selectedLanguage = 'IT';
-  String _selectedCourseRef = 'IT';
+  // No Course comes with the app (Build 272 Revision 17): nothing is
+  // selected until the learner's Courses are read.
+  String _selectedLanguage = '';
+  String _selectedCourseRef = '';
   List<String> _bundledCourseCodes = List<String>.unmodifiable(
     CourseService.bundledAssets.keys,
   );
@@ -647,12 +659,13 @@ class _HomeScreenState extends State<HomeScreen> {
           requestedCourseRef ??
           (active == null
               ? _selectedCourseRef
-              : (await _settings.getLastSelectedCourseCode() ?? 'IT'));
-      final personalCourses = await CourseLibraryService().included([
+              : (await _settings.getLastSelectedCourseCode() ?? ''));
+      final onDevice = [
         for (final code in bundledCourseCodes)
           await _courseService.loadCourse(code),
         ...await _courseEditorService.listUserCourses(),
-      ]);
+      ];
+      final personalCourses = await CourseLibraryService().included(onDevice);
       final playable = personalCourses
           .where((c) => _publication.learnerCourse(c) != null)
           .toList();
@@ -662,10 +675,30 @@ class _HomeScreenState extends State<HomeScreen> {
           : 'custom:${c.courseId}';
       if (playable.isEmpty) {
         final editorUnlocked = await _settings.isCourseEditorUnlocked();
+        // The Courses of this device that this learner could add in All
+        // Courses and study: usually another learner's, also one the learner
+        // took out of their own courses (a Private course of someone else
+        // is not one). Nobody logged in is nobody to tell.
+        final mine = {for (final course in personalCourses) course.courseId};
+        final addable = activeId == null
+            ? 0
+            : (await CoursePrivacy(
+                    accessPolicy: CourseAccessPolicy(profileService: _profiles),
+                  ).visible(onDevice))
+                  .where(
+                    (course) =>
+                        !mine.contains(course.courseId) &&
+                        _publication.learnerCourse(course) != null,
+                  )
+                  .length;
         if (mounted && reloadGeneration == _reloadGeneration) {
           setState(() {
             _libraryEmpty = true;
             _emptyLibraryEditorUnlocked = editorUnlocked;
+            _emptyLibraryWaitingCourses = activeId == null
+                ? 0
+                : personalCourses.length;
+            _emptyLibraryAddableCourses = addable;
             _course = null;
             _learners = learners;
             _activeLearner = active;
@@ -1669,7 +1702,7 @@ class _HomeScreenState extends State<HomeScreen> {
         course: bundledCourses[code]!,
         leading: courseImage(bundledCourses[code]!, code),
         subtitle: Text(
-          '${CourseService.sourceLabels[code] ?? bundledCourses[code]!.sourceLanguage} → ${CourseService.targetLabels[code] ?? bundledCourses[code]!.targetLanguage}'
+          '${bundledCourses[code]!.sourceLanguage} → ${bundledCourses[code]!.targetLanguage}'
           ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -1864,67 +1897,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     leading: const Icon(Icons.file_open_outlined),
                     title: const Text('Import Course'),
                     onTap: () async {
-                      final selected = _course;
-                      if (selected == null) return;
+                      if (_course == null) return;
                       Navigator.pop(ctx);
-                      final imported = await Navigator.of(overlayContext)
-                          .push<Course>(
-                            MaterialPageRoute(
-                              builder: (_) => CourseProjectsScreen(
-                                currentCourse: selected,
-                                importOnly: true,
-                              ),
-                            ),
-                          );
-                      if (!mounted) return;
-                      await _reload();
-                      if (!mounted || imported == null) return;
-                      final playable =
-                          _publication.learnerCourse(imported) != null;
-                      final canStudy =
-                          playable &&
-                          (imported.originType !=
-                                  CourseOriginType.bundledOfficial ||
-                              CourseService.hasCourse(
-                                CourseService.codeForCourse(imported),
-                              ));
-                      final reason =
-                          PublicationService.requiresPublisherVerification(
-                            imported,
-                          )
-                          ? ' Publisher verification is required before you can study it.'
-                          : !imported.publicationState.isPublished
-                          ? ' Publish this Course before you can study it.'
-                          : canStudy
-                          ? ''
-                          : ' This Course is not available for study yet.';
-                      final messenger = ScaffoldMessenger.of(context);
-                      messenger.clearSnackBars();
-                      messenger.showSnackBar(
-                        SnackBar(
-                          duration: const Duration(seconds: 8),
-                          content: Text(
-                            'Imported “${imported.title}” and added to your courses.$reason',
-                          ),
-                          action: canStudy
-                              ? SnackBarAction(
-                                  label: 'Study now',
-                                  onPressed: () {
-                                    if (imported.originType ==
-                                        CourseOriginType.bundledOfficial) {
-                                      unawaited(
-                                        _switchCourse(
-                                          CourseService.codeForCourse(imported),
-                                        ),
-                                      );
-                                    } else {
-                                      unawaited(_switchCustomCourse(imported));
-                                    }
-                                  },
-                                )
-                              : null,
-                        ),
-                      );
+                      await _importCourse(overlayContext);
                     },
                   ),
                 ],
@@ -1944,6 +1919,111 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted || !overlayContext.mounted) return;
     }
     await selectedCourseSwitch?.call();
+  }
+
+  /// Import Course, from the Course selector and from the start page: the
+  /// import page alone, then Home again with what was imported.
+  Future<void> _importCourse(BuildContext pushContext) async {
+    final selected = _course;
+    final imported = await Navigator.of(pushContext).push<Course>(
+      MaterialPageRoute(
+        builder: (_) =>
+            CourseProjectsScreen(currentCourse: selected, importOnly: true),
+      ),
+    );
+    if (!mounted) return;
+    await _reload();
+    if (!mounted || imported == null) return;
+    final playable = _publication.learnerCourse(imported) != null;
+    final canStudy =
+        playable &&
+        (imported.originType != CourseOriginType.bundledOfficial ||
+            CourseService.hasCourse(CourseService.codeForCourse(imported)));
+    final reason = PublicationService.requiresPublisherVerification(imported)
+        ? ' Publisher verification is required before you can study it.'
+        : !imported.publicationState.isPublished
+        ? ' Publish this Course before you can study it.'
+        : canStudy
+        ? ''
+        : ' This Course is not available for study yet.';
+    // The first Course a learner imports is already the one shown.
+    final alreadyShown = _course?.courseId == imported.courseId;
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 8),
+        content: Text(
+          'Imported “${imported.title}” and added to your courses.$reason',
+        ),
+        action: canStudy && !alreadyShown
+            ? SnackBarAction(
+                label: 'Study now',
+                onPressed: () {
+                  if (imported.originType == CourseOriginType.bundledOfficial) {
+                    unawaited(
+                      _switchCourse(CourseService.codeForCourse(imported)),
+                    );
+                  } else {
+                    unawaited(_switchCustomCourse(imported));
+                  }
+                },
+              )
+            : null,
+      ),
+    );
+  }
+
+  /// The start page's New Course: Course Studio's New Course, or how to
+  /// turn Course Studio on while it is locked for this learner.
+  Future<void> _newCourseFromStart() async {
+    if (!_emptyLibraryEditorUnlocked) {
+      final openSettings = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          key: const Key('start-course-studio-locked'),
+          title: const Text('Course Studio locked'),
+          content: const Text(courseManagerUnlockMessage),
+          actions: [
+            TextButton(
+              key: const Key('start-course-studio-locked-settings'),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Settings'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      if (openSettings == true && mounted) await _openSettingsFromStart();
+      return;
+    }
+    await _openCourseStudioFromStart(newCourse: true);
+  }
+
+  Future<void> _openCourseStudioFromStart({bool newCourse = false}) async {
+    final request = await Navigator.of(context).push<CourseStudyRequest>(
+      MaterialPageRoute(
+        builder: (_) => CoursesScreen(
+          initialTab: CoursesTab.manager,
+          currentCourse: null,
+          startNewCourse: newCourse,
+        ),
+      ),
+    );
+    if (mounted) await _studyFromCourses(request);
+  }
+
+  Future<void> _openSettingsFromStart() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) =>
+            SettingsScreen(course: null, onManageLearners: _showLearners),
+      ),
+    );
+    if (mounted) await _reload();
   }
 
   Future<void> _openAllCourses() async {
@@ -2441,60 +2521,28 @@ class _HomeScreenState extends State<HomeScreen> {
     final followsDarkAppearance = _usesDarkLearnerAppearance(context);
     final course = _course;
     if (course == null && _libraryEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('My courses'),
-          actions: [
-            IconButton(
-              key: const Key('empty-library-settings'),
-              tooltip: 'Settings',
-              onPressed: () async {
-                await Navigator.of(context).push<void>(
-                  MaterialPageRoute(
-                    builder: (_) => SettingsScreen(
-                      course: null,
-                      onManageLearners: _showLearners,
-                    ),
-                  ),
-                );
-                if (mounted) await _reload();
-              },
-              icon: const Icon(Icons.settings_outlined),
-            ),
-          ],
-        ),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('No courses available for study in your library.'),
-              FilledButton(
-                onPressed: _openAllCourses,
-                child: const Text('All Courses'),
-              ),
-              if (_emptyLibraryEditorUnlocked) ...[
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  key: const Key('empty-library-course-manager'),
-                  icon: const Icon(Icons.edit_note),
-                  label: const Text('Course Studio'),
-                  onPressed: () async {
-                    final request = await Navigator.of(context)
-                        .push<CourseStudyRequest>(
-                          MaterialPageRoute(
-                            builder: (_) => const CoursesScreen(
-                              initialTab: CoursesTab.manager,
-                              currentCourse: null,
-                            ),
-                          ),
-                        );
-                    if (mounted) await _studyFromCourses(request);
-                  },
-                ),
-              ],
-            ],
-          ),
-        ),
+      // No Course to study (Build 272 Revision 17): the start page. Without
+      // a learner (after Log out, or Ask who is learning) the learner comes
+      // first, as on the learner page below.
+      if (_activeLearner == null && !_addingLearner && !_learnerFlowOpen) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted &&
+              _activeLearner == null &&
+              !_addingLearner &&
+              !_learnerFlowOpen) {
+            _showInitialLearnerFlow(context);
+          }
+        });
+      }
+      return CourseStartPage(
+        editorUnlocked: _emptyLibraryEditorUnlocked,
+        waitingCourses: _emptyLibraryWaitingCourses,
+        addableCourses: _emptyLibraryAddableCourses,
+        onImport: () => unawaited(_importCourse(context)),
+        onNewCourse: () => unawaited(_newCourseFromStart()),
+        onAllCourses: () => unawaited(_openAllCourses()),
+        onCourseStudio: () => unawaited(_openCourseStudioFromStart()),
+        onSettings: () => unawaited(_openSettingsFromStart()),
       );
     }
     if (course == null) {

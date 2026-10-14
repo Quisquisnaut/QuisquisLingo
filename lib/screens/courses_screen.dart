@@ -15,7 +15,7 @@ import 'editor_help_screen.dart';
 enum CoursesTab { allCourses, manager }
 
 const courseManagerUnlockMessage =
-    'Unlock Course Studio for this profile to edit Courses and use Course operations. Tap Version in Settings ten times to unlock it.';
+    'Unlock Course Studio for this profile to edit Courses and use Course operations. Tap Version and Build in Settings ten times to unlock it.';
 
 /// All Courses data and learner actions inside the shared Courses frame.
 class AllCoursesTab extends StatelessWidget {

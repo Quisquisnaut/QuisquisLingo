@@ -397,7 +397,8 @@ void main() {
           'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
     };
 
-    test('bundled Courses keep the Course IDs learner progress uses', () {
+    test('the Laboratory and the Edge Case fixture keep the Course IDs '
+        'learner progress used', () {
       for (final entry in bundledIds.entries) {
         final json = _bundled(entry.key);
         final course = Course.fromJson(json);

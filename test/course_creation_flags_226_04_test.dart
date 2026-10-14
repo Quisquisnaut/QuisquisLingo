@@ -448,7 +448,7 @@ Future<void> _openCreation(WidgetTester tester) async {
     await tester.tap(find.byKey(const Key('course-wizard-manual')));
     final service = CourseService();
     await Future.wait(
-      CourseService.courseAssets.keys.map(service.loadBundledCourse),
+      CourseService.bundledAssets.keys.map(service.loadBundledCourse),
     );
     // Let the action consume the same cached asset loads and schedule the
     // dialog route before returning to the widget-test fake clock.

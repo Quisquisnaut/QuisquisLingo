@@ -94,7 +94,7 @@ void main() {
     });
 
     test('no bundled Course copies a reading answer from its text', () async {
-      for (final code in CourseService.courseAssets.keys) {
+      for (final code in CourseService.bundledAssets.keys) {
         final course = await CourseService().loadCourse(code);
         final codes = CourseAuditService()
             .auditCourse(course)

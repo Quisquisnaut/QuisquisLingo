@@ -53,7 +53,7 @@ void main() {
 
   setUp(() async {
     registerKoreanFixture();
-    for (final asset in CourseService.courseAssets.values) {
+    for (final asset in CourseService.bundledAssets.values) {
       rootBundle.evict(asset);
     }
     resetLockedLessonPreviewSessionForTesting();
@@ -3321,7 +3321,7 @@ void main() {
     expect(recentTiles, hasLength(3));
 
     final recentTitles = [
-      'Temporary Demo: Edge Case Course',
+      'QQL Test: It-En Edge Case Course',
       'AI-Slop Demo: Korean for English Speakers',
       'Third Recent Course',
     ];

@@ -239,13 +239,13 @@ void main() {
         }
       });
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      // Build 272 Revision 17: the start page.
       await tester.pumpUntilFileIoState(
-        () => find
-            .text('No courses available for study in your library.')
-            .evaluate()
-            .isNotEmpty,
+        () => find.byKey(const Key('course-start-page')).evaluate().isNotEmpty,
       );
-      await tester.tap(find.text('All Courses'));
+      await tester.ensureVisible(find.byKey(const Key('start-all-courses')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('start-all-courses')));
       await tester.pumpUntilFileIoState(
         () => find.text('Bundled Courses').evaluate().isNotEmpty,
       );

@@ -135,7 +135,7 @@ void main() {
   });
 
   test(
-    'shipped demo round-trips with exactly its two intentional warnings',
+    'the fixture round-trips with exactly its intentional warnings',
     () async {
       final raw = jsonDecode(await File(_asset).readAsString());
       final legacy = source.toJson()..remove('roundNumberingMode');
@@ -365,7 +365,9 @@ void main() {
     expect(imported.originType, CourseOriginType.custom);
     expect(imported.courseId, isNot(_courseId));
     expect(imported.maintainer!.profileId, isNot(_actor));
-    expect(imported.courseVersion, '1');
+    // Version 2 since the rename of Build 272 Revision 17, so that a device
+    // which has version 1 can take it as an update.
+    expect(imported.courseVersion, '2');
     expect(imported.title, source.title);
     expect(imported.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
     expect(
@@ -392,7 +394,7 @@ void main() {
     // Its Course ZIP carries no media (bundled paths stay bundled) and
     // installs through the ordinary custom import.
     final payload = await transfer.buildCourseExport(imported);
-    expect(payload.fileName, 'QQL_IT_EN_temporary_demo_edge_case_course.zip');
+    expect(payload.fileName, 'QQL_IT_EN_qql_test_it_en_edge_case_course.zip');
     final file = File('${support.path}/${payload.fileName}');
     await file.writeAsBytes(payload.bytes);
     final parsed = await packages.parseFile(file, transfer.courseFromBytes);

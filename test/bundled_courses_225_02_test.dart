@@ -14,7 +14,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test(
-    'all production bundled courses meet their documented release gate',
+    // No Course comes with the app since Build 272 Revision 17: the gate is
+    // kept on the bundled test Course, the Laboratory.
+    'every bundled test Course meets the documented release gate',
     () async {
       final allIds = <String>{};
       final failures = <String>[];
@@ -36,7 +38,7 @@ void main() {
       };
       final observedDemoWarnings = <String>[];
 
-      for (final entry in CourseService.courseAssets.entries) {
+      for (final entry in CourseService.bundledAssets.entries) {
         final raw = await rootBundle.loadString(entry.value);
         final course = Course.fromJson(
           Map<String, dynamic>.from(jsonDecode(raw) as Map),
@@ -127,11 +129,11 @@ void main() {
         }
       }
 
-      // QQL Demo: English from Italian joined in Build 260 Revision 2 and
-      // left the app and the repository in Build 272 Revision 15 (owner
-      // decision of 13 October 2026); the two Piedmontese demos left in
-      // Build 262 Revision 0.
-      expect(CourseService.courseAssets, hasLength(1));
+      // No Course comes with the app since Build 272 Revision 17 (owner
+      // decision of 13 October 2026); the Laboratory audited here is the
+      // bundled test Course the test configuration registers.
+      expect(CourseService.courseAssets, isEmpty);
+      expect(CourseService.bundledAssets, hasLength(1));
       final auditReport = <String>[
         ...auditSummaries,
         'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '

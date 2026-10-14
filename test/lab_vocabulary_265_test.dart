@@ -40,7 +40,7 @@ void main() {
   }
 
   test('every Lesson has 10 to 15 entries, all target = source', () {
-    expect(lab.title, 'QQL Demo: Italian Exercise Lab');
+    expect(lab.title, 'QQL Test: En-It Exercise Lab');
     expect(lab.lessons.map((lesson) => lesson.title), [
       'Select',
       'Input',

@@ -27,7 +27,7 @@ void main() {
   late Directory documents;
 
   setUp(() async {
-    for (final asset in CourseService.courseAssets.values) {
+    for (final asset in CourseService.bundledAssets.values) {
       rootBundle.evict(asset);
     }
     resetLockedLessonPreviewSessionForTesting();

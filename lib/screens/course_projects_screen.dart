@@ -1117,7 +1117,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     if (!_library.importAuthoringEnabled) ...[
                       const SizedBox(height: 12),
                       const Text(
-                        'Unlock Course Studio for this profile to create your own copy (tap Version ten times in Settings). Copy as New Course and Fork are unavailable until then.',
+                        'Unlock Course Studio for this profile to create your own copy (tap Version and Build ten times in Settings). Copy as New Course and Fork are unavailable until then.',
                       ),
                     ],
                     if (review.replaceUnavailableReason != null) ...[

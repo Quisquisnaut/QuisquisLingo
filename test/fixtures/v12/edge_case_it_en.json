@@ -26,7 +26,7 @@
   "targetLanguage": "English",
   "sourceLanguageTag": "it-IT",
   "targetLanguageTag": "en-GB",
-  "title": "Temporary Demo: Edge Case Course",
+  "title": "QQL Test: It-En Edge Case Course",
   "ttsLanguage": "en-GB",
   "audioMode": "hybrid",
   "authors": [
@@ -3270,5 +3270,5 @@
       }
     }
   ],
-  "officialChecksum": "e621514e43239737e690cf12c4dddc840ddc8dd4aec603813ebfa1a113765820"
+  "officialChecksum": "2b40d87c14185b03f83a030711e38d6f9880e93be2ba87d48493c39756440725"
 }

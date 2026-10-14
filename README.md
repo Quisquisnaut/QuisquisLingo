@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.72+272016 · Build 272, Revision 16 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.72+272017 · Build 272, Revision 17 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.72 Beta — QQL 272 modularization (Course Model v12)**
 
@@ -57,7 +57,15 @@ Exercise Lab. Revision 16 turns four pieces of advice of the Course Audit
 from Warnings into notes (Info), so that they no longer turn an exercise
 red: the number of pairs of Listen and match and Match by meaning (said
 only for one pair, or for six and more; 2 to 5 are recommended) and a
-Flashcard's missing usage sentence or read-aloud.
+Flashcard's missing usage sentence or read-aloud. Revision 17 (owner
+decision) takes the Laboratory out of the app too: no Course comes with
+QuisquisLingo, Courses are imported or created. A learner without a Course
+starts on a start page with **Import a Course** and **New Course** and a
+short explanation of where Courses come from, how to import one and how to
+turn on Course Studio. The Laboratory and the Edge Case Course are files to
+import in `demo_courses/`, renamed **QQL Test: En-It Exercise Lab** and
+**QQL Test: It-En Edge Case Course**; the Laboratory's file stays in the
+app only as the source of Fill with an example.
 
 Build 271 fixes the more relevant findings still open after Build 270 and
 reorganizes the Audio Library ([plan](docs/271_PLAN.md),
@@ -877,7 +885,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.72, Build 272, Revision 16 is a time-limited Beta with an expiry of **2026-11-12 23:59:59 local time** (30 days after the 13 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.72, Build 272, Revision 17 is a time-limited Beta with an expiry of **2026-11-13 23:59:59 local time** (30 days after the 14 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -910,7 +918,7 @@ On Android, the platform's own Auto Backup is deliberately left enabled, because
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- One bundled sample course, QQL Demo: Italian Exercise Lab; the Edge Case Course is in `demo_courses/`, to import
+- No bundled course: Courses are imported or created. Two test Courses to import are in `demo_courses/`, QQL Test: En-It Exercise Lab and QQL Test: It-En Edge Case Course
 - Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses

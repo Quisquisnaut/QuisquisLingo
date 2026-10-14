@@ -159,16 +159,14 @@ void main() {
       await SettingsService().markOneTimeNoticeSeen(
         'welcome_${AppMetadata.technicalVersion}',
       );
-      for (final code in CourseService.courseAssets.keys) {
+      for (final code in CourseService.bundledAssets.keys) {
         await library.remove(await CourseService().loadCourse(code));
       }
     });
     await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    // Build 272 Revision 17: the start page.
     await tester.pumpUntilFileIoState(
-      () => find
-          .text('No courses available for study in your library.')
-          .evaluate()
-          .isNotEmpty,
+      () => find.byKey(const Key('course-start-page')).evaluate().isNotEmpty,
     );
     expect(find.byType(CircularProgressIndicator), findsNothing);
     if (find.text('Beta expiry').evaluate().isNotEmpty) {
@@ -226,8 +224,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.pageBack();
     await tester.pumpUntilFileIoState(
-      () => find.text('All Courses').evaluate().isNotEmpty,
+      () => find
+          .byKey(const Key('empty-library-course-manager'))
+          .evaluate()
+          .isNotEmpty,
     );
+    await tester.ensureVisible(
+      find.byKey(const Key('empty-library-course-manager')),
+    );
+    await tester.pump();
     await tester.tap(find.byKey(const Key('empty-library-course-manager')));
     await tester.pumpUntilFileIoState(
       () => find

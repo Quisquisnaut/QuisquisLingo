@@ -63,7 +63,7 @@ void main() {
   });
 
   test('the bundled exercises are titled by their recognized preset', () async {
-    for (final code in CourseService.courseAssets.keys) {
+    for (final code in CourseService.bundledAssets.keys) {
       final course = await CourseService().loadCourse(code);
       for (final exercise in _exercises(course)) {
         final preset = ExercisePresetRegistry.byId(exercise.editorTemplate);

@@ -1,6 +1,6 @@
 # Localization: current state
 
-12 October 2026, Build 271 Revision 5 (`2.0.71+271005`).
+12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10).
 
 This document says what QuisquisLingo shows in which language today, and lists the texts that are translated. The tables are generated from the catalogs in `lib/localization/` as they are in this revision.
 
@@ -14,6 +14,8 @@ Owner decisions of 12 October 2026, after seeing how the labels were shown in an
 4. **Two groups of texts are in the learner's language**: the exercise titles and instructions with the buttons and messages around an exercise (7 languages), and Help, the FAQ, App Info and Course Info (3 languages).
 5. **Localization proper is a future project.** Until then no further text is translated and no language is added.
 
+One page was added to the second group after these decisions: the start page of Build 272 Revision 17, which a learner without a Course sees. It explains how to import or create a Course, as the Welcome Wizard shown just before it does, so it was written in the three Help languages with its button names in English. Whether it stays translated is the owner's to confirm; English alone would be a one-line change.
+
 ## 2. What is in which language
 
 | What | Languages | It follows | Where the texts are |
@@ -26,6 +28,7 @@ Owner decisions of 12 October 2026, after seeing how the labels were shown in an
 | Names of languages inside those lines, such as "Traduci in tedesco." (62 languages) | The same seven | The Course's Source language | `lib/localization/language_names.dart` |
 | Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (828 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
 | The Welcome Wizard (15 texts) | English, Italian, Spanish | The language chosen in Create Profile (the Help Language) | `lib/localization/welcome_text.dart` |
+| The start page, shown while a learner has no Course to study (27 texts) | English, Italian, Spanish | The Help Language | `lib/localization/start_page_text.dart` |
 | The content of a Course | Whatever its author wrote | The Course | The Course file |
 
 How the two choices work:
@@ -419,7 +422,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `step1.title` | Welcome aboard! | Ti diamo il benvenuto! |
 | `step1.body` | QuisquisLingo is a language school that fits in your pocket: no account, no ads, no cloud. Everything you learn stays on this device. | QuisquisLingo è una scuola di lingue che sta in tasca: niente account, niente pubblicità, niente cloud. Tutto quello che impari resta su questo dispositivo. |
 | `step2.title` | Courses made by others | Corsi fatti da altri |
-| `step2.body` | Friends, teachers and publishers can make Courses too, and share them as a file. Tap the flag at the top, choose Import Course, and start learning from what they made. | Anche amici, insegnanti ed editori possono creare corsi e condividerli come file. Tocca la bandiera in alto, scegli Import Course e comincia a imparare da quello che hanno preparato. |
+| `step2.body` | Courses are made by people: friends, teachers and publishers write them and share them as a file. Choose Import a Course on the start page, or later tap the flag at the top and choose Import Course, and start learning from what they made. | I corsi li fanno le persone: amici, insegnanti ed editori li scrivono e li condividono come file. Scegli Import a Course nella pagina iniziale, oppure più avanti tocca la bandiera in alto e scegli Import Course, e comincia a imparare da quello che hanno preparato. |
 | `step3.title` | Lessons, Rounds, Laurels | Lesson, Round, Laurel |
 | `step3.body` | A Lesson is a path of short Rounds. Finish a Round without mistakes to earn a Laurel. Feeling brave? Win the Lesson's Duel to jump ahead. | Una Lesson è un percorso di Round brevi. Completa un Round senza errori e guadagni un Laurel. Ti va una sfida? Vinci il Duel della Lesson per saltare avanti. |
 | `step4.title` | Little and often | Poco ma spesso |
@@ -859,6 +862,40 @@ Answers, section bodies, the description of each exercise type and the Help of e
 | The field Help of the GuideBook module page | 9 |
 | Debug Help | 3 |
 | Total | 491 |
+
+### 6.10 The start page (27 texts, 3 languages)
+
+Added in Build 272 Revision 17. `{count}` is a number and `{folderCourseImports}` the folder of Quick Import on the device.
+
+| Key | English | Italian |
+|---|---|---|
+| `title` | Start here | Comincia da qui |
+| `intro` | QuisquisLingo comes with no Course inside: you bring the Courses. Import one that someone made, or make your own. | QuisquisLingo non contiene nessun corso: i corsi li porti tu. Importane uno fatto da altri, oppure creane uno tuo. |
+| `waiting.one` | You have 1 Course, but it cannot be studied yet: a Course must be Published before it can be studied, and a Publisher Course also needs its publisher verified. To publish a Course of your own, open it from Course Studio and choose Publish. | Hai 1 corso, ma non si può ancora studiare: un corso va pubblicato (Published) prima di poterlo studiare, e un Publisher Course richiede anche la verifica del suo editore. Per pubblicare un tuo corso, aprilo da Course Studio e scegli Publish. |
+| `waiting.many` | You have {count} Courses, but none can be studied yet: a Course must be Published before it can be studied, and a Publisher Course also needs its publisher verified. To publish a Course of your own, open it from Course Studio and choose Publish. | Hai {count} corsi, ma nessuno si può ancora studiare: un corso va pubblicato (Published) prima di poterlo studiare, e un Publisher Course richiede anche la verifica del suo editore. Per pubblicare un tuo corso, aprilo da Course Studio e scegli Publish. |
+| `where.title` | Where do Courses come from? | Da dove arrivano i corsi? |
+| `where.body` | A Course is a file: a .zip package, or a .json file when it has no pictures or recordings of its own. Whoever made it gives it to you: a friend, a teacher, your Team, a publisher. It can reach you by e-mail or chat, on a USB stick or through a shared folder. QuisquisLingo has no shop and downloads no Course by itself: save the file on this device, then import it. | Un corso è un file: un pacchetto .zip, oppure un file .json quando non ha immagini o registrazioni proprie. Te lo dà chi lo ha creato: un amico, un insegnante, il tuo Team, un editore. Può arrivarti per e-mail o in chat, su una chiavetta USB o in una cartella condivisa. QuisquisLingo non ha un negozio e non scarica corsi da solo: salva il file su questo dispositivo, poi importalo. |
+| `where.friend` | A friend | Un amico |
+| `where.teacher` | A teacher | Un insegnante |
+| `where.publisher` | A publisher | Un editore |
+| `import.title` | Import a Course | Importare un corso |
+| `import.step1` | Save the Course file on this device, for example in Downloads. | Salva il file del corso su questo dispositivo, per esempio in Download. |
+| `import.step2` | Tap Import a Course below. | Tocca Import a Course qui sotto. |
+| `import.step3` | Tap Open from… and choose the file. Or use Quick Import: it reads a file named import.zip (import.json for a .json file) from {folderCourseImports}. | Tocca Open from… e scegli il file. Oppure usa Quick Import: legge un file chiamato import.zip (import.json per un file .json) nella cartella {folderCourseImports}. |
+| `import.step4` | QuisquisLingo checks the file, shows what it found and asks before it adds the Course. Once imported, a Published Course can be studied at once. | QuisquisLingo controlla il file, mostra che cosa ha trovato e chiede conferma prima di aggiungere il corso. Dopo l’importazione, un corso pubblicato (Published) si può studiare subito. |
+| `create.title` | Make your own Course | Creare un tuo corso |
+| `create.body` | Courses are written in Course Studio, with the Course Editor. Both stay hidden until you turn them on for your profile. | I corsi si scrivono in Course Studio, con il Course Editor. Tutti e due restano nascosti finché non li attivi per il tuo profilo. |
+| `create.step1` | Open Settings: the gear at the top of this page. | Apri Settings: l’ingranaggio in alto in questa pagina. |
+| `create.step2` | Tap Version and Build ten times, until QuisquisLingo says Course Studio unlocked. | Tocca Version and Build dieci volte, finché QuisquisLingo non dice Course Studio unlocked. |
+| `create.step3` | Come back here and tap New Course. The Course Wizard asks for the two languages and a title, then guides you through Lessons, GuideBooks and Rounds. | Torna qui e tocca New Course. Il Course Wizard chiede le due lingue e un titolo, poi ti guida tra Lesson, GuideBook e Round. |
+| `create.step4` | To change a Course later, open Course Studio and tap the Course: the Course Editor opens. Switch its access state to Edit to make changes. | Per modificare un corso in seguito, apri Course Studio e tocca il corso: si apre il Course Editor. Per fare modifiche, porta il suo stato di accesso su Edit. |
+| `create.step5` | A new Course is a Draft and cannot be studied yet. Publish it (the Course Wizard’s last step, or Publish in the Course Editor): then it appears here, ready to study. | Un corso nuovo è un Draft e non si può ancora studiare. Pubblicalo (l’ultimo passo del Course Wizard, oppure Publish nel Course Editor): allora compare qui, pronto da studiare. |
+| `create.on` | Course Studio is on for your profile. | Course Studio è attivo per il tuo profilo. |
+| `create.off` | Course Studio is off for your profile: follow steps 1 and 2 first. | Course Studio non è attivo per il tuo profilo: segui prima i passi 1 e 2. |
+| `device.title` | Courses already on this device | Corsi già presenti su questo dispositivo |
+| `device.some.one` | This device already has 1 Course you can study that is not among your courses. Open All Courses and choose Add to my courses: no file is needed. | Su questo dispositivo c’è già 1 corso che puoi studiare e che non è tra i tuoi. Apri All Courses e scegli Add to my courses: non serve nessun file. |
+| `device.some.many` | This device already has {count} Courses you can study that are not among your courses. Open All Courses and choose Add to my courses: no file is needed. | Su questo dispositivo ci sono già {count} corsi che puoi studiare e che non sono tra i tuoi. Apri All Courses e scegli Add to my courses: non serve nessun file. |
+| `device.none` | All Courses lists the Courses of this device. When another learner of this device makes or imports one, you can add it to your courses there, without a file. Right now there is none to add and study. | All Courses elenca i corsi di questo dispositivo. Quando un altro studente di questo dispositivo ne crea o ne importa uno, lì puoi aggiungerlo ai tuoi, senza file. Per ora non ce n’è nessuno da aggiungere e studiare. |
 
 ## 7. For the future project
 

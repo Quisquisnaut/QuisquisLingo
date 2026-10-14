@@ -33,7 +33,7 @@ void main() {
   late SettingsService settings;
 
   setUp(() async {
-    for (final asset in CourseService.courseAssets.values) {
+    for (final asset in CourseService.bundledAssets.values) {
       rootBundle.evict(asset);
     }
     resetLockedLessonPreviewSessionForTesting();

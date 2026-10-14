@@ -10,22 +10,22 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('the bundled sources have verified immutable provenance', () async {
-    // The Edge Case left the bundle in Build 259 Revision 5; QQL Demo:
-    // English from Italian joined it in Build 260 Revision 2 and left the
-    // app and the repository in Build 272 Revision 15 (owner decision of
-    // 13 October 2026); the two Piedmontese demos left it in Build 262
-    // Revision 0.
-    expect(CourseService.courseAssets, hasLength(1));
+    // No Course comes with the app since Build 272 Revision 17 (owner
+    // decision of 13 October 2026). The Laboratory's file keeps its
+    // bundled shape: it is the source of Fill with an example and, for the
+    // tests, the bundled test Course the test configuration registers.
+    expect(CourseService.courseAssets, isEmpty);
+    expect(CourseService.bundledAssets, hasLength(1));
     final mismatches = <String, String>{};
     final titles = <String>{};
-    for (final entry in CourseService.courseAssets.entries) {
+    for (final entry in CourseService.bundledAssets.entries) {
       final raw = jsonDecode(await rootBundle.loadString(entry.value));
       final course = Course.fromJson(Map<String, dynamic>.from(raw as Map));
       expect(course.originType, CourseOriginType.bundledOfficial);
       // Not a Private course (Build 259 Revision 8).
       expect(course.temporarySample, isFalse);
-      // Revision 6 titles: Demo: … and QQL Demo: … (owner decision).
-      expect(course.title, contains('Demo: '));
+      // Build 272 Revision 17 (owner decision): QQL Test: ….
+      expect(course.title, startsWith('QQL Test: '));
       titles.add(course.title);
       expect(course.publisherId, 'org.quisquislingo');
       expect(
@@ -38,8 +38,8 @@ void main() {
       }
     }
     expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
-    expect(titles, {'QQL Demo: Italian Exercise Lab'});
-    for (final entry in CourseService.courseAssets.entries) {
+    expect(titles, {'QQL Test: En-It Exercise Lab'});
+    for (final entry in CourseService.bundledAssets.entries) {
       expect(
         (await CourseService().loadBundledCourse(entry.key)).courseId,
         isNotEmpty,
@@ -55,7 +55,7 @@ void main() {
     () async {
       const derivatives = {'IT': DerivativeWorksPolicy.allowed};
       expect(
-        CourseService.courseAssets.keys,
+        CourseService.bundledAssets.keys,
         unorderedEquals(derivatives.keys),
       );
       for (final entry in derivatives.entries) {
