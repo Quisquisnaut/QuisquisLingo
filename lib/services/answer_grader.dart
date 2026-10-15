@@ -150,15 +150,24 @@ class AnswerGrader {
   }
 
   /// Missing words typed into one field per gap ([typed], in the gaps'
-  /// order): every gap accepts its text (no typo tolerance, no literal
-  /// answers), and there are as many fields as gaps.
+  /// order): every gap accepts its text, and there are as many fields as
+  /// gaps. Each gap's text is trimmed, as one typed answer is, and
+  /// follows the exercise's options for capitals, punctuation, spaces and
+  /// accents, and never forgives a typo (Build 273 Revision 3, owner
+  /// decision: Missing letters tests spelling); a gap has no literal answers
+  /// of its own.
   bool missingWords(ExerciseFeatures f, List<String> typed) {
     final targets = f.gapFieldTargets;
     var correct = typed.length == targets.length;
     for (var i = 0; i < typed.length && i < targets.length; i++) {
       final answers = f.answersFor(targets[i].id);
       if (answers == null ||
-          !_engine.accepts(typed[i], answers.answers, typoTolerance: false)) {
+          !_engine.accepts(
+            typed[i].trim(),
+            answers.answers,
+            normalization: f.normalization,
+            typoTolerance: false,
+          )) {
         correct = false;
       }
     }

@@ -1,3 +1,46 @@
+# 2.0.73 (Build 273, Revision 3) - the owner's decisions on Revisions 1 and 2 - 2026-10-15
+
+Decided by the owner on 15 October 2026 on the differences Revisions 1
+and 2 found. A change of behaviour, on purpose in a revision of its own.
+
+- **The Round type is checked on every Apply of an exercise.** An
+  exercise that does not fit its Round's type (for example a Listen Round
+  exercise that does not need its audio) is refused on Apply in the preset
+  form ("Round type compatibility" with the reason) and in the Round
+  editor's exercise list ("Exercise cannot be applied as normal content:
+  …", one line), as the canonical editor already did. Before, the two let
+  it through: the Audit then turned the Round red and, once the Round was
+  Published, learners got nothing to play in it. Apply as draft is not
+  checked. The rule is the Course Audit's own (`PublishGate.roundTypeIssues`),
+  so a Before you start card is exempt except in a FlashCard or a Test
+  Round, also in the canonical editor, whose check and its notice above
+  the form now follow the Audit (before, they also refused such a card in
+  a Listen, Read, Timed or Speak Round, which the Audit accepts). The
+  Exercise Wizard opens the same preset form, so its Apply is refused too
+  for an exercise that does not fit the Round (its results are kept as
+  Draft anyway: Apply as draft works). Copy to…, Move to… and Duplicate are
+  not checked; the Audit still marks the Round red.
+- **A refused Preview lists "CODE: message"** in the preset form, as in the
+  canonical editor (before, the preset form showed the messages separated
+  by blank lines).
+- **Gaps follow the exercise's options for capitals, punctuation, spaces
+  and accents** in Listen and fill the gaps, Complete the text and
+  Missing letters, as one typed answer does: a gap's text is trimmed and a
+  gap never forgives a typo (Missing letters tests spelling). With the
+  options the forms leave (the defaults) nothing changes; the difference
+  shows only for an exercise whose options were changed in the canonical
+  editor or come from an imported file.
+- Left as they are (owner): the two wordings of "move to Draft", the
+  exercise list's one-line refusal, gaps chosen compared by option and gap
+  blocks by text, and an exercise without pairs in Listen and match.
+- Found along the way and left for the owner: the option "Accents: exact"
+  has no effect (a missing accent is accepted as with "missing accents
+  accepted", in gaps and in typed answers alike).
+- For the owner: a Before you start card in a FlashCard or Test Round
+  breaks the Audit's rule (and is now refused on Apply) although learners
+  are shown it in every Round type.
+- Tests: `test/owner_decisions_273_r3_test.dart` (15).
+
 # 2.0.73 (Build 273, Revision 2) - answer grading out of the Round screen - 2026-10-15
 
 Nothing a learner sees changes: the same answers are right and the same

@@ -110,3 +110,38 @@
   corrections touched only tests and documents.
 - `flutter analyze`: no issues.
 - Complete suite: **4,733 passed, 1 skipped, 0 failed**, 37 minutes.
+
+## Revision 3 (2.0.73+273003), the owner's decisions
+
+15 October 2026, same PC, `build-273` after `ebda10ae`. A behaviour change
+(owner decisions of the same day); the commit description was shown to the
+owner before the commit ("Go").
+
+- New tests: `test/owner_decisions_273_r3_test.dart`, **15 passed**, six
+  runs in a row: `PublishGate.roundTypeIssues` (no Round; a choice in a
+  Listen Round, also one the Round does not hold yet; not when the Content
+  is not required; a Before you start card exempt in a Listen Round, not
+  in a FlashCard or a Test Round) and the list's refusal text; gaps
+  (capitals ignored by default and counted when exact; a wrong accent
+  refused by default and accepted when accents are ignored; a gap trimmed
+  first under "Spaces: exact"; a doubled letter never forgiven); the preset
+  form (Apply refused with "Round type compatibility", also for a new
+  exercise; Apply as draft not checked; a Before you start card in a
+  Listen Round applied; a refused Preview listing "PAGE_LINK_INVALID: …");
+  the canonical editor (no notice and Apply for such a card); the Round
+  editor's list (the one-line refusal).
+- Focused: 21 files of the changed areas (publish gate, grading, both
+  editors, Round types, Timed Rounds, missing words, Complete the text,
+  Before you start, the exercise editor, first letter): 181 passed.
+- Independent review (before the suite): no blocking fault; the gate is the
+  Audit's rule. Acted on: a gap's text trimmed (with "Spaces: exact" a
+  trailing space would have made a gap wrong where one typed answer
+  forgives it); the Test Round case and a new exercise tested; the docs
+  made exact (Speak Rounds, the Exercise Wizard's form is checked too,
+  Copy/Move/Duplicate are not, the current preset names, imported files);
+  a stale comment. The one-word `.trim()` was not reviewed again: with the
+  default options the engine trims anyway. Reported to the owner: a Before
+  you start card in a FlashCard or Test Round breaks the Audit's rule
+  though learners are shown it; "Accents: exact" has no effect.
+- `flutter analyze`: no issues.
+- Complete suite: **4,748 passed, 1 skipped, 0 failed**, 38 minutes.

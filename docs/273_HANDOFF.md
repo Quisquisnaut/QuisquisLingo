@@ -29,8 +29,8 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 | 0 | `StoryCast`: the Story cast rules of the Course Editor and the Story Wizard | done |
 | 1 | One publish gate (eight copies, A–H below) | done; four differences put to the owner |
 | 2 | `AnswerGrader`: the Round screen's grading, pure | done |
-| 3 | The owner's decisions on Revision 1's differences (below): the Round type check before Apply in the preset form and the exercise list; the canonical editor's Preview refusal list in both forms (behaviour change) | planned |
-| 4 | `SpokenLineHold`: the held Story line | planned |
+| 3 | The owner's decisions (below): the Round type check before Apply in the preset form and the exercise list (Revision 1, point 2); the canonical editor's Preview refusal list in both forms (Revision 1, point 3); gaps follow the exercise's normalization options, never typo tolerance (Revision 2, point 1). A behaviour change | done |
+| 4 | `SpokenLineHold`: the held Story line | in progress |
 | 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | planned |
 | 6 | Access PIN and lock owner; the Team-registry rewrite out of `ProfileService` | planned |
 | 7 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
@@ -159,10 +159,53 @@ suite, the commit, the branch push; then put Revision 2's differences to
 the owner (`docs/273_CHANGE_SUMMARY.md`, Revision 2, "Differences kept").
 
 Complete suite 4,733 passed, 1 skipped; committed about 13:45 and pushed.
-**Owner answers of 15 October 2026 (about 13:40):** point 2 (gaps by
-option ID vs blocks by text) and point 3 (no pairs) **leave them**; point 1
-(gaps stricter than one typed answer) **"Discuss pros and cons"**: pros and
-cons given in the conversation, answer pending.
+**Owner answers of 15 October 2026 (about 13:40–13:50):** point 2 (gaps
+by option ID vs blocks by text) and point 3 (no pairs; asked twice) **leave
+them**; point 1 (gaps stricter than one typed answer), after the pros and
+cons: **the middle way**: gaps follow the exercise's capitals,
+punctuation, spaces and accents options, and never forgive typos (Missing
+letters tests spelling; no per-gap "accepted with differences" note
+needed). Revision 3 carries it with Revision 1's points 2 and 3.
+
+## Revision 3 (2.0.73+273003): the owner's decisions
+
+In the working tree (15 October 2026, about 14:00): `PublishGate.roundTypeIssues`
+(the Audit's ROUND_TYPE_* rule for one exercise, Before you start card
+exempt except in FlashCard and Test Rounds) and `roundTypeRefusal`; the
+preset form checks before its Audit (Apply only), the Round editor's list
+refuses in one line, the canonical editor's check and notice follow the
+gate (the card exemption is new there); the preset form's Preview refusal
+is `showEditorList` with "CODE: message"; `AnswerGrader.missingWords`
+passes `f.normalization`. Tests `test/owner_decisions_273_r3_test.dart`
+(13, six runs), the focused batch (21 files, 181) pass; analyzer clean on
+`lib`. Version 273003, docs written. Found and left for the owner:
+"Accents: exact" has no effect (same normalization as "missing accents
+accepted"); a Before you start card in a FlashCard or Test Round breaks the
+Audit's rule though `RoundPlayabilityService` shows it in every Round type.
+Independent review: no blocking fault; acted on: `missingWords` trims each
+gap (with "Spaces: exact" a trailing space would have made a gap wrong),
+two more tests (Test Round card, a new exercise refused), docs (Speak
+Rounds, the Exercise Wizard's form is checked too, Copy/Move/Duplicate not
+checked, preset names, imported files). The one-word `.trim()` correction
+was not reviewed again (default options give the same result: the engine
+trims under "Spaces: normalize"). Tests 15, six runs; analyzer clean.
+Complete suite 4,748 passed, 1 skipped. The owner said "Go" on the commit
+description; committed about 14:55 and pushed.
+
+## Revision 4 (next): the held Story line
+
+Prepared in the session scratchpad `r4/` (15 October 2026):
+`spoken_line_hold.dart` (`SpokenLineHold`: `prepare(spoken:, active:)`,
+`armWatchdog`, `voiceStarted` → token, `voiceDone(token, ok:, elapsed:,
+spoken:)`, `read(token)`, `tapStarted` / `tapEnded`, `dispose`; getters
+`line`, `held`, `speaking`, `voiceEnded`, `finished`, `playing`,
+`estimate`, `waits`; `watchdogDelay` 5 s, `ceilingSlack` 5 s; its own line
+counter in step with the screen's `_preparedExerciseGeneration`, which only
+`_prepareExercise` increments, right before `_prepareLineHold`),
+`apply_r4.py` (the Round screen's edits) and
+`spoken_line_hold_273_test.dart`. One harmless difference planned: the
+ceiling is not armed after the page is gone (before, a timer was armed and
+did nothing).
 
 Tools in the session scratchpad: `bump.py OLD NEW [--shift-day]` (every
 version pin, the Beta comment and dates), `r0/apply_r0.py`,

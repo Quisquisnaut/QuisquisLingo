@@ -188,3 +188,54 @@ without opening a Round.
 
 Which answers are right, the feedback, the right answer shown, the XP,
 the keys and the texts. No new key or folder.
+
+## Revision 3 (2.0.73+273003): the owner's decisions on Revisions 1 and 2
+
+Decided by the owner on 15 October 2026 on the differences above. A change
+of behaviour.
+
+### What changes
+
+1. **The Round type is checked on every Apply of an exercise** (Revision
+   1, point 2). The preset form refuses Apply with "Round type
+   compatibility" and the reason, and the Round editor's exercise list
+   refuses in one line ("Exercise cannot be applied as normal content:
+   This required exercise does not structurally require audio."), as the
+   canonical editor already did. Apply as draft is not checked. The rule
+   is the Course Audit's own: a Before you start card is exempt except in
+   a FlashCard or a Test Round. The canonical editor's check and the
+   notice above its form follow that rule too, so it no longer refuses a
+   Before you start card in a Listen, Read, Timed or Speak Round (the Audit
+   accepts it there). The Exercise Wizard opens the same preset form, so
+   its Apply is refused too for an exercise that does not fit the Round
+   (the Wizard keeps its results as Draft anyway: Apply as draft works).
+   Copy to…, Move to… and Duplicate keep an exercise's state and are not
+   checked; the Audit still marks the Round red.
+2. **A refused Preview lists "CODE: message"** in the preset form as in
+   the canonical editor (Revision 1, point 3).
+3. **Gaps follow the exercise's options for capitals, punctuation, spaces
+   and accents, never typos** (Revision 2, point 1, the middle way): in
+   Listen and fill the gaps, Complete the text and Missing letters. A
+   gap's text is trimmed first, as one typed answer is. With the options
+   the forms leave, nothing changes; an exercise whose options were
+   changed in the canonical editor, or that came from a file with other
+   options, now grades its gaps by them ("Capitals: exact" makes "Legge"
+   wrong for "legge"; "Accents: ignore" accepts "lègge").
+
+### Left as they are (owner)
+
+The two wordings of "move to Draft"; the exercise list's one-line Audit
+refusal; gaps chosen compared by option, gap blocks by text; an exercise
+without pairs in Listen and match.
+
+### Found along the way, for the owner
+
+"Accents: exact" has no effect: the answer engine is given the same rules
+for "exact" as for "missing accents accepted", and a missing accent is
+accepted in both (in gaps and in typed answers alike). No form sets it; the
+canonical editor offers it.
+
+A Before you start card in a FlashCard or a Test Round breaks the Audit's
+Round type rule (and is now refused on Apply), although the learner is
+shown it in every Round type (`RoundPlayabilityService`). Found by the
+independent review; the rule is older than this Build.

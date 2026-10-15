@@ -1,6 +1,8 @@
 import '../models/course_models.dart';
+import '../models/exercise_features.dart';
 import 'course_audit_service.dart';
 import 'publication_service.dart';
+import 'round_type_compatibility.dart';
 
 /// Whether an item of a Course may be applied as normal content (Published)
 /// (Build 273 Revision 1): the one owner of the check the Course Editor's
@@ -53,6 +55,43 @@ class PublishGate {
   /// The Course Audit's findings on [exercise] alone.
   List<CourseAuditIssue> exerciseIssues(Exercise exercise) =>
       _service.auditExercise(exercise);
+
+  /// The Round type rules [exercise] breaks in [round] (Build 273
+  /// Revision 3, owner decision: checked before Apply wherever an exercise
+  /// is applied): the Course Audit's ROUND_TYPE_* rule for one exercise,
+  /// which turns the Round red and, once the Round is Published, leaves
+  /// learners nothing to play in it. None without a Round. A Before you
+  /// start card is exempt except in a FlashCard or a Test Round, as in the
+  /// Audit. Whether the exercise is required comes from its Content entry
+  /// in [round]; an exercise the Round does not hold yet is required.
+  static List<RoundTypeIssue> roundTypeIssues(
+    LearningRound? round,
+    Exercise exercise,
+  ) {
+    if (round == null) return const [];
+    if (ExerciseFeatures(exercise).kind == LearnerExerciseKind.roundIntro &&
+        round.roundType != RoundType.flashcard &&
+        round.roundType != RoundType.test) {
+      return const [];
+    }
+    final required =
+        round.content
+            .where((content) => content.id == exercise.id)
+            .firstOrNull
+            ?.required ??
+        true;
+    return RoundTypeCompatibility.issuesForExercise(
+      round.roundType,
+      exercise,
+      required: required,
+    );
+  }
+
+  /// Why the Round editor's list cannot apply an exercise that breaks its
+  /// Round's type: one line, as its other refusal.
+  static String roundTypeRefusal(List<RoundTypeIssue> issues) =>
+      'Exercise cannot be applied as normal content: '
+      '${issues.map(RoundTypeCompatibility.message).join(' ')}';
 
   /// The errors among [issues], in their order.
   static List<CourseAuditIssue> errorsIn(List<CourseAuditIssue> issues) => [

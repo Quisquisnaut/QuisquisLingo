@@ -2520,6 +2520,15 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       await _persistAndClose(ex, close: close);
       return true;
     }
+    final incompatible = PublishGate.roundTypeIssues(widget.round, ex);
+    if (incompatible.isNotEmpty) {
+      await showEditorList(
+        context,
+        'Round type compatibility',
+        incompatible.map(RoundTypeCompatibility.message).toList(),
+      );
+      return false;
+    }
     final issues = const PublishGate().exerciseIssues(ex);
     final errors = PublishGate.errorsIn(issues);
     final warnings = PublishGate.warningCount(issues);
@@ -2602,23 +2611,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     final errors = CourseAuditService()
         .auditExercise(candidate)
         .where((issue) => issue.severity == AuditSeverity.error)
+        .map((issue) => '${issue.code}: ${issue.message}')
         .toList();
     if (errors.isNotEmpty) {
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Complete these fields to Preview'),
-          content: SingleChildScrollView(
-            child: Text(errors.map((issue) => issue.message).join('\n\n')),
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Keep editing'),
-            ),
-          ],
-        ),
-      );
+      await showEditorList(context, 'Complete these fields to Preview', errors);
       return;
     }
     final previewRound = LearningRound(

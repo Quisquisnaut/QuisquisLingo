@@ -5868,6 +5868,15 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       );
       return;
     }
+    if (state.isPublished) {
+      final incompatible = PublishGate.roundTypeIssues(_editedRound(), changed);
+      if (incompatible.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(PublishGate.roundTypeRefusal(incompatible))),
+        );
+        return;
+      }
+    }
     _mutateRound(() => _exercises[index] = changed);
   }
 

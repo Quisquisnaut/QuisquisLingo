@@ -308,26 +308,13 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     }
     final exercise = _candidate(state);
     if (state.isPublished) {
-      final type = widget.round?.roundType;
-      if (type != null) {
-        final required =
-            widget.round?.content
-                .where((content) => content.id == widget.exercise.id)
-                .firstOrNull
-                ?.required ??
-            true;
-        final incompatible = RoundTypeCompatibility.issuesForExercise(
-          type,
-          exercise,
-          required: required,
+      final incompatible = PublishGate.roundTypeIssues(widget.round, exercise);
+      if (incompatible.isNotEmpty) {
+        await _showList(
+          'Round type compatibility',
+          incompatible.map(RoundTypeCompatibility.message).toList(),
         );
-        if (incompatible.isNotEmpty) {
-          await _showList(
-            'Round type compatibility',
-            incompatible.map(RoundTypeCompatibility.message).toList(),
-          );
-          return false;
-        }
+        return false;
       }
       final issues = const PublishGate().exerciseIssues(exercise);
       final errors = PublishGate.errorsIn(issues);
@@ -590,18 +577,11 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       evaluationMode: _draft.evaluation.mode,
     );
     final violations = _draft.violations;
-    final type = widget.round?.roundType;
-    final compatibility = type == null || violations.isNotEmpty
+    final compatibility = violations.isNotEmpty
         ? const <RoundTypeIssue>[]
-        : RoundTypeCompatibility.issuesForExercise(
-            type,
+        : PublishGate.roundTypeIssues(
+            widget.round,
             _candidate(PublicationState.draft),
-            required:
-                widget.round?.content
-                    .where((content) => content.id == widget.exercise.id)
-                    .firstOrNull
-                    ?.required ??
-                true,
           );
     return PopScope(
       canPop: _routeMayPop,

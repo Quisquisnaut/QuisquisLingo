@@ -29,8 +29,8 @@ Future<bool> confirmMoveToDraft(BuildContext context, String entity) async =>
     false;
 
 /// A list of [lines] under [title] with Keep editing: why an exercise form
-/// refuses to apply an exercise (both exercise forms) or to Preview it (the
-/// canonical editor) (Build 273 Revision 1).
+/// refuses to apply an exercise or to Preview it (both exercise forms,
+/// Build 273 Revisions 1 and 3).
 Future<void> showEditorList(
   BuildContext context,
   String title,
