@@ -49,7 +49,7 @@ import '../services/learner_mascots.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/word_lookup/word_lookup.dart';
 import '../services/word_lookup/word_lookup_sources.dart';
-import '../services/spoken_line_pace.dart';
+import '../services/spoken_line_hold.dart';
 import '../widgets/spoken_line_text.dart';
 import '../widgets/word_lookup_view.dart';
 import 'guidebook_screen.dart';
@@ -337,36 +337,24 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _lineAudioPlayed = false;
 
   /// Build 269 Revision 0 (owner decisions of 10 October 2026): a dialogue
-  /// line that reads itself aloud (automatic read-aloud, audio playable)
-  /// holds Continue until it has been read. Its words brighten as the time
-  /// to say them passes ([SpokenLineText]); the line is read once the voice
-  /// has finished and its time has passed. A voice that returns before
-  /// [SpokenLinePace.realEndShare] of the estimate did not report its end,
-  /// so the estimate alone decides. A tap on Play changes nothing.
-  bool _lineHeld = false;
-  bool _lineSpeaking = false;
-  bool _lineVoiceEnded = false;
-  bool _lineFinished = false;
-  Duration _lineEstimate = Duration.zero;
-  Timer? _lineTimer;
-
-  /// Releases Continue when a held line's voice never starts.
-  Timer? _lineWatchdog;
-  static const lineWatchdogDelay = Duration(seconds: 5);
-
-  /// Build 270 Revision 2: releases Continue when a held line's voice started
-  /// but never reports its end (Android's speech engine after an error or an
-  /// interruption, a recording that does not finish, a stuck Linux player),
-  /// after twice the line's estimate and [lineCeilingSlack].
-  Timer? _lineCeiling;
-  bool _lineCeilingReached = false;
-  static const lineCeilingSlack = Duration(seconds: 5);
-
-  /// A tap on a line's Play is playing; Play waits for it.
-  bool _linePlaying = false;
-
-  /// Whether Continue waits for the active line to be read.
-  bool get _lineWaits => _lineHeld && !(_lineVoiceEnded && _lineFinished);
+  /// line that reads itself aloud holds Continue until it has been read
+  /// ([SpokenLineHold], Build 273 Revision 4).
+  late final SpokenLineHold _hold = SpokenLineHold(
+    onChanged: () {
+      if (mounted) setState(() {});
+    },
+    onVoiceNeverStarted: () => unawaited(
+      CrashLogService.instance.recordDebugEvent(
+        'Round: line ${_exercise.id} audio did not start; Continue released',
+      ),
+    ),
+    onVoiceNeverEnded: () => unawaited(
+      CrashLogService.instance.recordDebugEvent(
+        'Round: line ${_exercise.id} audio did not report its end; '
+        'Continue released',
+      ),
+    ),
+  );
 
   /// Build 268 Revision 0: a two-sided Flashcard shows its back, and the
   /// word's automatic read-aloud of a card shown meaning first has played.
@@ -837,9 +825,7 @@ class _RoundScreenState extends State<RoundScreen> {
   @override
   void dispose() {
     _timed.stop();
-    _lineTimer?.cancel();
-    _lineWatchdog?.cancel();
-    _lineCeiling?.cancel();
+    _hold.dispose();
     // Build 270 Revision 2: leaving the Round silences it.
     unawaited(_ttsCache.stop());
     unawaited(RecordedAudioService.stopAll());
@@ -905,7 +891,7 @@ class _RoundScreenState extends State<RoundScreen> {
     _settleMascot();
     _answered = false;
     _lineAudioPlayed = false;
-    _prepareLineHold(f, generation);
+    _prepareLineHold(f);
     _cardTurned = false;
     _cardBackSpoken = false;
     _lastAnswerCorrect = false;
@@ -1234,14 +1220,13 @@ class _RoundScreenState extends State<RoundScreen> {
     final line = _features.kind == LearnerExerciseKind.dialogueLine;
     // Build 269 Revision 0: a line reading itself aloud is timed; a tap on
     // Play is not.
-    final timed = automatic && line && _lineHeld && !_lineSpeaking;
+    final timed = automatic && line && _hold.held && !_hold.speaking;
     final generation = _preparedExerciseGeneration;
     final watch = RoundScreen.lineStopwatch();
+    var heldLine = _hold.line;
     if (timed) {
-      _lineWatchdog?.cancel();
-      if (mounted) setState(() => _lineSpeaking = true);
+      heldLine = _hold.voiceStarted();
       watch.start();
-      _armLineCeiling(generation);
     }
     var ok = false;
     try {
@@ -1254,12 +1239,7 @@ class _RoundScreenState extends State<RoundScreen> {
       );
     } finally {
       if (timed) {
-        _lineVoiceDone(
-          generation,
-          ok: ok,
-          elapsed: watch.elapsed,
-          spoken: text,
-        );
+        _hold.voiceDone(heldLine, ok: ok, elapsed: watch.elapsed, spoken: text);
       }
     }
     // Build 270 Revision 2: audio that ends after the learner went on
@@ -1281,108 +1261,13 @@ class _RoundScreenState extends State<RoundScreen> {
 
   /// Whether the dialogue line [f] reads itself aloud and so holds Continue
   /// (Build 269 Revision 0); called for every exercise as it is prepared.
-  void _prepareLineHold(ExerciseFeatures f, int generation) {
-    _lineTimer?.cancel();
-    _lineWatchdog?.cancel();
-    _lineWatchdog = null;
-    _lineCeiling?.cancel();
-    _lineCeiling = null;
-    _lineCeilingReached = false;
-    _linePlaying = false;
-    _lineSpeaking = false;
-    _lineVoiceEnded = false;
-    _lineFinished = false;
-    final spoken =
-        f.kind == LearnerExerciseKind.dialogueLine && _optionalAudioEnabled
+  /// Behind Before you start the line waits for its Continue.
+  void _prepareLineHold(ExerciseFeatures f) => _hold.prepare(
+    spoken: f.kind == LearnerExerciseKind.dialogueLine && _optionalAudioEnabled
         ? _automaticAudioOf(f)?.text.trim() ?? ''
-        : '';
-    _lineHeld = spoken.isNotEmpty;
-    _lineEstimate = _lineHeld
-        ? SpokenLinePace.shared.estimate(spoken)
-        : Duration.zero;
-    // Behind Before you start the line waits for its Continue.
-    if (_lineHeld && _learnerAudioUiState == 'exercise_active') {
-      _armLineWatchdog(generation);
-    }
-  }
-
-  /// Continue never stays greyed for a line whose voice does not start:
-  /// after [lineWatchdogDelay] the line no longer holds it.
-  void _armLineWatchdog(int generation) {
-    if (!_lineHeld) return;
-    _lineWatchdog?.cancel();
-    _lineWatchdog = Timer(lineWatchdogDelay, () {
-      if (!mounted ||
-          generation != _preparedExerciseGeneration ||
-          _lineSpeaking) {
-        return;
-      }
-      unawaited(
-        CrashLogService.instance.recordDebugEvent(
-          'Round: line ${_exercise.id} audio did not start; Continue released',
-        ),
-      );
-      setState(() => _lineHeld = false);
-    });
-  }
-
-  void _armLineCeiling(int generation) {
-    _lineCeiling?.cancel();
-    _lineCeilingReached = false;
-    _lineCeiling = Timer(_lineEstimate * 2 + lineCeilingSlack, () {
-      if (!mounted ||
-          generation != _preparedExerciseGeneration ||
-          _lineVoiceEnded) {
-        return;
-      }
-      unawaited(
-        CrashLogService.instance.recordDebugEvent(
-          'Round: line ${_exercise.id} audio did not report its end; '
-          'Continue released',
-        ),
-      );
-      _lineCeilingReached = true;
-      setState(() {
-        _lineVoiceEnded = true;
-        _lineFinished = true;
-      });
-    });
-  }
-
-  /// The voice of a held line has finished after [elapsed], or failed. A
-  /// real end, or a failure, completes the line; an end reported too early
-  /// leaves it to the estimate.
-  void _lineVoiceDone(
-    int generation, {
-    required bool ok,
-    required Duration elapsed,
-    required String spoken,
-  }) {
-    if (!mounted || generation != _preparedExerciseGeneration) return;
-    _lineCeiling?.cancel();
-    // Released by the ceiling: the time is not this voice's pace.
-    if (_lineCeilingReached) return;
-    final realEnd = !ok || SpokenLinePace.isRealEnd(elapsed, _lineEstimate);
-    if (ok && realEnd) SpokenLinePace.shared.record(spoken, elapsed);
-    setState(() {
-      _lineVoiceEnded = true;
-      if (realEnd) _lineFinished = true;
-    });
-    if (!realEnd) {
-      _lineTimer?.cancel();
-      _lineTimer = Timer(_lineEstimate - elapsed, () => _lineRead(generation));
-    }
-  }
-
-  /// The held line's time has passed (its words are all bright).
-  void _lineRead(int generation) {
-    if (!mounted ||
-        generation != _preparedExerciseGeneration ||
-        _lineFinished) {
-      return;
-    }
-    setState(() => _lineFinished = true);
-  }
+        : '',
+    active: _learnerAudioUiState == 'exercise_active',
+  );
 
   String get _audioFailureDescription => widget.course.audioMode == 'recorded'
       ? 'Recorded audio unavailable. Check this Course’s Audio Library mappings and referenced MP3 files.'
@@ -3672,7 +3557,7 @@ class _RoundScreenState extends State<RoundScreen> {
     // with Animations off or reduced motion, shows whole.
     final spoken =
         showsText &&
-        _lineHeld &&
+        _hold.held &&
         f.textReveal != TextReveal.afterAudio &&
         ConfettiBurst.allowed(context, animationsEnabled: _animationsEnabled);
     return Column(
@@ -3696,8 +3581,8 @@ class _RoundScreenState extends State<RoundScreen> {
                   // refuse and report a failure).
                   onPressed:
                       audioPlayable &&
-                          !_linePlaying &&
-                          !(_lineSpeaking && !_lineVoiceEnded)
+                          !_hold.playing &&
+                          !(_hold.speaking && !_hold.voiceEnded)
                       ? () => _playLine(f)
                       : null,
                   icon: const Icon(Icons.volume_up_outlined),
@@ -3716,7 +3601,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('story-line-continue'),
           // Greyed while the line reads itself aloud (Build 269 Revision 0).
-          onPressed: _answered || _lineWaits ? null : _continueLine,
+          onPressed: _answered || _hold.waits ? null : _continueLine,
           child: Text(_t('continue')),
         ),
       ],
@@ -3727,7 +3612,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final audio = f.lineAudio;
     if (audio == null) return;
     final generation = _preparedExerciseGeneration;
-    setState(() => _linePlaying = true);
+    final line = _hold.tapStarted();
     final ok = await _playCourseAudio(
       audio.text,
       language: _lineLanguage(f),
@@ -3735,10 +3620,8 @@ class _RoundScreenState extends State<RoundScreen> {
     );
     // Build 270 Revision 2: a line already left reveals nothing.
     if (!mounted || generation != _preparedExerciseGeneration) return;
-    setState(() {
-      _linePlaying = false;
-      if (ok) _lineAudioPlayed = true;
-    });
+    _hold.tapEnded(line);
+    if (ok) setState(() => _lineAudioPlayed = true);
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -3752,7 +3635,7 @@ class _RoundScreenState extends State<RoundScreen> {
   /// Continue on a dialogue line or a Story cover: no feedback step, the
   /// next item follows at once (a card is never scored).
   void _continueLine() {
-    if (_answered || _lineWaits) return;
+    if (_answered || _hold.waits) return;
     setState(() {
       _answered = true;
       _lastAnswerCorrect = true;
@@ -3969,6 +3852,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }) {
     final theme = Theme.of(context);
     final generation = _preparedExerciseGeneration;
+    final line = _hold.line;
     final Widget body = text == null
         ? Text(
             placeholder ?? '',
@@ -3981,10 +3865,10 @@ class _RoundScreenState extends State<RoundScreen> {
         ? SpokenLineText(
             text,
             key: ValueKey('story-line-spoken-$generation'),
-            duration: _lineEstimate,
-            speaking: _lineSpeaking,
-            finished: _lineFinished,
-            onDone: () => _lineRead(generation),
+            duration: _hold.estimate,
+            speaking: _hold.speaking,
+            finished: _hold.finished,
+            onDone: () => _hold.read(line),
             style: theme.textTheme.bodyLarge,
             language: language,
           )
@@ -5005,7 +4889,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   setState(() => _introAcknowledged = true);
                   final exercise = _exercise;
                   final generation = _preparedExerciseGeneration;
-                  _armLineWatchdog(generation);
+                  _hold.armWatchdog();
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted) _startTimedCountdown();
                     _activatePreparedAudio(

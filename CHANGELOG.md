@@ -1,3 +1,30 @@
+# 2.0.73 (Build 273, Revision 4) - the held Story line has an owner - 2026-10-15
+
+Nothing a learner sees changes.
+
+- **`SpokenLineHold`** (`lib/services/spoken_line_hold.dart`, no Flutter)
+  owns the rule of Build 269 (a Dialogue line that reads itself aloud
+  holds Continue until it has been read: its voice has finished and the
+  time to say it has passed; a voice that returns too early leaves it to
+  the estimate, and only a real end teaches the shared pace) with Build
+  270's two safety releases (the watchdog for a voice that never starts,
+  5 seconds; the ceiling for one that never reports its end, twice the
+  estimate and 5 seconds) and the flag that keeps Play from being pressed
+  twice. Its state (held, speaking, voice ended, finished, playing, the
+  estimate), its three timers and its own line counter replace ten fields,
+  two constants, a getter and four methods of the Round screen; a voice, a timer or a
+  reading of an earlier line is ignored, and nothing happens once the page
+  is gone.
+- The Round screen keeps when the line is prepared, when its voice starts
+  and ends (and the stopwatch that times it), the text revealed after
+  listening, and what the page shows. Its file is at 5,380 lines (5,496).
+- One harmless difference: the ceiling is no longer armed for a voice that
+  starts after the page is gone (before, a timer was armed that then did
+  nothing).
+- Tests: `test/spoken_line_hold_273_test.dart` (12); the Round screen's own
+  cases (`spoken_lines_269_test`, `labels_in_english_271_test`,
+  `story_runtime_256_test`) pass before and after.
+
 # 2.0.73 (Build 273, Revision 3) - the owner's decisions on Revisions 1 and 2 - 2026-10-15
 
 Decided by the owner on 15 October 2026 on the differences Revisions 1

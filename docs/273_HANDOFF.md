@@ -30,8 +30,8 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 | 1 | One publish gate (eight copies, A–H below) | done; four differences put to the owner |
 | 2 | `AnswerGrader`: the Round screen's grading, pure | done |
 | 3 | The owner's decisions (below): the Round type check before Apply in the preset form and the exercise list (Revision 1, point 2); the canonical editor's Preview refusal list in both forms (Revision 1, point 3); gaps follow the exercise's normalization options, never typo tolerance (Revision 2, point 1). A behaviour change | done |
-| 4 | `SpokenLineHold`: the held Story line | in progress |
-| 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | planned |
+| 4 | `SpokenLineHold`: the held Story line | done |
+| 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | in progress |
 | 6 | Access PIN and lock owner; the Team-registry rewrite out of `ProfileService` | planned |
 | 7 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
 | 8 | The Audit's language tables and rule sets | planned |
@@ -192,20 +192,47 @@ trims under "Spaces: normalize"). Tests 15, six runs; analyzer clean.
 Complete suite 4,748 passed, 1 skipped. The owner said "Go" on the commit
 description; committed about 14:55 and pushed.
 
-## Revision 4 (next): the held Story line
+## Revision 4 (2.0.73+273004): the held Story line
 
-Prepared in the session scratchpad `r4/` (15 October 2026):
-`spoken_line_hold.dart` (`SpokenLineHold`: `prepare(spoken:, active:)`,
-`armWatchdog`, `voiceStarted` → token, `voiceDone(token, ok:, elapsed:,
-spoken:)`, `read(token)`, `tapStarted` / `tapEnded`, `dispose`; getters
-`line`, `held`, `speaking`, `voiceEnded`, `finished`, `playing`,
-`estimate`, `waits`; `watchdogDelay` 5 s, `ceilingSlack` 5 s; its own line
-counter in step with the screen's `_preparedExerciseGeneration`, which only
-`_prepareExercise` increments, right before `_prepareLineHold`),
-`apply_r4.py` (the Round screen's edits) and
-`spoken_line_hold_273_test.dart`. One harmless difference planned: the
-ceiling is not armed after the page is gone (before, a timer was armed and
-did nothing).
+In the working tree (15 October 2026, about 15:15): `SpokenLineHold`
+(`lib/services/spoken_line_hold.dart`) and the Round screen's calls
+(5,380 lines). Tests `test/spoken_line_hold_273_test.dart` (12; its two
+cancellation cases end with no timer pending, checked by mutation: with
+the cancellations removed four cases fail). The 79 Round/Review/Home test
+files: 1,253 passed, 2 failed in `timed_round_261_test` (the countdown not
+found), and the same 2 failed once more alone right after; then the file
+passed 5 times in a row on the new code and 5 times on the old one: an
+intermittent failure under load (the review agent had just run). Watch
+it in the complete suite. Independent review: no behaviour change; acted
+on: the version bump (done after the focused run), the test count (12),
+the method count (five), a test comment, the two weak tests. Analyzer
+clean. Complete suite 4,760 passed, 1 skipped; committed about 16:05 and
+pushed.
+
+## Revision 5 (next): the Round attempt
+
+Prepared in the session scratchpad `r5/` (15 October 2026):
+`round_attempt.dart` (`RoundAttempt(Random)`: `start`, `shuffle`, `clear`,
+`queue`, `length`, `isEmpty`, `position`, `exerciseIndex`, `hasNext`,
+`advance`, `record(correct:, difficulty:, testCorrection:)`, `errors`,
+`firstPassCorrect`, `firstPassDifficulty`, `hasMistakes`, `answeredLast`,
+`againLater`, `reviewsMistakes(playsInOrder:, type:)`, `reviewFollows`,
+`startReview`, `testResults`, `testScore(threshold)`), `apply_r5.py`
+(takes the file to edit as its argument; dry-run on a copy passed) and
+`round_attempt_273_test.dart`. The screen keeps the dialogs, the Timed
+clock, `_finishing`, `_advancing`, `_playsInOrder`, `_evaluableExerciseCount`
+and the completion; `_shuffleDifferentInts` goes (the attempt shuffles with
+the screen's `_random`, as before).
+
+Gotcha (15 October 2026, 15:19): a dry run of Revision 5's edit script
+meant for a copy edited the real `round_screen.dart` for about 20 seconds
+while Revision 4's complete suite ran (a `sed` meant to rewrite the
+script's target path matched nothing and the unchanged script ran). The
+file was restored from the copy taken just before (`git diff --stat`
+unchanged: 45 insertions, 161 deletions against `718d3e12`); the test files
+compiled around that moment passed. Edit scripts now take their target as
+an argument and refuse to run without one: never derive a dry-run script
+by rewriting a path inside it.
 
 Tools in the session scratchpad: `bump.py OLD NEW [--shift-day]` (every
 version pin, the Beta comment and dates), `r0/apply_r0.py`,

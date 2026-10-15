@@ -239,3 +239,34 @@ A Before you start card in a FlashCard or a Test Round breaks the Audit's
 Round type rule (and is now refused on Apply), although the learner is
 shown it in every Round type (`RoundPlayabilityService`). Found by the
 independent review; the rule is older than this Build.
+
+## Revision 4 (2.0.73+273004): the held Story line has an owner
+
+### Before
+
+A Dialogue line that reads itself aloud keeps Continue greyed until it has
+been read (Build 269), with two safety releases (Build 270). The Round
+screen held this in ten fields of its own (whether the line holds, its
+voice started and ended, its time passed, a tap on Play playing, the
+estimate, three timers and the ceiling's flag), two constants, a getter
+and five methods, all checked against the screen's exercise counter (one
+of them, `_prepareLineHold`, stays as a one-line call of the owner).
+
+### Now
+
+- `SpokenLineHold` (`lib/services/spoken_line_hold.dart`, no Flutter) owns
+  them: `prepare`, `armWatchdog`, `voiceStarted`, `voiceDone`, `read`,
+  `tapStarted` / `tapEnded`, `dispose`, and what the page reads (`held`,
+  `speaking`, `voiceEnded`, `finished`, `playing`, `estimate`, `waits`).
+  It counts the lines itself, so a voice, a timer or a reading that
+  belongs to an earlier line is ignored, as before.
+- The Round screen tells it when a line is prepared, when its voice starts
+  and ends, and redraws when it says so; the stopwatch that times the
+  voice, the text revealed after listening and the Crash Log lines stay
+  with the screen. Its file is at 5,380 lines (5,496).
+
+### What does not change
+
+When Continue is greyed and released, the words brightening, the pace
+learnt, Play, and the Crash Log lines. One harmless difference: no ceiling
+timer is armed for a voice that starts after the page is gone.

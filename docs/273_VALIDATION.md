@@ -145,3 +145,42 @@ owner before the commit ("Go").
   though learners are shown it; "Accents: exact" has no effect.
 - `flutter analyze`: no issues.
 - Complete suite: **4,748 passed, 1 skipped, 0 failed**, 38 minutes.
+
+## Revision 4 (2.0.73+273004), the held Story line has an owner
+
+15 October 2026, same PC, `build-273` after `718d3e12`.
+
+- Characterization: the held line on the Round screen was already driven
+  by `test/spoken_lines_269_test.dart` (Continue greyed while the line
+  reads itself aloud and released at its end, an early end left to the
+  estimate, the watchdog and the ceiling, a tap on Play) and
+  `labels_in_english_271_test` (the pace reset); with
+  `story_runtime_256_test` they pass after the change (44 cases with the
+  new file).
+- New tests: `test/spoken_line_hold_273_test.dart`, **12 passed**, six runs
+  in a row: nothing held without a spoken text; the estimate; a real end
+  reads the line and teaches the pace; an early end waits for the
+  estimate; a failed voice reads at once and teaches nothing; the watchdog
+  (and, behind Before you start, only after its Continue); a started voice
+  stops the watchdog; the ceiling, and a late end after it teaches nothing;
+  an earlier line's voice and reading ignored; Play's flag; nothing after
+  dispose. Two cases end with no timer pending, which fails a
+  `testWidgets` case if a timer was not cancelled: checked by mutation
+  (with the cancellations removed four cases fail).
+- The 79 test files that drive the Round, Review or Home screen: 1,253
+  passed and 2 failed in `timed_round_261_test` (the countdown not found);
+  the same file failed once more alone right after, then passed five times
+  in a row on the new code and five times on the old one: an intermittent
+  failure under load, not this change (it passed in the complete suite).
+- Independent review (before the suite): no behaviour change (every path
+  compared: conditions and their order, state changes and redraws, the
+  Crash Log lines, the timers, the shared pace, the line counter against
+  `_preparedExerciseGeneration`, the tokens of `_speak`, `_lineBubble` and
+  `_playLine`). Acted on: the version bump (done after the focused run),
+  the test count, the method count, a test comment, two weak tests.
+- A slip during the suite: a dry run of Revision 5's edit script edited
+  the real `round_screen.dart` for about 20 seconds; the file was restored
+  from a copy taken just before (`git diff --stat` unchanged) and no test
+  file compiled meanwhile failed. See the handoff.
+- `flutter analyze`: no issues.
+- Complete suite: **4,760 passed, 1 skipped, 0 failed**, 47 minutes.
