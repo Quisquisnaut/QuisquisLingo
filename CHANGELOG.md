@@ -1,3 +1,26 @@
+# 2.0.73 (Build 273, Revision 7) - a removed PIN starts afresh - 2026-10-15
+
+Decided by the owner on 15 October 2026 on the two findings of Revision 6.
+A change of behaviour, on purpose in a revision of its own.
+
+- **Removing an Access PIN clears its count of wrong PINs.** When an admin
+  resets a learner's PIN, or the learner removes their own, the count of
+  wrong PINs and a wait in progress go with it. Before, they stayed: a new
+  PIN set right after could start locked for the rest of the minute, or
+  with fewer tries before the wait. Setting a PIN where there was none also
+  clears a count left behind by a PIN removed with an earlier version.
+  Changing a PIN for another (without removing it first) keeps the count,
+  as before.
+- **"Wait 1 second".** In its last second the wait message read "Too many
+  wrong PINs. Wait 1 seconds, then try again."; it now says "1 second"
+  (also for less than a millisecond left, which read "Wait 0 seconds").
+- Help (English, Italian, Spanish), Advanced (Admin) › Ask who is learning
+  at startup: after the sentence on the wait, "When the PIN is removed, by
+  the learner or by an admin’s reset, the count of wrong PINs starts again
+  and any wait in progress ends."
+- Tests: `test/pin_decisions_273_r7_test.dart` (6);
+  `test/access_pins_273_test.dart` updated for "1 second".
+
 # 2.0.73 (Build 273, Revision 6) - the Access PIN has an owner - 2026-10-15
 
 Nothing a learner sees changes.

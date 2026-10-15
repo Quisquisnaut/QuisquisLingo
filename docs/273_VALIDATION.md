@@ -241,3 +241,27 @@ owner before the commit ("Go").
   the code and decided by him (Revision 7).
 - `flutter analyze`: no issues.
 - Complete suite: **4,781 passed, 1 skipped, 0 failed**, 44 minutes.
+
+## Revision 7 (2.0.73+273007), a removed PIN starts afresh
+
+15 October 2026, same PC, `build-273` after `e3bc7b2a`. A behaviour change
+(owner decisions of the same day); the commit description was shown to the
+owner before the commit ("Go").
+
+- New tests: `test/pin_decisions_273_r7_test.dart`, **6 passed**: the wait
+  in seconds ("1 second" for one second, also for 300 ms and for 400 µs,
+  which read "0 seconds"; "2 seconds" for 1,001 ms; 60 for a minute); an
+  admin's reset clears the count (a new PIN has nine wrong tries again)
+  and ends a wait in progress; the learner's own removal clears it (the
+  lock record gone); a count left by an earlier version does not reach a
+  new PIN; a PIN changed for another keeps the count.
+  `access_pins_273_test` updated for "1 second". The PIN test files (38)
+  and the Help and localization files (166) pass.
+- Independent review: no blocking fault; acted on: the count removed
+  before the PIN, a count left by an earlier version cleared when a PIN is
+  set where there was none, the sub-millisecond message, the Help in the
+  catalogs' own words (Italian "rimosso", Spanish "se borra"). A second
+  review of those corrections: no fault; one wording suggestion taken
+  ("any wait in progress ends").
+- `flutter analyze`: no issues.
+- Complete suite: **4,787 passed, 1 skipped, 0 failed**, 44 minutes.

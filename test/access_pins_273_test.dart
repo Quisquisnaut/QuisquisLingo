@@ -92,7 +92,7 @@ void main() {
         isA<ProfilePinException>().having(
           (e) => e.message,
           'message',
-          'Too many wrong PINs. Wait 1 seconds, then try again.',
+          'Too many wrong PINs. Wait 1 second, then try again.',
         ),
       ),
     );

@@ -331,3 +331,27 @@ of learners unlocked in this run, and the exception a refused PIN throws.
 
 The stored keys and their formats, the PIN rules, the wait, who must give
 a PIN when, the messages, the screens.
+
+## Revision 7 (2.0.73+273007): a removed PIN starts afresh
+
+Decided by the owner on 15 October 2026 on the two findings above. A
+change of behaviour.
+
+### What changes
+
+1. **Removing an Access PIN clears its count of wrong PINs and a wait in
+   progress**, whether an admin resets it or the learner removes their
+   own. A new PIN then starts with ten tries and no wait; setting a PIN
+   where there was none also clears a count left behind by a PIN removed
+   with an earlier version. Changing a PIN for another without removing it
+   first keeps the count, as before.
+2. **"Wait 1 second"** in the wait's last second (it said "1 seconds"; with
+   less than a millisecond left it said "0 seconds").
+3. **Help** in English, Italian and Spanish (Advanced (Admin) › Ask who is
+   learning at startup) says that the count starts again, and a wait ends,
+   when the PIN is removed, by the learner or by an admin's reset.
+
+### What does not change
+
+The PIN, its check, the ten tries and the minute's wait, the stored keys,
+who must give a PIN when.

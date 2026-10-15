@@ -33,7 +33,7 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 | 4 | `SpokenLineHold`: the held Story line | done |
 | 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | done |
 | 6 | The Access PIN and its lock out of `ProfileService` | done |
-| 7 | The owner's decisions on Revision 6 (below): removing a PIN clears its count and wait; "Wait 1 second". A behaviour change | planned |
+| 7 | The owner's decisions on Revision 6 (below): removing a PIN clears its count and wait; "Wait 1 second". A behaviour change | done |
 | 8 | The Team registry's read and verified write: one owner for `TeamService` and the profile deletion | planned |
 | 9 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
 | 10 | The Audit's language tables and rule sets | planned |
@@ -257,6 +257,26 @@ findings:** clear it (removing a PIN, by an admin reset or the learner's
 own, also clears its count of wrong PINs and a wait in progress); fix it
 ("Wait 1 second" for one second). Revision 7, a behaviour change; show the
 owner its commit description before the commit.
+
+## Revision 7 (2.0.73+273007): a removed PIN starts afresh
+
+In the working tree (15 October 2026, about 18:25): `AccessPins.remove`
+clears the lock record (first) and the verifier; `write` clears a lock
+record only where there was no PIN (a count left by an earlier version);
+`lockedMessage` from microseconds, "1 second"; Help EN/IT/ES
+`deviceAdminHelp.askWhoIsLearningAtStartup.paragraph2`. Tests
+`test/pin_decisions_273_r7_test.dart` (6), the PIN files (38), the Help and
+localization files (166) pass; analyzer clean. Independent review and a
+second review of its corrections: no fault left. Complete suite 4,787
+passed, 1 skipped; the owner said "Go" on the commit description;
+committed about 19:15 and pushed.
+
+Revision 8 (next) is prepared in the scratchpad `r7/team_registry.dart`
+(`TeamRegistry.decode` lazy after the shape check, `readFrom`, `write`
+with the read-back check); to point at it: `TeamService.listTeams` /
+`_save`, `ProfileService.teamsLedOnlyBy` /
+`_removeProfileFromAuthoringTeams`, and `AppResetService._teamsKey` (its
+own copy of the key's text).
 
 Gotcha (15 October 2026, 15:19): a dry run of Revision 5's edit script
 meant for a copy edited the real `round_screen.dart` for about 20 seconds

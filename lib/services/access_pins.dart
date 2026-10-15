@@ -29,7 +29,9 @@ class AccessPins {
   /// many wrong Access PINs in a row, a learner's PIN is not checked for
   /// [lockDuration], so trying every code by hand stops being easy. The
   /// count is kept per learner (under their prefix), so restarting QQL does
-  /// not skip the wait; a right PIN clears it. Like the PIN itself, it
+  /// not skip the wait; a right PIN clears it, and so does removing the PIN
+  /// or setting one where there was none (Build 273 Revision 7, owner
+  /// decision: a new PIN starts afresh). Like the PIN itself, it
   /// prevents casual access, not a determined person with the device's
   /// files.
   static const maxFailures = 10;
@@ -123,13 +125,19 @@ class AccessPins {
     return false;
   }
 
-  /// What a learner reads while their PIN is locked for [wait].
+  /// What a learner reads while their PIN is locked for [wait] ("1 second"
+  /// in its last second: Build 273 Revision 7, owner decision).
   static String lockedMessage(Duration wait) {
-    final seconds = (wait.inMilliseconds / 1000).ceil();
-    return 'Too many wrong PINs. Wait $seconds seconds, then try again.';
+    final seconds = (wait.inMicroseconds / Duration.microsecondsPerSecond)
+        .ceil();
+    return 'Too many wrong PINs. Wait $seconds second${seconds == 1 ? '' : 's'}, '
+        'then try again.';
   }
 
   /// Stores [pin] (exactly four digits) as [learnerProfileId]'s Access PIN.
+  /// A learner who had no PIN starts afresh: a count of wrong PINs left by a
+  /// PIN removed before Build 273 Revision 7 is cleared. A PIN changed for
+  /// another keeps the count.
   Future<void> write(
     SharedPreferences prefs,
     String learnerProfileId,
@@ -145,18 +153,25 @@ class AccessPins {
     final salt = _secureBytes(16);
     final encodedSalt = base64Url.encode(salt);
     final digest = sha256.convert([...salt, ...utf8.encode(pin)]).toString();
+    if (!hasIn(prefs, learnerProfileId)) {
+      await prefs.remove(_key(learnerProfileId, lockKeyBase));
+    }
     await prefs.setString(
       _key(learnerProfileId, verifierKeyBase),
       'v1:$encodedSalt:$digest',
     );
   }
 
-  /// [learnerProfileId] no longer has an Access PIN (its lock is kept as it
-  /// is).
-  Future<void> remove(String learnerProfileId) async =>
-      (await SharedPreferences.getInstance()).remove(
-        _key(learnerProfileId, verifierKeyBase),
-      );
+  /// [learnerProfileId] no longer has an Access PIN; its count of wrong
+  /// PINs and any wait go with it, so a new PIN starts afresh (Build 273
+  /// Revision 7, owner decision: an admin's reset and the learner's own
+  /// removal alike).
+  Future<void> remove(String learnerProfileId) async {
+    final prefs = await SharedPreferences.getInstance();
+    // The count first: stopped in between, no count is left without a PIN.
+    await prefs.remove(_key(learnerProfileId, lockKeyBase));
+    await prefs.remove(_key(learnerProfileId, verifierKeyBase));
+  }
 }
 
 /// A learner's Access PIN was refused: wrong, or locked after too many
