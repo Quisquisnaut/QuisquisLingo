@@ -72,6 +72,48 @@ Released on 14 October 2026: the Beta expiry moves to 2026-11-13.
   `test/flutter_test_config.dart`.
 - `docs/LOCALIZATION_CURRENT_STATE.md` lists the start page's texts.
 
+Follow-up in the same version (the owner's answers of 14 October 2026 to
+the four points left open, and his report of 15 October on the import
+dialog):
+
+- **No empty Bundled Courses section.** No Course comes with the app, so
+  the section could only say "No courses in this section.". All Courses
+  (and the Course Library page) draws it only while the device holds a
+  Bundled Course; the Course Studio tab only while the learner's courses
+  include one, as Course Studio's own page already did. It comes back by
+  itself if Courses come with the app again. The Categories Help says so
+  (English, Italian, Spanish).
+- **The Matching Course ID dialog asks only about what you can do.**
+  Importing a file whose Course ID is already on the device asked
+  "Replace …, create an available Copy as New Course or Fork, or
+  cancel?" even when none of the three could be used. The question now
+  names only the actions this learner can use now ("Make a Fork, or
+  cancel?", "Update it to version 2, or cancel?"); when there is none
+  it says "This file cannot be imported now." and the only active button
+  reads Close. Every action the Course allows stays visible, greyed out
+  when it cannot be used now, with one line saying why and how to make
+  it possible: "Replace / update: To update it with this file, open All
+  Courses, choose Add to my courses on this Course, then import the file
+  again.", "Fork: Unlock Course Studio for this profile first…". Before,
+  a Copy as New Course of someone else's Course and a Fork of your own
+  were missing without a word, and the lock line promised both after
+  unlocking even when the Course's rights would still refuse one.
+- The advice to add the Course and import the file again is given only
+  when the file is newer. A file that is not newer says "This file is not
+  newer than the Course on this device. To study that Course, open All
+  Courses and choose Add to my courses on it: no file is needed." (a
+  second learner of a shared device was sent to import the same file
+  again, which could only be refused). Nobody logged in is told to
+  select a learner profile. The reason for a greyed Fork of a Course you
+  can edit reads "You can edit this Course, so use Copy as New Course
+  instead.", also in Course Studio's menu.
+- Editor Help no longer says that All Courses hides unavailable and
+  Draft Courses by default: its Show unavailable switch starts on
+  (English, Italian, Spanish).
+- Kept as they are, by the owner's answer: the start page stays in
+  English, Italian and Spanish; the two test Courses name no Rights
+  Holder; the start page names no place where Courses are found.
+
 # 2.0.72 (Build 272, Revision 16) - two recommendations stop being Warnings - 2026-10-13
 
 Decided by the owner on 13 October 2026 and brought forward from the Build

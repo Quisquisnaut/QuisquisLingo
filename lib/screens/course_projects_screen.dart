@@ -1114,22 +1114,24 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                         key: const Key('import-not-executable-note'),
                       ),
                     ],
-                    if (!_library.importAuthoringEnabled) ...[
+                    for (final (index, line)
+                        in CourseLibraryReports.matchingCourseIdReasons(
+                          review,
+                        ).indexed) ...[
                       const SizedBox(height: 12),
-                      const Text(
-                        'Unlock Course Studio for this profile to create your own copy (tap Version and Build ten times in Settings). Copy as New Course and Fork are unavailable until then.',
+                      Text(
+                        line,
+                        key: ValueKey('import-matching-reason-$index'),
                       ),
-                    ],
-                    if (review.replaceUnavailableReason != null) ...[
-                      const SizedBox(height: 12),
-                      Text(review.replaceUnavailableReason!),
                     ],
                   ],
                 ),
                 actions: [
+                  // Nothing else can be used: the file cannot be
+                  // imported now, so the only button closes.
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, 'cancel'),
-                    child: const Text('Cancel'),
+                    child: Text(review.choices.isEmpty ? 'Close' : 'Cancel'),
                   ),
                   if (review.choices.contains(
                     CourseImportChoice.copyAsNewCourse,
@@ -1138,7 +1140,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       onPressed: () => Navigator.pop(ctx, 'copy'),
                       child: const Text('Copy as New Course'),
                     ),
-                  if (!_library.importAuthoringEnabled)
+                  if (review.copyUnavailableReason != null)
                     const OutlinedButton(
                       onPressed: null,
                       child: Text('Copy as New Course'),
@@ -1148,7 +1150,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       onPressed: () => Navigator.pop(ctx, 'fork'),
                       child: const Text('Fork'),
                     ),
-                  if (!_library.importAuthoringEnabled)
+                  if (review.forkUnavailableReason != null)
                     const OutlinedButton(onPressed: null, child: Text('Fork')),
                   if (review.choices.contains(CourseImportChoice.replace))
                     FilledButton(
@@ -1740,11 +1742,17 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     );
   }
 
+  /// What the Course Studio tab's sections draw from.
+  List<Course> get _sectionCourses => [
+    ..._library.bundledCourses,
+    ..._library.personalCourses,
+  ];
+
   Widget _courseSection(CourseLibraryCategory category) => CourseLibrarySection(
     key: ValueKey('manager-section-${category.sectionId}'),
     category: category,
     surface: CourseLibrarySectionSurface.courseStudio,
-    courses: [..._library.bundledCourses, ..._library.personalCourses],
+    courses: _sectionCourses,
     activeProfileId: _library.activeProfileId,
     favoriteIds: _favoriteIds,
     showUnavailable: widget.showUnavailable,
@@ -1849,7 +1857,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         ),
         const SizedBox(height: 16),
         _courseSection(CourseLibraryCategory.favorites),
-        for (final category in CourseLibraryCategories.standard)
+        for (final category in CourseLibraryCategories.shownFor(
+          _sectionCourses,
+        ))
           _courseSection(category),
       ],
     );

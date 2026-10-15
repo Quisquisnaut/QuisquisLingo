@@ -887,10 +887,44 @@ Progress (13 October 2026, about 22:15):
 - Then: the complete suite, `docs/272_VALIDATION.md`, the commit
   description (scratchpad `commit_272016.txt`) for the owner.
 
-## Revision 17 (2.0.72+272017) READY, waiting for the owner's go to commit: no Course comes with the app; a start page
+## Revision 17 (2.0.72+272017), no Course comes with the app; a start page
 
-STATE (14 October 2026, about 01:00): complete in the working tree and NOT
-committed. Analyzer clean; complete suite once on the final tree: 4,675
+### Follow-up in the same version (14 October 2026): no empty Bundled Courses section
+
+The owner answered the four open points: 1 ok (the start page stays
+EN/IT/ES), 2 leave (no Rights Holder), 3 hide (the empty Bundled Courses
+section), 4 not for now (no pointer). Done in the working tree, NOT
+committed: `CourseLibraryCategories.shownFor`, used by All Courses and the
+Course Studio tab (my extension, told to the owner), the Categories Help
+EN/IT/ES, two cases in `no_bundled_course_272_r17_test`, one in
+`course_library_test`, CHANGELOG, AGENTS, the change summary and the
+validation section. Focused 202 passed; one independent review (no
+fault; its points acted on); analyzer clean; complete suite 4,676
+passed, 1 skipped, 0 failed (37 min 37 s). READY: the commit description
+(`commit_272017_followup.txt` in the scratchpad) waits for the owner's go
+to commit; then push `build-272`, then his go for the merge into `main`.
+
+Then (15 October 2026) the owner's report on the Matching Course ID dialog
+(it asked about Replace, Copy as New Course and Fork when none could be
+used) and his decision to keep the greyed buttons: the question now names
+only `review.choices`, "This file cannot be imported now." and Close when
+there is none, one reason line per greyed action
+(`matchingCourseIdReasons`, `copyUnavailableReason`,
+`forkUnavailableReason`, `forkUnavailable` public). Added to the same
+uncommitted follow-up. Focused 10 import files 194 passed; analyzer clean;
+the second independent review's points acted on (the advice for a file
+that is not newer, nobody logged in, the Fork reason; its claim that All
+Courses hides Draft Courses was wrong, the switch starts on: the owner
+kept the rule and the one Help sentence was corrected). Complete suite on
+the final tree: 4,679 passed, 1 skipped, 0 failed (43 min 6 s). READY:
+the commit description (`commit_272017_followup.txt`) waits for the
+owner's go; then push `build-272`, then his go for the merge into `main`.
+
+Committed `3b23d89d` on 14 October 2026 after the owner's go, and pushed to
+`origin/build-272`. Build 272 is complete. Next: the owner's go for the
+merge of Build 272 into `main` (never push `main` or open a PR without it);
+the four decisions below are still his. Earlier state (about 01:00):
+complete in the working tree and not committed. Analyzer clean; complete suite once on the final tree: 4,675
 passed, 1 skipped, 0 failed (35 min 49 s). The commit description is in the
 session scratchpad (`commit_272017.txt`) and was shown to the owner. On his
 go: `git add` the modified files and the five new ones (never
@@ -1116,7 +1150,7 @@ ask the go for the merge of Build 272 into `main`.
 
 Also to tell the owner: the import pop-up lists "no Rights Holder" for the
 two test Courses (nobody invented); the Bundled Courses section of All
-Courses stays, empty; the tests still run with the Laboratory as a bundled
+Courses stays, empty (hidden by the follow-up above); the tests still run with the Laboratory as a bundled
 test Course; export file names follow the new titles; the page names no
 place where Courses are found (a neutral pointer waits for his sentence);
 a former Laboratory learner sees the Course's ID in Last Week XP by course

@@ -10,6 +10,7 @@ import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_library_service.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
@@ -874,15 +875,13 @@ void main() {
       return imports;
     }
 
-    Future<List<String>> collisionChoices(WidgetTester tester) async {
-      await tester.tap(find.byKey(const Key('import-course-json-primary')));
-      await tester.pumpUntilFileIoState(
-        () => find.text('Matching Course ID').evaluate().isNotEmpty,
-      );
+    /// The buttons of the open Matching Course ID dialog, then closes it.
+    Future<List<String>> dialogChoices(WidgetTester tester) async {
       final dialog = find.byType(AlertDialog);
       final offered = <String>[];
       for (final choice in [
         'Cancel',
+        'Close',
         'Copy as New Course',
         'Fork',
         'Replace / update',
@@ -901,11 +900,28 @@ void main() {
         );
         offered.add(button.onPressed == null ? '$choice (greyed)' : choice);
       }
-      await tester.tap(find.text('Cancel'));
+      await tester.tap(
+        find.descendant(
+          of: dialog,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Text &&
+                (widget.data == 'Cancel' || widget.data == 'Close'),
+          ),
+        ),
+      );
       await tester.pumpUntilFileIoState(
         () => find.text('Matching Course ID').evaluate().isEmpty,
       );
       return offered;
+    }
+
+    Future<List<String>> collisionChoices(WidgetTester tester) async {
+      await tester.tap(find.byKey(const Key('import-course-json-primary')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Matching Course ID').evaluate().isNotEmpty,
+      );
+      return dialogChoices(tester);
     }
 
     testWidgets('a new Course is installed and returned to its opener', (
@@ -948,9 +964,11 @@ void main() {
       );
       await pumpManager(tester, importOnly: true, imports: imports);
 
+      // Fork is greyed: she maintains it (Copy as New Course is hers).
       expect(await collisionChoices(tester), [
         'Cancel',
         'Copy as New Course',
+        'Fork (greyed)',
         'Replace / update',
       ]);
     });
@@ -999,11 +1017,96 @@ void main() {
       );
       await pumpManager(tester, importOnly: true, imports: imports);
 
+      // Copy as New Course is greyed: only Bob and his Team may copy it.
       expect(await collisionChoices(tester), [
         'Cancel',
+        'Copy as New Course (greyed)',
         'Fork',
         'Replace / update (greyed)',
       ]);
+    });
+
+    testWidgets('nothing usable: no question, every action greyed with '
+        'its reason, and Close (Build 272 Revision 17 follow-up)', (
+      tester,
+    ) async {
+      // The owner's case of 15 October 2026: a Course received from an
+      // author who is not on this device, not among Alice's courses, a
+      // newer version of it, and Course Studio locked.
+      await setUpDevice(tester);
+      const carol = '33333333-3333-4333-8333-333333333333';
+      final received = _course(
+        'same',
+        title: 'Installed',
+        maintainer: carol,
+        derivatives: DerivativeWorksPolicy.allowed,
+      );
+      await install(tester, received);
+      await tester.runAsync(() => CourseLibraryService().remove(received));
+      final newer = Course.fromJson({
+        ...received.toJson(),
+        'title': 'Incoming',
+        'courseVersion': '2',
+      });
+      final imports = await importsHolding(tester, newer);
+      await pumpManager(tester, importOnly: true, imports: imports);
+
+      await tester.tap(find.byKey(const Key('import-course-json-primary')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Matching Course ID').evaluate().isNotEmpty,
+      );
+      final text = tester
+          .widget<Text>(find.byKey(const Key('import-matching-course-id')))
+          .data!;
+      expect(
+        text,
+        'A custom Course with ID “same” already exists: “Installed”. This '
+        'file cannot be imported now.',
+      );
+      String reason(int index) => tester
+          .widget<Text>(find.byKey(ValueKey('import-matching-reason-$index')))
+          .data!;
+      expect(reason(0), startsWith('Replace / update: To update it with '));
+      expect(reason(0), contains('Add to my courses'));
+      expect(
+        reason(1),
+        'Copy as New Course: ${CourseLibraryReports.copyOnlyInside}',
+      );
+      expect(reason(2), 'Fork: ${CourseLibraryReports.unlockCourseStudio}');
+      expect(
+        find.byKey(const ValueKey('import-matching-reason-3')),
+        findsNothing,
+      );
+      expect(await dialogChoices(tester), [
+        'Close',
+        'Copy as New Course (greyed)',
+        'Fork (greyed)',
+        'Replace / update (greyed)',
+      ]);
+      // Close leaves everything as it was.
+      expect((await stored(tester)).single.title, 'Installed');
+
+      // Added to her courses, the same file is an update.
+      await addToLibrary(tester, received);
+      await tester.tap(find.byKey(const Key('import-course-json-primary')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Matching Course ID').evaluate().isNotEmpty,
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('import-matching-course-id')))
+            .data,
+        'A newer version of the received Custom Course “Installed” is '
+        'available. Update it to version 2, or cancel?',
+      );
+      expect(
+        find.widgetWithText(FilledButton, 'Update to version 2'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Matching Course ID').evaluate().isEmpty,
+      );
     });
   });
 

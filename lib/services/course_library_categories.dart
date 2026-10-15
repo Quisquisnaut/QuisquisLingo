@@ -23,6 +23,19 @@ abstract final class CourseLibraryCategories {
     CourseLibraryCategory.otherLocal,
   ];
 
+  /// The [standard] sections a tab draws for its [courses]. Bundled Courses
+  /// only while one of them is a Bundled Course: no Course comes with the app
+  /// currently, and an empty section said nothing (owner decision of 14
+  /// October 2026). The other sections are always drawn.
+  static List<CourseLibraryCategory> shownFor(Iterable<Course> courses) => [
+    for (final category in standard)
+      if (category != CourseLibraryCategory.bundled ||
+          courses.any(
+            (course) => course.originType == CourseOriginType.bundledOfficial,
+          ))
+        category,
+  ];
+
   static CourseLibraryCategory of(Course course, String? activeProfileId) {
     if (course.originType == CourseOriginType.bundledOfficial) {
       return CourseLibraryCategory.bundled;

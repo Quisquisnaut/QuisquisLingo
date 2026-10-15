@@ -1157,3 +1157,71 @@ as shipped is covered only by the new file and the new first-run case.
 ### Complete suite
 
 `flutter test --no-pub --concurrency=1`: **4,675 passed, 1 skipped, 0 failed** (35 min 49 s), once, on the final tree, after the two reviews' corrections.
+
+## Revision 17 follow-up (2.0.72+272017), no empty Bundled Courses section
+
+14 October 2026, owner's Windows 10 PC, `build-272`. The owner's answers
+of 14 October 2026.
+
+- `test/no_bundled_course_272_r17_test.dart`: a new case, the rule
+  (`shownFor` with no Course, with a custom Course only, with a Bundled
+  Course); the case that expected an empty Bundled Courses section in All
+  Courses now expects none in All Courses and in the Course Studio tab,
+  and the other three sections in both.
+- `test/course_library_test.dart`: after the learner took the one Bundled
+  Course out of their courses, the Course Studio tab draws no Bundled
+  Courses section, and All Courses still does (the device has it).
+- Focused run after the change, 19 files (the two above and every test
+  file that reads the Courses sections or waits for "Bundled Courses"):
+  **202 passed, 0 failed**. After the review's corrections, four of
+  them (the two above, `courses_screen_250_test`,
+  `course_manager_favorites_250_test`): **51 passed, 0 failed**.
+- One independent read-only review (no `flutter` command): no fault and no
+  older test that would break; its points on the documents, two Help
+  sentences, the list Course Studio decides with, and a stray file were
+  acted on. Not read again by a second reader: those corrections.
+- `flutter analyze --no-pub`: **No issues found**, on the final tree.
+
+### Not tested here
+
+- A Bundled Course whose every row is filtered out by Search or Show
+  unavailable: the section stays (the rule gets the unfiltered list); a
+  partly filtered Bundled section is covered by
+  `course_library_screen_244_test`.
+
+### The Matching Course ID dialog (the owner's report of 15 October 2026)
+
+- `test/import_safety_271_test.dart`: the three sentences it pinned now
+  end with the question of what can be done or "This file cannot be
+  imported now."; a new case builds the question for every set of
+  choices and the reason lines (separate, and one line when Copy as New
+  Course and Fork share the lock).
+- `test/course_manager_workflow_249_test.dart`: the button lists of the
+  dialog (the Maintainer's own Course: Fork greyed; someone else's: Copy
+  as New Course greyed); a new widget case, the owner's: a received
+  Course not among the learner's courses, a newer file, Course Studio
+  locked: the text without a question, three reason lines, Close and
+  three greyed buttons, nothing changed; then the Course added to the
+  learner's courses and the same file offering "Update to version 2".
+- `test/received_custom_course_250_test.dart`: the library reason's new
+  words.
+- Focused run, 10 files (the three above and the other import tests:
+  `course_package_import_ui_247_test`, `course_package_import_247_test`,
+  `course_import_check_dialog_272_test`,
+  `stored_course_edge_cases_266_test`, `no_bundled_course_272_r17_test`,
+  `course_editor_layout_regression_test`,
+  `course_library_operations_249_test`): **194 passed, 0 failed**.
+- A second independent read-only review, of the dialog: no fault in
+  which buttons are offered; its points (the advice for a file that is
+  not newer, nobody logged in, the Fork reason, the documents) were
+  acted on, with a new case in `received_custom_course_250_test` (the
+  reasons by version, learner and provenance). Its claim that All
+  Courses hides Courses with Draft parts was checked and is not so in
+  the app (the switch starts on); the Help sentence that said it was
+  corrected. Six files after these corrections: **106 passed, 0
+  failed**. Not read again by a second reader: those corrections.
+- `flutter analyze --no-pub`: **No issues found**.
+
+### Complete suite
+
+`flutter test --no-pub --concurrency=1`: **4,679 passed, 1 skipped, 0 failed** (43 min 6 s), once, on the final tree, after both reviews' corrections (the suite of the first part alone, before the dialog change: 4,676 passed).

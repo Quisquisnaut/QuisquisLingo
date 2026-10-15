@@ -1455,7 +1455,8 @@ Your decisions of 13 October 2026. The last revision of Build 272.
   title, and a received Course is replaced only by a newer version. With
   version 1 in the file the Matching Course ID dialog would not have let
   you replace it (it would have offered Cancel, and Fork while Course
-  Studio is on).
+  Studio is on; since the follow-up below, Replace is greyed with its
+  reason).
 
 Both import with Quick Import (as `import.json`) or Open from….
 
@@ -1511,7 +1512,7 @@ Both import with Quick Import (as `import.json`) or Open from….
    a Course by default. If someone else on the device already imported a
    Course, importing the same file again ends at the Matching Course ID
    dialog, where a learner with Course Studio locked can only choose
-   Cancel. So when the device holds Courses the learner could study and
+   Cancel (since the follow-up below: Close, with the reasons). So when the device holds Courses the learner could study and
    does not have among their own, the start page says so first, above
    everything else: "This device already has 1 Course you can study that
    is not among your courses. Open All Courses and choose Add to my
@@ -1522,6 +1523,7 @@ Both import with Quick Import (as `import.json`) or Open from….
    empty ("No courses in this section."). You said "currently", so I kept
    everything that handles a bundled Course, and the section with it. Say
    so if you would rather hide the section while it is empty.
+   (You chose to hide it: see the follow-up below.)
 8. **Where to find Courses.** The page says who gives you a Course, and
    names no place and no Course, as agreed. A learner alone, with no
    friend or teacher who has a Course, finds nothing to import: App Info
@@ -1640,3 +1642,112 @@ Left as they are, for you to decide or because they were so before:
 
 Course files of learners, scoring, progression and learner data are
 unchanged. No new key or folder.
+
+## Revision 17 follow-up: your four answers (14 October 2026)
+
+You answered the four points left open: 1 ok, 2 leave, 3 hide, 4 not for
+now.
+
+1. **The start page stays translated** into English, Italian and Spanish.
+2. **The two test Courses name no Rights Holder.** Their import pop-up
+   keeps the line "no Rights Holder".
+3. **The empty Bundled Courses section is hidden.** All Courses (and the
+   Course Library page) draws it only while the device holds a Bundled
+   Course, so in the app as it ships it is gone. I did the same in the
+   **Course Studio tab**, which showed the same empty section; you
+   answered for All Courses, so say if you want Course Studio left as it
+   was. Course Studio's own page (opened from the Course selector) already
+   hid its list of Bundled Courses when empty. The section comes back by
+   itself if Courses come with the app again, with the view each learner
+   had chosen for it. The Categories Help says "the section appears only
+   when there are any" in the three languages.
+   One difference you will only see if Courses come with the app again: a
+   learner who took a Bundled Course out of their own courses sees the
+   section in All Courses (with Add to my courses) but not in Course
+   Studio, which lists only the learner's own courses.
+4. **No pointer to where Courses are found**, for now.
+
+### The Matching Course ID dialog (your report of 15 October 2026)
+
+Your screenshot: importing a newer Edge Case Course while the one on the
+device was not among that learner's courses, with Course Studio locked.
+The dialog asked "Replace …, create an available Copy as New Course or
+Fork, or cancel?" although none of the three could be used.
+
+- **The question names only what the learner can do now**: "Replace
+  it, or cancel?", "Make a Fork, or cancel?", "Update it to version 2,
+  or cancel?". When nothing can be done there is no question: "This file
+  cannot be imported now.", and the only active button reads **Close**.
+- **The greyed buttons stay**, as you asked: an action the Course allows
+  is shown greyed when the circumstances stop it, with one line under
+  the text saying why, and, when you can change it, how. In your case:
+  - "Replace / update: To update it with this file, open All Courses,
+    choose Add to my courses on this Course, then import the file
+    again."
+  - "Copy as New Course: Only the Maintainer or assigned Team can copy
+    this Course." (the Course's author is not on your device)
+  - "Fork: Unlock Course Studio for this profile first (tap Version and
+    Build ten times in Settings)."
+  Before, the lock line promised both Copy as New Course and Fork after
+  unlocking, but the Copy would still have been refused.
+- **Two buttons that were missing are now greyed**, by the same rule:
+  Copy as New Course of a Course someone else maintains ("Only the
+  Maintainer or assigned Team can copy this Course.") and Fork of a
+  Course you maintain ("You maintain this Course: use Copy as New Course
+  instead."), with the reasons Course Studio's menu gives for them.
+- **Not shown at all**: Replace when the Course on the device is an
+  official Course (custom content can never replace it).
+
+What each button does is unchanged.
+
+An independent review of this part found no fault in which buttons are
+offered, and four things I corrected:
+
+- **The advice could lead nowhere.** A second learner importing the
+  same file (not a newer one) was told to add the Course and import the
+  file again, which would then be refused for its version. Now the
+  advice to import again is given only for a newer file; otherwise:
+  "This file is not newer than the Course on this device. To study that
+  Course, open All Courses and choose Add to my courses on it: no file
+  is needed." What the file itself decides (same Maintainer, Team,
+  origin) is said first.
+- With nobody logged in, Copy as New Course and Replace say "Select a
+  learner profile first."
+- The greyed Fork of a Course you can edit read "Fork: You maintain
+  this Course: use Copy as New Course instead." (two colons, and wrong
+  for a Team member): now "You can edit this Course, so use Copy as New
+  Course instead.", also in Course Studio's menu.
+- The documents.
+
+It also said that All Courses hides Courses with Draft parts, so the
+advice would point to a Course that is not listed. I asked you about
+that before checking it, and I was wrong to: All Courses always opens
+with Show unavailable on (the page that starts with it off is only
+shown inside it), so the Course is listed. You kept the rule. One Help
+answer did say the page hides them by default: corrected in English,
+Italian and Spanish.
+
+### For the code
+
+- `CourseLibraryCategories.shownFor(courses)` is the one rule: the four
+  sections, without Bundled Courses while none of the Courses is a Bundled
+  Course. All Courses passes the Courses of the device; the Course Studio
+  tab its `_sectionCourses` (the Bundled and personal Courses), the same
+  list its sections draw from. Search and Show unavailable act inside each
+  section, so they never hide a section that has Courses.
+- One independent read-only review: no fault, no older test that would
+  break. It found two Help sentences that said every category has its own
+  section ("Each category shown has its own section" now, in English and
+  Italian; the Spanish text has no such sentence), that Course Studio
+  decided with a shorter list than the one its sections draw (now the
+  same list), and a stray copy of a source file in the repository's
+  folder made by one of my commands (deleted; it was never staged).
+- The dialog: `CourseLibraryReports.matchingCourseId` builds the
+  question from `CourseImportReview.choices`; `matchingCourseIdReasons`
+  gives the greyed buttons' lines from `replaceUnavailableReason` and
+  the new `copyUnavailableReason` / `forkUnavailableReason`, each null
+  exactly when its action is offered. `CourseManagerLibrary.forkUnavailable`
+  is shared with Course Studio's menu.
+
+Course files, scoring, progression and learner data are unchanged. No new
+key or folder.

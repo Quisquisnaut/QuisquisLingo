@@ -765,7 +765,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
               ),
             if (widget.embedded)
               _courseSection(CourseLibraryCategory.favorites),
-            for (final category in CourseLibraryCategories.standard)
+            for (final category in CourseLibraryCategories.shownFor(_courses!))
               _courseSection(category),
           ],
         );

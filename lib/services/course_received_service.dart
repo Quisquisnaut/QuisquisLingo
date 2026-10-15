@@ -23,6 +23,19 @@ class CourseReceivedService {
 
   static const keyPrefix = 'quisquislingo_received_custom_course_';
 
+  /// Why a newer file cannot update a received Course the learner does
+  /// not have among their courses, and what to do.
+  static const addThenImport =
+      'To update it with this file, open All Courses, choose Add to my '
+      'courses on this Course, then import the file again.';
+
+  /// The same for a file that is not newer: the Course on the device is
+  /// all the learner needs (a second learner of a shared device).
+  static const notNewerAndNotMine =
+      'This file is not newer than the Course on this device. To study '
+      'that Course, open All Courses and choose Add to my courses on it: '
+      'no file is needed.';
+
   static String keyForCourseId(String courseId) =>
       '$keyPrefix${Uri.encodeComponent(courseId.trim())}';
 
@@ -89,11 +102,15 @@ class CourseReceivedService {
       );
     }
     final actor = profileId ?? await _profiles.getActiveProfileId();
-    if (actor == null || !await _library.contains(existing, profileId: actor)) {
+    if (actor == null) {
       return const ReceivedCourseUpdateDecision.denied(
-        'Add this Course to your Personal Library before updating it.',
+        'Select a learner profile first.',
       );
     }
+    // Checked after everything the file itself decides (Build 272
+    // Revision 17 follow-up): the advice to add the Course and import the
+    // file again is given only when the file would then update it.
+    final member = await _library.contains(existing, profileId: actor);
     if (existing.maintainer?.profileId != incoming.maintainer?.profileId ||
         jsonEncode(existing.originalCourseCreator.toJson()) !=
             jsonEncode(incoming.originalCourseCreator.toJson())) {
@@ -118,9 +135,14 @@ class CourseReceivedService {
     final oldVersion = _positiveVersion(existing.courseVersion);
     final newVersion = _positiveVersion(incoming.courseVersion);
     if (oldVersion == null || newVersion == null || newVersion <= oldVersion) {
-      return const ReceivedCourseUpdateDecision.denied(
-        'An update must have a newer positive integer Course version.',
+      return ReceivedCourseUpdateDecision.denied(
+        member
+            ? 'An update must have a newer positive integer Course version.'
+            : notNewerAndNotMine,
       );
+    }
+    if (!member) {
+      return const ReceivedCourseUpdateDecision.denied(addThenImport);
     }
     return const ReceivedCourseUpdateDecision.allowed();
   }

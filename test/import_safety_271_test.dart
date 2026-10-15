@@ -352,11 +352,13 @@ void main() {
       expect(result.existing?.title, 'Segreto');
       expect(result.existingHidden, isTrue);
       final text = CourseLibraryReports.matchingCourseId(result);
+      // Bob's Course on a device where Bob is a learner: only Bob can
+      // replace it, and Alice's Course Studio is locked.
+      expect(result.choices, isEmpty);
       expect(
         text,
         'A custom Course with ID “shared” already exists: a Private course. '
-        'Replace it, create an available Copy as New Course or Fork, or '
-        'cancel?',
+        'This file cannot be imported now.',
       );
       expect(text, isNot(contains('Segreto')));
     });
@@ -369,11 +371,18 @@ void main() {
       final result = await review(_course('mine', title: 'Il mio, di nuovo'));
 
       expect(result.existingHidden, isFalse);
+      // Alice's own Course: she may replace it; a copy waits for Course
+      // Studio, and she maintains it, so it is not hers to fork.
+      expect(result.choices, [CourseImportChoice.replace]);
       expect(
         CourseLibraryReports.matchingCourseId(result),
-        'A custom Course with ID “mine” already exists. Replace “Il mio”, '
-        'create an available Copy as New Course or Fork, or cancel?',
+        'A custom Course with ID “mine” already exists: “Il mio”. Replace '
+        'it, or cancel?',
       );
+      expect(CourseLibraryReports.matchingCourseIdReasons(result), [
+        'Copy as New Course: ${CourseLibraryReports.unlockCourseStudio}',
+        'Fork: You can edit this Course, so use Copy as New Course instead.',
+      ]);
     });
 
     test('a stored Course this version cannot open', () {
@@ -401,17 +410,114 @@ void main() {
       expect(
         hidden,
         'A Private course stored with ID “old” cannot be opened by this '
-        'version (an earlier GuideBook). Replace it with the Course you are '
-        'importing, create an available Copy as New Course or Fork, or '
-        'cancel?',
+        'version (an earlier GuideBook). This file cannot be imported now.',
       );
       expect(hidden, isNot(contains('Segreto')));
       expect(
         CourseLibraryReports.matchingCourseId(stored(theirs, false)),
         'The stored Course “Segreto” with ID “old” cannot be opened by this '
+        'version (an earlier GuideBook). This file cannot be imported now.',
+      );
+    });
+
+    test('the question names only what the learner can do now (Build '
+        '272 Revision 17 follow-up)', () {
+      CourseImportReview offering(
+        List<CourseImportChoice> choices, {
+        bool received = false,
+        bool unopenable = false,
+        String? replace,
+        String? copy,
+        String? fork,
+      }) => CourseImportReview(
+        course: _course('same'),
+        errors: const [],
+        warnings: const [],
+        existing: unopenable ? null : _course('same', title: 'Stored'),
+        existingUnopenable: unopenable
+            ? const UnopenableStoredCourse(
+                courseId: 'same',
+                reason: 'an earlier GuideBook',
+                title: 'Stored',
+                maintainerProfileId: _alice,
+                private: false,
+              )
+            : null,
+        choices: choices,
+        receivedUpdate: received,
+        replaceUnavailableReason: replace,
+        copyUnavailableReason: copy,
+        forkUnavailableReason: fork,
+      );
+      String text(CourseImportReview review) =>
+          CourseLibraryReports.matchingCourseId(review);
+      const stored =
+          'A custom Course with ID “same” already exists: '
+          '“Stored”.';
+
+      expect(
+        text(
+          offering([
+            CourseImportChoice.copyAsNewCourse,
+            CourseImportChoice.fork,
+            CourseImportChoice.replace,
+          ]),
+        ),
+        '$stored Replace it, make a Copy as New Course or a Fork, or cancel?',
+      );
+      expect(
+        text(offering([CourseImportChoice.fork])),
+        '$stored Make a Fork, or cancel?',
+      );
+      expect(
+        text(offering([CourseImportChoice.copyAsNewCourse])),
+        '$stored Make a Copy as New Course, or cancel?',
+      );
+      expect(
+        text(offering([CourseImportChoice.replace], received: true)),
+        'A newer version of the received Custom Course “Stored” is '
+        'available. Update it to version 1, or cancel?',
+      );
+      expect(
+        text(offering([CourseImportChoice.replace], unopenable: true)),
+        'The stored Course “Stored” with ID “same” cannot be opened by this '
         'version (an earlier GuideBook). Replace it with the Course you are '
-        'importing, create an available Copy as New Course or Fork, or '
-        'cancel?',
+        'importing, or cancel?',
+      );
+      // The owner's case of 15 October 2026: nothing can be used.
+      final none = offering(
+        const [],
+        replace:
+            'To update it with this file, open All Courses, '
+            'choose Add to my courses on this Course, then import the file '
+            'again.',
+        copy: CourseLibraryReports.copyOnlyInside,
+        fork: CourseLibraryReports.unlockCourseStudio,
+      );
+      expect(text(none), '$stored This file cannot be imported now.');
+      expect(text(none), isNot(contains('?')));
+      expect(CourseLibraryReports.matchingCourseIdReasons(none), [
+        'Replace / update: To update it with this file, open All Courses, '
+            'choose Add to my courses on this Course, then import the file '
+            'again.',
+        'Copy as New Course: Only the Maintainer or assigned Team can copy '
+            'this Course.',
+        'Fork: Unlock Course Studio for this profile first (tap Version and '
+            'Build ten times in Settings).',
+      ]);
+      // One line when Course Studio is the only thing in the way of both.
+      expect(
+        CourseLibraryReports.matchingCourseIdReasons(
+          offering(
+            [CourseImportChoice.replace],
+            copy: CourseLibraryReports.unlockCourseStudio,
+            fork: CourseLibraryReports.unlockCourseStudio,
+          ),
+        ),
+        [
+          'Copy as New Course and Fork: Unlock Course Studio for this '
+              'profile first (tap Version and Build ten times in Settings).',
+        ],
       );
     });
   });

@@ -237,7 +237,7 @@ void main() {
     await tester.pumpUntilFileIoState(
       () => find
           .descendant(
-            of: find.byKey(const ValueKey('manager-section-0')),
+            of: find.byKey(const ValueKey('manager-section-1')),
             matching: find.text('No courses in this section.'),
           )
           .evaluate()
@@ -247,7 +247,10 @@ void main() {
       tester.widget<CoursesScreen>(find.byType(CoursesScreen)).initialTab,
       CoursesTab.manager,
     );
-    expect(find.textContaining('Bundled Courses ·'), findsOneWidget);
+    // The learner took the one Bundled Course out of their library, so
+    // Course Studio draws no Bundled Courses section (14 October 2026).
+    expect(find.byKey(const ValueKey('manager-section-0')), findsNothing);
+    expect(find.textContaining('Bundled Courses ·'), findsNothing);
     await tester.pageBack();
     await tester.pumpUntilFileIoState(
       () => find.text('All Courses').evaluate().isNotEmpty,

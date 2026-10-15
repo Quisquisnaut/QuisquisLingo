@@ -17,6 +17,7 @@ import 'package:quisquislingo_app/services/app_errors.dart';
 import 'package:quisquislingo_app/services/app_metadata.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_library_categories.dart';
 import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_library_service.dart';
 import 'package:quisquislingo_app/services/course_received_service.dart';
@@ -138,6 +139,22 @@ void main() {
   }
 
   group('no Course comes with the app', () {
+    test('the Bundled Courses section is drawn only for a Bundled Course', () {
+      const rest = [
+        CourseLibraryCategory.publisher,
+        CourseLibraryCategory.myLocal,
+        CourseLibraryCategory.otherLocal,
+      ];
+      expect(CourseLibraryCategories.shownFor(const []), rest);
+      expect(CourseLibraryCategories.shownFor([_draft('a')]), rest);
+      final bundled = _importable(CourseService.laboratoryAsset);
+      expect(bundled.originType, CourseOriginType.bundledOfficial);
+      expect(
+        CourseLibraryCategories.shownFor([_draft('a'), bundled]),
+        CourseLibraryCategories.standard,
+      );
+    });
+
     test('the registry is empty and discovery finds nothing', () async {
       expect(CourseService.courseAssets, isEmpty);
       expect(CourseService.bundledAssets, isEmpty);
@@ -582,28 +599,45 @@ void main() {
       );
     });
 
-    testWidgets('All Courses opens with nothing in Bundled Courses', (
-      tester,
-    ) async {
-      await openHome(tester);
+    testWidgets('All Courses and Course Studio draw no Bundled Courses '
+        'section', (tester) async {
+      // Owner decision of 14 October 2026: with no Course in the app, the
+      // section would only say that it is empty.
+      await openHome(tester, unlocked: true);
       await tapVisible(tester, const Key('start-all-courses'));
       await tester.pumpUntilFileIoState(
-        () => find.text('Bundled Courses').evaluate().isNotEmpty,
+        () => find.text('Publisher Courses').evaluate().isNotEmpty,
       );
-      // The section of the bundled Courses is there, and empty.
-      final bundled = find.byKey(const ValueKey('course-section-0'));
+      expect(find.byKey(const ValueKey('course-section-0')), findsNothing);
+      expect(find.textContaining('Bundled Courses'), findsNothing);
+      for (final id in const ['1', '2', '3']) {
+        expect(
+          find.byKey(ValueKey('course-section-$id'), skipOffstage: false),
+          findsOneWidget,
+          reason: id,
+        );
+      }
+      await tester.tap(find.byKey(const Key('courses-tab-manager')));
+      await tester.pumpUntilFileIoState(
+        () => find
+            .byKey(const ValueKey('manager-section-1'), skipOffstage: false)
+            .evaluate()
+            .isNotEmpty,
+      );
       expect(
-        find.descendant(of: bundled, matching: find.text('Bundled Courses')),
-        findsOneWidget,
+        find.byKey(const ValueKey('manager-section-0'), skipOffstage: false),
+        findsNothing,
       );
-      expect(
-        find.descendant(
-          of: bundled,
-          matching: find.text('No courses in this section.'),
-        ),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Bundled Courses'), findsNothing);
+      for (final id in const ['2', '3']) {
+        expect(
+          find.byKey(ValueKey('manager-section-$id'), skipOffstage: false),
+          findsOneWidget,
+          reason: id,
+        );
+      }
       expect(tester.takeException(), isNull);
+      await close(tester);
     });
 
     testWidgets('Settings, Profile, Gamification and Statistics open without '

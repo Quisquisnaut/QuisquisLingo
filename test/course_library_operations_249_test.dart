@@ -329,7 +329,7 @@ void main() {
       ]);
       expect(
         shown[CourseManagerAction.fork],
-        'You maintain this Course: use Copy as New Course instead.',
+        'You can edit this Course, so use Copy as New Course instead.',
       );
       expect(shown.entries.where((e) => e.value != null).map((e) => e.key), [
         CourseManagerAction.fork,

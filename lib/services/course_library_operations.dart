@@ -160,7 +160,7 @@ class CourseManagerLibrary {
   List<CourseManagerEntry> entriesFor(Course course) {
     final access = capabilitiesFor(course);
     final official = course.originType.isOfficial;
-    const onlyInside = 'Only the Maintainer or assigned Team can';
+    const onlyInside = CourseLibraryReports.onlyInside;
     return [
       if (!official && pausedWizards.containsKey(course.courseId))
         CourseManagerEntry(
@@ -183,11 +183,13 @@ class CourseManagerLibrary {
         CourseManagerAction.toggleLearnerVisibility,
         _learnerVisibilityUnavailable(course),
       ),
-      CourseManagerEntry(CourseManagerAction.fork, _forkUnavailable(course)),
+      CourseManagerEntry(CourseManagerAction.fork, forkUnavailable(course)),
       if (!official)
         CourseManagerEntry(
           CourseManagerAction.copyAsNewCourse,
-          access.canCopyAsNewCourse ? null : '$onlyInside copy this Course.',
+          access.canCopyAsNewCourse
+              ? null
+              : CourseLibraryReports.copyOnlyInside,
         ),
       if (!official)
         CourseManagerEntry(
@@ -230,13 +232,14 @@ class CourseManagerLibrary {
     return null;
   }
 
-  /// Why [course] cannot be forked now, or null when it can.
-  String? _forkUnavailable(Course course) {
+  /// Why [course] cannot be forked now, or null when it can (Course
+  /// Studio's menu and the Matching Course ID dialog).
+  String? forkUnavailable(Course course) {
     final access = capabilitiesFor(course);
     if (access.canFork) return null;
     if (activeProfileId == null) return 'Select a learner profile first.';
     if (!course.originType.isOfficial && access.hasOperationalAccess) {
-      return 'You maintain this Course: use Copy as New Course instead.';
+      return 'You can edit this Course, so use Copy as New Course instead.';
     }
     if (course.originType == CourseOriginType.externalOfficial &&
         course.publisherVerificationStatus !=
@@ -284,6 +287,8 @@ class CourseImportReview {
     required this.choices,
     this.receivedUpdate = false,
     this.replaceUnavailableReason,
+    this.copyUnavailableReason,
+    this.forkUnavailableReason,
     this.notExecutableCount = 0,
     this.existingUnopenable,
     this.existingHidden = false,
@@ -324,6 +329,16 @@ class CourseImportReview {
 
   /// Why the matching-ID Custom Course cannot be replaced, when unavailable.
   final String? replaceUnavailableReason;
+
+  /// Why the Course being imported cannot be made a Copy as New Course
+  /// or a Fork now (Course Studio locked, rights, license), null when it
+  /// can. The Matching Course ID dialog shows the action greyed out with
+  /// this reason (owner, 15 October 2026: an action the Course allows
+  /// stays visible when only the circumstances stop it).
+  final String? copyUnavailableReason;
+
+  /// The same for a Fork.
+  final String? forkUnavailableReason;
 
   bool get blocked => errors.isNotEmpty;
   bool get isPublisherCourse =>
@@ -678,6 +693,7 @@ class CourseLibraryOperations {
     final mayReplaceUnopenable =
         unopenable != null && await editor.mayRemoveUnopenable(unopenable);
     final imported = library.capabilitiesFor(course);
+    final locked = !library.importAuthoringEnabled;
     final ordinaryReplace =
         existing != null &&
         !existing.originType.isOfficial &&
@@ -731,6 +747,16 @@ class CourseLibraryOperations {
           : ordinaryReplace
           ? null
           : receivedDecision?.unavailableReason,
+      copyUnavailableReason: library.activeProfileId == null
+          ? 'Select a learner profile first.'
+          : !imported.canCopyAsNewCourse
+          ? CourseLibraryReports.copyOnlyInside
+          : locked
+          ? CourseLibraryReports.unlockCourseStudio
+          : null,
+      forkUnavailableReason:
+          library.forkUnavailable(course) ??
+          (locked ? CourseLibraryReports.unlockCourseStudio : null),
       choices: [
         if ((existing != null || unopenable != null) &&
             course.originType != CourseOriginType.externalOfficial) ...[
@@ -1235,29 +1261,78 @@ abstract final class CourseLibraryReports {
   static String importBlocked(int errors) =>
       CourseImportRefusals.auditErrors(errors);
 
+  static const onlyInside = 'Only the Maintainer or assigned Team can';
+  static const copyOnlyInside = '$onlyInside copy this Course.';
+
+  /// Why Copy as New Course and Fork wait while Course Studio is locked.
+  static const unlockCourseStudio =
+      'Unlock Course Studio for this profile first (tap Version and '
+      'Build ten times in Settings).';
+
   /// What the Matching Course ID dialog says about the stored Course an
   /// import meets (Build 271 Revision 4: someone else's Private course is
-  /// "a Private course", never its title).
+  /// "a Private course", never its title), then a question that names
+  /// only what the learner can do now, or that the file cannot be
+  /// imported now (owner, 15 October 2026: the dialog asked about
+  /// Replace, Copy as New Course and Fork when none could be used).
   static String matchingCourseId(CourseImportReview review) {
     final course = review.course;
     final existing = review.existing;
     final unopenable = review.existingUnopenable;
-    const choices = 'create an available Copy as New Course or Fork, or cancel';
+    final String stored;
+    var replace = 'replace it';
     if (existing == null) {
       final reason = unopenable?.reason ?? '';
-      return review.existingHidden
-          ? 'A Private course stored with ID “${course.courseId}” cannot be opened by this version ($reason). Replace it with the Course you are importing, $choices?'
-          : 'The stored Course ${unopenable?.shownName ?? ''} with ID “${course.courseId}” cannot be opened by this version ($reason). Replace it with the Course you are importing, $choices?';
+      stored = review.existingHidden
+          ? 'A Private course stored with ID “${course.courseId}” cannot be opened by this version ($reason).'
+          : 'The stored Course ${unopenable?.shownName ?? ''} with ID “${course.courseId}” cannot be opened by this version ($reason).';
+      replace = 'replace it with the Course you are importing';
+    } else if (existing.originType.isOfficial) {
+      stored =
+          'Official Course “${existing.title}” already uses ID “${course.courseId}”. It cannot be replaced by custom content.';
+    } else if (review.existingHidden) {
+      stored =
+          'A custom Course with ID “${course.courseId}” already exists: a Private course.';
+    } else if (review.receivedUpdate) {
+      stored =
+          'A newer version of the received Custom Course “${existing.title}” is available.';
+      replace = 'update it to version ${course.courseVersion}';
+    } else {
+      stored =
+          'A custom Course with ID “${course.courseId}” already exists: “${existing.title}”.';
     }
-    if (existing.originType.isOfficial) {
-      return 'Official Course “${existing.title}” already uses ID “${course.courseId}”. It cannot be replaced by custom content; $choices.';
-    }
-    if (review.existingHidden) {
-      return 'A custom Course with ID “${course.courseId}” already exists: a Private course. Replace it, $choices?';
-    }
-    return review.receivedUpdate
-        ? 'A newer version of the received Custom Course “${existing.title}” is available. Update to version ${course.courseVersion}, $choices?'
-        : 'A custom Course with ID “${course.courseId}” already exists. Replace “${existing.title}”, $choices?';
+    final choices = review.choices;
+    final copy = choices.contains(CourseImportChoice.copyAsNewCourse);
+    final fork = choices.contains(CourseImportChoice.fork);
+    final parts = [
+      if (choices.contains(CourseImportChoice.replace)) replace,
+      if (copy && fork)
+        'make a Copy as New Course or a Fork'
+      else if (copy)
+        'make a Copy as New Course'
+      else if (fork)
+        'make a Fork',
+    ];
+    if (parts.isEmpty) return '$stored This file cannot be imported now.';
+    final question = '${parts.join(', ')}, or cancel?';
+    return '$stored ${question[0].toUpperCase()}${question.substring(1)}';
+  }
+
+  /// One line for each action the Matching Course ID dialog shows greyed
+  /// out, named as its button is, in the order of the question.
+  static List<String> matchingCourseIdReasons(CourseImportReview review) {
+    final copy = review.copyUnavailableReason;
+    final fork = review.forkUnavailableReason;
+    return [
+      if (review.replaceUnavailableReason case final reason?)
+        'Replace / update: $reason',
+      if (copy != null && copy == fork)
+        'Copy as New Course and Fork: $copy'
+      else ...[
+        if (copy != null) 'Copy as New Course: $copy',
+        if (fork != null) 'Fork: $fork',
+      ],
+    ];
   }
 
   /// "Anna and Marco have this Course in their courses." (Build 271

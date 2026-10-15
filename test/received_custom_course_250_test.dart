@@ -12,6 +12,7 @@ import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_package_import.dart';
 import 'package:quisquislingo_app/services/course_package_service.dart';
+import 'package:quisquislingo_app/services/course_received_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/team_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -284,7 +285,13 @@ void main() {
         await operations.load(importOnly: true),
       );
       expect(outside.choices, isNot(contains(CourseImportChoice.replace)));
-      expect(outside.replaceUnavailableReason, contains('Personal Library'));
+      // What to do, in the words of the button (Build 272 Revision 17
+      // follow-up).
+      expect(
+        outside.replaceUnavailableReason,
+        'To update it with this file, open All Courses, choose Add to my '
+        'courses on this Course, then import the file again.',
+      );
 
       await CourseLibraryService().add(incoming);
       final included = await operations.reviewImport(
@@ -316,6 +323,49 @@ void main() {
       await changedAttempt.close();
     },
   );
+
+  test('the reasons say what to do: a file that is not newer needs no '
+      'import, and nobody logged in is said so (Build 272 Revision 17 '
+      'follow-up)', () async {
+    await editor.installImportedCustomCourse(_course(version: '2'));
+    // Alice imported it, so it is among her courses; Bob does not have it.
+    Future<String?> reason(String version, {String? profileId}) async =>
+        (await editor.receivedCourses.reviewUpdate(
+          existing: _course(version: '2'),
+          incoming: _course(version: version),
+          profileId: profileId,
+        )).unavailableReason;
+
+    expect(await reason('3', profileId: _alice), isNull);
+    expect(
+      await reason('2', profileId: _alice),
+      'An update must have a newer positive integer Course version.',
+    );
+    expect(
+      await reason('3', profileId: _bob),
+      CourseReceivedService.addThenImport,
+    );
+    // Adding it and importing the same file again would lead nowhere.
+    expect(
+      await reason('2', profileId: _bob),
+      CourseReceivedService.notNewerAndNotMine,
+    );
+    expect(
+      await reason('1', profileId: _bob),
+      CourseReceivedService.notNewerAndNotMine,
+    );
+    // What the file itself decides comes first.
+    expect(
+      (await editor.receivedCourses.reviewUpdate(
+        existing: _course(version: '2'),
+        incoming: _course(version: '3', createdAt: '2026-09-21T09:00:00.000Z'),
+        profileId: _bob,
+      )).unavailableReason,
+      contains('provenance'),
+    );
+    await profiles.clearActiveProfile();
+    expect(await reason('3'), 'Select a learner profile first.');
+  });
 
   test(
     'package update keeps the new media and archives the previous version',
