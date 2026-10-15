@@ -891,6 +891,20 @@ Progress (13 October 2026, about 22:15):
 
 ### Follow-up in the same version (14 October 2026): no empty Bundled Courses section
 
+COMMITTED `b75cb5c1` on 15 October 2026 after the owner's "commit", with the
+Matching Course ID dialog part, and pushed to `origin/build-272`. Next: the
+owner's go for the merge of Build 272 into `main`. Open question to the
+owner (asked read-only on 15 October, nothing changed): page transitions on
+Windows and Linux are Flutter's default zoom (`ZoomPageTransitionsBuilder`,
+300 ms: the page left grows to 105% while it fades, Back brings the page
+underneath from 110% to 100%; 138 `MaterialPageRoute` places; dialogs,
+bottom sheets and the saving window do not zoom). Proposed: B, Fade upwards
+for Windows and Linux in the theme (both `theme` and `darkTheme`), following
+the Animations switch; or A keep, C none, or Fade forwards / Cupertino. Owner's
+answer (15 October 2026): do not change the transition for now. Then his
+go for the merge: Build 272 fast-forwarded into `main` and pushed, branch
+`build-272` deleted locally and on origin.
+
 The owner answered the four open points: 1 ok (the start page stays
 EN/IT/ES), 2 leave (no Rights Holder), 3 hide (the empty Bundled Courses
 section), 4 not for now (no pointer). Done in the working tree, NOT
