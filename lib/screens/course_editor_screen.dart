@@ -60,6 +60,7 @@ import '../services/exercise_creation_planner.dart';
 import '../services/exercise_draft_builder.dart';
 import '../services/exercise_difficulty.dart';
 import '../services/round_flow_authoring.dart';
+import '../services/story_cast.dart';
 import '../services/round_type_presentation.dart';
 import '../services/round_type_compatibility.dart';
 import '../services/timed_round_rules.dart';
@@ -899,47 +900,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   /// Course-level Lesson settings, shown under the Lessons tile. They were on
   /// the Lessons screen but none of them is a Lesson property.
   /// Build 256 Revision 5: who speaks in this Course's Stories.
-  String get _storyCharactersSummary {
-    final narrator = _course.narrator.name;
-    final count = _course.storyCharacters.length;
-    return '${narrator.isEmpty ? 'Unnamed narrator' : 'Narrator: $narrator'} · '
-        '$count character${count == 1 ? '' : 's'}';
-  }
-
-  static String _speakerSummary(StorySpeaker speaker) =>
-      '${speaker.language == TextLanguage.source ? 'Source' : 'Target'} '
-      'language · voice ${speaker.voice.serialized}';
-
-  /// How many Dialogue lines of this Course a speaker says.
-  int _linesSpokenBy(String speakerId) {
-    var count = 0;
-    for (final lesson in _course.lessons) {
-      for (final round in lesson.rounds) {
-        for (final content in round.content) {
-          final exercise = content.exercise;
-          if (exercise != null &&
-              exercise.promptElements.any(
-                (element) => element.speakerId == speakerId,
-              )) {
-            count++;
-          }
-        }
-      }
-    }
-    return count;
-  }
+  String get _storyCharactersSummary => StoryCast.summaryOf(_course);
 
   /// The working copy with [narrator] and [characters] and, when a library
   /// picture with a known credit became an avatar, that credit among the
-  /// Media credits (once). One rule with the Story Wizard (Build 270
-  /// Revision 10 follow-up, owner decision): a narrator is stored only when
-  /// the Course has one or it differs from the default, so saving the
-  /// default narrator unchanged changes nothing.
+  /// Media credits (once), by [StoryCast.withSpeakers]'s narrator rule.
   Course _withSpeakers({
     StorySpeaker? narrator,
     List<StorySpeaker>? characters,
     CourseMediaAttribution? credit,
-  }) => _courseWithSpeakers(
+  }) => StoryCast.withSpeakers(
     _course,
     narrator: narrator ?? _course.narrator,
     characters: characters ?? _course.storyCharacters,
@@ -963,12 +933,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         narrator: narrator ? choice.speaker : null,
         characters: narrator
             ? null
-            : [
-                for (final character in _course.storyCharacters)
-                  character.id == choice.speaker.id
-                      ? choice.speaker
-                      : character,
-              ],
+            : StoryCast.replacing(_course.storyCharacters, choice.speaker),
         credit: choice.credit,
       ),
     );
@@ -996,14 +961,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   /// Removing a character that lines still name is refused with the count
   /// (owner decision: no silent fallback to the narrator).
   Future<void> _removeCharacter(StorySpeaker character) async {
-    final lines = _linesSpokenBy(character.id);
+    final lines = StoryCast.linesSpokenBy(_course, character.id);
     if (lines > 0) {
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text('“${character.name}” still speaks'),
           content: Text(
-            '$lines Dialogue line${lines == 1 ? '' : 's'} of this Course name this character. Give those lines another speaker first; QQL never hands them to the narrator silently.',
+            StoryCast.stillSpeaksMessage(lines),
             key: const Key('story-character-in-use'),
           ),
           actions: [
@@ -1018,10 +983,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
     _updateDraft(
       _withSpeakers(
-        characters: [
-          for (final other in _course.storyCharacters)
-            if (other.id != character.id) other,
-        ],
+        characters: StoryCast.without(_course.storyCharacters, character.id),
       ),
     );
   }
@@ -1044,7 +1006,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             ? 'Narrator (unnamed)'
             : 'Narrator: ${_course.narrator.name}',
       ),
-      subtitle: Text(_speakerSummary(_course.narrator)),
+      subtitle: Text(StoryCast.describe(_course.narrator)),
       trailing: Icon(_canModify ? Icons.edit_outlined : Icons.chevron_right),
       onTap: () => _editSpeaker(_course.narrator, narrator: true),
     ),
@@ -1053,7 +1015,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         key: ValueKey('story-character-${character.id}'),
         leading: StoryAvatar(speaker: character, courseId: _course.courseId),
         title: Text(character.name),
-        subtitle: Text(_speakerSummary(character)),
+        subtitle: Text(StoryCast.describe(character)),
         trailing: _canModify
             ? IconButton(
                 key: ValueKey('story-character-remove-${character.id}'),
@@ -4229,7 +4191,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
 
   /// The Course as the exercise form should see it: with the speakers
   /// edited here, so a line form offers them.
-  Course get _courseForEditing => _courseWithSpeakers(
+  Course get _courseForEditing => StoryCast.withSpeakers(
     widget.course,
     narrator: _narrator,
     characters: _characters,
@@ -4452,10 +4414,6 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
     ));
   }
 
-  static String _speakerSummary(StorySpeaker speaker) =>
-      '${speaker.language == TextLanguage.source ? 'Source' : 'Target'} '
-      'language · voice ${speaker.voice.serialized}';
-
   @override
   Widget build(BuildContext context) {
     final index = _StoryWizardStage.values.indexOf(_stage);
@@ -4599,7 +4557,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
                 ? 'Narrator (unnamed)'
                 : 'Narrator: ${_narrator.name}',
           ),
-          subtitle: Text(_speakerSummary(_narrator)),
+          subtitle: Text(StoryCast.describe(_narrator)),
           trailing: const Icon(Icons.edit_outlined),
           onTap: _editNarrator,
         ),
@@ -4634,7 +4592,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
               courseId: widget.course.courseId,
             ),
             title: Text(_characters[i].name),
-            subtitle: Text(_speakerSummary(_characters[i])),
+            subtitle: Text(StoryCast.describe(_characters[i])),
             trailing: const Icon(Icons.edit_outlined),
             onTap: () => _editCharacter(i),
           ),
@@ -5088,7 +5046,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     if (result == null || !mounted) return;
     _adoptCourse(
       _hierarchyUpdates.apply(
-        _courseWithSpeakers(
+        StoryCast.withSpeakers(
           _course,
           narrator: result.narrator,
           characters: result.characters,
@@ -7382,43 +7340,6 @@ final ButtonStyle _compactButtonStyle = ButtonStyle(
   minimumSize: const WidgetStatePropertyAll(Size(0, 36)),
   textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 13)),
 );
-
-/// [course] with the Story [narrator] and [characters] and any new media
-/// [credits] (Build 256 Revision 5). A narrator equal to the one the Course
-/// already has (or to the default, when it has none) leaves the JSON as it
-/// was.
-Course _courseWithSpeakers(
-  Course course, {
-  required StorySpeaker narrator,
-  required List<StorySpeaker> characters,
-  List<CourseMediaAttribution> credits = const [],
-}) {
-  final json = {...course.toJson()}
-    ..remove('storyNarrator')
-    ..remove('storyCharacters')
-    ..remove('mediaAttributions');
-  final known = [...course.mediaAttributions];
-  for (final credit in credits) {
-    if (!known.any(
-      (item) => jsonEncode(item.toJson()) == jsonEncode(credit.toJson()),
-    )) {
-      known.add(credit);
-    }
-  }
-  final sameNarrator =
-      jsonEncode(narrator.toJson()) == jsonEncode(course.narrator.toJson());
-  return Course.fromJson({
-    ...json,
-    if (course.storyNarrator != null || !sameNarrator)
-      'storyNarrator': narrator.toJson(),
-    if (characters.isNotEmpty)
-      'storyCharacters': [
-        for (final character in characters) character.toJson(),
-      ],
-    if (known.isNotEmpty)
-      'mediaAttributions': [for (final item in known) item.toJson()],
-  });
-}
 
 Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) =>
     PresetRecipes.blankFor(presetId, ids.next('exercise'));

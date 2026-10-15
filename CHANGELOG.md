@@ -1,3 +1,25 @@
+# 2.0.73 (Build 273, Revision 0) - the Story cast owner - 2026-10-15
+
+The first revision of Build 273, the modularization build's medium-risk
+owners. Nothing an author or a learner sees changes. Released on 15
+October 2026: the Beta expiry moves to 2026-11-14.
+
+- **One owner for the Story cast.** `StoryCast`
+  (`lib/services/story_cast.dart`, pure Dart) holds what the Course
+  Editor's Story characters and the Story Wizard each kept a copy of: the
+  line under a speaker's name (`describe`: "Target language · voice
+  female"), the Story characters tile's summary (`summaryOf`), how many
+  Dialogue lines name a character (`linesSpokenBy`) and the message that
+  refuses to remove a character still speaking (`stillSpeaksMessage`), a
+  character replaced or removed in the list (`replacing`, `without`), and
+  how the narrator, the characters and the avatars' credits are written
+  into a Course (`withSpeakers`: a narrator is stored only when the Course
+  has one or it differs from the Course's narrator; each credit once).
+- The Course Editor's `_speakerSummary`, `_linesSpokenBy` and the file's
+  `_courseWithSpeakers` are gone, and so is the Story Wizard's copy of
+  `_speakerSummary`; the Course Editor file is at 7,848 lines (7,927).
+- Tests: `test/story_cast_273_test.dart` (12).
+
 # 2.0.72 (Build 272, Revision 17) - no Course comes with the app; a start page - 2026-10-14
 
 Decided by the owner on 13 October 2026. The last revision of Build 272.

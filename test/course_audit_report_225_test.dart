@@ -19,11 +19,11 @@ void main() {
       sortMode: AuditSortMode.lesson,
     );
 
-    expect(report, contains('Version: 2.0.72'));
-    expect(report, contains('Build 272, Revision 17'));
+    expect(report, contains('Version: 2.0.73'));
+    expect(report, contains('Build 273, Revision 0'));
     expect(report, isNot(contains('Phase:')));
     expect(report, isNot(contains('revision')));
-    expect(report, contains('Technical version: 2.0.72+272017'));
+    expect(report, contains('Technical version: 2.0.73+273000'));
     expect(report, contains('Generated: 2026-09-03T20:15:30.000'));
     expect(report, contains('Course name: Italian test'));
     expect(report, contains('Course ID: stable_course_id'));
