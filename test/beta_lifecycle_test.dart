@@ -3,19 +3,19 @@ import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 
 void main() {
   test(
-    'QQL 274 Revision 0 expires on 14 November and includes the expiry day',
+    'QQL 274 Revision 2 expires on 15 November and includes the expiry day',
     () {
-      expect(BetaLifecycleService.expiryIsoDate, '2026-11-14');
-      expect(BetaLifecycleService.daysRemaining(DateTime(2026, 10, 15)), 30);
+      expect(BetaLifecycleService.expiryIsoDate, '2026-11-15');
+      expect(BetaLifecycleService.daysRemaining(DateTime(2026, 10, 16)), 30);
       expect(
-        BetaLifecycleService.isExpired(DateTime(2026, 11, 14, 12)),
+        BetaLifecycleService.isExpired(DateTime(2026, 11, 15, 12)),
         isFalse,
       );
       expect(
-        BetaLifecycleService.isExpired(DateTime(2026, 11, 14, 23, 59, 59)),
+        BetaLifecycleService.isExpired(DateTime(2026, 11, 15, 23, 59, 59)),
         isFalse,
       );
-      expect(BetaLifecycleService.isExpired(DateTime(2026, 11, 15)), isTrue);
+      expect(BetaLifecycleService.isExpired(DateTime(2026, 11, 16)), isTrue);
     },
   );
 
@@ -30,45 +30,45 @@ void main() {
     expect(BetaLifecycleService.warningStage(), isNull);
     expect(BetaLifecycleService.daysRemaining(), 15);
 
-    BetaLifecycleService.clock = () => DateTime(2026, 11, 15);
+    BetaLifecycleService.clock = () => DateTime(2026, 11, 16);
     expect(BetaLifecycleService.isExpired(), isTrue);
 
-    BetaLifecycleService.clock = () => DateTime(2026, 11, 13);
+    BetaLifecycleService.clock = () => DateTime(2026, 11, 14);
     expect(BetaLifecycleService.isExpired(), isFalse);
     expect(BetaLifecycleService.daysRemaining(), 1);
     expect(BetaLifecycleService.warningStage(), 1);
   });
 
   test('warning milestones are stable', () {
-    expect(BetaLifecycleService.warningStage(DateTime(2026, 11, 7)), 7);
-    expect(BetaLifecycleService.warningStage(DateTime(2026, 11, 11)), 3);
-    expect(BetaLifecycleService.warningStage(DateTime(2026, 11, 13)), 1);
-    expect(BetaLifecycleService.warningStage(DateTime(2026, 11, 14)), 0);
+    expect(BetaLifecycleService.warningStage(DateTime(2026, 11, 8)), 7);
+    expect(BetaLifecycleService.warningStage(DateTime(2026, 11, 12)), 3);
+    expect(BetaLifecycleService.warningStage(DateTime(2026, 11, 14)), 1);
+    expect(BetaLifecycleService.warningStage(DateTime(2026, 11, 15)), 0);
   });
 
   test('warning stages use next stricter milestone after skipped days', () {
     expect(
-      BetaLifecycleService.warningStage(DateTime(2026, 11, 6)),
+      BetaLifecycleService.warningStage(DateTime(2026, 11, 7)),
       null,
     ); // 8 days
     expect(
-      BetaLifecycleService.warningStage(DateTime(2026, 11, 8)),
+      BetaLifecycleService.warningStage(DateTime(2026, 11, 9)),
       7,
     ); // 6 days
     expect(
-      BetaLifecycleService.warningStage(DateTime(2026, 11, 9)),
+      BetaLifecycleService.warningStage(DateTime(2026, 11, 10)),
       7,
     ); // 5 days
     expect(
-      BetaLifecycleService.warningStage(DateTime(2026, 11, 10)),
+      BetaLifecycleService.warningStage(DateTime(2026, 11, 11)),
       7,
     ); // 4 days
     expect(
-      BetaLifecycleService.warningStage(DateTime(2026, 11, 12)),
+      BetaLifecycleService.warningStage(DateTime(2026, 11, 13)),
       3,
     ); // 2 days
     expect(
-      BetaLifecycleService.warningStage(DateTime(2026, 11, 15)),
+      BetaLifecycleService.warningStage(DateTime(2026, 11, 16)),
       null,
     ); // expired
   });

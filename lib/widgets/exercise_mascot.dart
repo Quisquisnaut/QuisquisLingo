@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import '../services/exercise_mascot_policy.dart';
+import '../services/playback_on_request.dart';
 
 /// The room a Round page has for the mascot of its exercise: beside which
 /// sentence, and how large (Build 271 Revision 5; before, the Round screen
@@ -48,11 +49,16 @@ class ExerciseMascotRoom {
         text.headlineSmall,
         ExerciseFeatures(exercise).isTranslationChoice ? 48.0 : 0.0,
       ),
+      // A sentence the learner may hear keeps room for its speaker (Build
+      // 274 Revision 2, found by the independent review).
       ExerciseMascotAnchor.prompt => (
         promptAsInstruction
             ? text.bodyMedium?.copyWith(fontWeight: FontWeight.w600)
             : text.titleMedium,
-        0.0,
+        !promptAsInstruction &&
+                PlaybackOnRequest.promptText(ExerciseFeatures(exercise)) != null
+            ? 48.0
+            : 0.0,
       ),
       // The gapped sentence sits in a panel with padding on both sides.
       ExerciseMascotAnchor.gappedText => (

@@ -1,7 +1,7 @@
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import 'inline_marks.dart';
-import 'translation_choice_service.dart';
+import 'playback_on_request.dart';
 
 /// Where one recording is heard: an exercise of a Round of a Lesson.
 class AudioClipUse {
@@ -31,9 +31,10 @@ class AudioClipUse {
 abstract final class CourseAudioUsage {
   /// Every text an exercise can speak, as the Round screen speaks it: its
   /// audio elements (main, context, passage, dialogue lines, Story lines,
-  /// the flashcard word), its answers' sounds, Pick the translation's
-  /// target-language question or answer, the flashcard's example, and a
-  /// Page's audio blocks and read-aloud text.
+  /// the flashcard word), its answers' sounds, what a learner may hear on
+  /// request (`PlaybackOnRequest`: a translation's target-language sentence
+  /// or answer, the words of picture options; Build 274 Revision 2), the
+  /// flashcard's example, and a Page's audio blocks and read-aloud text.
   static List<String> spokenTexts(Exercise exercise) {
     final features = ExerciseFeatures(exercise);
     final texts = <String>[
@@ -44,10 +45,7 @@ abstract final class CourseAudioUsage {
             if (element.isAudio) element.text,
           item.label,
         ],
-      if (features.isTranslationChoice) ...[
-        ?TranslationChoice.spokenTextFor(features, answered: false),
-        ?TranslationChoice.spokenTextFor(features, answered: true),
-      ],
+      ...PlaybackOnRequest.texts(exercise),
       features.textOf('usage'),
       for (final block in features.pageBlocks)
         if (block.isAudio)

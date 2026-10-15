@@ -42,9 +42,9 @@ import '../services/flashcard_sides.dart';
 import '../services/crash_log_service.dart';
 import '../services/answer_grader.dart';
 import '../services/correct_answer_text.dart';
+import '../services/playback_on_request.dart';
 import '../services/audio_exercise_availability_service.dart';
 import '../services/audio_diagnostic_service.dart';
-import '../services/translation_choice_service.dart';
 import '../services/exercise_mascot_policy.dart';
 import '../services/learner_mascots.dart';
 import '../services/lesson_presentation_service.dart';
@@ -2132,6 +2132,73 @@ class _RoundScreenState extends State<RoundScreen> {
     icon: const Icon(Icons.volume_up_outlined),
   );
 
+  /// The sentence a learner translates, with Pick the translation's
+  /// speaker beside it when it is in the target language (Build 274
+  /// Revision 2: Build the translation and Type the translation into the
+  /// source language).
+  Widget _withPromptSpeaker(Widget text) {
+    final spoken = PlaybackOnRequest.promptText(_features);
+    if (spoken == null) return text;
+    return Row(
+      children: [
+        Expanded(child: text),
+        _translationAudioButton(spoken),
+      ],
+    );
+  }
+
+  /// A word the learner may hear on request (Build 274 Revision 2, owner's
+  /// point 4): a small speaker, shown only while the learner's audio is on.
+  Widget? _wordSpeaker(Key key, String? word) {
+    if (word == null || !_optionalAudioEnabled) return null;
+    return IconButton(
+      key: key,
+      tooltip: _t('playAudio'),
+      visualDensity: VisualDensity.compact,
+      iconSize: 18,
+      onPressed: () => _speakText(word),
+      icon: const Icon(Icons.volume_up_outlined),
+    );
+  }
+
+  /// A picture option whose word the learner may hear: the speaker on its
+  /// corner.
+  Widget _withOptionSpeaker(int i, ExerciseItem? item, Widget tile) {
+    final speaker = _wordSpeaker(
+      ValueKey('option-speaker-$i'),
+      item == null ? null : PlaybackOnRequest.optionWord(_features, item),
+    );
+    if (speaker == null) return tile;
+    return Stack(
+      children: [
+        tile,
+        Positioned(top: 0, right: 0, child: speaker),
+      ],
+    );
+  }
+
+  /// A word in a Match row's menu, with its speaker when the learner may
+  /// hear it.
+  Widget _matchWord(Map<String, ExerciseItem> items, MatchChoice choice) {
+    final text = Text(
+      choice.label,
+      softWrap: true,
+      overflow: TextOverflow.ellipsis,
+    );
+    final item = items[choice.id];
+    final speaker = _wordSpeaker(
+      ValueKey('match-word-speaker-${choice.id}'),
+      item == null ? null : PlaybackOnRequest.optionWord(_features, item),
+    );
+    if (speaker == null) return text;
+    return Row(
+      children: [
+        Expanded(child: text),
+        speaker,
+      ],
+    );
+  }
+
   Widget _translationAudioUnavailableNote() => Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: Text(
@@ -2141,15 +2208,16 @@ class _RoundScreenState extends State<RoundScreen> {
     ),
   );
 
-  /// After answering a translation Select whose items are in the target
-  /// language, the learner may hear the correct answer. Nothing is spoken
-  /// automatically.
+  /// After answering a translation whose answer is in the target language
+  /// (Pick the translation, and since Build 274 Revision 2 Build the
+  /// translation and Type the translation), the learner may hear the
+  /// answer. Nothing is spoken automatically.
   List<Widget> _translationFeedbackAudio(Exercise ex) {
-    final f = _features;
-    if (!f.isTranslationChoice || f.itemLanguage != TextLanguage.target) {
-      return const [];
-    }
-    final spoken = TranslationChoice.spokenTextFor(f, answered: _answered);
+    final spoken = PlaybackOnRequest.answerText(
+      ex,
+      _features,
+      answered: _answered,
+    );
     if (spoken == null) return const [];
     return [
       const SizedBox(height: 8),
@@ -2165,9 +2233,7 @@ class _RoundScreenState extends State<RoundScreen> {
 
   Widget _translationChoiceExercise(Exercise ex) {
     final f = _features;
-    final spoken = f.questionLanguage == TextLanguage.target
-        ? TranslationChoice.spokenTextFor(f, answered: _answered)
-        : null;
+    final spoken = PlaybackOnRequest.promptText(f);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -3112,6 +3178,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _matchingExercise(Exercise ex) {
+    final items = {for (final item in ex.items) item.id: item};
     Widget selector(MatchRow pair) => DropdownButtonFormField<String>(
       isExpanded: true,
       initialValue: _matchingSelections[pair.leftId],
@@ -3121,16 +3188,22 @@ class _RoundScreenState extends State<RoundScreen> {
       ),
       items: _matchingRightOptions
           .map(
-            (v) => DropdownMenuItem(
-              value: v.id,
-              child: Text(
-                v.label,
-                softWrap: true,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+            (v) => DropdownMenuItem(value: v.id, child: _matchWord(items, v)),
           )
           .toList(),
+      // The closed field shows the chosen word as before: its speaker is in
+      // the menu only (a dense field has no room for it).
+      selectedItemBuilder: (context) => [
+        for (final v in _matchingRightOptions)
+          DropdownMenuItem(
+            value: v.id,
+            child: Text(
+              v.label,
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+      ],
       onChanged: _answered
           ? null
           : (value) => setState(() {
@@ -4054,7 +4127,7 @@ class _RoundScreenState extends State<RoundScreen> {
       overflow: TextOverflow.ellipsis,
     );
     if (shape == PictureShape.square) {
-      return SizedBox(
+      final tile = SizedBox(
         key: ValueKey('picture-answer-square-$i'),
         width: width,
         height: width,
@@ -4097,8 +4170,9 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
         ),
       );
+      return _withOptionSpeaker(i, item, tile);
     }
-    return SizedBox(
+    final tile = SizedBox(
       width: width,
       height: (image.isNotEmpty ? 150 : 120) * scale,
       child: FilledButton.tonal(
@@ -4138,6 +4212,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
       ),
     );
+    return _withOptionSpeaker(i, item, tile);
   }
 
   Widget _audioMatchExercise(Exercise ex) {
@@ -5158,16 +5233,23 @@ class _RoundScreenState extends State<RoundScreen> {
               const SizedBox(height: 12),
               _withMascot(
                 ExerciseMascotAnchor.prompt,
-                LookupText(
-                  ExerciseCopyService.displayPrompt(
-                    widget.course,
-                    _displayedPrompt,
+                _withPromptSpeaker(
+                  LookupText(
+                    ExerciseCopyService.displayPrompt(
+                      widget.course,
+                      _displayedPrompt,
+                    ),
+                    textKey: const Key('exercise-prompt-text'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                    language: _features.promptLanguage,
                   ),
-                  textKey: const Key('exercise-prompt-text'),
-                  style: Theme.of(context).textTheme.titleMedium,
-                  language: _features.promptLanguage,
                 ),
               ),
+              if (PlaybackOnRequest.promptText(_features) != null &&
+                  !_optionalAudioEnabled) ...[
+                const SizedBox(height: 8),
+                _translationAudioUnavailableNote(),
+              ],
             ],
             const SizedBox(height: 20),
             // Keep the whole exercise screen scrollable. On short desktop

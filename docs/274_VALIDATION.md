@@ -48,3 +48,69 @@ The owner's points 1 and 3 of 13 October 2026; one owner decision of
     left the jump set; the form now continues with `_jumpTo(target)`.
 - `flutter analyze`: no issues.
 - Complete suite: **4,821 passed, 1 skipped, 0 failed**.
+
+## Revision 2 (2.0.74+274002), playback on request
+
+The owner's points 6 and 4 of 13 October 2026; one owner decision of
+15 October 2026 (a word that states no language counts as the target
+language).
+
+- New tests: `test/playback_on_request_274_test.dart`, **21 passed**, the
+  file run six times clean after its last change. On the Laboratory's own
+  examples (built by the real forms), with the texts written out:
+  - `PlaybackOnRequest` (15): Type the translation into the target
+    ("grazie", after answering only); an answer expression heard as its
+    first answer, without braces; Type the translation into the source
+    ("Grazie.", no answer); an Instruction or context with a target clue is
+    not heard; Build the translation ("Bevo acqua" into the target, nothing
+    into the source); Pick the translation ("Buongiorno." once answered into
+    the target, "Grazie." into the source, as `TranslationChoice` gave);
+    Select the image's named icons (sole, luna, albero) and no word for
+    picture options or Listen and pick the image; a listening exercise with
+    named icons says none; several answers, or answers that fill gaps,
+    say none; a word marked as the
+    source language; Match pictures to words' words, none for Match the
+    words, and the sides worked out for a Match without them; the Audio
+    Library counts every text (`CourseAudioUsage.spokenTexts`); the mascot
+    keeps room for the speaker (81 letters take four lines beside it) and
+    the whole room for a sentence in the source language, which has none.
+  - The Round screen (6): the speaker beside the sentence to translate,
+    nothing spoken until it is tapped; Build the translation's Listen to the
+    answer after Check; a named icon's speaker plays its word and does not
+    answer; Match pictures to words' speakers in the menu only, a tap that
+    plays and does not choose, the chosen word in the closed field without
+    a speaker; outside the Preview, with the learner's
+    audio off no option or menu speakers and the sentence's speaker greyed
+    with its note, with the audio on both are there; the three exercises at
+    360 pixels.
+  - Each guard the review asked for fails without its fix (the mascot's
+    room, the sides of a Match, several answers, an Instruction or
+    context): checked by undoing the four fixes and running the file.
+- The Laboratory presentation baseline: 19 records re-recorded (the counts
+  of audio buttons and of Listen to the answer; what is spoken by itself is
+  unchanged in every record); the 124 records recorded afresh after the
+  corrections, and every other record reproduced byte for byte.
+- `translation_choice_239`, `audio_usage_270`, `audio_library_271` and
+  `exercise_laboratory_254`: 342 passed. The 97 test files that use the
+  Round screen, the audio usage, the correct answer text, the Help or the
+  version (before the review's corrections): 1,445 passed. After the
+  corrections, `exercise_mascot_256`, `exercise_laboratory_254`,
+  `match_repeated_values_265`, `translation_choice_239`, `audio_usage_270`
+  and `plural_pictures_265`: 344 passed.
+- Independent review: nothing blocking. Acted on: the mascot's room for the
+  speaker; the Match's closed field (its speaker had no room: the menu keeps
+  it); the sides of a Match as the screen pairs them; no word for several
+  answers or inline gaps; no Instruction or context as the sentence; the
+  comment and CHANGELOG wording on the answer heard; the baseline note's
+  place and an AGENTS double negative; tests with the texts written out and
+  the missing cases. Left as the plan says, reported to the owner: a speaker
+  in a Course with its own recordings may say it cannot play, as Pick the
+  translation's does.
+- Second review (of the corrections): nothing blocking; acted on: three
+  tests made stronger (the Match field once a word is chosen, which fails
+  without `selectedItemBuilder`; the mascot keeping the whole room where no
+  speaker is drawn; answers that fill gaps, a Select the image whose guard
+  is reachable). Release moved to 16 October 2026 (past midnight): Beta
+  expiry 2026-11-15 23:59:59.
+- `flutter analyze`: no issues.
+- Complete suite: **4,842 passed, 1 skipped, 0 failed**.

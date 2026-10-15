@@ -51,3 +51,61 @@ Revision 16.
 
 Back, the working copy and when it is saved, Course files, learner data,
 scoring and progression.
+
+## Revision 2 (2.0.74+274002): playback on request
+
+### Before
+
+- Only Pick the translation let a learner hear a sentence on request: a
+  speaker beside a target-language question, and "Listen to the answer"
+  after answering when the answers are in the target language.
+- Build the translation and Type the translation showed no speaker, in
+  either direction.
+- Select the image's words under named icons and the words of Match pictures
+  to words could not be heard.
+
+### Now
+
+- Build the translation and Type the translation behave as Pick the
+  translation:
+  - into the source language: a speaker beside the target-language sentence
+    to translate;
+  - into the target language: "Listen to the answer" under the feedback once
+    answered, speaking the first answer the exercise accepts (Type the
+    translation: a verbatim answer first, else the first answer an answer
+    expression accepts, optional words left out; Build the translation: its
+    first correct order), even when the correct answer line shows another
+    accepted answer, the one closest to what was typed.
+  - With the learner's audio off the speaker is greyed, with Pick the
+    translation's note.
+  - An Instruction or context is never offered as the sentence to hear.
+- Select the image: an option that shows a word (a named icon) has a small
+  speaker on its corner; a picture option shows no word and has none.
+- Match pictures to words: each word in a row's menu has a small speaker;
+  the closed field shows the chosen word as before.
+- Only the picture grid of a single-answer Select the image has speakers
+  (several answers, or answers that fill gaps, are drawn otherwise), and a
+  listening exercise never says its answers.
+- The mascot beside a sentence keeps room for its speaker.
+- A word that states no language counts as the target language (owner
+  decision of 15 October 2026); a word marked as the source language has no
+  speaker. The small speakers are shown only while the learner's audio is
+  on, and a tap plays the word without answering.
+- The Audio Library's Texts in this Course and Used in N exercises count
+  every text a learner can now hear on request, so a recording session
+  knows them.
+- Help in English, Italian and Spanish (the six presets' Help, Which texts
+  still need a recording?).
+
+### Known and left
+
+As for Pick the translation: in a Course with its own recordings, a speaker
+whose text no recording covers (and, in a Course that mixes recordings and
+the device's voice, with Text-to-speech off) says it cannot play. The Audio
+Library's Texts in this Course now lists these texts, so the author can
+record them.
+
+### What does not change
+
+Nothing plays by itself. Course files, what authors write, the Duel,
+grading, scoring, progression and learner data.

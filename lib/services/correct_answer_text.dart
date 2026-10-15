@@ -20,10 +20,17 @@ class CorrectAnswerText {
   /// The first answer an answer expression accepts, else the expression.
   /// The expansion capitalizes a sentence start; a gap keeps the author's
   /// small first letter.
-  String firstVariant(String expression) {
+  String firstVariant(String expression) => variantOf(expression, _engine);
+
+  /// [firstVariant] without a learner panel (Build 274 Revision 2: the
+  /// answer a learner may hear, `PlaybackOnRequest`).
+  static String variantOf(
+    String expression, [
+    AnswerEngine engine = const AnswerEngine(),
+  ]) {
     String variant;
     try {
-      variant = _engine.validAnswers([expression]).firstOrNull ?? expression;
+      variant = engine.validAnswers([expression]).firstOrNull ?? expression;
     } on AnswerExpressionException {
       return expression;
     }

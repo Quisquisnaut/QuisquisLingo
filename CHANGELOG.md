@@ -1,3 +1,53 @@
+# 2.0.74 (Build 274, Revision 2) - playback on request - 2026-10-16
+
+The owner's points 6 and 4 of 13 October 2026 (`docs/274_PLAN.md`). Nothing
+plays by itself, nothing is asked of the author and Course files do not
+change: what a learner may hear is worked out from the exercise as it is,
+and only target-language text gets a speaker.
+
+- **Build the translation and Type the translation, as Pick the
+  translation.** Into the source language, a speaker beside the
+  target-language sentence to translate. Into the target language, "Listen
+  to the answer" under the feedback once answered: Type the translation
+  speaks the first answer it accepts (a verbatim answer first, else the
+  first answer an answer expression accepts), Build the translation its
+  first correct order, as the plan says, even when the correct answer line
+  shows another accepted answer, the one closest to what was typed. With
+  the learner's audio off the speaker is greyed and the note Pick the
+  translation shows explains why. A Test Round shows no feedback, so no
+  Listen to the answer, as before. An Instruction or context is never
+  offered as the sentence to hear.
+- **The words of picture options.** In Select the image, an option that
+  shows a word (a named icon, not a picture: Build 263 Revision 0 shows no
+  word under a picture) has a small speaker on its corner; in Match pictures
+  to words, each word in a row's menu has one. A word that states no
+  language counts as the target language (owner decision of 15 October
+  2026); a word marked as the source language has none. These speakers are
+  shown only while the learner's audio is on (Audio Exercises, and
+  Text-to-speech unless the Course has its own recordings). A tap plays the
+  word and does not answer; in Match pictures to words the speakers are in
+  the menu, and the closed field shows the chosen word as before. Only the
+  picture grid of a single-answer Select the image has them (several
+  answers, or answers that fill gaps, are drawn otherwise), and a listening
+  exercise never says its answers. The Duel is unchanged.
+- **The Audio Library knows them.** `PlaybackOnRequest`
+  (`lib/services/playback_on_request.dart`) is the one place that says
+  which text an exercise lets a learner hear on request; the Round screen
+  and `CourseAudioUsage.spokenTexts` both read it, so Texts in this Course
+  and Used in N exercises count these sentences, answers and words.
+- Help in English, Italian and Spanish: the Help of the six presets, and
+  Which texts still need a recording?
+- The mascot beside a sentence keeps room for its speaker, as it does for
+  Pick the translation's (found by the independent review).
+- Known and left, as for Pick the translation: in a Course with its own
+  recordings, a speaker whose text has no recording and no device voice
+  allowed says it cannot play; the Audio Library now lists these texts, so
+  the author can record them.
+- Tests: `test/playback_on_request_274_test.dart` (21). The Laboratory
+  presentation baseline records the speakers of 19 examples (the counts of
+  audio buttons and Listen to the answer only; what plays by itself is
+  unchanged).
+
 # 2.0.74 (Build 274, Revision 0) - the Course Editor's top bar and breadcrumbs - 2026-10-15
 
 The first revision of Build 274 (`docs/274_PLAN.md`, the owner's points 1
