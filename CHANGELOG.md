@@ -1,3 +1,28 @@
+# 2.0.73 (Build 273, Revision 6) - the Access PIN has an owner - 2026-10-15
+
+Nothing a learner sees changes.
+
+- **`AccessPins`** (`lib/services/access_pins.dart`) owns a learner's
+  Access PIN: the stored check (a salted SHA-256 of the four digits; the
+  PIN itself is never stored), the wait after ten wrong PINs in a row (one
+  minute, kept per learner, cleared by a right PIN) and which learners are
+  unlocked in this run of QQL (only the active one after a switch). The
+  profile service keeps its public PIN methods and names
+  (`hasAccessPin`, `verifyAccessPin`, `setOwnAccessPin`,
+  `resetAccessPinAsAdmin`, `beginAccessSession`, `maxAccessPinFailures`,
+  `accessPinLockDuration`, `accessPinLockKeyBase`) and delegates;
+  `ProfilePinException` moved with the owner and is still exported by
+  `profile_service.dart`, so every caller is unchanged. The profile service
+  is at 1,017 lines (1,136).
+- Found along the way and left for the owner: when an admin resets a
+  learner's PIN, the count of wrong PINs (and a wait in progress) stays,
+  so a new PIN set at once can find itself locked or with fewer tries;
+  and the wait message says "Wait 1 seconds" in its last second.
+- Tests: `test/access_pins_273_test.dart` (8); the 20 earlier test files
+  that touch the Access PIN (`qql_233_revision_profile_security_test`,
+  `course_trust_270_test`, `learner_separation_270_test` and others) pass
+  after the change, as before it.
+
 # 2.0.73 (Build 273, Revision 5) - one attempt at a Round has an owner - 2026-10-15
 
 Nothing a learner sees changes.

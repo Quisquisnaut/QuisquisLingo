@@ -6,9 +6,12 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/authoring_team.dart';
+import 'access_pins.dart';
 import 'course_maintainer_guard.dart';
 import 'formal_name_policy.dart';
 import 'learner_status_events.dart';
+
+export 'access_pins.dart' show ProfilePinException;
 
 enum LearnerThemeMode {
   light('light', 'Light'),
@@ -131,15 +134,6 @@ class ProfileAvatarAppearance {
   });
 }
 
-class ProfilePinException implements Exception {
-  final String message;
-
-  const ProfilePinException(this.message);
-
-  @override
-  String toString() => message;
-}
-
 /// Manages opaque local learner identities and profile appearance.
 ///
 /// Build 222 is an intentional clean cut. The v2 registry and active-ID key do
@@ -152,9 +146,7 @@ class ProfileService {
   static const startupModeKey = 'qql_startup_profile_mode_v1';
   static const int maxNameLength = 60;
   static const int maxDiscordHandleLength = 33;
-  static const String _accessPinKeyBase = 'access_pin_verifier_v1';
   static const String recoveryCredentialKeyBase = 'user_recovery_secret_v1';
-  static final Set<String> _sessionUnlockedProfileIds = <String>{};
   static const skinTones = <String>['light', 'medium', 'dark'];
   static const hairTones = <String>['light', 'dark'];
   static final RegExp _profileIdPattern = RegExp(
@@ -186,34 +178,28 @@ class ProfileService {
                List<int>.generate(length, (_) => Random.secure().nextInt(256))),
        _systemDeviceName = systemDeviceName ?? (() => Platform.localHostname);
 
-  static void beginAccessSession() => _sessionUnlockedProfileIds.clear();
+  static void beginAccessSession() => AccessPins.beginSession();
 
   final DateTime Function() _now;
 
-  /// Build 270 Revision 8 (owner request of 10 October 2026): after this
-  /// many wrong Access PINs in a row, a learner's PIN is not checked for
-  /// [accessPinLockDuration], so trying every code by hand stops being easy.
-  /// The count is kept per learner (under their prefix), so restarting QQL
-  /// does not skip the wait; a right PIN clears it. Like the PIN itself, it
-  /// prevents casual access, not a determined person with the device's
-  /// files.
-  static const maxAccessPinFailures = 10;
-  static const accessPinLockDuration = Duration(minutes: 1);
-  static const accessPinLockKeyBase = 'access_pin_lock_v1';
+  /// The Access PIN's wait after too many wrong PINs ([AccessPins], Build
+  /// 270 Revision 8).
+  static const maxAccessPinFailures = AccessPins.maxFailures;
+  static const accessPinLockDuration = AccessPins.lockDuration;
+  static const accessPinLockKeyBase = AccessPins.lockKeyBase;
 
-  /// Build 270 Revision 1: only the active learner is unlocked. A learner
-  /// left with a switch must give their Access PIN again, so nothing that
-  /// sets the active learner afterwards (a restore) can bring them back
-  /// without it.
-  static void _unlockOnly(String learnerProfileId) => _sessionUnlockedProfileIds
-    ..clear()
-    ..add(learnerProfileId);
+  /// The Access PIN's verifier, wait and session (Build 273 Revision 6).
+  late final AccessPins _pins = AccessPins(
+    prefixFor: prefixForProfileId,
+    now: _now,
+    secureBytes: _secureBytes,
+  );
 
   /// Per-learner credentials that are never carried in a backup file: they are
   /// excluded from export, refused on import, and preserved across a restore
   /// that replaces the rest of the learner's namespace.
   static const List<String> sensitiveCredentialPreferenceSuffixes = [
-    _accessPinKeyBase,
+    AccessPins.verifierKeyBase,
     recoveryCredentialKeyBase,
     accessPinLockKeyBase,
   ];
@@ -359,8 +345,7 @@ class ProfileService {
     if (!profiles.any((profile) => profile.learnerProfileId == activeId)) {
       return null;
     }
-    if (await hasAccessPin(activeId) &&
-        !_sessionUnlockedProfileIds.contains(activeId)) {
+    if (await hasAccessPin(activeId) && !AccessPins.isUnlocked(activeId)) {
       return null;
     }
     return activeId;
@@ -472,7 +457,7 @@ class ProfileService {
       [...profiles, profile].map((value) => value.encode()).toList(),
     );
     await prefs.setString(activeProfileIdKey, id);
-    _unlockOnly(id);
+    AccessPins.unlockOnly(id);
     final admins = await getAdminProfileIds();
     if (admins.isEmpty) {
       await prefs.setStringList(adminProfileIdsKey, [id]);
@@ -481,7 +466,7 @@ class ProfileService {
     await prefs.setString('${prefix}skin_tone', initialSkinTone);
     await prefs.setString('${prefix}hair_tone', initialHairTone);
     if (accessPin != null && accessPin.isNotEmpty) {
-      await _writePinVerifier(prefs, id, accessPin);
+      await _pins.write(prefs, id, accessPin);
     }
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
     return profile;
@@ -573,7 +558,7 @@ class ProfileService {
       activeProfileIdKey,
       learnerProfileId,
     );
-    _unlockOnly(learnerProfileId);
+    AccessPins.unlockOnly(learnerProfileId);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
@@ -592,7 +577,7 @@ class ProfileService {
 
   Future<void> clearActiveProfile() async {
     final activeId = await getActiveProfileId();
-    if (activeId != null) _sessionUnlockedProfileIds.remove(activeId);
+    if (activeId != null) AccessPins.lock(activeId);
     await (await SharedPreferences.getInstance()).remove(activeProfileIdKey);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
@@ -661,23 +646,18 @@ class ProfileService {
       adminProfileIdsKey,
       admins.where((id) => id != learnerProfileId).toList(),
     );
-    _sessionUnlockedProfileIds.remove(learnerProfileId);
+    AccessPins.lock(learnerProfileId);
     if (prefs.getString(activeProfileIdKey) == learnerProfileId) {
       if (remaining.isEmpty ||
           await asksWhichLearnerAtStartup() ||
-          prefs.containsKey(
-            keyForProfileId(
-              remaining.first.learnerProfileId,
-              _accessPinKeyBase,
-            ),
-          )) {
+          _pins.hasIn(prefs, remaining.first.learnerProfileId)) {
         await prefs.remove(activeProfileIdKey);
       } else {
         await prefs.setString(
           activeProfileIdKey,
           remaining.first.learnerProfileId,
         );
-        _unlockOnly(remaining.first.learnerProfileId);
+        AccessPins.unlockOnly(remaining.first.learnerProfileId);
       }
     }
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
@@ -801,60 +781,14 @@ class ProfileService {
     );
   }
 
-  Future<bool> hasAccessPin(String learnerProfileId) async =>
-      (await SharedPreferences.getInstance()).containsKey(
-        keyForProfileId(learnerProfileId, _accessPinKeyBase),
-      );
+  Future<bool> hasAccessPin(String learnerProfileId) =>
+      _pins.has(learnerProfileId);
 
   /// Whether [pin] is [learnerProfileId]'s Access PIN. Throws a
   /// [ProfilePinException] while too many wrong PINs keep it locked
   /// ([maxAccessPinFailures]), and when the wrong PIN that locks it is given.
-  Future<bool> verifyAccessPin(String learnerProfileId, String pin) async {
-    final prefs = await SharedPreferences.getInstance();
-    final value = prefs.getString(
-      keyForProfileId(learnerProfileId, _accessPinKeyBase),
-    );
-    if (value == null) return true;
-    final lockKey = keyForProfileId(learnerProfileId, accessPinLockKeyBase);
-    final lock = _AccessPinLock.decode(prefs.getString(lockKey));
-    final now = _now().toUtc();
-    final lockedUntil = lock.lockedUntil;
-    if (lockedUntil != null && now.isBefore(lockedUntil)) {
-      throw ProfilePinException(_pinLockedMessage(lockedUntil.difference(now)));
-    }
-    final parts = value.split(':');
-    final right =
-        parts.length == 3 &&
-        parts.first == 'v1' &&
-        sha256.convert([
-              ...base64Url.decode(base64Url.normalize(parts[1])),
-              ...utf8.encode(pin),
-            ]).toString() ==
-            parts[2];
-    if (right) {
-      if (prefs.containsKey(lockKey)) await prefs.remove(lockKey);
-      return true;
-    }
-    // A wait that has passed starts the count again.
-    final failures = (lockedUntil == null ? lock.failures : 0) + 1;
-    if (failures >= maxAccessPinFailures) {
-      await prefs.setString(
-        lockKey,
-        _AccessPinLock(
-          failures: 0,
-          lockedUntil: now.add(accessPinLockDuration),
-        ).encode(),
-      );
-      throw ProfilePinException(_pinLockedMessage(accessPinLockDuration));
-    }
-    await prefs.setString(lockKey, _AccessPinLock(failures: failures).encode());
-    return false;
-  }
-
-  static String _pinLockedMessage(Duration wait) {
-    final seconds = (wait.inMilliseconds / 1000).ceil();
-    return 'Too many wrong PINs. Wait $seconds seconds, then try again.';
-  }
+  Future<bool> verifyAccessPin(String learnerProfileId, String pin) =>
+      _pins.verify(learnerProfileId, pin);
 
   Future<void> setOwnAccessPin({
     required String actorProfileId,
@@ -865,11 +799,11 @@ class ProfileService {
     }
     final prefs = await SharedPreferences.getInstance();
     if (pin == null || pin.isEmpty) {
-      await prefs.remove(keyForProfileId(actorProfileId, _accessPinKeyBase));
+      await _pins.remove(actorProfileId);
       return;
     }
-    await _writePinVerifier(prefs, actorProfileId, pin);
-    _sessionUnlockedProfileIds.add(actorProfileId);
+    await _pins.write(prefs, actorProfileId, pin);
+    AccessPins.unlock(actorProfileId);
   }
 
   Future<void> resetAccessPinAsAdmin({
@@ -882,30 +816,7 @@ class ProfileService {
     if (await getProfileById(targetProfileId) == null) {
       throw StateError('The learner profile is unavailable.');
     }
-    await (await SharedPreferences.getInstance()).remove(
-      keyForProfileId(targetProfileId, _accessPinKeyBase),
-    );
-  }
-
-  Future<void> _writePinVerifier(
-    SharedPreferences prefs,
-    String learnerProfileId,
-    String pin,
-  ) async {
-    if (!RegExp(r'^\d{4}$').hasMatch(pin)) {
-      throw ArgumentError.value(
-        pin,
-        'pin',
-        'Access PIN must contain exactly 4 digits.',
-      );
-    }
-    final salt = _secureBytes(16);
-    final encodedSalt = base64Url.encode(salt);
-    final digest = sha256.convert([...salt, ...utf8.encode(pin)]).toString();
-    await prefs.setString(
-      keyForProfileId(learnerProfileId, _accessPinKeyBase),
-      'v1:$encodedSalt:$digest',
-    );
+    await _pins.remove(targetProfileId);
   }
 
   /// Device-wide choice of what happens at startup. It is read before any
@@ -1103,34 +1014,4 @@ class ProfileService {
     );
     LearnerStatusEvents.publish(LearnerStatusInvalidation.avatar);
   }
-}
-
-/// The wrong Access PINs given in a row, and the end of the wait they
-/// started (Build 270 Revision 8).
-class _AccessPinLock {
-  const _AccessPinLock({this.failures = 0, this.lockedUntil});
-
-  final int failures;
-  final DateTime? lockedUntil;
-
-  static _AccessPinLock decode(String? raw) {
-    if (raw == null) return const _AccessPinLock();
-    try {
-      final json = jsonDecode(raw);
-      if (json is! Map) return const _AccessPinLock();
-      final failures = json['failures'];
-      final until = json['lockedUntil'];
-      return _AccessPinLock(
-        failures: failures is int && failures > 0 ? failures : 0,
-        lockedUntil: until is String ? DateTime.tryParse(until)?.toUtc() : null,
-      );
-    } catch (_) {
-      return const _AccessPinLock();
-    }
-  }
-
-  String encode() => jsonEncode({
-    'failures': failures,
-    if (lockedUntil != null) 'lockedUntil': lockedUntil!.toIso8601String(),
-  });
 }

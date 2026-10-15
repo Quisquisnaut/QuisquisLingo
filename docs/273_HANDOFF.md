@@ -32,12 +32,13 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 | 3 | The owner's decisions (below): the Round type check before Apply in the preset form and the exercise list (Revision 1, point 2); the canonical editor's Preview refusal list in both forms (Revision 1, point 3); gaps follow the exercise's normalization options, never typo tolerance (Revision 2, point 1). A behaviour change | done |
 | 4 | `SpokenLineHold`: the held Story line | done |
 | 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | done |
-| 6 | The Access PIN and its lock out of `ProfileService` | planned |
-| 7 | The Team registry's read and verified write: one owner for `TeamService` and the profile deletion | planned |
-| 8 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
-| 9 | The Audit's language tables and rule sets | planned |
-| 10 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | planned |
-| 11 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | planned |
+| 6 | The Access PIN and its lock out of `ProfileService` | done |
+| 7 | The owner's decisions on Revision 6 (below): removing a PIN clears its count and wait; "Wait 1 second". A behaviour change | planned |
+| 8 | The Team registry's read and verified write: one owner for `TeamService` and the profile deletion | planned |
+| 9 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
+| 10 | The Audit's language tables and rule sets | planned |
+| 11 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | planned |
+| 12 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | planned |
 | later | The Duel's copies of the Round's voice, recorded-to-TTS fallback and Report sheet | to propose |
 
 ## Survey of 15 October 2026 (main at `38016ab8`)
@@ -239,6 +240,23 @@ Next revisions: 6 the Access PIN and its lock (`AccessPins` out of
 read and verified write (one owner for `TeamService` and the profile
 deletion's rewrite, which cannot simply call `TeamService`: it imports
 `ProfileService`).
+
+## Revision 6 (2.0.73+273006): the Access PIN has an owner
+
+In the working tree (15 October 2026, about 17:40): `AccessPins`
+(`lib/services/access_pins.dart`, with `ProfilePinException` re-exported by
+`profile_service.dart`); `ProfileService` delegates (1,017 lines). Tests
+`test/access_pins_273_test.dart` (8); the 20 earlier PIN test files pass.
+Independent review: no behaviour difference; acted on: the verifier format
+pinned exactly in the test, a note that only `ProfileService` calls the
+session statics, the CHANGELOG's file count. Complete suite 4,781 passed, 1 skipped;
+committed about 18:15 and pushed.
+
+**Owner decisions of 15 October 2026 (about 17:45) on Revision 6's two
+findings:** clear it (removing a PIN, by an admin reset or the learner's
+own, also clears its count of wrong PINs and a wait in progress); fix it
+("Wait 1 second" for one second). Revision 7, a behaviour change; show the
+owner its commit description before the commit.
 
 Gotcha (15 October 2026, 15:19): a dry run of Revision 5's edit script
 meant for a copy edited the real `round_screen.dart` for about 20 seconds

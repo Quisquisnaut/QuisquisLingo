@@ -298,3 +298,36 @@ the results dialog.
 
 The order of the exercises, the review of mistakes, the Test's results and
 score, the XP, the Timed Round's on-time bonus, the keys and the texts.
+
+## Revision 6 (2.0.73+273006): the Access PIN has an owner
+
+### Before
+
+The profile service, which also keeps the learners, the admins, the
+device's settings and the learner key names, held the Access PIN in nine
+places of its own: the stored check, the four-digit rule, the count of
+wrong PINs and the one-minute wait (with a private record of it), the set
+of learners unlocked in this run, and the exception a refused PIN throws.
+
+### Now
+
+- `AccessPins` (`lib/services/access_pins.dart`) owns them. The profile
+  service makes one with its own key names and clock, keeps every public
+  method and name it had, and delegates; `ProfilePinException` lives with
+  the owner and is still exported by the profile service, so no caller
+  changes. Its file is at 1,017 lines (1,136).
+
+### Found along the way, for the owner
+
+1. When an admin resets a learner's Access PIN, the count of wrong PINs
+   stays (and a wait in progress too): a new PIN set right after can start
+   locked, or with fewer tries before the wait. Recommendation: clear the
+   count with the PIN (on an admin reset and when a learner sets a new
+   PIN).
+2. In its last second the wait message reads "Wait 1 seconds, then try
+   again." Recommendation: "Wait 1 second".
+
+### What does not change
+
+The stored keys and their formats, the PIN rules, the wait, who must give
+a PIN when, the messages, the screens.

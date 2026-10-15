@@ -216,3 +216,28 @@ owner before the commit ("Go").
   pinned. The one-line fix was not reviewed again (the test pins it).
 - `flutter analyze`: no issues.
 - Complete suite: **4,773 passed, 1 skipped, 0 failed**, 46 minutes.
+
+## Revision 6 (2.0.73+273006), the Access PIN has an owner
+
+15 October 2026, same PC, `build-273` after `2113f3ff`.
+
+- Characterization: the Access PIN was already driven through
+  `ProfileService` by 20 test files (among them
+  `qql_233_revision_profile_security_test`, `course_trust_270_test` with
+  the wait, `learner_separation_270_test` with the session); after the
+  change, with the new file, the 21 files ran: **321 passed**.
+- New tests: `test/access_pins_273_test.dart`, **8 passed**: four digits
+  and the verifier `v1:<salt>:<digest>` checked exactly (no PIN stored); a
+  learner without a PIN; right and wrong; ten wrong PINs and the minute's
+  wait (even the right PIN waits; after the wait the count starts again);
+  a right PIN clears the count; a removed PIN is no PIN; the session; the
+  profile service's names and the order of the credential keys.
+- Independent review (before the suite): no behaviour difference (keys and
+  stored formats, the order inside `verify`, the exception and every catch
+  site through the re-export, the static session set at every call site,
+  the constants and the credential keys' order, no cyclic import). Acted
+  on: the verifier pinned exactly, a note on the session statics, the
+  CHANGELOG's file count. Its two findings for the owner were confirmed in
+  the code and decided by him (Revision 7).
+- `flutter analyze`: no issues.
+- Complete suite: **4,781 passed, 1 skipped, 0 failed**, 44 minutes.
