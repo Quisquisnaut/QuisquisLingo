@@ -141,6 +141,9 @@ void main() {
       expect(find.textContaining('Publisher prompt'), findsOneWidget);
       _expectReadOnlyExercise(tester);
       await tester.ensureVisible(find.byKey(const Key('exercise-preview')));
+      // Lay the page out at its new scroll position before tapping (Build 274
+      // Revision 0: the longer breadcrumb moved the button below the window).
+      await tester.pump();
       await tester.tap(find.byKey(const Key('exercise-preview')));
       await _settle(tester, frames: 30);
       expect(find.byType(RoundScreen), findsOneWidget);

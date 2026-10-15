@@ -507,7 +507,8 @@ void main() {
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
       await tester.pumpAndSettle();
       expect(find.byType(LessonRoundsScreen), findsOneWidget);
-      expect(find.text('Rounds · Lesson 1: Original title'), findsOneWidget);
+      // Build 274 Revision 0: the top bar names the Lesson once.
+      expect(find.text('Rounds · Lesson 1'), findsOneWidget);
       expect(find.byKey(const ValueKey('round-a')), findsOneWidget);
       expect(find.byKey(const ValueKey('round-b')), findsOneWidget);
 

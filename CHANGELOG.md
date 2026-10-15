@@ -1,3 +1,44 @@
+# 2.0.74 (Build 274, Revision 0) - the Course Editor's top bar and breadcrumbs - 2026-10-15
+
+The first revision of Build 274 (`docs/274_PLAN.md`, the owner's points 1
+and 3 of 13 October 2026).
+
+- **The Rounds page names its Lesson once.** Its top bar read "Rounds ·
+  Lesson 2: Greetings", with the label small and grey, right above the
+  breadcrumb that names the Lesson again. It now reads "Rounds · Lesson 2"
+  in the title's type; a custom label as written ("Rounds · Unit 2"); with
+  Lesson numbering Off or Number only, the Lesson's title ("Rounds ·
+  Greetings") (`LessonPresentationService.shortName`).
+- **The breadcrumbs.** A Rounds crumb stands between the Lesson and the
+  Round (owner decision of 15 October 2026: before, the Round editor's
+  Lesson crumb went back to the Rounds list; now Lesson opens the Lesson's
+  page and Rounds the Rounds list). The exercise's crumb is "Exercise 4", its
+  place in its Round as the Round editor's list numbers it, or "New
+  Exercise" before it is added (it read "Exercise"). Every crumb whose page
+  is open above is a link (before, only the one just above was): Course
+  opens the Course Editor's main page, Lesson the Lesson's page, Rounds the
+  Rounds list, Round the Round editor.
+- **A jump is several Backs.** `EditorTrail` (`lib/widgets/editor_breadcrumbs.dart`)
+  is what each page gives the page it opens: the levels above it and the
+  jump in progress. Each page, when the page it opened closes, goes on
+  upward through its own way back, so an exercise with unsaved changes asks
+  first, Keep editing stays and ends the jump, and nothing is applied or
+  discarded differently from pressing Back that many times. A page opened
+  outside the chain (a search result, the Audit, a wizard) links only to the
+  pages it came through, as before. A page that stays, or whose way back
+  fails, ends the jump, so a later ordinary Back never goes on upward. The
+  canonical editor opened from a new exercise's form has the same links; a
+  jump from it goes on through the form, which asks about its own unsaved
+  changes. The Lessons list keeps its one crumb (Course) as plain text.
+- **The canonical editor goes back once.** Its Back did not check that the
+  page was already leaving, as the preset form's does: a crumb tapped while
+  Apply closes the page, or Back pressed twice, could close a second page.
+- Help in English, Italian and Spanish: How do I move between exercises?
+- Tests: `test/editor_breadcrumbs_274_test.dart` (22);
+  `lesson_metadata_and_icon_test` expects the new title;
+  `official_course_ui_226_01_test` lays the page out after scrolling, before
+  it taps Preview (the longer breadcrumb moved the button below the window).
+
 # 2.0.73 (Build 273, Revision 9) - the Course save steps have owners - 2026-10-15
 
 Nothing a user sees changes. The last revision of Build 273: the Audit's

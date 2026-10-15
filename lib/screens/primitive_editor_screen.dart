@@ -44,7 +44,7 @@ class PrimitiveEditorScreen extends StatefulWidget {
     this.onExerciseSaved,
     this.readOnly = false,
     this.initiallyInspecting = false,
-    this.linkParent = false,
+    this.trail,
   });
 
   final Exercise exercise;
@@ -57,7 +57,9 @@ class PrimitiveEditorScreen extends StatefulWidget {
   final ValueChanged<Exercise>? onExerciseSaved;
   final bool readOnly;
   final bool initiallyInspecting;
-  final bool linkParent;
+
+  /// The pages above this one (Build 274 Revision 0).
+  final EditorTrail? trail;
 
   @override
   State<PrimitiveEditorScreen> createState() => _PrimitiveEditorScreenState();
@@ -517,6 +519,9 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
   }
 
   Future<void> _leave() async {
+    // Build 274 Revision 0: never two ways back at once (a crumb tapped while
+    // Apply closes the page, or Back pressed twice), as the preset form.
+    if (_routeMayPop) return;
     if (_hasUnsavedChanges && !_locked) {
       final discard = await showDialog<bool>(
         context: context,
@@ -543,6 +548,23 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     setState(() => _routeMayPop = true);
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _jumpTo(EditorLevel level) async => widget.trail?.jumpTo(
+    level,
+    leave: _leave,
+    stayed: () => mounted && !_routeMayPop,
+  );
+
+  /// The exercise's place in its Round, as the Round editor's list shows it.
+  int? get _exerciseNumber {
+    if (widget.isNew) return null;
+    final index =
+        widget.round?.exercises.indexWhere(
+          (item) => item.id == widget.exercise.id,
+        ) ??
+        -1;
+    return index < 0 ? null : index + 1;
   }
 
   Future<String?> _chooseImage() async {
@@ -607,7 +629,10 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
                 lessonId: widget.lesson?.lessonId,
                 roundId: widget.round?.id,
                 exercise: true,
-                onParent: widget.linkParent ? _leave : null,
+                exerciseNumber: _exerciseNumber,
+                newExercise: widget.isNew,
+                trail: widget.trail,
+                onJump: _jumpTo,
               ),
             EditorInternalIdText(label: 'Exercise', id: _draft.id),
             if (_locked) _presentationNotice(),

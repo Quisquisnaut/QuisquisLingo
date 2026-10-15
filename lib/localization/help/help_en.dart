@@ -291,7 +291,7 @@ const Map<String, String> helpEn = <String, String>{
       r'''The exercise's technical data, its canonical fields. It only shows: it saves nothing and changes nothing.''',
   'editorHelp.qa.navigate.q': r'''How do I move between exercises?''',
   'editorHelp.qa.navigate.a':
-      r'''Previous and Next follow the Round's order. Leaving with unsaved changes offers Keep editing, Discard changes, Apply as draft or Apply; the breadcrumbs lead back to the Round, the Lesson and the Course.''',
+      r'''Previous and Next follow the Round's order. Leaving with unsaved changes offers Keep editing, Discard changes, Apply as draft or Apply. The breadcrumbs at the top lead back to the pages you came through (the Round, the Rounds list, the Lesson, the Course): the way back goes one page at a time, so unsaved changes ask first, and Keep editing leaves you where you are.''',
   'editorHelp.qa.fieldHelp.q':
       r'''What does the Help button beside a field explain?''',
   'editorHelp.qa.fieldHelp.a':

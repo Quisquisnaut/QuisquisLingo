@@ -296,7 +296,7 @@ const Map<String, String> helpIt = {
       "I dati tecnici dell’esercizio, cioè i suoi campi canonici. Si limita a mostrarli: non salva niente e non cambia niente.",
   "editorHelp.qa.navigate.q": "Come passo da un esercizio all’altro?",
   "editorHelp.qa.navigate.a":
-      "Previous e Next seguono l’ordine del Round. Se esci con modifiche non salvate, puoi scegliere Keep editing, Discard changes, Apply as draft o Apply; le briciole di navigazione riportano al Round, alla Lesson e al Course.",
+      "Previous e Next seguono l’ordine del Round. Se esci con modifiche non salvate, puoi scegliere Keep editing, Discard changes, Apply as draft o Apply. Le briciole di navigazione in cima riportano alle pagine da cui sei passato (il Round, la pagina Rounds, la Lesson, il Course): si torna indietro una pagina alla volta, quindi le modifiche non salvate chiedono prima, e Keep editing ti lascia dove sei.",
   "editorHelp.qa.fieldHelp.q":
       "Che cosa spiega il pulsante Help accanto a un campo?",
   "editorHelp.qa.fieldHelp.a":

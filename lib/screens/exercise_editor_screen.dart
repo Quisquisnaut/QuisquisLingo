@@ -42,7 +42,9 @@ class ExerciseEditorScreen extends StatefulWidget {
   final String title;
   final bool isNew;
   final DateTime Function()? clock;
-  final bool linkParent;
+
+  /// The pages above this one (Build 274 Revision 0).
+  final EditorTrail? trail;
   final Course? course;
   final Lesson? lesson;
   final LearningRound? round;
@@ -55,7 +57,7 @@ class ExerciseEditorScreen extends StatefulWidget {
     required this.title,
     required this.isNew,
     this.clock,
-    this.linkParent = false,
+    this.trail,
     this.course,
     this.lesson,
     this.round,
@@ -2779,6 +2781,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
   }
 
+  Future<void> _jumpTo(EditorLevel level) async => widget.trail?.jumpTo(
+    level,
+    leave: _leave,
+    stayed: () => mounted && !_routeMayPop,
+  );
+
   Future<void> _navigate(int offset) async {
     final index = _exerciseIndex;
     final target = index + offset;
@@ -2844,10 +2852,25 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           lesson: widget.lesson,
           round: widget.round,
           readOnly: widget.readOnly,
+          // Build 274 Revision 0: its crumbs are links like this form's,
+          // and a jump from it goes on through this form's own way back.
+          trail: widget.trail,
         ),
       ),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !mounted) {
+      // A jump from the canonical editor goes on through this form's own
+      // way back, as a jump of its own: when this form stays (Keep
+      // editing), the jump ends instead of waiting for a later Back.
+      final trail = widget.trail;
+      final target = trail?.target;
+      if (mounted &&
+          target != null &&
+          trail!.passesThrough(EditorLevel.exercise)) {
+        await _jumpTo(target);
+      }
+      return;
+    }
     await _persistAndClose(result);
   }
 
@@ -2934,7 +2957,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               lessonId: widget.lesson?.lessonId,
               roundId: widget.round?.id,
               exercise: true,
-              onParent: widget.linkParent ? _leave : null,
+              exerciseNumber: _exerciseIndex < 0 ? null : _exerciseIndex + 1,
+              newExercise: widget.isNew,
+              trail: widget.trail,
+              onJump: _jumpTo,
             ),
           if (_exercise.id.trim().isNotEmpty)
             EditorInternalIdText(label: 'Exercise', id: _exercise.id),
@@ -3134,7 +3160,7 @@ Widget exerciseEditorFor({
   required String title,
   required bool isNew,
   DateTime Function()? clock,
-  bool linkParent = false,
+  EditorTrail? trail,
   Course? course,
   Lesson? lesson,
   LearningRound? round,
@@ -3147,7 +3173,7 @@ Widget exerciseEditorFor({
         title: title,
         isNew: isNew,
         clock: clock,
-        linkParent: linkParent,
+        trail: trail,
         course: course,
         lesson: lesson,
         round: round,
@@ -3160,7 +3186,7 @@ Widget exerciseEditorFor({
         title: title,
         isNew: isNew,
         clock: clock,
-        linkParent: linkParent,
+        trail: trail,
         course: course,
         lesson: lesson,
         round: round,

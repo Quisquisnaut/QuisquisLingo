@@ -40,6 +40,26 @@ class LessonPresentationService {
     LessonNumberingMode.none => null,
   };
 
+  /// The Lesson named once in a page's top bar (Build 274 Revision 0):
+  /// its label and number ("Lesson 2", "Unit 2", a custom label as written),
+  /// or its title when the numbering has no word (Off, Number only).
+  String shortName(Course course, int lessonIndex) {
+    final identity = this.identity(course, lessonIndex);
+    final mode = course.lessonNumberingMode;
+    if (mode == LessonNumberingMode.none ||
+        mode == LessonNumberingMode.numberOnly) {
+      return identity.title;
+    }
+    final prefix =
+        prefixFor(
+          mode,
+          identity.number,
+          customLabel: course.customLessonLabel,
+        )?.trim() ??
+        '';
+    return prefix.isEmpty ? identity.title : prefix;
+  }
+
   LessonIdentityPresentation identity(Course course, int publishedLessonIndex) {
     final lesson = course.lessons[publishedLessonIndex];
     final number = publishedLessonIndex + 1;

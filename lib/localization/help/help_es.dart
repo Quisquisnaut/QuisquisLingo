@@ -297,7 +297,7 @@ const Map<String, String> helpEs = {
       'Los datos técnicos del ejercicio, sus campos canónicos. Solo muestra: no guarda nada y no cambia nada.',
   'editorHelp.qa.navigate.q': '¿Cómo paso de un ejercicio a otro?',
   'editorHelp.qa.navigate.a':
-      'Previous y Next siguen el orden del Round. Si sales con cambios sin guardar, se ofrecen Keep editing, Discard changes, Apply as draft o Apply; la ruta de navegación lleva de vuelta al Round, a la Lesson y al Course.',
+      'Previous y Next siguen el orden del Round. Si sales con cambios sin guardar, se ofrecen Keep editing, Discard changes, Apply as draft o Apply. La ruta de navegación en la parte superior lleva de vuelta a las páginas por las que has pasado (el Round, la página Rounds, la Lesson, el Course): se vuelve atrás una página cada vez, así que los cambios sin guardar preguntan antes, y Keep editing te deja donde estás.',
   'editorHelp.qa.fieldHelp.q': '¿Qué explica el botón Help junto a un campo?',
   'editorHelp.qa.fieldHelp.a':
       'Para qué sirve el campo, qué escribir, cómo lo comprueba QQL y un ejemplo. Exercise Help junto al preset explica el tipo de ejercicio en conjunto.',

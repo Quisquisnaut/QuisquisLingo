@@ -718,6 +718,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       if (!mounted) return;
     }
     if (!mounted) return;
+    final trail = EditorTrail.below(null, EditorLevel.course);
     final updated = await Navigator.of(context).push<Course>(
       MaterialPageRoute(
         builder: (_) => LessonManagementScreen(
@@ -727,6 +728,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           courseEditorMode: _editorMode,
           adoptCourse: _canModify ? _adoptHierarchyDraft : null,
           clock: _clock,
+          trail: trail,
         ),
       ),
     );
@@ -735,6 +737,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         !_sameAuthoringJson(updated.toJson(), _course.toJson())) {
       _updateDraft(updated);
     }
+    // A jump to the Course ends on this page.
+    trail.passesThrough(EditorLevel.course);
     if (mounted) setState(_session.markAuditOutdated);
   }
 
@@ -1634,6 +1638,7 @@ class LessonManagementScreen extends StatefulWidget {
     this.onCourseChanged,
     this.adoptCourse,
     this.clock,
+    this.trail,
   });
 
   final Course course;
@@ -1643,6 +1648,9 @@ class LessonManagementScreen extends StatefulWidget {
   final ValueChanged<Course>? onCourseChanged;
   final CourseDraftAdopter? adoptCourse;
   final DateTime Function()? clock;
+
+  /// The pages above this one (Build 274 Revision 0).
+  final EditorTrail? trail;
 
   @override
   State<LessonManagementScreen> createState() => _LessonManagementScreenState();
@@ -1654,6 +1662,10 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   late bool _locked;
   bool _routeMayPop = false;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
+  late final EditorTrail _childTrail = EditorTrail.below(
+    widget.trail,
+    EditorLevel.lessons,
+  );
 
   @override
   void initState() {
@@ -1894,9 +1906,17 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                 },
           adoptCourse: _locked ? null : widget.adoptCourse,
           clock: _clock,
+          trail: _childTrail,
         ),
       ),
     );
+    _receiveLesson(updated, iconAssets);
+    if (mounted && _childTrail.passesThrough(EditorLevel.lessons)) {
+      await _returnToCourse();
+    }
+  }
+
+  void _receiveLesson(Lesson? updated, List<CourseLessonIconAsset> iconAssets) {
     if (_locked || updated == null || !mounted) return;
     final currentIndex = _course.lessons.indexWhere(
       (lesson) => lesson.lessonId == updated.lessonId,
@@ -2115,7 +2135,11 @@ class LessonEditorScreen extends StatefulWidget {
     this.clock,
     this.readOnly = false,
     this.courseEditorMode = CourseEditorMode.edit,
+    this.trail,
   });
+
+  /// The pages above this one (Build 274 Revision 0).
+  final EditorTrail? trail;
   @override
   State<LessonEditorScreen> createState() => _LessonEditorScreenState();
 }
@@ -2131,6 +2155,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   final _lessonIcons = LessonIconService();
   bool _routeMayPop = false;
+  late final EditorTrail _childTrail = EditorTrail.below(
+    widget.trail,
+    EditorLevel.lesson,
+  );
 
   Course get _courseWithIcons => _hierarchyUpdates.apply(
     _course,
@@ -2195,6 +2223,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context, _lesson);
   }
+
+  Future<void> _jumpTo(EditorLevel level) async => widget.trail?.jumpTo(
+    level,
+    leave: _returnToLessons,
+    stayed: () => mounted && !_routeMayPop,
+  );
 
   CourseLessonIconAsset? _managedIcon(String? reference) {
     final id = reference == null
@@ -2506,6 +2540,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           readOnly: widget.readOnly,
           courseEditorMode: widget.courseEditorMode,
           clock: _clock,
+          trail: _childTrail,
         ),
       ),
     );
@@ -2514,6 +2549,9 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       if (!_sameAuthoringJson(candidate.toJson(), _lesson.toJson())) {
         _publishLesson(candidate);
       }
+    }
+    if (mounted && _childTrail.passesThrough(EditorLevel.lesson)) {
+      await _returnToLessons();
     }
   }
 
@@ -3074,7 +3112,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           key: const Key('lesson-metadata-controls'),
           padding: const EdgeInsets.only(bottom: 48),
           children: [
-            EditorBreadcrumbs(course: shown, lessonId: _lesson.lessonId),
+            EditorBreadcrumbs(
+              course: shown,
+              lessonId: _lesson.lessonId,
+              trail: widget.trail,
+              onJump: _jumpTo,
+            ),
             EditorInternalIdText(label: 'Lesson', id: _lesson.lessonId),
             AuthoringStatusCard(
               indicatorKey: const Key('lesson-rounds-status-indicator'),
@@ -4715,7 +4758,11 @@ class LessonRoundsScreen extends StatefulWidget {
     this.clock,
     this.readOnly = false,
     this.courseEditorMode = CourseEditorMode.edit,
+    this.trail,
   });
+
+  /// The pages above this one (Build 274 Revision 0).
+  final EditorTrail? trail;
 
   @override
   State<LessonRoundsScreen> createState() => _LessonRoundsScreenState();
@@ -4727,6 +4774,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
   late List<LearningRound> _rounds;
   bool _routeMayPop = false;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
+  late final EditorTrail _childTrail = EditorTrail.below(
+    widget.trail,
+    EditorLevel.rounds,
+  );
 
   @override
   void initState() {
@@ -5034,7 +5085,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
           course: _auditableCourse,
           onCourseChanged: _receiveCourse,
           adoptCourse: widget.readOnly ? null : widget.adoptCourse,
-          linkParent: true,
+          trail: _childTrail,
           lesson: _draftLesson,
           round: _rounds[index],
           roundIndex: index,
@@ -5044,6 +5095,13 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
         ),
       ),
     );
+    _receiveRound(updated);
+    if (mounted && _childTrail.passesThrough(EditorLevel.rounds)) {
+      await _returnToLesson();
+    }
+  }
+
+  void _receiveRound(LearningRound? updated) {
     if (!widget.readOnly && updated != null && mounted) {
       final currentIndex = _rounds.indexWhere(
         (round) => round.id == updated.id,
@@ -5227,6 +5285,12 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     if (mounted) Navigator.pop(context, _rounds);
   }
 
+  Future<void> _jumpTo(EditorLevel level) async => widget.trail?.jumpTo(
+    level,
+    leave: _returnToLesson,
+    stayed: () => mounted && !_routeMayPop,
+  );
+
   Future<void> _openSearch() async {
     final result = await Navigator.of(context).push<ExerciseSearchResult>(
       MaterialPageRoute(
@@ -5262,10 +5326,11 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     final lessonIndex = _course.lessons.indexWhere(
       (lesson) => lesson.lessonId == widget.lesson.lessonId,
     );
-    final lessonIdentity = lessonIndex < 0
-        ? null
-        : const LessonPresentationService().identity(_course, lessonIndex);
-    final lessonLabel = lessonIdentity?.fullText ?? widget.lesson.title;
+    // Build 274 Revision 0: the Lesson's label and number, or its title
+    // when the numbering has no word; the breadcrumb below gives both.
+    final lessonLabel = lessonIndex < 0
+        ? widget.lesson.title
+        : const LessonPresentationService().shortName(_course, lessonIndex);
     return PopScope<List<LearningRound>>(
       canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
@@ -5275,10 +5340,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
         appBar: AppBar(
           title: CoursePreviewTitle(
             course: shown,
-            title: LabelledText(
-              'Rounds · $lessonLabel',
-              label: lessonIdentity?.prefix,
-            ),
+            title: Text('Rounds · $lessonLabel'),
           ),
           actions: [
             IconButton(
@@ -5334,6 +5396,9 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
               EditorBreadcrumbs(
                 course: shown,
                 lessonId: widget.lesson.lessonId,
+                rounds: true,
+                trail: widget.trail,
+                onJump: _jumpTo,
               ),
               EditorInternalIdText(label: 'Lesson', id: widget.lesson.lessonId),
             ],
@@ -5489,7 +5554,9 @@ class RoundEditorScreen extends StatefulWidget {
   final LearningRound round;
   final int roundIndex;
   final DateTime Function()? clock;
-  final bool linkParent;
+
+  /// The pages above this one (Build 274 Revision 0).
+  final EditorTrail? trail;
   final bool readOnly;
   final CourseEditorMode courseEditorMode;
   const RoundEditorScreen({
@@ -5501,7 +5568,7 @@ class RoundEditorScreen extends StatefulWidget {
     required this.round,
     required this.roundIndex,
     this.clock,
-    this.linkParent = false,
+    this.trail,
     this.readOnly = false,
     this.courseEditorMode = CourseEditorMode.edit,
   });
@@ -5510,6 +5577,12 @@ class RoundEditorScreen extends StatefulWidget {
 }
 
 class _RoundEditorScreenState extends State<RoundEditorScreen> {
+  /// The trail the exercise editors get: a Round editor opened outside the
+  /// chain still lets them jump back to it.
+  late final EditorTrail _childTrail = EditorTrail.below(
+    widget.trail,
+    EditorLevel.round,
+  );
   late Course _course;
   late Lesson _lesson;
   final _ids = TimestampAuthoringIdGenerator();
@@ -5742,6 +5815,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       Navigator.pop(context, widget.readOnly ? widget.round : _editedRound());
     }
   }
+
+  Future<void> _jumpTo(EditorLevel level) async => widget.trail?.jumpTo(
+    level,
+    leave: _returnToRounds,
+    stayed: () => mounted && !_routeMayPop,
+  );
 
   Future<void> _saveRound(PublicationState state) async {
     if (widget.readOnly) return;
@@ -5980,7 +6059,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           lesson: _lesson,
           round: _editedRound(),
           onExerciseSaved: widget.readOnly ? null : _acceptExercise,
-          linkParent: true,
+          trail: _childTrail,
           clock: _clock,
           readOnly: widget.readOnly,
           initiallyInspecting:
@@ -5989,6 +6068,9 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       ),
     );
     if (e != null && mounted) _acceptExercise(e);
+    if (mounted && _childTrail.passesThrough(EditorLevel.round)) {
+      await _returnToRounds();
+    }
   }
 
   Future<void> _insert() =>
@@ -6012,11 +6094,18 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           lesson: _lesson,
           round: _editedRound(),
           onExerciseSaved: first ? _acceptFirst : _acceptExercise,
-          linkParent: true,
+          trail: _childTrail,
           clock: _clock,
         ),
       ),
     );
+    _receiveNewExercise(e, first: first);
+    if (mounted && _childTrail.passesThrough(EditorLevel.round)) {
+      await _returnToRounds();
+    }
+  }
+
+  void _receiveNewExercise(Exercise? e, {required bool first}) {
     if (e == null || !mounted) return;
     if (!_exercises.any((item) => item.id == e.id)) {
       _mutateRound(() {
@@ -6889,7 +6978,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 course: shown,
                 lessonId: _lesson.lessonId,
                 roundId: widget.round.id,
-                onParent: widget.linkParent ? _returnToRounds : null,
+                trail: widget.trail,
+                onJump: _jumpTo,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
