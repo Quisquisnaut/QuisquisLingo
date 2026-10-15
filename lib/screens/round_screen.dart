@@ -39,7 +39,8 @@ import '../services/recorded_audio_service.dart';
 import '../services/exercise_copy_service.dart';
 import '../services/flashcard_sides.dart';
 import '../services/crash_log_service.dart';
-import '../services/answer_engine.dart';
+import '../services/answer_grader.dart';
+import '../services/correct_answer_text.dart';
 import '../services/audio_exercise_availability_service.dart';
 import '../services/audio_diagnostic_service.dart';
 import '../services/translation_choice_service.dart';
@@ -157,29 +158,6 @@ class _ChoiceOption {
   const _ChoiceOption(this.text, this.correct, {this.item});
 }
 
-class _MatchOption {
-  final String id;
-  final String label;
-  const _MatchOption(this.id, this.label);
-}
-
-class _MatchPairView {
-  final String leftId;
-  final String leftLabel;
-  final String leftImage;
-
-  /// Whether the left picture shows several (Build 265 Revision 11).
-  final bool leftPlural;
-  final String rightId;
-  const _MatchPairView({
-    required this.leftId,
-    required this.leftLabel,
-    this.leftImage = '',
-    this.leftPlural = false,
-    required this.rightId,
-  });
-}
-
 class _RoundScreenState extends State<RoundScreen> {
   String get _roundTitle => RoundTypePresentation.title(
     widget.round,
@@ -239,7 +217,7 @@ class _RoundScreenState extends State<RoundScreen> {
   late final RecordedAudioService _recordedAudio;
   late final AudioExerciseAvailabilityService _audioAvailability;
   final _roundPlayability = RoundPlayabilityService();
-  final _answerEngine = const AnswerEngine();
+  static const _grader = AnswerGrader();
   final _random = Random();
 
   List<int> _queue = [];
@@ -423,8 +401,8 @@ class _RoundScreenState extends State<RoundScreen> {
   final Map<String, String> _matchingSelections = {};
   List<_ChoiceOption> _choiceOptions = [];
   List<String> _tokenOptions = [];
-  List<_MatchOption> _matchingRightOptions = [];
-  List<_MatchPairView> _matchingLeftPairs = [];
+  List<MatchChoice> _matchingRightOptions = [];
+  List<MatchRow> _matchingLeftPairs = [];
 
   // Gap-based Arrange state. `_gapFill` maps each gap ID from the exercise's
   // layout to the item ID currently placed there (or null when empty).
@@ -1002,7 +980,7 @@ class _RoundScreenState extends State<RoundScreen> {
         final right = byId[pair[1]];
         if (left == null || right == null) continue;
         _matchingLeftPairs.add(
-          _MatchPairView(
+          MatchRow(
             leftId: left.id,
             leftLabel: left.label,
             leftImage: left.image,
@@ -1010,7 +988,7 @@ class _RoundScreenState extends State<RoundScreen> {
             rightId: right.id,
           ),
         );
-        _matchingRightOptions.add(_MatchOption(right.id, right.value));
+        _matchingRightOptions.add(MatchChoice(right.id, right.value));
       }
       _matchingRightOptions.shuffle(_random);
       _matchingLeftPairs.shuffle(_random);
@@ -1411,140 +1389,14 @@ class _RoundScreenState extends State<RoundScreen> {
       : _ttsCache.lastFailureDescription ??
             'Audio unavailable. Enable Text-to-speech in Settings and check the system voice for this course language. On Linux, install eSpeak NG or eSpeak.';
 
-  /// The first answer an answer expression accepts, else the expression.
-  /// The expansion capitalizes a sentence start; a gap keeps the author's
-  /// small first letter.
-  String _firstVariant(String expression) {
-    String variant;
-    try {
-      variant =
-          _answerEngine.validAnswers([expression]).firstOrNull ?? expression;
-    } on AnswerExpressionException {
-      return expression;
-    }
-    final letter = RegExp(r'\p{L}', unicode: true);
-    final authored = letter.firstMatch(expression)?.group(0);
-    final first = letter.firstMatch(variant);
-    if (authored == null ||
-        first == null ||
-        authored != authored.toLowerCase()) {
-      return variant;
-    }
-    return variant.replaceRange(
-      first.start,
-      first.end,
-      first.group(0)!.toLowerCase(),
-    );
-  }
+  /// The right answer to [ex] as the learner panel writes it (Build 273
+  /// Revision 2: [CorrectAnswerText]).
+  String _correctAnswerText(Exercise ex) => CorrectAnswerText(
+    _t,
+  ).of(ex, _features, displayedCorrection: _displayedCorrection);
 
-  String _correctAnswerText(Exercise ex) {
-    final f = _features;
-    switch (ex.primitive) {
-      case ExercisePrimitive.select:
-        if (f.hasInlineTargets) return _gapAnswerText(ex);
-        if (f.multipleSelection) return _selectMultiAnswerText(ex);
-        final value = _itemValue(
-          ex,
-          ex.canonicalEvaluation.correctItemIds.firstOrNull,
-        );
-        return value.isEmpty ? _t('seeCourseAnswer') : value;
-      case ExercisePrimitive.presentation:
-        return _t('reviewTheFlashcard');
-      case ExercisePrimitive.input:
-        if (f.gapFieldTargets.isNotEmpty) {
-          // The first answer each gap accepts, written out: a gap answer
-          // may use the answer syntax, such as [il|un] gatto (Build 259
-          // Revision 3).
-          final words = [
-            for (final target in f.gapFieldTargets)
-              ...?f.answersFor(target.id)?.answers.take(1).map(_firstVariant),
-          ];
-          if (words.isNotEmpty) return words.join(' / ');
-          break;
-        }
-        if (_displayedCorrection.isNotEmpty) return _displayedCorrection;
-        // Written from audio: the authored answer first, then the spoken
-        // text; otherwise the spoken text is the fuller answer.
-        final candidates = f.kind == LearnerExerciseKind.inputListenWrite
-            ? [...f.acceptedAnswers, ...f.literalAnswers]
-            : [...f.literalAnswers, ...f.acceptedAnswers];
-        final first = candidates
-            .map((answer) => answer.trim())
-            .where((answer) => answer.isNotEmpty)
-            .firstOrNull;
-        if (first != null) return first;
-        break;
-      case ExercisePrimitive.arrange:
-        if (f.hasInlineTargets) return _gapAnswerText(ex);
-        final orders = ex.canonicalEvaluation.correctOrders;
-        if (orders.isEmpty) break;
-        if (f.showAlternatives == FeedbackAlternatives.all) {
-          return orders.map((order) => order.text).join(' / ');
-        }
-        final joined = _orderText(ex, orders.first);
-        if (joined.isNotEmpty) return joined;
-        break;
-      case ExercisePrimitive.match:
-        final pairs = _pairTexts(ex);
-        if (pairs.isNotEmpty) {
-          return pairs.map((pair) => '${pair[0]} = ${pair[1]}').join('; ');
-        }
-        break;
-      case ExercisePrimitive.assign:
-        final answer = _assignAnswerText(ex, {
-          for (final entry in f.assignmentsByTarget.entries)
-            entry.key: entry.value.toList(),
-        });
-        if (answer.isNotEmpty) return answer;
-        break;
-      case ExercisePrimitive.speak:
-      case ExercisePrimitive.ink:
-      case ExercisePrimitive.submit:
-        break;
-    }
-    return _t('seeCourseAnswer');
-  }
-
-  String _itemValue(Exercise ex, String? itemId) {
-    if (itemId == null) return '';
-    return ex.items
-            .where((item) => item.id == itemId)
-            .map((item) => item.label)
-            .firstOrNull ??
-        '';
-  }
-
-  /// An ordered answer as the learner would build it: its blocks joined
-  /// with the exercise's joiner.
-  String _orderText(Exercise ex, OrderedAnswer order) => order.itemIds
-      .map((id) => _itemValue(ex, id))
-      .where((value) => value.isNotEmpty)
-      .join(_features.joinsWithoutSpaces ? '' : ' ');
-
-  /// The Match relations as [left value, right value] pairs.
-  List<List<String>> _pairTexts(Exercise ex) => [
-    for (final pair in ex.canonicalEvaluation.relations)
-      if (pair.length == 2) [_itemValue(ex, pair[0]), _itemValue(ex, pair[1])],
-  ];
-
-  String _gapAnswerText(Exercise ex) {
-    final assignments = _features.targetAssignments;
-    if (assignments.isEmpty) return _t('seeCourseAnswer');
-    return assignments.entries
-        .map((entry) => _itemValue(ex, entry.value))
-        .where((value) => value.isNotEmpty)
-        .join(' ');
-  }
-
-  String _selectMultiAnswerText(Exercise ex) {
-    final correctIds = ex.canonicalEvaluation.correctItemIds.toSet();
-    final values = ex.items
-        .where((item) => correctIds.contains(item.id))
-        .map((item) => item.value)
-        .where((value) => value.isNotEmpty)
-        .toList();
-    return values.isEmpty ? _t('seeCourseAnswer') : values.join(' / ');
-  }
+  String _itemValue(Exercise ex, String? itemId) =>
+      AnswerGrader.itemValue(ex, itemId);
 
   String _answerState() {
     if (_selected != null && _selected! < _choiceOptions.length) {
@@ -1758,68 +1610,18 @@ class _RoundScreenState extends State<RoundScreen> {
     if (_answered) return;
     final enteredWord = _textController.text.trim();
     if (enteredWord.isEmpty) return;
-    final f = _features;
-    final accepted = <String>{...f.acceptedAnswers};
-    final normalization = f.normalization;
-    var evaluation = _answerEngine.evaluate(
-      enteredWord,
-      accepted,
-      normalization: normalization,
-      typoTolerance: f.toleratesTypos,
-    );
-    // Literal answers (a spoken phrase, for instance) are accepted verbatim,
-    // never parsed as author expressions.
-    if (!evaluation.isCorrect) {
-      for (final literal in f.literalAnswers) {
-        if (literal.trim().isEmpty) continue;
-        final result = _answerEngine.evaluateLiteral(
-          enteredWord,
-          literal,
-          normalization: normalization,
-        );
-        if (result.isCorrect || accepted.isEmpty) evaluation = result;
-        if (result.isCorrect) break;
-      }
+    final grade = _grader.typed(_features, enteredWord);
+    _displayedCorrection = grade.displayedCorrection;
+    _acceptedDifferences = grade.acceptedDifferences;
+    if (grade.alternatives case final alternatives?) {
+      _translationFeedback = alternatives;
+      _translationFeedbackPartial = grade.alternativesPartial;
     }
-    _displayedCorrection = evaluation.matchedAcceptedAnswer;
-    _acceptedDifferences = evaluation.acceptedDifferences;
-    if (f.showAlternatives == FeedbackAlternatives.ranked) {
-      final ranked = _answerEngine.rankedAnswers(
-        enteredWord,
-        accepted,
-        normalization: normalization,
-      );
-      final matched = _answerEngine.normalizedAnswer(
-        evaluation.matchedAcceptedAnswer,
-        normalization: normalization,
-      );
-      final remaining = evaluation.isCorrect
-          ? ranked
-                .where(
-                  (answer) =>
-                      _answerEngine.normalizedAnswer(
-                        answer,
-                        normalization: normalization,
-                      ) !=
-                      matched,
-                )
-                .toList()
-          : ranked;
-      final limit = evaluation.isCorrect ? 2 : 3;
-      _translationFeedback = remaining.take(limit).toList();
-      _translationFeedbackPartial = remaining.length > limit;
-    }
-    _mark(evaluation.isCorrect);
+    _mark(grade.isCorrect);
   }
 
-  void _submitOrder() {
-    final built = _builtOrder.join(_features.joinsWithoutSpaces ? '' : ' ');
-    _mark(
-      _exercise.canonicalEvaluation.correctOrders.any(
-        (order) => _answerEngine.evaluateLiteral(built, order.text).isCorrect,
-      ),
-    );
-  }
+  void _submitOrder() =>
+      _mark(_grader.order(_exercise, _features, _builtOrder));
 
   void _submitMatching() {
     if (_exercise.canonicalEvaluation.relations.isEmpty) {
@@ -1829,40 +1631,13 @@ class _RoundScreenState extends State<RoundScreen> {
     _mark(_matchingReadsAsExpected());
   }
 
-  /// Whether the learner's pairs read as the expected pairs, for Match and
-  /// Listen and match alike. A Match may repeat a value (Ciao = Hi, Ciao =
-  /// Bye; owner decision of 6 October 2026, Build 265 Revision 4): two rows,
-  /// two sounds or two answers then look or sound the same, so whichever of
-  /// the identical ones was used is right. Each side is compared as the
-  /// learner sees it: a row by its text and picture, an answer by its text;
-  /// an item with neither is told apart by its ID.
-  bool _matchingReadsAsExpected() {
-    final rightLabels = {
-      for (final option in _matchingRightOptions) option.id: option.label,
-    };
-    String leftKey(_MatchPairView pair) =>
-        pair.leftLabel.isNotEmpty || pair.leftImage.isNotEmpty
-        // A plural picture looks unlike the same picture alone.
-        ? '${pair.leftLabel}\u0000${pair.leftImage}\u0000${pair.leftPlural}'
-        : pair.leftId;
-    String rightKey(String id) {
-      final label = rightLabels[id] ?? '';
-      return label.isNotEmpty ? label : id;
-    }
-
-    final expected = <String, int>{};
-    final made = <String, int>{};
-    for (final pair in _matchingLeftPairs) {
-      final selected = _matchingSelections[pair.leftId];
-      if (selected == null) return false;
-      final wanted = '${leftKey(pair)}\u0001${rightKey(pair.rightId)}';
-      final given = '${leftKey(pair)}\u0001${rightKey(selected)}';
-      expected[wanted] = (expected[wanted] ?? 0) + 1;
-      made[given] = (made[given] ?? 0) + 1;
-    }
-    return expected.length == made.length &&
-        expected.entries.every((entry) => made[entry.key] == entry.value);
-  }
+  /// Whether the learner's pairs read as the expected pairs
+  /// ([AnswerGrader.matching]), for Match and Listen and match alike.
+  bool _matchingReadsAsExpected() => _grader.matching(
+    _matchingLeftPairs,
+    _matchingRightOptions,
+    _matchingSelections,
+  );
 
   /// What the learner answered, for the finished-item card of a scrolling
   /// Story; null when the exercise kind keeps no single answer text.
@@ -1881,32 +1656,13 @@ class _RoundScreenState extends State<RoundScreen> {
     return typed.isEmpty ? null : typed;
   }
 
-  /// "Animals: gatto, cane · Plants: rosa" for the given placements; targets
-  /// are named by their layout label, else by their position.
-  String _assignAnswerText(Exercise ex, Map<String, List<String>> placements) {
-    final f = ExerciseFeatures(ex);
-    final parts = <String>[];
-    for (var i = 0; i < ex.targets.length; i++) {
-      final target = ex.targets[i];
-      final items = (placements[target.id] ?? const <String>[])
-          .map((id) => _itemValue(ex, id))
-          .where((value) => value.isNotEmpty)
-          .toList();
-      if (items.isEmpty) continue;
-      final label = f.targetLabel(target.id);
-      parts.add(
-        '${label.isEmpty ? _assignTargetFallbackLabel(f, i) : label}: ${items.join(', ')}',
-      );
-    }
-    return parts.join(' · ');
-  }
+  /// "Animals: gatto, cane · Plants: rosa" for the given placements
+  /// ([CorrectAnswerText.assignText]).
+  String _assignAnswerText(Exercise ex, Map<String, List<String>> placements) =>
+      CorrectAnswerText(_t).assignText(ex, placements);
 
   String _assignTargetFallbackLabel(ExerciseFeatures f, int index) =>
-      switch (f.assignTargetMode) {
-        AssignTargetMode.slots => _t('slotNumber', {'n': index + 1}),
-        AssignTargetMode.gaps => _t('gapNumber', {'n': index + 1}),
-        _ => _t('groupNumber', {'n': index + 1}),
-      };
+      CorrectAnswerText(_t).targetFallbackLabel(f, index);
 
   void _logStoryItem() {
     if (!_storyScrolls) return;
@@ -2724,11 +2480,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final selectedIds = _multiSelected
         .map((i) => _choiceOptions[i].item!.id)
         .toSet();
-    final correctIds = ex.canonicalEvaluation.correctItemIds.toSet();
-    _mark(
-      selectedIds.length == correctIds.length &&
-          selectedIds.containsAll(correctIds),
-    );
+    _mark(_grader.multiChoice(ex, selectedIds));
   }
 
   Widget _multiSelectChoiceExercise(Exercise ex) {
@@ -2821,17 +2573,8 @@ class _RoundScreenState extends State<RoundScreen> {
     });
   }
 
-  void _submitSelectGaps(Exercise ex) {
-    final assignments = _features.targetAssignments;
-    if (assignments.isEmpty || _selectGapFill.values.any((v) => v == null)) {
-      _mark(false);
-      return;
-    }
-    final correct = assignments.entries.every(
-      (entry) => _selectGapFill[entry.key] == entry.value,
-    );
-    _mark(correct);
-  }
+  void _submitSelectGaps(Exercise ex) =>
+      _mark(_grader.selectGaps(_features, _selectGapFill));
 
   Widget _selectGapFillExercise(Exercise ex) {
     final allGapsFilled = _selectGapFill.values.every((v) => v != null);
@@ -3150,22 +2893,8 @@ class _RoundScreenState extends State<RoundScreen> {
     });
   }
 
-  void _submitArrangeGaps() {
-    final ex = _exercise;
-    final assignments = _features.targetAssignments;
-    if (assignments.isEmpty || _gapFill.values.any((v) => v == null)) {
-      _mark(false);
-      return;
-    }
-    // Blocks with the same content are interchangeable: the gap is right
-    // when the placed block reads like the assigned one (Build 256, plan
-    // A.11), so two identical blocks can fill either of their gaps.
-    final correct = assignments.entries.every(
-      (entry) =>
-          _itemValue(ex, _gapFill[entry.key]) == _itemValue(ex, entry.value),
-    );
-    _mark(correct);
-  }
+  void _submitArrangeGaps() =>
+      _mark(_grader.arrangeGaps(_exercise, _features, _gapFill));
 
   Widget _arrangeGapFillExercise(Exercise ex) {
     final placed = _gapFill.values.whereType<String>().toSet();
@@ -3445,25 +3174,11 @@ class _RoundScreenState extends State<RoundScreen> {
   void _submitMissingWords(Exercise ex) {
     if (_answered) return;
     if (!_missingWordControllers.any((c) => c.text.trim().isNotEmpty)) return;
-    final f = _features;
-    final targets = f.gapFieldTargets;
-    var correct = _missingWordControllers.length == targets.length;
-    for (
-      var i = 0;
-      i < _missingWordControllers.length && i < targets.length;
-      i++
-    ) {
-      final answers = f.answersFor(targets[i].id);
-      if (answers == null ||
-          !_answerEngine.accepts(
-            _missingWordControllers[i].text,
-            answers.answers,
-            typoTolerance: false,
-          )) {
-        correct = false;
-      }
-    }
-    _mark(correct);
+    _mark(
+      _grader.missingWords(_features, [
+        for (final controller in _missingWordControllers) controller.text,
+      ]),
+    );
   }
 
   Widget _missingWordExercise(Exercise ex) {
@@ -3531,7 +3246,7 @@ class _RoundScreenState extends State<RoundScreen> {
 
   /// A Match left item: its text, or its picture with the text beside it
   /// (Match pictures to words).
-  Widget _matchLeftContent(_MatchPairView pair) {
+  Widget _matchLeftContent(MatchRow pair) {
     if (pair.leftImage.isEmpty) return Text(pair.leftLabel, softWrap: true);
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -3549,7 +3264,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _matchingExercise(Exercise ex) {
-    Widget selector(_MatchPairView pair) => DropdownButtonFormField<String>(
+    Widget selector(MatchRow pair) => DropdownButtonFormField<String>(
       isExpanded: true,
       initialValue: _matchingSelections[pair.leftId],
       decoration: const InputDecoration(
@@ -5026,20 +4741,7 @@ class _RoundScreenState extends State<RoundScreen> {
   /// (order does not matter); a target with no authored items stays empty.
   void _submitAssign() {
     if (_answered) return;
-    final expected = _features.assignmentsByTarget;
-    if (expected.isEmpty) {
-      _mark(false);
-      return;
-    }
-    for (final target in _exercise.targets) {
-      final placed = (_assignPlacements[target.id] ?? const <String>[]).toSet();
-      final wanted = expected[target.id] ?? const <String>{};
-      if (placed.length != wanted.length || !placed.containsAll(wanted)) {
-        _mark(false);
-        return;
-      }
-    }
-    _mark(true);
+    _mark(_grader.assign(_exercise, _features, _assignPlacements));
   }
 
   /// The text the card shows for an exercise this version cannot play: its

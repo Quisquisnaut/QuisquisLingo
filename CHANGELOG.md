@@ -1,3 +1,37 @@
+# 2.0.73 (Build 273, Revision 2) - answer grading out of the Round screen - 2026-10-15
+
+Nothing a learner sees changes: the same answers are right and the same
+right answer is shown.
+
+- **`AnswerGrader`** (`lib/services/answer_grader.dart`, no screen and no
+  storage) decides whether a learner's answer is right, for every kind the
+  Round screen grades: a typed answer (`typed`, with the exercise's typo
+  tolerance and normalization, literal answers, and the ranked
+  alternatives shown with Type the translation), blocks in order
+  (`order`), missing words typed into gaps (`missingWords`), gaps filled by
+  choosing (`selectGaps`) or with blocks (`arrangeGaps`), several answers
+  (`multiChoice`), groups and slots (`assign`) and Match pairs
+  (`matching`, with `MatchRow` and `MatchChoice`, the Round screen's
+  private views of a Match before). The screen keeps when it grades, what
+  it shows and what the learner's taps hold.
+- **`CorrectAnswerText`** (`lib/services/correct_answer_text.dart`) writes
+  the right answer shown after a wrong answer, under a typed answer and in
+  a Test Round's results (`of`), with `firstVariant`, `orderText`,
+  `pairTexts`, `assignText` and `targetFallbackLabel`; the few words of its
+  own come from the learner panel.
+- The Round screen file is at 5,496 lines (5,794 before this Build).
+- Differences found between rules that look alike, kept as they are and
+  put to the owner: the gaps of Missing words (and Complete the text,
+  Missing letters) forgive no typo, take no literal answer and ignore the
+  exercise's options for capitals, punctuation, spaces and accents, which
+  one typed answer follows; a gap filled by choosing
+  is compared by the option chosen, a gap filled with a block by the
+  block's text (two identical blocks are interchangeable, two identical
+  options are not); Listen and match's Check grades an exercise without
+  pairs as right where Match by meaning grades it wrong (no learner meets
+  it: such an exercise has an Audit error and is never played).
+- Tests: `test/answer_grader_273_test.dart` (16).
+
 # 2.0.73 (Build 273, Revision 1) - one publish gate - 2026-10-15
 
 Nothing an author or a learner sees changes.

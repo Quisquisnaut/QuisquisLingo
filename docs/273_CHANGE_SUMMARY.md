@@ -130,3 +130,61 @@ anyway).
 The screens, their keys and their texts; when an item is refused or
 applied; Course files; scoring, progression and learner data. No new key
 or folder.
+
+## Revision 2 (2.0.73+273002): answer grading out of the Round screen
+
+### Before
+
+The Round screen decided inside its widget whether a learner's answer was
+right: one method per kind of answer (a typed answer, blocks in order,
+missing words, gaps filled by choosing or with blocks, several answers,
+groups and slots, Match pairs), each reading the screen's own fields, and
+the text of the right answer the screen shows after a wrong one was built
+by eight more methods of the same widget. None of it could be tested
+without opening a Round.
+
+### Now
+
+- `AnswerGrader` (`lib/services/answer_grader.dart`) grades: an exercise,
+  its features and what the learner did in; right or wrong out (for a
+  typed answer also the accepted answer it matched, the small differences
+  forgiven and the other accepted answers to show).
+- `CorrectAnswerText` (`lib/services/correct_answer_text.dart`) writes the
+  right answer; its few words of its own ("See the course answer.",
+  "Review the flashcard.", "Slot 2") come from the learner panel in the
+  Course's language, as before.
+- The Round screen keeps when it grades, what the learner's taps hold and
+  what it shows. Its file is at 5,496 lines (5,794).
+
+### Differences kept, for the owner to decide
+
+1. **Gaps are graded more strictly than one typed answer.** Missing words
+   (also Listen for missing words, Complete the text, Missing letters)
+   types one word per gap; its gaps forgive no typo, take no literal
+   answer, and ignore the exercise's options for capitals, punctuation,
+   spaces and accents. One typed answer (Type the translation, Type what
+   you hear, Type the missing word with its first letter shown) follows
+   those options: it forgives a doubled letter in a long word when the
+   exercise allows typos (Type the missing word with its first letter
+   shown does; with the first letter hidden it does not), and accepts
+   literal answers (only Type what you hear has them). With the default options the two give the same results; the
+   difference shows only for an exercise whose options were changed in the
+   canonical editor, or with a doubled letter where typos are allowed.
+   Recommendation: leave it unless the owner wants gaps to follow the
+   exercise's options (a change of grading, a revision of its own; found
+   partly by the independent review).
+2. **Two kinds of gap compare differently.** A gap filled with a block is
+   right when the block reads like the expected one (two identical blocks
+   are interchangeable, Build 256's rule); a gap filled by choosing an
+   option is right only with the very option expected. With two identical
+   options (an author's slip) a learner could choose the "wrong" twin.
+   Recommendation: leave it (options are distinct in practice; the Audit
+   could warn about identical options).
+3. **An exercise with no pairs.** Match by meaning grades it wrong, Listen
+   and match grades it right. No learner meets it: such an exercise has an
+   Audit error and is never played. Recommendation: leave it.
+
+### What does not change
+
+Which answers are right, the feedback, the right answer shown, the XP,
+the keys and the texts. No new key or folder.

@@ -28,14 +28,15 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 |---|---|---|
 | 0 | `StoryCast`: the Story cast rules of the Course Editor and the Story Wizard | done |
 | 1 | One publish gate (eight copies, A–H below) | done; four differences put to the owner |
-| 2 | `AnswerGrader`: the Round screen's grading, pure | planned |
-| 3 | `SpokenLineHold`: the held Story line | planned |
-| 4 | `RoundAttempt`: the queue, mistake review, Test results, completion | planned |
-| 5 | Access PIN and lock owner; the Team-registry rewrite out of `ProfileService` | planned |
-| 6 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
-| 7 | The Audit's language tables and rule sets | planned |
-| 8 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | planned |
-| 9 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | planned |
+| 2 | `AnswerGrader`: the Round screen's grading, pure | done |
+| 3 | The owner's decisions on Revision 1's differences (below): the Round type check before Apply in the preset form and the exercise list; the canonical editor's Preview refusal list in both forms (behaviour change) | planned |
+| 4 | `SpokenLineHold`: the held Story line | planned |
+| 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | planned |
+| 6 | Access PIN and lock owner; the Team-registry rewrite out of `ProfileService` | planned |
+| 7 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
+| 8 | The Audit's language tables and rule sets | planned |
+| 9 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | planned |
+| 10 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | planned |
 | later | The Duel's copies of the Round's voice, recorded-to-TTS fallback and Report sheet | to propose |
 
 ## Survey of 15 October 2026 (main at `38016ab8`)
@@ -131,27 +132,37 @@ form and the exercise list check the Round type before Apply; 3 the
 canonical editor's Preview list in both forms; 4 leave the list's one-line
 refusal). A decided change is a revision of its own.
 
-## Revision 2 (next): answer grading
+**Owner decisions of 15 October 2026 (about 12:30) on the four differences:**
+1. "Move X to Draft?" in the three menus and "Apply X as draft?" elsewhere:
+   **keep both** (no change).
+2. The Round type check: **check everywhere**: the preset form and the
+   Round editor's exercise list refuse to Apply an exercise that does not
+   fit its Round's type, as the canonical editor does.
+3. The Preview refusal: **the canonical editor's list** ("CODE: message"
+   lines) in both forms.
+4. The exercise list's one-line refusal: **leave it**.
+Points 2 and 3 are Revision 3 (a behaviour change, its own suite; show the
+owner its commit description before the commit).
 
-Prepared in the session scratchpad `r2/` (15 October 2026):
-`answer_grader.dart` (`AnswerGrader`: `typed` → `TypedAnswerGrade`,
-`order`, `missingWords`, `selectGaps`, `arrangeGaps`, `multiChoice`,
-`assign`, `matching` with `MatchRow` / `MatchChoice` (were the Round
-screen's private `_MatchPairView` / `_MatchOption`), `itemValue`,
-`joinBlocks`), `correct_answer_text.dart` (`CorrectAnswerText(text)`:
-`firstVariant`, `of(ex, f, displayedCorrection:)`, `orderText`,
-`pairTexts`, `assignText`, `targetFallbackLabel`), `apply_r2.py` (the
-Round screen's edits) and `answer_grader_273_test.dart` (not yet run; some
-expected texts are guesses to check). Differences to report: Missing
-words grades without typo tolerance or literal answers (Type the missing
-word has both); chosen gap options are compared by ID, gap blocks by their
-text; Listen and match's Check skips Match's guard for an exercise with no
-pairs (unreachable for learners: such an exercise has an Audit error and is
-not played); `_correctAnswerText(ex)` reads the features of the exercise
-shown, not of `ex` (always the same exercise today).
+## Revision 2 (2.0.73+273002): answer grading
 
-Not covered, on purpose: `ProvisionalPublicationService`, the Course
-Wizard's publish, the Preview refusals, the Round Wizard's approval.
+In the working tree (15 October 2026, about 12:45): `AnswerGrader`
+(`lib/services/answer_grader.dart`) and `CorrectAnswerText`
+(`lib/services/correct_answer_text.dart`); the Round screen delegates
+(5,496 lines). Every test file that drives the Round, Review or Home
+screen (79 files, 1,259 cases) passed; `test/answer_grader_273_test.dart`
+(16). Independent review: no behaviour change; acted on: tests pinned
+exactly (ranked alternatives, a doubled letter in a gap), two quoted texts
+corrected, the first difference reworded and widened (gaps also ignore the
+exercise's normalization options; found by the review). Next: the complete
+suite, the commit, the branch push; then put Revision 2's differences to
+the owner (`docs/273_CHANGE_SUMMARY.md`, Revision 2, "Differences kept").
+
+Complete suite 4,733 passed, 1 skipped; committed about 13:45 and pushed.
+**Owner answers of 15 October 2026 (about 13:40):** point 2 (gaps by
+option ID vs blocks by text) and point 3 (no pairs) **leave them**; point 1
+(gaps stricter than one typed answer) **"Discuss pros and cons"**: pros and
+cons given in the conversation, answer pending.
 
 Tools in the session scratchpad: `bump.py OLD NEW [--shift-day]` (every
 version pin, the Beta comment and dates), `r0/apply_r0.py`,

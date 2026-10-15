@@ -78,3 +78,35 @@
   touched only tests, comments and documents, so no second review.
 - `flutter analyze`: no issues.
 - Complete suite: **4,717 passed, 1 skipped, 0 failed**, 40 minutes.
+
+## Revision 2 (2.0.73+273002), answer grading out of the Round screen
+
+15 October 2026, same PC, `build-273` after `fbe17052`.
+
+- Characterization: the Round screen's grading was already driven by its
+  own tests (among them `match_repeated_values_265_test`,
+  `select_gap_fill_238_test`, `arrange_gap_fill_238_test`,
+  `first_letter_226_03_test`, `runtime_canonical_256_test`,
+  `test_round_attempt_test`, `translation_choice_239_test`,
+  `owner_review_259_revision3_test`). After the change every test file that
+  drives the Round, Review or Home screen (79 files) ran: **1,259 passed**.
+- New tests: `test/answer_grader_273_test.dart`, **16 passed**: a typed
+  answer (an accepted expression with its ranked alternatives, two after a
+  right answer and three after a wrong one, more left unshown; a doubled
+  letter forgiven by the exercise's tolerance and another typo not; a
+  literal answer, no alternatives); blocks in order; missing words (every
+  gap, as many fields as gaps, no typo forgiven, not even a doubled
+  letter); gaps with blocks (two identical blocks interchangeable) and by
+  choosing (by ID); several answers; groups; Match (repeated values
+  interchangeable, the same answer twice wrong, a missing pair wrong, a
+  plural picture apart, no rows); the right answer of each kind on the
+  Laboratory's exercises, `firstVariant`, the fallback label.
+- Independent review (before the suite): no behaviour change (every moved
+  body compared with the old one: inputs, the fields assigned and when,
+  guards, the order of operations, every remaining caller). Acted on: the
+  ranked alternatives and the no-typo rule pinned exactly; two quoted texts
+  corrected; the first difference reworded and widened with a fourth point
+  it found (gaps ignore the exercise's normalization options). The
+  corrections touched only tests and documents.
+- `flutter analyze`: no issues.
+- Complete suite: **4,733 passed, 1 skipped, 0 failed**, 37 minutes.
