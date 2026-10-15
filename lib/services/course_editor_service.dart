@@ -1,4 +1,3 @@
-import 'editor_notes.dart';
 import 'dart:async';
 import 'course_library_service.dart';
 import 'dart:convert';
@@ -16,10 +15,7 @@ import 'profile_service.dart';
 import 'authoring_duplication_service.dart';
 import 'course_access_policy.dart';
 import 'course_media_store.dart';
-import 'page_blocks.dart';
-import 'lesson_icon_pictures.dart';
-import 'picture_answers.dart';
-import 'plural_pictures.dart';
+import 'course_minimum_build.dart';
 import 'course_package_service.dart';
 import 'course_received_service.dart';
 import 'team_service.dart';
@@ -344,6 +340,30 @@ class CourseEditorService {
     await backupService.alignFolder(course);
   }
 
+  /// The custom Course stored under [courseId], read back after a write
+  /// that succeeded: it must be [expected] exactly, or the write is reported
+  /// as failed (Build 273 Revision 9: the confirmation, the received update
+  /// and the replacement of an unopenable Course share it). A new import's
+  /// read-back after a failed write only decides its clean-up and stays
+  /// where it is.
+  Future<Course> _readBackCustom(String courseId, Course expected) async {
+    final record = await _customRecord(courseId);
+    if (record == null) {
+      throw StateError('Course persistence verification failed.');
+    }
+    final stored = _courseFromEntry(record.entry);
+    if (jsonEncode(stored.toJson()) != jsonEncode(expected.toJson())) {
+      throw StateError('Course persistence verification failed.');
+    }
+    return stored;
+  }
+
+  /// Removes from [course]'s media folder the files it no longer uses.
+  Future<void> _removeUnusedMedia(Course course) => _media.deleteUnreferenced(
+    course.courseId,
+    CourseMediaStore.referencesOf(course),
+  );
+
   Future<void> saveUserCourse(Course course) => _store.withCourseLock(
     course.courseId,
     () => _saveUserCourseLocked(course),
@@ -583,19 +603,11 @@ class CourseEditorService {
       _entry(course, when),
       expectedToken: stored.token,
     );
-    final verified = await _customRecord(course.courseId);
-    if (verified == null ||
-        jsonEncode(_courseFromEntry(verified.entry).toJson()) !=
-            jsonEncode(course.toJson())) {
-      throw StateError('Course persistence verification failed.');
-    }
+    await _readBackCustom(course.courseId, course);
     await _receivedCourses.clear(course.courseId);
     await _receivedCourses.recordNewImport(course);
     await _alignStorageNames(course);
-    await _media.deleteUnreferenced(
-      course.courseId,
-      CourseMediaStore.referencesOf(course),
-    );
+    await _removeUnusedMedia(course);
     await _addToImporterLibrary(course);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
@@ -621,17 +633,9 @@ class CourseEditorService {
       _entry(incoming, when),
       expectedToken: stored.token,
     );
-    final verifiedRecord = await _customRecord(incoming.courseId);
-    if (verifiedRecord == null ||
-        jsonEncode(_courseFromEntry(verifiedRecord.entry).toJson()) !=
-            jsonEncode(incoming.toJson())) {
-      throw StateError('Course persistence verification failed.');
-    }
+    await _readBackCustom(incoming.courseId, incoming);
     await _alignStorageNames(incoming);
-    await _media.deleteUnreferenced(
-      incoming.courseId,
-      CourseMediaStore.referencesOf(incoming),
-    );
+    await _removeUnusedMedia(incoming);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
   }
 
@@ -1176,16 +1180,8 @@ class CourseEditorService {
     workingCourse = await _materializeDetachedConstructorIdentity(
       workingCourse,
     );
-    // Build 258: a Course with a Page needs a build that draws Pages.
-    workingCourse = PageBlocks.withMinimumAppBuild(workingCourse);
-    // Build 263 Revision 2: so does one that asks for another picture look.
-    workingCourse = PictureAnswers.withMinimumAppBuild(workingCourse);
-    // Build 264 Revision 8: and one whose Lesson icon is a library picture.
-    workingCourse = LessonIconPictures.withMinimumAppBuild(workingCourse);
-    // Build 265 Revision 11: and one that marks a picture plural.
-    workingCourse = PluralPictures.withMinimumAppBuild(workingCourse);
-    // Build 267 Revision 8: and one whose exercises carry Editor Notes.
-    workingCourse = EditorNotes.withMinimumAppBuild(workingCourse);
+    // The oldest build that can play what the Course uses.
+    workingCourse = CourseMinimumBuild.stamp(workingCourse);
     if (!isNewCourse) Course.fromJson(workingCourse.toJson());
     if (originalCourse.originType.isOfficial ||
         workingCourse.originType.isOfficial) {
@@ -1317,23 +1313,13 @@ class CourseEditorService {
 
     if (current == null) await _addToImporterLibrary(committed);
     onProgress?.call(const CourseSaveProgress(CourseSaveStep.verifying));
-    final verifiedRecord = await _customRecord(storageId);
-    if (verifiedRecord == null) {
-      throw StateError('Course persistence verification failed.');
-    }
-    final verified = _courseFromEntry(verifiedRecord.entry);
-    if (jsonEncode(verified.toJson()) != jsonEncode(committed.toJson())) {
-      throw StateError('Course persistence verification failed.');
-    }
+    final verified = await _readBackCustom(storageId, committed);
     await _alignStorageNames(committed);
     await _receivedCourses.clear(storageId);
     // Media added while editing and then removed, or no longer used by the
     // confirmed version, leave the Course folder. The pre-change backup above
     // holds its own copies, so older versions still restore.
-    await _media.deleteUnreferenced(
-      verified.courseId,
-      CourseMediaStore.referencesOf(verified),
-    );
+    await _removeUnusedMedia(verified);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     return CourseConfirmationResult(
       course: verified,
@@ -1544,10 +1530,7 @@ class CourseEditorService {
       );
       await _alignStorageNames(normalizedUpdate);
       await _addToImporterLibrary(normalizedUpdate);
-      await _media.deleteUnreferenced(
-        normalizedUpdate.courseId,
-        CourseMediaStore.referencesOf(normalizedUpdate),
-      );
+      await _removeUnusedMedia(normalizedUpdate);
       LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
       return OfficialCourseUpdateResult(
         officialCourse: normalizedUpdate,
@@ -1602,10 +1585,7 @@ class CourseEditorService {
     );
     await _alignStorageNames(normalizedUpdate);
     await _addToImporterLibrary(normalizedUpdate);
-    await _media.deleteUnreferenced(
-      normalizedUpdate.courseId,
-      CourseMediaStore.referencesOf(normalizedUpdate),
-    );
+    await _removeUnusedMedia(normalizedUpdate);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     return OfficialCourseUpdateResult(
       officialCourse: normalizedUpdate,

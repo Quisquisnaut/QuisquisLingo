@@ -35,7 +35,7 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 | 6 | The Access PIN and its lock out of `ProfileService` | done |
 | 7 | The owner's decisions on Revision 6 (below): removing a PIN clears its count and wait; "Wait 1 second". A behaviour change | done |
 | 8 | The Team registry's read and verified write: one owner for `TeamService` and the profile deletion | done |
-| 9 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
+| 9 | The Course save sequence: one verified-commit step, the minimum-build policy (the last of Build 273) | done |
 | 10 | The Audit's language tables and rule sets | left for a later Build (owner, 15 October 2026) |
 | 11 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | left for a later Build |
 | 12 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | left for a later Build (the riskiest piece) |
@@ -293,10 +293,24 @@ The last revision of Build 273. Owner decision of 15 October 2026 on the
 read-back ("Leave it"): only the Course Editor's confirmation, the received
 update and the replacement of an unopenable Course read the stored Course
 back (each with its own copy until now; `CourseFileStore` checks every
-write byte for byte); Revision 9 gathers the three copies into
-`_readBackCustom` and changes no path. Prepared in the session's
-`scratchpad/r9/` (`apply_r9.py <course_editor_service.dart>`,
-`course_minimum_build.dart`, its test, `docs_r9.py <root>`).
+write against the text it wrote); Revision 9 gathers the three copies into
+`_readBackCustom` and changes no path.
+
+In the working tree (15 October 2026, about 20:45): `CourseMinimumBuild`
+(`lib/services/course_minimum_build.dart`), `_readBackCustom` and
+`_removeUnusedMedia` in `course_editor_service.dart`; test
+`test/course_minimum_build_273_test.dart` (5). Version 273009, docs
+written, analyzer clean. The 55 test files about Course saves, imports,
+received updates, Publisher Courses and the five features: 729 passed, 1
+failed, the new test (it asked for build 999999, above the app's own
+build, which the Course constructor refuses; found by the independent
+review too; now `Course.appBuildNumber`). The review found no behaviour
+change; its three comment points acted on. A second review of the
+corrections and the docs: no fault, two wordings acted on. Complete suite
+4,799 passed, 1 skipped; committed and pushed. **Build 273 is complete.**
+Next: the owner's go to merge `build-273` into `main` (fast-forward, push
+`main`, delete the branch locally and on origin), then Build 274
+(`docs/274_PLAN.md`) on `build-274`.
 
 Gotcha (15 October 2026, 15:19): a dry run of Revision 5's edit script
 meant for a copy edited the real `round_screen.dart` for about 20 seconds

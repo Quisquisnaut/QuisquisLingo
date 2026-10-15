@@ -1,3 +1,28 @@
+# 2.0.73 (Build 273, Revision 9) - the Course save steps have owners - 2026-10-15
+
+Nothing a user sees changes. The last revision of Build 273: the Audit's
+tables, Home's Lesson access and the earlier exercise shapes wait for a
+later Build (owner decision of 15 October 2026).
+
+- **`CourseMinimumBuild.stamp`** (`lib/services/course_minimum_build.dart`)
+  is the one list of the rules that raise a Course's `minimumAppBuild` when
+  the Course Editor confirms it (Pages, picture answers, library Lesson
+  icons, plural pictures, Editor Notes, in the order they were chained
+  before); each rule stays with its feature.
+- In `CourseEditorService`, one step reads a custom Course back after it is
+  written and refuses a stored Course that differs ("Course persistence
+  verification failed."): the Course Editor's confirmation, the update of a
+  received Course and the replacement of a Course this version cannot open
+  each had their own copy. One step removes the media a Course no longer
+  uses, for those three and both replacement branches of a Publisher
+  Course's update.
+- Kept as they were, on purpose (owner decision of 15 October 2026 on the
+  read-back): only those three writes read the Course back; every write is
+  checked by the Course file store against the text it wrote, a new import
+  reads back only after a failed write, and Publisher Courses never.
+- Tests: `test/course_minimum_build_273_test.dart` (5); the Course Editor,
+  import, received-update and Publisher test files pass.
+
 # 2.0.73 (Build 273, Revision 8) - the Team registry has an owner - 2026-10-15
 
 Nothing a user sees changes.

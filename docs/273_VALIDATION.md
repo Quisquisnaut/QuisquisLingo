@@ -283,3 +283,28 @@ No behaviour change.
   about why the deletion does not call `TeamService`).
 - `flutter analyze`: no issues.
 - Complete suite: **4,794 passed, 1 skipped, 0 failed**, 44 minutes.
+
+## Revision 9 (2.0.73+273009), the Course save steps have owners
+
+No behaviour change; the last revision of Build 273.
+
+- New tests: `test/course_minimum_build_273_test.dart`, **5 passed**: a
+  Course that uses none of the five features is left as it is; a Page asks
+  for the build that draws Pages; the latest feature used decides; a
+  higher build the Course already asks for is kept; the same result as the
+  five rules chained as before, on four Courses.
+- The 55 test files about Course saves, imports, received updates,
+  Publisher Courses and the five features: 729 passed, 1 failed (the new
+  test, which asked for build 999999: the Course constructor refuses a
+  build above the app's own; corrected to `Course.appBuildNumber`, then 5
+  of 5). The version tests pass at 273009.
+- Owner decision of 15 October 2026 on the read-back ("Leave it"): only
+  the three writes that had it read the stored Course back; recorded in
+  AGENTS.md.
+- Independent review: no behaviour change in the production code; the
+  test's build (above) and three comment points, all acted on. A second
+  review of the corrections and the documents: no fault; two wordings
+  acted on (the file store compares text, not bytes; both replacement
+  branches of a Publisher update).
+- `flutter analyze`: no issues.
+- Complete suite: **4,799 passed, 1 skipped, 0 failed**.

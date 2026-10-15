@@ -379,3 +379,41 @@ own.
 
 The stored registry, its key, the messages of a refused or failed read or
 write, the order of the Teams, which Teams a deletion touches.
+
+## Revision 9 (2.0.73+273009): the Course save steps have owners
+
+The last revision of Build 273 (owner decision of 15 October 2026).
+
+### Before
+
+When the Course Editor confirms a Course, five rules each raised the
+oldest build able to play it (Pages, picture answers, library Lesson icons,
+plural pictures, Editor Notes), chained one by one inside the confirmation.
+Three writes of a custom Course (the confirmation, the update of a received
+Course, the replacement of a Course this version cannot open) each had their
+own copy of the read-back that opens the stored Course again and compares
+it; five places had their own copy of the clean-up of unused media.
+
+### Now
+
+- `CourseMinimumBuild.stamp` is the one list of those rules.
+- `_readBackCustom` and `_removeUnusedMedia` are the two steps the writes
+  share.
+
+### Found and kept (put to the owner, who chose to leave them)
+
+- Only those three writes read the Course back. Every write is already
+  checked by the Course file store against the text it wrote (the staged
+  and the final file); the read-back also proves
+  the stored file opens into exactly the Course meant, which matters most
+  for the Course Editor's save, put together in memory. A new import reads
+  back only after a failed write, to decide what to clean up; a Publisher
+  Course never.
+- The confirmation adds a new Course to the learner's library before the
+  read-back; the received update adds nothing (the learner has the Course
+  already). Both are right as they are.
+
+### What does not change
+
+What is stored, the build a Course asks for, the messages of a failed
+write, which media leave a Course folder and when.
