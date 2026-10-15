@@ -32,6 +32,7 @@ import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/settings_service.dart';
 import '../services/course_service.dart';
+import '../services/round_attempt.dart';
 import '../services/round_playability_service.dart';
 import '../services/round_type_presentation.dart';
 import '../services/sound_effect_service.dart';
@@ -220,7 +221,9 @@ class _RoundScreenState extends State<RoundScreen> {
   static const _grader = AnswerGrader();
   final _random = Random();
 
-  List<int> _queue = [];
+  /// The attempt: its exercises, where the learner is, the review of
+  /// mistakes and what it counts (Build 273 Revision 5).
+  late final RoundAttempt _attempt = RoundAttempt(_random);
   bool _ready = false;
   bool _introAcknowledged = false;
   bool _initializationFailed = false;
@@ -239,16 +242,7 @@ class _RoundScreenState extends State<RoundScreen> {
   int _preparedExerciseGeneration = 0;
   int? _suppressedAudioGeneration;
   int? _startedAudioGeneration;
-  final Set<int> _wrongFirstPass = {};
-  int _position = 0;
-  int _firstPassCorrect = 0;
-
-  /// The sum of the difficulty levels of the exercises answered correctly at
-  /// the first attempt: the Difficulty bonus (Build 260 Revision 6).
-  int _firstPassDifficulty = 0;
   int _evaluableExerciseCount = 0;
-  int _errorsThisAttempt = 0;
-  bool _reviewPhase = false;
   bool _finishing = false;
 
   /// The countdown of this attempt at a Timed Round: its limit, its
@@ -266,7 +260,7 @@ class _RoundScreenState extends State<RoundScreen> {
   String? _timeoutError;
 
   void _startTimedCountdown() {
-    if (widget.round.roundType != RoundType.timed || _queue.isEmpty) return;
+    if (widget.round.roundType != RoundType.timed || _attempt.isEmpty) return;
     _timed.start();
   }
 
@@ -286,7 +280,7 @@ class _RoundScreenState extends State<RoundScreen> {
     _timeoutSaving = true;
     if (mounted) setState(() => _timeoutError = null);
     final award = const XpCalculator().calculateTimedTimeoutAward(
-      firstPassCorrect: _firstPassCorrect,
+      firstPassCorrect: _attempt.firstPassCorrect,
       wasCompletedAtStart: _wasCompleted,
     );
     try {
@@ -330,7 +324,6 @@ class _RoundScreenState extends State<RoundScreen> {
   late ExerciseFeatures _features;
   bool _answered = false;
   bool _lastAnswerCorrect = false;
-  final List<({bool correct, String correction})> _testResults = [];
 
   /// Build 256 Revision 5: a dialogue line's audio has played once, so a
   /// text shown "after listening" may appear.
@@ -461,7 +454,7 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
-  int get _exerciseIndex => _queue[_position];
+  int get _exerciseIndex => _attempt.exerciseIndex;
   Exercise get _exercise => widget.round.exercises[_exerciseIndex];
 
   /// The Before you start card (Build 257): an ordinary card of the Round,
@@ -685,7 +678,7 @@ class _RoundScreenState extends State<RoundScreen> {
       // version cannot play) keeps a zero-error attempt from the Laurel and
       // gives the "skipped perfect" mark instead (plan A.6; one stored key).
       _ttsWasSkipped = _audioWasSkipped || _versionSkipped > 0;
-      _queue = filtered;
+      _attempt.start(filtered);
       _evaluableExerciseCount = valid
           .where(
             (i) =>
@@ -703,7 +696,7 @@ class _RoundScreenState extends State<RoundScreen> {
             courseId: widget.course.courseId,
           )).contains(widget.round.id);
       await CrashLogService.instance.recordDebugEvent(
-        'Round: preferences loaded ${widget.round.id}, queue=${_queue.length}',
+        'Round: preferences loaded ${widget.round.id}, queue=${_attempt.length}',
       );
       final flowOrder = _flowOrder;
       _playsInOrder = flowOrder != null;
@@ -717,13 +710,13 @@ class _RoundScreenState extends State<RoundScreen> {
       if (flowOrder != null) {
         // A Story plays its nodes in authored order and is never shuffled
         // (Build 256, plan A.7).
-        _queue = [
+        _attempt.start([
           for (final index in flowOrder)
             if (filtered.contains(index)) index,
-        ];
+        ]);
       } else if (widget.round.roundType != RoundType.test ||
           !widget.round.testFixedOrder) {
-        _shuffleDifferentInts(_queue);
+        _attempt.shuffle();
       }
       // Mascots (Build 256 Revision 9): never in a Story, whose characters
       // are its cast. Pictures that cannot be loaded leave the Round without
@@ -748,7 +741,7 @@ class _RoundScreenState extends State<RoundScreen> {
         }
       }
       if (!mounted) return;
-      if (_queue.isNotEmpty) {
+      if (_attempt.isNotEmpty) {
         await CrashLogService.instance.recordDebugEvent(
           'Round: preparing first exercise ${widget.round.id}',
         );
@@ -779,7 +772,7 @@ class _RoundScreenState extends State<RoundScreen> {
         _timed.setLimit(TimedRoundRules.activeLimit(widget.round, completed));
       }
       setState(() => _ready = true);
-      if (_queue.isNotEmpty) {
+      if (_attempt.isNotEmpty) {
         final exercise = _exercise;
         final generation = _preparedExerciseGeneration;
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -795,7 +788,7 @@ class _RoundScreenState extends State<RoundScreen> {
       );
       if (!mounted) return;
       setState(() {
-        _queue = [];
+        _attempt.clear();
         _initializationFailed = true;
         _ready = true;
       });
@@ -1123,12 +1116,6 @@ class _RoundScreenState extends State<RoundScreen> {
     await diagnostic.dispose(outcome: played ? 'completed' : 'failed');
   }
 
-  void _shuffleDifferentInts(List<int> values) {
-    if (values.length < 2) return;
-    // A valid random shuffle may legitimately reproduce the source order.
-    values.shuffle(_random);
-  }
-
   void _shuffleDifferentChoices(List<_ChoiceOption> values) {
     if (values.length < 2) return;
     // A valid random shuffle may legitimately reproduce the source order.
@@ -1319,7 +1306,7 @@ class _RoundScreenState extends State<RoundScreen> {
         round: widget.round,
         exercise: _exercise,
         exerciseIndex: _exerciseIndex,
-        screen: _reviewPhase ? 'Round review' : 'Round',
+        screen: _attempt.reviewPhase ? 'Round review' : 'Round',
         answerState: _answerState(),
       );
       return true;
@@ -1391,25 +1378,15 @@ class _RoundScreenState extends State<RoundScreen> {
       _answered = true;
       _lastAnswerCorrect = correct;
       _feedback = correct ? _t('correct') : _t('incorrect');
-      if (!correct) _errorsThisAttempt++;
-      if (!_reviewPhase) {
-        if (correct) {
-          _firstPassCorrect++;
-          _firstPassDifficulty += ExerciseDifficulty.of(_exercise)?.value ?? 0;
-        } else {
-          _wrongFirstPass.add(_exerciseIndex);
-        }
-      }
-      if (widget.round.roundType == RoundType.test) {
-        _testResults.add((
-          correct: correct,
-          correction: correct ? '' : _correctAnswerText(_exercise),
-        ));
-      }
+      _attempt.record(
+        correct: correct,
+        difficulty: ExerciseDifficulty.of(_exercise)?.value ?? 0,
+        testCorrection: widget.round.roundType == RoundType.test
+            ? (correct ? '' : _correctAnswerText(_exercise))
+            : null,
+      );
     });
-    if (widget.round.roundType == RoundType.timed &&
-        _position + 1 == _queue.length &&
-        (_reviewPhase || _wrongFirstPass.isEmpty)) {
+    if (widget.round.roundType == RoundType.timed && _attempt.answeredLast) {
       _timed.completeInTime();
     }
     if (widget.round.roundType != RoundType.test) _revealFeedback();
@@ -1478,7 +1455,7 @@ class _RoundScreenState extends State<RoundScreen> {
       _lastAnswerCorrect = true; // Flashcards have no correct/incorrect answer.
       if (reviewAgain) {
         _feedback = _t('cardAgainLater');
-        _queue.add(_exerciseIndex);
+        _attempt.againLater();
       } else {
         _feedback = _t('cardReviewed');
       }
@@ -1688,7 +1665,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
         const SizedBox(width: 4),
         Text(
-          _t('steps.$_nounKey', {'n': _queue.length}),
+          _t('steps.$_nounKey', {'n': _attempt.length}),
           key: const Key('story-now'),
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
             color: Theme.of(context).colorScheme.primary,
@@ -1799,8 +1776,8 @@ class _RoundScreenState extends State<RoundScreen> {
   Future<void> _advance() async {
     if (_finishing || _timed.expired) return;
     _logStoryItem();
-    if (_position + 1 < _queue.length) {
-      setState(() => _position++);
+    if (_attempt.hasNext) {
+      setState(_attempt.advance);
       _prepareExercise(trigger: 'exercise_advanced');
       _scrollStoryToEnd();
       return;
@@ -1829,10 +1806,10 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
 
-    if (!_reviewPhase &&
-        _wrongFirstPass.isNotEmpty &&
-        !_playsInOrder &&
-        widget.round.roundType != RoundType.test) {
+    if (_attempt.reviewsMistakes(
+      playsInOrder: _playsInOrder,
+      type: widget.round.roundType,
+    )) {
       _timedReviewDialogOpen = true;
       await showDialog<void>(
         context: context,
@@ -1850,32 +1827,18 @@ class _RoundScreenState extends State<RoundScreen> {
       );
       _timedReviewDialogOpen = false;
       if (!mounted || _timed.expired) return;
-      setState(() {
-        _reviewPhase = true;
-        _queue = _wrongFirstPass.toList();
-        _shuffleDifferentInts(_queue);
-        _position = 0;
-      });
+      setState(_attempt.startReview);
       _prepareExercise(trigger: 'review_started');
       return;
     }
 
-    if (widget.round.roundType == RoundType.test && !_reviewPhase) {
+    if (widget.round.roundType == RoundType.test && !_attempt.reviewPhase) {
       final threshold = widget.round.testPassingPercent;
-      final percent = _testResults.isEmpty
-          ? 0
-          : (100 *
-                    _testResults.where((r) => r.correct).length /
-                    _testResults.length)
-                .round();
       // A passed Test is celebrated with confetti (Build 264 Revision 3,
       // owner decisions of 5 October 2026): its threshold reached, or,
       // without one, every answer right.
-      final passed =
-          _testResults.isNotEmpty &&
-          (threshold == null
-              ? _testResults.every((r) => r.correct)
-              : percent >= threshold);
+      final (:percent, :passed) = _attempt.testScore(threshold);
+      final testResults = _attempt.testResults;
       final animationsEnabled = await _settings.areAnimationsEnabled();
       if (!mounted) return;
       final confetti =
@@ -1904,21 +1867,21 @@ class _RoundScreenState extends State<RoundScreen> {
                 child: ListView(
                   shrinkWrap: true,
                   children: [
-                    for (var i = 0; i < _testResults.length; i++)
+                    for (var i = 0; i < testResults.length; i++)
                       ListTile(
                         title: Text(
                           _t('testQuestion', {
                             'n': i + 1,
                             'status': _t(
-                              _testResults[i].correct ? 'correct' : 'incorrect',
+                              testResults[i].correct ? 'correct' : 'incorrect',
                             ),
                           }),
                         ),
-                        subtitle: _testResults[i].correction.isEmpty
+                        subtitle: testResults[i].correction.isEmpty
                             ? null
                             : Text(
                                 _t('correctAnswer', {
-                                  'answer': _testResults[i].correction,
+                                  'answer': testResults[i].correction,
                                 }),
                               ),
                       ),
@@ -1951,7 +1914,7 @@ class _RoundScreenState extends State<RoundScreen> {
           builder: (ctx) => AlertDialog(
             title: Text(viewOnly ? 'View Only result' : 'Preview complete'),
             content: Text(
-              '${viewOnly ? 'Preview' : 'Temporary'} result: ${_errorsThisAttempt == 0 ? 'perfect' : '$_errorsThisAttempt error${_errorsThisAttempt == 1 ? '' : 's'}'}. ${viewOnly ? 'No learning progress or rewards were recorded.' : 'No learner progress was recorded.'}',
+              '${viewOnly ? 'Preview' : 'Temporary'} result: ${_attempt.errors == 0 ? 'perfect' : '${_attempt.errors} error${_attempt.errors == 1 ? '' : 's'}'}. ${viewOnly ? 'No learning progress or rewards were recorded.' : 'No learner progress was recorded.'}',
             ),
             actions: [
               FilledButton(
@@ -1991,12 +1954,12 @@ class _RoundScreenState extends State<RoundScreen> {
           courseCode: code,
           completedLessonId: completedLessonId,
           readAttemptFacts: () => LearningCompletionAttemptFacts(
-            errorsThisAttempt: _errorsThisAttempt,
-            firstPassCorrect: _firstPassCorrect,
+            errorsThisAttempt: _attempt.errors,
+            firstPassCorrect: _attempt.firstPassCorrect,
             evaluableExerciseCount: _evaluableExerciseCount,
             wasCompletedAtStart: _wasCompleted,
             ttsWasSkipped: _ttsWasSkipped,
-            firstPassDifficulty: _firstPassDifficulty,
+            firstPassDifficulty: _attempt.firstPassDifficulty,
           ),
           claimOnTimeBonus:
               widget.round.roundType == RoundType.timed &&
@@ -4290,7 +4253,7 @@ class _RoundScreenState extends State<RoundScreen> {
   /// page took the exercise's picture in the middle of drawing.
   void _settleMascot() {
     final cast = _mascotCast;
-    if (cast == null || !mounted || _queue.isEmpty) return;
+    if (cast == null || !mounted || _attempt.isEmpty) return;
     cast.settle(
       hasRoom:
           ExerciseMascotRoom.of(
@@ -4817,7 +4780,7 @@ class _RoundScreenState extends State<RoundScreen> {
     // The Preview of a card alone shows the card and closes after it.
     if (_ready &&
         !_initializationFailed &&
-        (_queue.isNotEmpty || widget.previewMode) &&
+        (_attempt.isNotEmpty || widget.previewMode) &&
         intro != null &&
         !_introAcknowledged) {
       final introFeatures = ExerciseFeatures(intro);
@@ -4882,7 +4845,7 @@ class _RoundScreenState extends State<RoundScreen> {
               FilledButton(
                 key: const Key('before-you-start-continue'),
                 onPressed: () {
-                  if (_queue.isEmpty) {
+                  if (_attempt.isEmpty) {
                     Navigator.of(context).maybePop();
                     return;
                   }
@@ -4900,7 +4863,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   });
                 },
                 child: Text(
-                  _queue.isEmpty ? 'Close preview' : _t('continueToRound'),
+                  _attempt.isEmpty ? 'Close preview' : _t('continueToRound'),
                 ),
               ),
             ],
@@ -4985,7 +4948,7 @@ class _RoundScreenState extends State<RoundScreen> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-    if (_queue.isEmpty) {
+    if (_attempt.isEmpty) {
       return Scaffold(
         backgroundColor: background,
         appBar: _simpleRoundAppBar(background),
@@ -5041,7 +5004,7 @@ class _RoundScreenState extends State<RoundScreen> {
       );
     }
     final ex = _exercise;
-    final totalShown = _queue.length;
+    final totalShown = _attempt.length;
 
     return Scaffold(
       backgroundColor: background,
@@ -5059,14 +5022,14 @@ class _RoundScreenState extends State<RoundScreen> {
                 softWrap: true,
                 style: Theme.of(context).textTheme.labelSmall,
               ),
-              if (_reviewPhase)
+              if (_attempt.reviewPhase)
                 Text(
                   _t('reviewingMissed'),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
             ] else ...[
               LabelledText(
-                _reviewPhase
+                _attempt.reviewPhase
                     ? _t('roundInReview', {'round': _roundTitle})
                     : _roundTitle,
                 label: _roundPrefix,
@@ -5100,7 +5063,9 @@ class _RoundScreenState extends State<RoundScreen> {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
-          child: LinearProgressIndicator(value: (_position + 1) / totalShown),
+          child: LinearProgressIndicator(
+            value: (_attempt.position + 1) / totalShown,
+          ),
         ),
       ),
       body: SafeArea(
@@ -5127,7 +5092,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 _storyEntryCard(_storyLog[i], i),
               _storyNowMarker(),
             ],
-            if (_reviewPhase)
+            if (_attempt.reviewPhase)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
@@ -5338,12 +5303,9 @@ class _RoundScreenState extends State<RoundScreen> {
                 child: Text(
                   _finishing
                       ? _t('finishing.$_nounKey')
-                      : !_reviewPhase &&
-                            !_playsInOrder &&
-                            _position + 1 == _queue.length &&
-                            _wrongFirstPass.isNotEmpty
+                      : !_playsInOrder && _attempt.reviewFollows
                       ? _t('reviewMistakes')
-                      : (_position + 1 == _queue.length
+                      : (_attempt.position + 1 == _attempt.length
                             ? (_playsInOrder &&
                                       !widget.previewMode &&
                                       !_exercise.isExecutable
@@ -5359,7 +5321,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 key: const Key('test-next'),
                 onPressed: _finishing ? null : _next,
                 child: Text(
-                  _position + 1 == _queue.length
+                  _attempt.position + 1 == _attempt.length
                       ? _t('testSeeResults')
                       : _t('testNextQuestion'),
                 ),

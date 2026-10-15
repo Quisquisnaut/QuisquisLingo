@@ -194,4 +194,67 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('test-results')), findsOneWidget);
   });
+
+  // Build 273 Revision 5: the Preview's result counts the attempt's errors
+  // (the independent review found the count written as
+  // "Instance of 'RoundAttempt'.errors" before it reached the suite).
+  testWidgets('a Preview with a mistake reviews it and counts one error', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 1700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final round = LearningRound(
+      id: 'practice-round',
+      title: 'Practice',
+      exercises: [_question('q1', 'First?')],
+    );
+    final lesson = Lesson(lessonId: 'lesson', title: 'Lesson', rounds: [round]);
+    final course = Course(
+      courseId: 'test-course',
+      title: 'Course',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      ttsLanguage: 'it-IT',
+      lessons: [lesson],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: RoundScreen(
+          course: course,
+          lesson: lesson,
+          round: round,
+          ttsLanguage: 'it-IT',
+          roundIndex: 0,
+          previewMode: true,
+          ttsCacheService: _Speech(),
+        ),
+      ),
+    );
+    for (var i = 0; i < 100 && find.text('First?').evaluate().isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    await tester.tap(find.text('Wrong q1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Review mistakes'));
+    await tester.pumpAndSettle();
+    expect(find.text('Review your mistakes'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Right q1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Finish round'));
+    await tester.pumpAndSettle();
+    expect(find.text('Preview complete'), findsOneWidget);
+    expect(
+      find.text('Temporary result: 1 error. No learner progress was recorded.'),
+      findsOneWidget,
+    );
+  });
 }

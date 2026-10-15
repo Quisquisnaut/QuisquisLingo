@@ -184,3 +184,35 @@ owner before the commit ("Go").
   file compiled meanwhile failed. See the handoff.
 - `flutter analyze`: no issues.
 - Complete suite: **4,760 passed, 1 skipped, 0 failed**, 47 minutes.
+
+## Revision 5 (2.0.73+273005), one attempt at a Round has an owner
+
+15 October 2026, same PC, `build-273` after `8f8aea4a`.
+
+- Characterization: the Round screen's attempt was already driven by its
+  tests (`test_round_attempt_test`, `round_xp_completion_regression_test`,
+  `timed_round_261_test`, `timed_round_screen_272_test`,
+  `celebrations_264_test`, `difficulty_bonus_260_test`,
+  `match_repeated_values_265_test` and the Laboratory's learner cases).
+  After the change the 79 test files that drive the Round, Review or Home
+  screen ran: **1,256 passed**.
+- New tests: `test/round_attempt_273_test.dart`, **12 passed**: the order
+  given, start again, the shuffle drawn from the given Random exactly as
+  the screen's `values.shuffle(_random)`, clear; the first pass's counts;
+  the review of mistakes (its counts, the last answer, no second review);
+  no review in a Round played in order or a Test (a Timed Round reviews);
+  the last answer without mistakes; a card seen again; a Test's results and
+  score (with and without a threshold, no answer). A Preview case in
+  `test_round_attempt_test`: one mistake reviewed, "Temporary result: 1
+  error. No learner progress was recorded."
+- Independent review (before the suite): one real fault, fixed before the
+  suite: the Preview and View Only result's count was written
+  `'$_attempt.errors error…'` after the rename of `_errorsThisAttempt`
+  (no braces inside the text: it would have printed "Instance of
+  'RoundAttempt'.errors errors"); the new Preview case catches it (checked
+  by putting the fault back). Everything else equivalent (all 67 old
+  references, the random draws, the Test score, the labels). Also acted on:
+  an unnecessary cast in the test, the AGENTS wording, the shuffle test
+  pinned. The one-line fix was not reviewed again (the test pins it).
+- `flutter analyze`: no issues.
+- Complete suite: **4,773 passed, 1 skipped, 0 failed**, 46 minutes.

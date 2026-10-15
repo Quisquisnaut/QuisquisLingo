@@ -31,12 +31,13 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 | 2 | `AnswerGrader`: the Round screen's grading, pure | done |
 | 3 | The owner's decisions (below): the Round type check before Apply in the preset form and the exercise list (Revision 1, point 2); the canonical editor's Preview refusal list in both forms (Revision 1, point 3); gaps follow the exercise's normalization options, never typo tolerance (Revision 2, point 1). A behaviour change | done |
 | 4 | `SpokenLineHold`: the held Story line | done |
-| 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | in progress |
-| 6 | Access PIN and lock owner; the Team-registry rewrite out of `ProfileService` | planned |
-| 7 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
-| 8 | The Audit's language tables and rule sets | planned |
-| 9 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | planned |
-| 10 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | planned |
+| 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | done |
+| 6 | The Access PIN and its lock out of `ProfileService` | planned |
+| 7 | The Team registry's read and verified write: one owner for `TeamService` and the profile deletion | planned |
+| 8 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
+| 9 | The Audit's language tables and rule sets | planned |
+| 10 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | planned |
+| 11 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | planned |
 | later | The Duel's copies of the Round's voice, recorded-to-TTS fallback and Report sheet | to propose |
 
 ## Survey of 15 October 2026 (main at `38016ab8`)
@@ -209,20 +210,35 @@ the method count (five), a test comment, the two weak tests. Analyzer
 clean. Complete suite 4,760 passed, 1 skipped; committed about 16:05 and
 pushed.
 
-## Revision 5 (next): the Round attempt
+## Revision 5 (2.0.73+273005): the Round attempt
 
-Prepared in the session scratchpad `r5/` (15 October 2026):
-`round_attempt.dart` (`RoundAttempt(Random)`: `start`, `shuffle`, `clear`,
-`queue`, `length`, `isEmpty`, `position`, `exerciseIndex`, `hasNext`,
-`advance`, `record(correct:, difficulty:, testCorrection:)`, `errors`,
-`firstPassCorrect`, `firstPassDifficulty`, `hasMistakes`, `answeredLast`,
-`againLater`, `reviewsMistakes(playsInOrder:, type:)`, `reviewFollows`,
-`startReview`, `testResults`, `testScore(threshold)`), `apply_r5.py`
-(takes the file to edit as its argument; dry-run on a copy passed) and
-`round_attempt_273_test.dart`. The screen keeps the dialogs, the Timed
-clock, `_finishing`, `_advancing`, `_playsInOrder`, `_evaluableExerciseCount`
-and the completion; `_shuffleDifferentInts` goes (the attempt shuffles with
-the screen's `_random`, as before).
+In the working tree (15 October 2026, about 16:15): `RoundAttempt`
+(`lib/services/round_attempt.dart`) and the Round screen's calls (5,342
+lines). Tests `test/round_attempt_273_test.dart` (12; the shuffle pinned
+against `List.of(source)..shuffle(Random(7))`) and a Preview with a mistake
+in `test_round_attempt_test` ("Temporary result: 1 error."). Independent
+review: one real fault, fixed: the Preview result's count was written
+`'$_attempt.errors error…'` (the regex rename of `_errorsThisAttempt`
+inside a text, without braces: it would have printed "Instance of
+'RoundAttempt'.errors"); the new test catches it (checked by putting the
+fault back). Also acted on: an unnecessary cast in the test, the AGENTS
+wording. The one-line fix was not reviewed again (the test pins it). The
+first run of the 79 Round files was stopped for the fix (its processes
+ended by hand); the second passed (1,256). Complete suite 4,773 passed, 1
+skipped; committed about 17:20 and pushed.
+
+Revision 6 is prepared in the session scratchpad `r6/` (`access_pins.dart`
+with `ProfilePinException` moved there and re-exported by
+`profile_service.dart`; `apply_r6.py <profile_service.dart>`, dry run on a
+copy passed; `access_pins_273_test.dart`). Found for the owner: the wait
+message says "Wait 1 seconds" when one second is left.
+
+Next revisions: 6 the Access PIN and its lock (`AccessPins` out of
+`ProfileService`: verifier, lock, session unlocks; report to the owner:
+`resetAccessPinAsAdmin` does not clear the lock key), 7 the Team registry
+read and verified write (one owner for `TeamService` and the profile
+deletion's rewrite, which cannot simply call `TeamService`: it imports
+`ProfileService`).
 
 Gotcha (15 October 2026, 15:19): a dry run of Revision 5's edit script
 meant for a copy edited the real `round_screen.dart` for about 20 seconds

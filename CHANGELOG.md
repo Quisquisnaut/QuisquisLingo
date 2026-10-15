@@ -1,3 +1,30 @@
+# 2.0.73 (Build 273, Revision 5) - one attempt at a Round has an owner - 2026-10-15
+
+Nothing a learner sees changes.
+
+- **`RoundAttempt`** (`lib/services/round_attempt.dart`, no Flutter) owns
+  one attempt at a Round: the exercises and their order (as given, a
+  Story's authored order, or shuffled with the Round screen's own random
+  source), the place of the exercise shown, each answer (wrong answers,
+  right answers at the first try and the sum of their difficulty, a Test's
+  results), a Flashcard seen again at the end, the review of the first
+  pass's mistakes (never in a Round played in order or a Test), whether
+  the answer just given is the attempt's last (the Timed Round's "in
+  time"), and a Test's score (`testScore`: the rounded share of right
+  answers, passed with the threshold reached or, without one, every answer
+  right).
+- The Round screen keeps the dialogs (the review of mistakes, the Test's
+  results, the end), the Timed clock, the guards against a double tap and
+  a second finish, and the completion. Its eight fields of the attempt and
+  its own shuffle are gone; the file is at 5,342 lines (5,380).
+- Tests: `test/round_attempt_273_test.dart` (12) and a Preview with a
+  mistake in `test_round_attempt_test` (its result says "1 error": the
+  independent review found the count written without braces inside the
+  text, which would have printed the object's name); the Round screen's own
+  cases (`test_round_attempt_test`, `round_xp_completion_regression_test`,
+  `timed_round_261_test`, `celebrations_264_test`, `difficulty_bonus_260_test`
+  and the others) pass before and after.
+
 # 2.0.73 (Build 273, Revision 4) - the held Story line has an owner - 2026-10-15
 
 Nothing a learner sees changes.

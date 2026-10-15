@@ -270,3 +270,31 @@ of them, `_prepareLineHold`, stays as a one-line call of the owner).
 When Continue is greyed and released, the words brightening, the pace
 learnt, Play, and the Crash Log lines. One harmless difference: no ceiling
 timer is armed for a voice that starts after the page is gone.
+
+## Revision 5 (2.0.73+273005): one attempt at a Round has an owner
+
+### Before
+
+The Round screen kept one attempt at a Round in eight fields of its own
+(the queue of exercises, the place in it, the review phase, the mistakes
+of the first pass, the right answers at the first try and their
+difficulty, the errors, a Test's results) and changed them in its answer,
+its Flashcard and its "next" methods; a Test's score was worked out inside
+the results dialog.
+
+### Now
+
+- `RoundAttempt` (`lib/services/round_attempt.dart`, no Flutter) owns
+  them: what comes next, each answer, a Flashcard seen again, the review of
+  mistakes (never in a Round played in order or a Test), whether the answer
+  just given is the last (for a Timed Round in time), and the Test's score.
+  It shuffles with the Round screen's own random source, so the order is
+  drawn exactly as before.
+- The Round screen keeps the dialogs, the Timed clock, the guards against
+  a double tap and a second finish, and the completion (it reads the
+  attempt's counts for the XP). Its file is at 5,342 lines (5,380).
+
+### What does not change
+
+The order of the exercises, the review of mistakes, the Test's results and
+score, the XP, the Timed Round's on-time bonus, the keys and the texts.
