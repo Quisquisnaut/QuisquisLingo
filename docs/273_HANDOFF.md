@@ -34,12 +34,19 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 | 5 | `RoundAttempt`: the queue, mistake review, Test results, completion | done |
 | 6 | The Access PIN and its lock out of `ProfileService` | done |
 | 7 | The owner's decisions on Revision 6 (below): removing a PIN clears its count and wait; "Wait 1 second". A behaviour change | done |
-| 8 | The Team registry's read and verified write: one owner for `TeamService` and the profile deletion | planned |
+| 8 | The Team registry's read and verified write: one owner for `TeamService` and the profile deletion | done |
 | 9 | The Course save sequence: one verified-commit step, the minimum-build policy | planned |
-| 10 | The Audit's language tables and rule sets | planned |
-| 11 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | planned |
-| 12 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | planned |
+| 10 | The Audit's language tables and rule sets | left for a later Build (owner, 15 October 2026) |
+| 11 | Home's lesson access and data loading; free moves `LearnerRoundPath` and the Course preview (left over from Build 272) | left for a later Build |
+| 12 | The earlier exercise shapes (v11 layer), after the draft builder's older recipes build canonically | left for a later Build (the riskiest piece) |
 | later | The Duel's copies of the Round's voice, recorded-to-TTS fallback and Report sheet | to propose |
+
+**Owner decision of 15 October 2026 (about 19:45):** "let's finish 273
+earlier (for example after Revision 9) and leave the riskiest piece, the old
+exercise format, for later." Build 273 ends with Revision 9 (the Course
+save steps and the minimum-build list); Revisions 10–12 of the table above
+wait for a later Build. Then the owner's go to merge `build-273` into
+`main`, and Build 274 (`docs/274_PLAN.md`) on its own branch.
 
 ## Survey of 15 October 2026 (main at `38016ab8`)
 
@@ -271,12 +278,25 @@ second review of its corrections: no fault left. Complete suite 4,787
 passed, 1 skipped; the owner said "Go" on the commit description;
 committed about 19:15 and pushed.
 
-Revision 8 (next) is prepared in the scratchpad `r7/team_registry.dart`
-(`TeamRegistry.decode` lazy after the shape check, `readFrom`, `write`
-with the read-back check); to point at it: `TeamService.listTeams` /
-`_save`, `ProfileService.teamsLedOnlyBy` /
-`_removeProfileFromAuthoringTeams`, and `AppResetService._teamsKey` (its
-own copy of the key's text).
+## Revision 8 (2.0.73+273008): the Team registry has an owner
+
+`TeamRegistry` (`lib/services/team_registry.dart`); `TeamService`,
+`ProfileService` and `AppResetService` use it. Tests
+`test/team_registry_273_test.dart` (7); the 20 Team and deletion test files
+pass (365). Independent review: no behaviour change, its documentation
+points acted on. Complete suite 4,794 passed, 1 skipped; committed about
+20:15 and pushed.
+
+## Revision 9 (2.0.73+273009): the Course save steps have owners
+
+The last revision of Build 273. Owner decision of 15 October 2026 on the
+read-back ("Leave it"): only the Course Editor's confirmation, the received
+update and the replacement of an unopenable Course read the stored Course
+back (each with its own copy until now; `CourseFileStore` checks every
+write byte for byte); Revision 9 gathers the three copies into
+`_readBackCustom` and changes no path. Prepared in the session's
+`scratchpad/r9/` (`apply_r9.py <course_editor_service.dart>`,
+`course_minimum_build.dart`, its test, `docs_r9.py <root>`).
 
 Gotcha (15 October 2026, 15:19): a dry run of Revision 5's edit script
 meant for a copy edited the real `round_screen.dart` for about 20 seconds

@@ -10,6 +10,7 @@ import 'access_pins.dart';
 import 'course_maintainer_guard.dart';
 import 'formal_name_policy.dart';
 import 'learner_status_events.dart';
+import 'team_registry.dart';
 
 export 'access_pins.dart' show ProfilePinException;
 
@@ -667,18 +668,12 @@ class ProfileService {
   /// told before deleting that learner.
   Future<List<AuthoringTeam>> teamsLedOnlyBy(String learnerProfileId) async {
     final raw = (await SharedPreferences.getInstance()).getString(
-      AuthoringTeam.storageKey,
+      TeamRegistry.storageKey,
     );
     if (raw == null || raw.trim().isEmpty) return const [];
-    final decoded = jsonDecode(raw);
-    if (decoded is! List || decoded.any((item) => item is! Map)) {
-      throw const FormatException('Stored authoring-team registry is invalid.');
-    }
     return [
-      for (final item in decoded)
-        if (AuthoringTeam.fromJson(Map<String, dynamic>.from(item as Map))
-            case final team when team.isLastLead(learnerProfileId))
-          team,
+      for (final team in TeamRegistry.decode(raw))
+        if (team.isLastLead(learnerProfileId)) team,
     ];
   }
 
@@ -687,18 +682,11 @@ class ProfileService {
     String learnerProfileId, {
     bool adminOverride = false,
   }) async {
-    final raw = prefs.getString(AuthoringTeam.storageKey);
+    final raw = prefs.getString(TeamRegistry.storageKey);
     if (raw == null || raw.trim().isEmpty) return;
-    final decoded = jsonDecode(raw);
-    if (decoded is! List || decoded.any((item) => item is! Map)) {
-      throw const FormatException('Stored authoring-team registry is invalid.');
-    }
     var changed = false;
-    final teams = decoded
-        .map((item) {
-          final team = AuthoringTeam.fromJson(
-            Map<String, dynamic>.from(item as Map),
-          );
+    final teams = TeamRegistry.decode(raw)
+        .map((team) {
           if (!team.hasMember(learnerProfileId)) return team;
           if (team.isLastLead(learnerProfileId) && !adminOverride) {
             throw StateError(
@@ -715,11 +703,7 @@ class ProfileService {
         .whereType<AuthoringTeam>()
         .toList();
     if (!changed) return;
-    final encoded = jsonEncode(teams.map((team) => team.toJson()).toList());
-    if (!await prefs.setString(AuthoringTeam.storageKey, encoded) ||
-        prefs.getString(AuthoringTeam.storageKey) != encoded) {
-      throw StateError('Verified authoring-team storage write failed.');
-    }
+    await TeamRegistry.write(prefs, teams);
   }
 
   Future<void> deleteProfile(String idOrDisplayName) async {

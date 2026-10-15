@@ -355,3 +355,27 @@ change of behaviour.
 
 The PIN, its check, the ten tries and the minute's wait, the stored keys,
 who must give a PIN when.
+
+## Revision 8 (2.0.73+273008): the Team registry has an owner
+
+### Before
+
+The device keeps its Teams in one stored list. Team administration
+(`TeamService`) read it with a shape check and wrote it with a read-back
+check; a learner's deletion (the profile service) had its own copy of both,
+because it cannot call `TeamService`, which itself uses the profile
+service; and the reset service wrote the registry's key out as text of its
+own.
+
+### Now
+
+- `TeamRegistry` (`lib/services/team_registry.dart`) reads the list (in
+  stored order, each Team made as it is reached, so a learner's deletion
+  still stops at the first Team the learner is the last Team Leader of
+  exactly as before) and writes it with the read-back check. `TeamService`,
+  the profile service and the reset service use it.
+
+### What does not change
+
+The stored registry, its key, the messages of a refused or failed read or
+write, the order of the Teams, which Teams a deletion touches.

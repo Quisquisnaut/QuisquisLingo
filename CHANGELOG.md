@@ -1,3 +1,22 @@
+# 2.0.73 (Build 273, Revision 8) - the Team registry has an owner - 2026-10-15
+
+Nothing a user sees changes.
+
+- **`TeamRegistry`** (`lib/services/team_registry.dart`) reads the
+  device's Teams (`decode`: nothing stored is no Team, JSON that is not a
+  list of objects is refused with "Stored authoring-team registry is
+  invalid.", each Team made as it is reached, in stored order) and writes
+  them with a read-back check ("Verified authoring-team storage write failed."). Team
+  administration (`TeamService.listTeams`, which still refuses repeated
+  Team IDs and sorts by name, and its saves) and a learner's deletion
+  (`ProfileService.teamsLedOnlyBy` and the removal of the learner from
+  their Teams) each had their own copy; by design the deletion does not
+  call `TeamService`, which itself uses the profile service. The reset service
+  names the registry's key through the owner instead of its own copy of
+  the text.
+- Tests: `test/team_registry_273_test.dart` (7); the 20 test files about
+  Teams and learner deletion pass.
+
 # 2.0.73 (Build 273, Revision 7) - a removed PIN starts afresh - 2026-10-15
 
 Decided by the owner on 15 October 2026 on the two findings of Revision 6.

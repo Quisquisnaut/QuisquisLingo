@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,13 +6,14 @@ import '../models/authoring_team.dart';
 import '../models/team_shared_folder_link.dart';
 import 'formal_name_policy.dart';
 import 'profile_service.dart';
+import 'team_registry.dart';
 
 /// Offline authoring-team membership and administration.
 ///
 /// Teams reference opaque local learner-profile IDs. Credits and course JSON
 /// author strings are never consulted for membership or authorization.
 class TeamService {
-  static const storageKey = AuthoringTeam.storageKey;
+  static const storageKey = TeamRegistry.storageKey;
 
   TeamService({
     ProfileService? profileService,
@@ -42,17 +42,8 @@ class TeamService {
   Future<List<AuthoringTeam>> listTeams() async {
     final raw = (await SharedPreferences.getInstance()).getString(storageKey);
     if (raw == null || raw.trim().isEmpty) return const [];
-    final decoded = jsonDecode(raw);
-    if (decoded is! List || decoded.any((item) => item is! Map)) {
-      throw const FormatException('Stored authoring-team registry is invalid.');
-    }
     final ids = <String>{};
-    final teams = decoded
-        .map(
-          (item) =>
-              AuthoringTeam.fromJson(Map<String, dynamic>.from(item as Map)),
-        )
-        .toList();
+    final teams = TeamRegistry.decode(raw).toList();
     if (teams.any((team) => !ids.add(team.teamId))) {
       throw const FormatException('Stored authoring-team IDs must be unique.');
     }
@@ -85,14 +76,8 @@ class TeamService {
     );
   }
 
-  Future<void> _save(List<AuthoringTeam> teams) async {
-    final encoded = jsonEncode(teams.map((team) => team.toJson()).toList());
-    final prefs = await SharedPreferences.getInstance();
-    if (!await prefs.setString(storageKey, encoded) ||
-        prefs.getString(storageKey) != encoded) {
-      throw StateError('Verified authoring-team storage write failed.');
-    }
-  }
+  Future<void> _save(List<AuthoringTeam> teams) async =>
+      TeamRegistry.write(await SharedPreferences.getInstance(), teams);
 
   Future<AuthoringTeam> createTeam({
     required String creatorProfileId,

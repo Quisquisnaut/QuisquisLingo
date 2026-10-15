@@ -23,6 +23,7 @@ import 'import/import_stager.dart';
 import 'storage/atomic_preferences_store.dart';
 import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
+import 'team_registry.dart';
 import 'course_backup_retention.dart';
 
 /// The ways an admin can reset this device. See
@@ -95,7 +96,7 @@ class AppResetService {
     'guidebook_availability_notice_seen',
   ];
 
-  static const _teamsKey = 'quisquislingo_authoring_teams_v1_2291';
+  static const _teamsKey = TeamRegistry.storageKey;
 
   static const _courseKeys = <String>[
     CourseEditorStorage.userCoursesKey,

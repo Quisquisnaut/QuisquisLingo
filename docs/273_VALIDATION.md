@@ -265,3 +265,21 @@ owner before the commit ("Go").
   ("any wait in progress ends").
 - `flutter analyze`: no issues.
 - Complete suite: **4,787 passed, 1 skipped, 0 failed**, 44 minutes.
+
+## Revision 8 (2.0.73+273008), the Team registry has an owner
+
+No behaviour change.
+
+- New tests: `test/team_registry_273_test.dart`, **7 passed**: nothing
+  stored is no Team; JSON that is not a list of objects is refused with the
+  earlier message; the Teams come in stored order; a write is read back
+  and a write the store does not keep is refused; the key is
+  `AuthoringTeam.storageKey`; a learner's deletion meets the Teams in
+  stored order and stops at the first one the learner is the last Team
+  Leader of. The 20 test files about Teams and learner deletion (365
+  cases) pass before and after.
+- Independent review: no behaviour change; its documentation points acted
+  on (a comment naming Revision 7, "JSON that is not a list", the words
+  about why the deletion does not call `TeamService`).
+- `flutter analyze`: no issues.
+- Complete suite: **4,794 passed, 1 skipped, 0 failed**, 44 minutes.
