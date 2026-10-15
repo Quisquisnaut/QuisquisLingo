@@ -67,7 +67,7 @@ import '../services/timed_round_rules.dart';
 import '../services/preset_recipes.dart';
 import '../services/guidebook_round_generator.dart';
 import '../services/word_lookup/word_lookup_articles.dart';
-import '../services/publication_service.dart';
+import '../services/publish_gate.dart';
 import '../services/provisional_publication_service.dart';
 import '../services/new_course_structure.dart';
 import '../widgets/file_dialog_feedback.dart';
@@ -876,20 +876,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       'publicationState': state.name,
     });
     if (state.isPublished) {
-      final visible = const PublicationService().learnerCourse(candidate)!;
-      final errors = CourseAuditService()
-          .auditCourse(visible, sourceReferenceCourse: candidate)
-          .issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .length;
+      final errors = const PublishGate().courseErrors(candidate);
       if (errors > 0) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Course cannot be published: $errors blocking error${errors == 1 ? '' : 's'}.',
-            ),
-          ),
+          SnackBar(content: Text(PublishGate.courseRefusal(errors))),
         );
         return;
       }
@@ -1834,28 +1825,14 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     final lessons = [..._course.lessons]..[index] = changed;
     final candidate = _withLessons(lessons);
     if (state.isPublished) {
-      final validationRoot = Course.fromJson({
-        ...candidate.toJson(),
-        'publicationState': PublicationState.published.name,
-      });
-      final visible = const PublicationService().learnerCourse(validationRoot)!;
-      final errors = CourseAuditService()
-          .auditLesson(
-            visible,
-            changed.lessonId,
-            sourceReferenceCourse: validationRoot,
-          )
-          .issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .length;
+      final errors = const PublishGate().lessonErrors(
+        candidate,
+        changed.lessonId,
+      );
       if (errors > 0) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Lesson cannot be applied as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
-            ),
-          ),
+          SnackBar(content: Text(PublishGate.refusal('Lesson', errors))),
         );
         return;
       }
@@ -2436,32 +2413,20 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
         ? candidate
         : _editedLesson(state, updatedAt: _clock())!;
     if (state.isPublished) {
-      final courseJson = {
+      final authored = Course.fromJson({
         ..._courseWithIcons.toJson(),
-        'publicationState': PublicationState.published.name,
         'lessons': [
           for (final lesson in _course.lessons)
             (lesson.lessonId == edited.lessonId ? edited : lesson).toJson(),
         ],
-      };
-      final authored = Course.fromJson(courseJson);
-      final learnerCourse = const PublicationService().learnerCourse(authored)!;
-      final errors = CourseAuditService()
-          .auditLesson(
-            learnerCourse,
-            edited.lessonId,
-            sourceReferenceCourse: authored,
-          )
-          .issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .toList();
-      if (errors.isNotEmpty) {
+      });
+      final errors = const PublishGate().lessonErrors(
+        authored,
+        edited.lessonId,
+      );
+      if (errors > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Lesson cannot be applied as normal content: ${errors.length} blocking error${errors.length == 1 ? '' : 's'}.',
-            ),
-          ),
+          SnackBar(content: Text(PublishGate.refusal('Lesson', errors))),
         );
         return;
       }
@@ -5192,37 +5157,27 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     });
     final rounds = [..._rounds]..[index] = changed;
     if (state.isPublished) {
-      final lessonJson = {
+      final lesson = Lesson.fromJson({
         ..._draftLesson.toJson(),
-        'publicationState': PublicationState.published.name,
         'rounds': rounds.map((round) => round.toJson()).toList(),
-      };
-      final courseJson = {
+      });
+      final authored = Course.fromJson({
         ..._course.toJson(),
-        'publicationState': PublicationState.published.name,
         'lessons': [
-          for (final lesson in _course.lessons)
-            (lesson.lessonId == widget.lesson.lessonId
-                    ? Lesson.fromJson(lessonJson)
-                    : lesson)
+          for (final other in _course.lessons)
+            (other.lessonId == widget.lesson.lessonId ? lesson : other)
                 .toJson(),
         ],
-      };
-      final authored = Course.fromJson(courseJson);
-      final visible = const PublicationService().learnerCourse(authored)!;
-      final errors = CourseAuditService()
-          .auditRound(visible, changed.id, sourceReferenceCourse: authored)
-          .issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .length;
+      });
+      final errors = const PublishGate().roundErrors(
+        authored,
+        widget.lesson.lessonId,
+        changed.id,
+      );
       if (errors > 0) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Round cannot be applied as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
-            ),
-          ),
+          SnackBar(content: Text(PublishGate.refusal('Round', errors))),
         );
         return;
       }
@@ -5800,28 +5755,25 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         ? candidate
         : _editedRound(publicationState: state, updatedAt: _clock());
     if (state.isPublished) {
-      final lessonJson = _lesson.toJson();
-      lessonJson['publicationState'] = PublicationState.published.name;
-      lessonJson['rounds'] = [
-        for (final round in _lesson.rounds)
-          (round.id == edited.id ? edited : round).toJson(),
-      ];
-      final courseJson = _course.toJson();
-      courseJson['publicationState'] = PublicationState.published.name;
-      courseJson['lessons'] = [
-        for (final lesson in _course.lessons)
-          (lesson.lessonId == _lesson.lessonId
-                  ? Lesson.fromJson(lessonJson)
-                  : lesson)
-              .toJson(),
-      ];
-      final authored = Course.fromJson(courseJson);
-      final visible = const PublicationService().learnerCourse(authored)!;
-      final errors = CourseAuditService()
-          .auditRound(visible, edited.id, sourceReferenceCourse: authored)
-          .issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .length;
+      final lesson = Lesson.fromJson({
+        ..._lesson.toJson(),
+        'rounds': [
+          for (final round in _lesson.rounds)
+            (round.id == edited.id ? edited : round).toJson(),
+        ],
+      });
+      final authored = Course.fromJson({
+        ..._course.toJson(),
+        'lessons': [
+          for (final other in _course.lessons)
+            (other.lessonId == _lesson.lessonId ? lesson : other).toJson(),
+        ],
+      });
+      final errors = const PublishGate().roundErrors(
+        authored,
+        _lesson.lessonId,
+        edited.id,
+      );
       if (errors > 0) {
         if (!mounted) return;
         // A Round saved as normal content shows learners only its Published
@@ -5858,11 +5810,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           return;
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Round cannot be applied as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
-            ),
-          ),
+          SnackBar(content: Text(PublishGate.refusal('Round', errors))),
         );
         return;
       }
@@ -5912,15 +5860,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       updatedAt: _clock(),
     );
     if (state.isPublished &&
-        CourseAuditService()
-            .auditExercise(changed)
-            .any((issue) => issue.severity == AuditSeverity.error)) {
+        PublishGate.errorsIn(
+          const PublishGate().exerciseIssues(changed),
+        ).isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Exercise cannot be applied as normal content until its Errors are fixed.',
-          ),
-        ),
+        const SnackBar(content: Text(PublishGate.exerciseRefusal)),
       );
       return;
     }

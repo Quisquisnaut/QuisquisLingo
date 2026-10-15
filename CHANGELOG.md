@@ -1,3 +1,40 @@
+# 2.0.73 (Build 273, Revision 1) - one publish gate - 2026-10-15
+
+Nothing an author or a learner sees changes.
+
+- **One owner for the publish gate.** Whether an item may be applied as
+  normal content (Published) was checked in eight places, each with its
+  own copy: the Course's Publish, a Lesson from the Lessons page's menu and
+  from the Lesson editor's Apply, a Round from the Rounds page's menu and
+  from the Round editor's Apply, an exercise from the Round editor's list,
+  and the two exercise forms (the preset form and the canonical editor).
+  `PublishGate` (`lib/services/publish_gate.dart`, no screen and no
+  storage) now does it: a Course, a Lesson or a Round is checked as
+  learners would get it (a Lesson with its Course taken as Published, a
+  Round with its Course and its Lesson; the learner projection audited in
+  the item's scope), an exercise is audited alone, and the Course Audit's
+  errors block it: `courseErrors`, `lessonErrors`, `roundErrors`,
+  `exerciseIssues` with `errorsIn` and `warningCount`, and the three
+  refusals ("Course cannot be
+  published: …", "Lesson / Round cannot be applied as normal content: …",
+  "Exercise cannot be applied as normal content until its Errors are
+  fixed.").
+- The two exercise forms share their Audit dialogs (`showEditorList`,
+  `confirmUseAnyway` in `lib/widgets/editor_dialogs.dart`): the list of
+  errors with Keep editing, and the warnings with Use anyway.
+- Four differences between the copies were kept as they are and put to the
+  owner: two wordings of "move to Draft" ("Move Lesson to Draft?" on the
+  Lessons and Rounds pages and in the exercise list, "Apply Lesson as
+  draft?" elsewhere); the Round type check before Apply in the canonical
+  editor only (an exercise that does not fit its Round's type makes the
+  whole Round unplayable once the Round is Published); two ways of listing
+  why Preview is refused; the exercise list's one-line refusal.
+- Tests: `test/publish_gate_screens_273_test.dart` (18, written on the
+  screens before the owner existed and passing before and after: the
+  Course's Publish, the Lessons and Rounds pages' menus, the Lesson and
+  Round editors' Apply, the exercise list, and the two exercise forms'
+  errors and warnings), `test/publish_gate_273_test.dart` (8).
+
 # 2.0.73 (Build 273, Revision 0) - the Story cast owner - 2026-10-15
 
 The first revision of Build 273, the modularization build's medium-risk

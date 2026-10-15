@@ -32,6 +32,7 @@ import '../services/round_flow_authoring.dart';
 import '../services/round_type_compatibility.dart';
 import '../services/preset_examples.dart';
 import '../services/preset_recipes.dart';
+import '../services/publish_gate.dart';
 import '../services/preset_variants.dart';
 import '../widgets/course_preview_flag.dart';
 import '../services/storage/qql_storage.dart';
@@ -2519,76 +2520,17 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       await _persistAndClose(ex, close: close);
       return true;
     }
-    final issues = CourseAuditService().auditExercise(ex);
-    final errors = issues
-            .where((i) => i.severity == AuditSeverity.error)
-            .length,
-        warnings = issues
-            .where((i) => i.severity == AuditSeverity.warning)
-            .length;
-    if (errors > 0) {
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Exercise audit: $errors errors'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final issue in issues.where(
-                  (issue) => issue.severity == AuditSeverity.error,
-                ))
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text('${issue.code}: ${issue.message}'),
-                  ),
-              ],
-            ),
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Keep editing'),
-            ),
-          ],
-        ),
-      );
+    final issues = const PublishGate().exerciseIssues(ex);
+    final errors = PublishGate.errorsIn(issues);
+    final warnings = PublishGate.warningCount(issues);
+    if (errors.isNotEmpty) {
+      await showEditorList(context, 'Exercise audit: ${errors.length} errors', [
+        for (final issue in errors) '${issue.code}: ${issue.message}',
+      ]);
       return false;
     }
-    if (warnings > 0) {
-      final use = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Exercise audit: $warnings warnings'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final issue in issues)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text(
-                      '${issue.severity.name.toUpperCase()} [${issue.code}]: ${issue.message}',
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Keep editing'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Use anyway'),
-            ),
-          ],
-        ),
-      );
-      if (use != true) return false;
+    if (warnings > 0 && !await confirmUseAnyway(context, warnings, issues)) {
+      return false;
     }
     await _persistAndClose(ex, close: close);
     return true;

@@ -27,7 +27,7 @@ Rules (unchanged from Build 272, see `docs/272_HANDOFF.md`):
 | Rev | Owner | State |
 |---|---|---|
 | 0 | `StoryCast`: the Story cast rules of the Course Editor and the Story Wizard | done |
-| 1 | One publish gate (eight copies, A–H below) | planned |
+| 1 | One publish gate (eight copies, A–H below) | done; four differences put to the owner |
 | 2 | `AnswerGrader`: the Round screen's grading, pure | planned |
 | 3 | `SpokenLineHold`: the held Story line | planned |
 | 4 | `RoundAttempt`: the queue, mistake review, Test results, completion | planned |
@@ -105,21 +105,53 @@ fallback for a speaker it does not know, the Round screen's fallback to the
 narrator. Independent review: no behaviour difference. Complete suite 4,691
 passed, 1 skipped (`docs/273_VALIDATION.md`).
 
-## Revision 1 (next): one publish gate
+## Revision 1 (2.0.73+273001): one publish gate
 
-Prepared in the session scratchpad `r1/` (15 October 2026): the owner
-`PublishGate` (`publish_gate.dart`: `courseErrors`, `lessonErrors` (the
-Course taken as Published), `roundErrors` (the Course and the Lesson taken
-as Published), `exerciseIssues`, `errorsIn`, `warningCount`, the three
-refusal texts), `apply_r1.py` (copies A–F of the Course Editor),
-`apply_r1_forms.py` (G and H: `showEditorList` and `confirmUseAnyway` in
-`editor_dialogs.dart`), the screen tests `publish_gate_screens_273_test.dart`
-(to run on the code before the change first) and the owner tests
-`publish_gate_273_test.dart`, and `owner_report.md`: four differences to
-put to the owner (two wordings of "move to Draft"; the Round type check in
-the canonical editor only; two Preview refusal lists; the exercise menu's
-SnackBar). Not covered, on purpose: `ProvisionalPublicationService`, the
-Course Wizard's publish, the Preview gates, the Round Wizard's approval.
+In the working tree (15 October 2026, about 11:15): `PublishGate`
+(`lib/services/publish_gate.dart`) and its eight callers (A–H above);
+`showEditorList` and `confirmUseAnyway` in `lib/widgets/editor_dialogs.dart`
+for the two exercise forms. Characterization first: the 12 cases of
+`test/publish_gate_screens_273_test.dart` passed on the code before the
+change (the Course's Publish, the Lessons page's menu, the Lesson editor's
+Apply, the Rounds page's menu, the Round editor's Apply with and without
+Draft exercises, the exercise list's Apply; refused and applied) and pass
+after; the review asked for the two exercise forms too: 6 more cases (the
+errors listed, a warning answered Keep editing or Use anyway, in each
+form), which also pass on the old screen code (checked with the four
+screen files set aside by `git stash`); `test/publish_gate_273_test.dart`
+(8) on the owner, its named-Lesson case strengthened after the review
+(checked by mutation: forcing every Lesson fails it). Both files ran
+six times; the existing gate tests and every source-text test file pass;
+analyzer clean. Independent review: no behaviour difference; its points
+acted on (see `docs/273_VALIDATION.md`). Complete suite 4,717 passed, 1
+skipped. Committed about 12:10 and pushed. Open: the owner's answers to the
+four differences (`docs/273_CHANGE_SUMMARY.md`, Revision 1, "Differences
+kept"; recommendations: 1 one wording, `confirmMoveToDraft`'s; 2 the preset
+form and the exercise list check the Round type before Apply; 3 the
+canonical editor's Preview list in both forms; 4 leave the list's one-line
+refusal). A decided change is a revision of its own.
+
+## Revision 2 (next): answer grading
+
+Prepared in the session scratchpad `r2/` (15 October 2026):
+`answer_grader.dart` (`AnswerGrader`: `typed` → `TypedAnswerGrade`,
+`order`, `missingWords`, `selectGaps`, `arrangeGaps`, `multiChoice`,
+`assign`, `matching` with `MatchRow` / `MatchChoice` (were the Round
+screen's private `_MatchPairView` / `_MatchOption`), `itemValue`,
+`joinBlocks`), `correct_answer_text.dart` (`CorrectAnswerText(text)`:
+`firstVariant`, `of(ex, f, displayedCorrection:)`, `orderText`,
+`pairTexts`, `assignText`, `targetFallbackLabel`), `apply_r2.py` (the
+Round screen's edits) and `answer_grader_273_test.dart` (not yet run; some
+expected texts are guesses to check). Differences to report: Missing
+words grades without typo tolerance or literal answers (Type the missing
+word has both); chosen gap options are compared by ID, gap blocks by their
+text; Listen and match's Check skips Match's guard for an exercise with no
+pairs (unreachable for learners: such an exercise has an Audit error and is
+not played); `_correctAnswerText(ex)` reads the features of the exercise
+shown, not of `ex` (always the same exercise today).
+
+Not covered, on purpose: `ProvisionalPublicationService`, the Course
+Wizard's publish, the Preview refusals, the Round Wizard's approval.
 
 Tools in the session scratchpad: `bump.py OLD NEW [--shift-day]` (every
 version pin, the Beta comment and dates), `r0/apply_r0.py`,

@@ -32,3 +32,49 @@
 - Complete suite (`flutter test --no-pub --concurrency=1`): **4,691
   passed, 1 skipped, 0 failed**, 61 minutes (the PC was slow with two
   browsers open).
+
+## Revision 1 (2.0.73+273001), one publish gate
+
+15 October 2026, same PC, `build-273` after `cf4c0c44`.
+
+- Characterization, on the code **before** the change:
+  `test/publish_gate_screens_273_test.dart`, 12 cases written first and
+  **passed** on the old screens (the Course's Publish refused and applied;
+  a Lesson from the Lessons page's menu and from the Lesson editor's Apply;
+  a Round from the Rounds page's menu; the Round editor's Apply with Draft
+  exercises (the notice) and without (the count); an exercise from the
+  Round editor's list, refused and applied). After the review, 6 cases for
+  the two exercise forms (an error listed with Keep editing; a warning
+  answered Keep editing or Use anyway; preset form and canonical editor):
+  they also **passed** on the old code, checked by setting the four screen
+  files aside with `git stash` and running the file. All 18 pass after.
+- Owner tests: `test/publish_gate_273_test.dart`, **8 passed**: a Round's
+  errors with the Course and the Lesson taken as Published, a Draft
+  exercise not counted, only the named Lesson taken as Published (two
+  Lessons sharing a Round ID; checked by mutation: a gate that forces every
+  Lesson fails it), a Lesson with only the Course taken as Published,
+  another Lesson's errors not counted, the Course audited as given, the
+  exercise audited alone with its errors and warnings, the refusals.
+- The new files ran six times in a row before the suite (26 cases each
+  time, all passed). The existing gate tests (`primitive_editor_256`,
+  `owner_review_261_revision6`, `revision3_followup_256`,
+  `guidebook_status_workflow_226_02`, `draft_promotion_239`,
+  `provisional_parent_save_ui`, `exercise_workflow_226_02`,
+  `audit_issue_save_propagation_226_02_revision4`,
+  `authoring_hierarchy_indicators_226_02`, `first_letter_226_03`,
+  `script_recognition_226_03`) and the 20 files that read screen source as
+  text passed.
+- Independent review (before the suite): no behaviour difference at any of
+  the eight places (the audited Course, the audit method, the count, the
+  texts, the dialogs, the `mounted` checks and the await order compared
+  one by one; the double JSON round trip checked against the models).
+  Acted on: the two exercise forms were not tested (6 cases added); the
+  named-Lesson owner test was weak (rewritten); the docs said every copy
+  projected the Course with its parents Published (corrected: the Course is
+  projected as it is, an exercise audited alone); the Round type
+  difference had an incomplete reason (corrected: a Round already
+  Published takes an exercise that does not fit, and the runtime then
+  plays none of the Round; recommendation changed). The corrections
+  touched only tests, comments and documents, so no second review.
+- `flutter analyze`: no issues.
+- Complete suite: **4,717 passed, 1 skipped, 0 failed**, 40 minutes.

@@ -10,6 +10,7 @@ import '../models/exercise_image_metadata.dart';
 import '../services/canonical_exercise_draft.dart';
 import '../services/canonical_exercise_samples.dart';
 import '../services/course_audit_service.dart';
+import '../services/publish_gate.dart';
 import '../services/course_language_resolver.dart';
 import '../services/round_type_compatibility.dart';
 import '../services/round_flow_authoring.dart';
@@ -286,31 +287,8 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     );
   }
 
-  Future<void> _showList(String title, List<String> lines) => showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(title),
-      content: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final line in lines)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Text(line),
-              ),
-          ],
-        ),
-      ),
-      actions: [
-        FilledButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Keep editing'),
-        ),
-      ],
-    ),
-  );
+  Future<void> _showList(String title, List<String> lines) =>
+      showEditorList(context, title, lines);
 
   Future<bool> _save(PublicationState state) async {
     if (_locked) return false;
@@ -351,10 +329,8 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
           return false;
         }
       }
-      final issues = CourseAuditService().auditExercise(exercise);
-      final errors = issues
-          .where((issue) => issue.severity == AuditSeverity.error)
-          .toList();
+      final issues = const PublishGate().exerciseIssues(exercise);
+      final errors = PublishGate.errorsIn(issues);
       if (errors.isNotEmpty) {
         await _showList(
           'Exercise audit: ${errors.length} errors',
@@ -362,43 +338,10 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
         );
         return false;
       }
-      final warnings = issues
-          .where((issue) => issue.severity == AuditSeverity.warning)
-          .length;
+      final warnings = PublishGate.warningCount(issues);
       if (warnings > 0) {
         if (!mounted) return false;
-        final use = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Exercise audit: $warnings warnings'),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final issue in issues)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Text(
-                        '${issue.severity.name.toUpperCase()} [${issue.code}]: ${issue.message}',
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Keep editing'),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Use anyway'),
-              ),
-            ],
-          ),
-        );
-        if (use != true) return false;
+        if (!await confirmUseAnyway(context, warnings, issues)) return false;
       }
     }
     if (!mounted) return false;

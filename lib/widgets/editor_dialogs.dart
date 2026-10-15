@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/course_audit_service.dart';
 import '../services/timed_round_rules.dart';
 
 /// Asks whether a published [entity] (Exercise, Round, Lesson) may go back to
@@ -26,6 +27,81 @@ Future<bool> confirmMoveToDraft(BuildContext context, String entity) async =>
       ),
     ) ??
     false;
+
+/// A list of [lines] under [title] with Keep editing: why an exercise form
+/// refuses to apply an exercise (both exercise forms) or to Preview it (the
+/// canonical editor) (Build 273 Revision 1).
+Future<void> showEditorList(
+  BuildContext context,
+  String title,
+  List<String> lines,
+) => showDialog<void>(
+  context: context,
+  builder: (context) => AlertDialog(
+    title: Text(title),
+    content: SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final line in lines)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(line),
+            ),
+        ],
+      ),
+    ),
+    actions: [
+      FilledButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Keep editing'),
+      ),
+    ],
+  ),
+);
+
+/// The Audit's [warnings] about an exercise about to be applied as normal
+/// content, with every finding of [issues] listed: Keep editing (false) or
+/// Use anyway (true). Shared by the two exercise forms (Build 273
+/// Revision 1).
+Future<bool> confirmUseAnyway(
+  BuildContext context,
+  int warnings,
+  List<CourseAuditIssue> issues,
+) async =>
+    await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Exercise audit: $warnings warnings'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final issue in issues)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    '${issue.severity.name.toUpperCase()} [${issue.code}]: ${issue.message}',
+                  ),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep editing'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Use anyway'),
+          ),
+        ],
+      ),
+    ) ==
+    true;
 
 /// The authoring title prompt shared by the Course Editor's Lesson Options and
 /// the Lessons screen. Returns null when cancelled or left empty.

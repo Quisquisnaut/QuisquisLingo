@@ -58,3 +58,75 @@ Course Editor file:
 
 The screens, their keys and their texts; Course files; scoring,
 progression and learner data. No new key or folder.
+
+## Revision 1 (2.0.73+273001): one publish gate
+
+### Before
+
+Applying an item as normal content (Published) is refused while the Course
+Audit finds an error learners would meet. That check was written eight
+times:
+
+- the Course's **Publish** on the Course Editor's main page;
+- a Lesson's **Apply** in the Lessons page's menu, and the Lesson editor's
+  **Apply**;
+- a Round's **Apply** in the Rounds page's menu, and the Round editor's
+  **Apply**;
+- an exercise's **Apply** in the Round editor's list;
+- **Apply** in the preset form and in the canonical editor.
+
+The copies for a Lesson and a Round each built their own view of the
+Course with the parents taken as Published and projected what learners
+would get; the Course's copy projected the Course as it was; the three
+exercise copies audited the exercise alone. Each ran the Audit, counted the
+errors and wrote its own refusal. The two exercise forms also each drew the
+same two dialogs (the errors with Keep editing, the warnings with Use
+anyway).
+
+### Now
+
+- `PublishGate` (`lib/services/publish_gate.dart`, no screen and no
+  storage) is the one owner of the check: `courseErrors`, `lessonErrors` (the Course taken as
+  Published), `roundErrors` (the Course and the Lesson taken as Published),
+  `exerciseIssues` with `errorsIn` and `warningCount`, and the three
+  refusals. The screens only gather the Course they are editing and show
+  the answer.
+- `showEditorList` and `confirmUseAnyway` (`lib/widgets/editor_dialogs.dart`)
+  are the exercise forms' two dialogs, shared.
+- Line counts: the Course Editor file 7,792 (7,848), the preset form
+  3,218 (3,276), the canonical editor 1,761 (1,818).
+
+### Differences kept, for the owner to decide
+
+1. **"Move to Draft" has two wordings.** The Lessons page's menu, the
+   Rounds page's menu and the Round editor's exercise list ask "Move Lesson
+   (Round, Exercise) to Draft?" ("…will disappear from the learner course
+   (path, Round)…"); the Lesson editor, the Round editor and the two
+   exercise forms ask "Apply Lesson as draft?" ("…will disappear from
+   learner-facing content…"). Recommendation: one wording, the second
+   (Build 270 renamed Save to Apply; the three menus were left behind).
+2. **The Round type check.** Only the canonical editor refuses to apply an
+   exercise that does not fit its Round's type (for example a Listen
+   Round's exercise whose audio is not required). The preset form offers
+   only the presets that fit the Round type, but a fitting preset may
+   still give an exercise that does not fit (audio left optional), and the
+   Round editor's exercise list applies without the check. The Audit marks
+   the Round red (an Error), which stops a Draft Round from being applied;
+   a Round already Published is not stopped, and at runtime one exercise
+   that does not fit makes the whole Round unplayable for learners
+   (`RoundPlayabilityService`). Recommendation: the preset form and the
+   exercise list check the Round type before Apply, as the canonical
+   editor does (found by the independent review).
+3. **Why Preview is refused.** The preset form lists the errors' messages
+   separated by blank lines; the canonical editor lists "CODE: message"
+   lines. Recommendation: the canonical editor's list in both.
+4. **The exercise list's Apply** refuses with one line ("…until its Errors
+   are fixed.") and never asks about warnings, while the forms list the
+   errors and ask about warnings. Recommendation: leave it (a quick switch
+   from the list; the form is where findings are read).
+
+### What does not change
+
+The screens, their keys and their texts; when an item is refused or
+applied; Course files; scoring, progression and learner data. No new key
+or folder.
