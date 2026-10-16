@@ -1,3 +1,25 @@
+# 2.0.74 (Build 274, Revision 4) - Image Library search order and Strict search - 2026-10-16
+
+The owner's point 8 of 13 October 2026 (`docs/274_PLAN.md`).
+
+- **A search shows the best matches first.** First the pictures whose name
+  is the term, then those with the term as a whole word of the name, then
+  as a whole word of a tag or a Local word (or naming the picture's whole
+  category or group), then those where it is only inside a longer word or
+  in the ID. The chosen sort (Name, Newest added, …) orders the pictures
+  inside each part. A plural counts as its word ("cats" for Cat), a phrase
+  as words in a row ("tennis player"), a symbol as the name or tag it is
+  ("€", "?"), and in a script written without spaces each character is a
+  word. The order never adds or hides a picture: a search finds what it
+  found before.
+- **Strict search**, a checkbox above Search all, off by default: whole
+  words only. With it, "man" finds Man, Man 2 and the pictures tagged
+  "man", but not Woman or Businesswoman. A search that names a whole
+  category or group keeps all its pictures. It is not remembered.
+- Help in English, Italian and Spanish (the Editor Help's question on
+  finding a picture).
+- Tests: `test/image_search_order_274_test.dart` (10 tests).
+
 # 2.0.74 (Build 274, Revision 3) - Listen and pick the missing word - 2026-10-16
 
 The owner's point 7 of 13 October 2026 (`docs/274_PLAN.md`) and the owner's

@@ -130,6 +130,11 @@ abstract final class WordLookupText {
   static String normalize(String value) =>
       unorm.nfc(value.toLowerCase().replaceAll('’', "'"));
 
+  /// Whether [cluster] (one grapheme cluster) belongs to a script written
+  /// without spaces, where each character is a word of its own; the Image
+  /// Library's search splits words so too (Build 274 Revision 4).
+  static bool isSpacelessCharacter(String cluster) => _isSpaceless(cluster);
+
   static bool _isSpaceless(String cluster) =>
       _isWordCharacter(cluster) && _spacelessScript.hasMatch(cluster);
 

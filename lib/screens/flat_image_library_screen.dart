@@ -116,6 +116,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   /// Search all (Build 264 Revision 2, on by default): a search looks in
   /// every category, not only the one being browsed.
   bool _searchAll = true;
+
+  /// Strict search (Build 274 Revision 4, off by default): whole words
+  /// only, so "man" does not find Woman.
+  bool _strictSearch = false;
   late final _searchController = TextEditingController(text: _query);
 
   /// The tag chosen in a picture's card (Build 264 Revision 5): only the
@@ -2000,25 +2004,34 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
     final badges = imageBadgeOrder.where(presentBadges.contains).toList();
     // A filter left over from a reload that no longer offers it is ignored.
     final badge = badges.length > 1 && badges.contains(_badge) ? _badge : null;
+    // Build 274 Revision 4: how each picture matches the search orders the
+    // parts (the name is the term, a whole word of the name, of a tag, then
+    // inside a longer word); the chosen sort orders each part.
+    final match = Map<ExerciseImageMetadata, ImageSearchMatch>.identity();
     final items =
-        _all
-            .where(
-              (item) =>
-                  inCategory(item) &&
-                  (tag == null || carriesImageTag(item, tag)) &&
-                  (badge == null || _badges(item).contains(badge)) &&
-                  matchesImageSearch(item, normalizedQuery),
-            )
-            .toList()
-          ..sort(
-            (left, right) => compareImages(
-              left,
-              right,
-              sort: _sort,
-              addedAt: _addedAt,
-              fileBytes: _fileBytes,
-            ),
+        _all.where((item) {
+          if (!inCategory(item) ||
+              (tag != null && !carriesImageTag(item, tag)) ||
+              (badge != null && !_badges(item).contains(badge))) {
+            return false;
+          }
+          final found = imageSearchMatch(item, normalizedQuery);
+          if (found == null || (_strictSearch && !found.isWhole)) {
+            return false;
+          }
+          match[item] = found;
+          return true;
+        }).toList()..sort((left, right) {
+          final part = match[left]!.index.compareTo(match[right]!.index);
+          if (part != 0) return part;
+          return compareImages(
+            left,
+            right,
+            sort: _sort,
+            addedAt: _addedAt,
+            fileBytes: _fileBytes,
           );
+        });
     return Scaffold(
       appBar: AppBar(
         // The Course preview flag only where the library edits a Course
@@ -2166,39 +2179,92 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          key: const Key('exercise-image-search'),
-                          controller: _searchController,
-                          onChanged: (value) => setState(() => _query = value),
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.search),
-                            labelText: 'Search images, categories or tags',
+                  // Build 274 Revision 4: the two checkboxes take at most
+                  // two fifths of the row and their labels wrap, so the
+                  // search field keeps the rest on a phone and with large
+                  // text.
+                  child: LayoutBuilder(
+                    builder: (context, constraints) => Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            key: const Key('exercise-image-search'),
+                            controller: _searchController,
+                            onChanged: (value) =>
+                                setState(() => _query = value),
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.search),
+                              labelText: 'Search images, categories or tags',
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Tooltip(
-                        message:
-                            'Search every category, not only the one you are '
-                            'browsing',
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Checkbox(
-                              key: const Key('exercise-image-search-all'),
-                              value: _searchAll,
-                              onChanged: (value) =>
-                                  setState(() => _searchAll = value ?? true),
-                            ),
-                            const Text('Search all'),
-                          ],
+                        const SizedBox(width: 4),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: constraints.maxWidth * 0.4,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Build 274 Revision 4: above Search all.
+                              Tooltip(
+                                message:
+                                    'Whole words only: “man” does not find Woman',
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Checkbox(
+                                      key: const Key(
+                                        'exercise-image-strict-search',
+                                      ),
+                                      value: _strictSearch,
+                                      onChanged: (value) => setState(
+                                        () => _strictSearch = value ?? false,
+                                      ),
+                                    ),
+                                    const Flexible(
+                                      child: Text(
+                                        'Strict search',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Tooltip(
+                                message:
+                                    'Search every category, not only the one you '
+                                    'are browsing',
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Checkbox(
+                                      key: const Key(
+                                        'exercise-image-search-all',
+                                      ),
+                                      value: _searchAll,
+                                      onChanged: (value) => setState(
+                                        () => _searchAll = value ?? true,
+                                      ),
+                                    ),
+                                    const Flexible(
+                                      child: Text(
+                                        'Search all',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 if (tag != null)

@@ -1,5 +1,8 @@
+import 'package:characters/characters.dart';
+
 import '../models/exercise_image_metadata.dart';
 import '../models/image_categories.dart';
+import 'word_lookup/word_lookup_text.dart';
 
 // The Image Library's rules, apart from how the screen draws them: search,
 // sorting, the added date, and the badges and wording of each image. Plain
@@ -74,7 +77,16 @@ class ImageSearchKeys {
         for (final value in [...asset.tags, ...asset.localWords])
           imageTagKey(value),
       },
-      categoryName = _categoryNameKey(asset.category) {
+      categoryName = _categoryNameKey(asset.category),
+      nameWords = imageSearchWords(asset.label),
+      tagWords = List.unmodifiable([
+        for (final value in [...asset.tags, ...asset.localWords])
+          imageSearchWords(value),
+      ]),
+      categoryWords = List.unmodifiable([
+        imageSearchWords(asset.category),
+        imageSearchWords(imageSubcategoryLabel(asset.category)),
+      ]) {
     singulars = List.unmodifiable([
       for (final text in texts) imageTagKey(text),
     ]);
@@ -101,6 +113,16 @@ class ImageSearchKeys {
   /// The key of the picture's own category's name, when the name is a word
   /// to tag with.
   final String? categoryName;
+
+  /// The words of the name ([imageSearchWords]; Build 274 Revision 4).
+  final List<String> nameWords;
+
+  /// The words of each tag and each Local word.
+  final List<List<String>> tagWords;
+
+  /// The words of the category's ID and of its name on its chip ("latin"
+  /// for the Latin characters).
+  final List<List<String>> categoryWords;
 }
 
 /// [imageTagKey] of the word asked for last: a filter asks for the same word
@@ -177,7 +199,149 @@ String _singular(String word) {
 /// "dogs" finds the dogs. The whole name of a category group finds the
 /// group's pictures (Build 265 Revision 9): "food & drink" or "food and
 /// drink", while "food" alone keeps finding what it found before.
-bool matchesImageSearch(ExerciseImageMetadata asset, String normalizedQuery) {
+///
+/// [strict] (Build 274 Revision 4, Strict search): only whole words
+/// ([ImageSearchMatch.isWhole]), so "man" does not find Woman.
+bool matchesImageSearch(
+  ExerciseImageMetadata asset,
+  String normalizedQuery, {
+  bool strict = false,
+}) {
+  if (!strict) return _containsImageSearch(asset, normalizedQuery);
+  return imageSearchMatch(asset, normalizedQuery)?.isWhole ?? false;
+}
+
+/// How a picture matches a search, best first (Build 274 Revision 4, the
+/// owner's point 8 of 13 October 2026). The library shows the parts in this
+/// order and the chosen sort orders the pictures inside each part.
+enum ImageSearchMatch {
+  /// The name is the term: "Man" for "man", "Cat" for "cats".
+  name,
+
+  /// The term is a whole word, or whole words in a row, of the name:
+  /// "Man 2", "Tennis player (man)".
+  nameWord,
+
+  /// The term is a whole word of a tag or a Local word, or names the
+  /// picture's whole category or category group.
+  tagWord,
+
+  /// The term is only inside a longer word, a single word of the
+  /// category, or only in the ID: Woman and Businesswoman for "man", the
+  /// food_drinks pictures for "food".
+  inside;
+
+  /// Whether the term is a whole word where it is found: what Strict
+  /// search keeps.
+  bool get isWhole => this != inside;
+}
+
+/// How [asset] matches [normalizedQuery], or null when the search does not
+/// find it. It finds exactly what [matchesImageSearch] finds, and only says
+/// where: the order never adds or hides a picture. An empty search is
+/// [ImageSearchMatch.name] for every picture, so the sort alone orders them.
+ImageSearchMatch? imageSearchMatch(
+  ExerciseImageMetadata asset,
+  String normalizedQuery,
+) {
+  if (normalizedQuery.isEmpty) return ImageSearchMatch.name;
+  if (!_containsImageSearch(asset, normalizedQuery)) return null;
+  final keys = ImageSearchKeys.of(asset);
+  // Whole texts first, so a symbol (no word in it: "€", "+", "?") is the
+  // name or a tag it is.
+  final whole = _keyOf(normalizedQuery);
+  if (keys.singulars.first == whole) return ImageSearchMatch.name;
+  final wanted = _queryWordsOf(normalizedQuery);
+  if (wanted.isNotEmpty) {
+    if (_sameWords(keys.nameWords, wanted)) return ImageSearchMatch.name;
+    if (_holdsWords(keys.nameWords, wanted)) return ImageSearchMatch.nameWord;
+  }
+  if (keys.tags.contains(whole)) return ImageSearchMatch.tagWord;
+  if (wanted.isNotEmpty) {
+    for (final words in keys.tagWords) {
+      if (_holdsWords(words, wanted)) return ImageSearchMatch.tagWord;
+    }
+    // The whole category, as its ID or its chip names it.
+    for (final words in keys.categoryWords) {
+      if (_sameWords(words, wanted)) return ImageSearchMatch.tagWord;
+    }
+  }
+  final group = imageCategoryGroupOf(asset.category);
+  if (group != null && _namesGroup(group, normalizedQuery)) {
+    return ImageSearchMatch.tagWord;
+  }
+  return ImageSearchMatch.inside;
+}
+
+/// The words of [text] as the search compares them: small letters, split
+/// at anything that is not a letter, a mark or a digit (so "(man)" and
+/// "ice-cream" are words too), each in its singular ([imageTagKey]); in a
+/// script written without spaces each character is a word, as Word Lookup
+/// reads them ([WordLookupText.isSpacelessCharacter]).
+List<String> imageSearchWords(String text) {
+  final words = <String>[];
+  for (final piece in normalizeImageSearchText(
+    text,
+  ).split(_notWordCharacters)) {
+    if (piece.isEmpty) continue;
+    final run = StringBuffer();
+    void close() {
+      if (run.isEmpty) return;
+      words.add(_singular(run.toString()));
+      run.clear();
+    }
+
+    for (final cluster in piece.characters) {
+      if (WordLookupText.isSpacelessCharacter(cluster)) {
+        close();
+        words.add(cluster);
+      } else {
+        run.write(cluster);
+      }
+    }
+    close();
+  }
+  return List.unmodifiable(words);
+}
+
+final _notWordCharacters = RegExp(r'[^\p{L}\p{M}\p{N}]+', unicode: true);
+
+/// [imageSearchWords] of the search asked for last.
+List<String> _queryWordsOf(String normalizedQuery) {
+  if (normalizedQuery != _lastQuery) {
+    _lastQuery = normalizedQuery;
+    _lastQueryWords = imageSearchWords(normalizedQuery);
+  }
+  return _lastQueryWords;
+}
+
+String? _lastQuery;
+List<String> _lastQueryWords = const [];
+
+bool _sameWords(List<String> words, List<String> wanted) {
+  if (words.length != wanted.length) return false;
+  for (var i = 0; i < words.length; i++) {
+    if (words[i] != wanted[i]) return false;
+  }
+  return true;
+}
+
+/// Whether [wanted] is in [words], whole words in a row.
+bool _holdsWords(List<String> words, List<String> wanted) {
+  for (var start = 0; start + wanted.length <= words.length; start++) {
+    var all = true;
+    for (var i = 0; i < wanted.length; i++) {
+      if (words[start + i] != wanted[i]) {
+        all = false;
+        break;
+      }
+    }
+    if (all) return true;
+  }
+  return false;
+}
+
+bool _containsImageSearch(ExerciseImageMetadata asset, String normalizedQuery) {
   if (normalizedQuery.isEmpty) return true;
   final group = imageCategoryGroupOf(asset.category);
   if (group != null && _namesGroup(group, normalizedQuery)) return true;

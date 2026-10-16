@@ -213,3 +213,30 @@ stamped `minimumAppBuild` 274003 must be readable by the app under test):
 - To tell the owner: the warning before On-Device TTS is in the Audio
   Library's audio source menu (the only place the mode is set), not in
   Course Info.
+
+## Revision 4 (2.0.74+274004): Image Library search order and Strict search
+
+In progress (16 October 2026, the owner's "Go on with the plan").
+
+- Done: `imageSearchMatch` / `ImageSearchMatch` (name, nameWord, tagWord,
+  inside) and `matchesImageSearch(strict:)` in
+  `lib/services/image_library_rules.dart` (words split at anything not a
+  letter, mark or digit, singular as `imageTagKey`; the order never adds or
+  hides a picture); the library sorts by part, then the chosen sort;
+  Strict search (`exercise-image-strict-search`, above Search all, off);
+  Help EN/IT/ES `findPicture`; version 274004; CHANGELOG, README, AGENTS,
+  change summary, validation; `test/image_search_order_274_test.dart` (7).
+- Review: no blocking fault; corrected the symbols (whole texts first),
+  the category (only named whole), scripts without spaces, the layout;
+  re-review closed them. Tests 10, six clean runs; analyze clean.
+- The complete suite: 4,895 passed, 1 skipped. Committed as "Build 274
+  Revision 4: Image Library search order and Strict search" and pushed to
+  build-274.
+- Owner report of 16 October 2026 (Italian Demo 2): leaving the Course
+  Editor asked about unsaved changes after switching the audio source to
+  MP3 and back and searching pictures with Strict on and off; not
+  reproduced. Traced: the Audio Library's round trip is exact (tested on a
+  copy of the stored Course, both MP3 modes, with the reconciliation), the
+  Image Library hands back a Course only on add or remove, the stored
+  Course has nothing to reconcile, nothing was saved, the logs say nothing.
+  Cause not found; proposed: the dialog names what changed.

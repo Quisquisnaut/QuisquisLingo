@@ -155,3 +155,26 @@ grading, scoring, progression and learner data.
 
 Every other exercise, Course file and learner data; scoring and
 progression.
+
+## Revision 4 (2.0.74+274004): Image Library search order and Strict search
+
+### Before
+
+- A search found every picture whose name, tag, Local word, ID or category
+  contained the letters typed, in the order of the chosen sort: "man"
+  mixed Man with Woman, Businesswoman and the rest.
+
+### Now
+
+- The best matches come first: the name is the term; then the term is a
+  whole word of the name; then a whole word of a tag or a Local word, or
+  the whole name of the picture's category or group; then it is only
+  inside a longer word. The chosen sort orders
+  each part. The pictures found are the same as before.
+- Strict search, above Search all and off by default, keeps the whole
+  words only: "man" no longer finds Woman.
+
+### What does not change
+
+The picture records, their categories and tags, Courses, Image Banks and
+learner data.

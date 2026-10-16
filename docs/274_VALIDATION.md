@@ -167,3 +167,30 @@ The owner's point 7 of 13 October 2026; the format decided on 16 October
   files then passed (46), and the suite ran again.
 - `flutter analyze`: no issues. The second complete suite, on the final
   tree: **4,885 passed, 1 skipped**, none failed.
+
+## Revision 4 (2.0.74+274004), Image Library search order and Strict search
+
+The owner's point 8 of 13 October 2026.
+
+- New tests: `test/image_search_order_274_test.dart`, **10
+  passed**, the file run six times clean after its last change; among them,
+  on the whole catalog and ten searches, the order finds exactly what the
+  search finds and Strict search exactly its whole words.
+- The Image Library's other tests, Word Lookup's and the catalogs' (24
+  files): 210 passed.
+- Independent read-only review: no blocking fault; the plain search finds
+  exactly what it found before (checked on 414 queries against all 4,334
+  pictures with a copy of the rules). One real defect: a search for a
+  symbol had no word, so it never counted as a whole word and Strict search
+  hid the 64 pictures tagged with their own symbol ("€", "+", "?");
+  corrected (whole texts compared first). Also corrected: the category
+  counted word by word (Strict "food" kept 144 pictures of Food & drink);
+  now only a search that names the whole category, as its ID or its chip
+  does, as the owner worded it; scripts written without spaces (each
+  character a word, Word Lookup's rule); the checkboxes' width on a phone
+  with large text (a test at 360 pixels and double text); the tests; two
+  wordings. Its re-review closed them all; its two last points (labels of
+  at most two lines, a comment) were corrected too. "man": 1 name, 84
+  whole words of a name, 13 of a tag, 184 inside: Strict keeps 98 of 282.
+- `flutter analyze`: no issues. The complete suite on the final tree:
+  **4,895 passed, 1 skipped**, none failed.
