@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.74+274005 · Build 274, Revision 5 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.74+274006 · Build 274, Revision 6 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.74 Beta — QQL 274, small improvements to the Course Editor, the Audit, playback and the Image Library (Course Model v12)**
 
@@ -22,7 +22,9 @@ answered. Revision 4 orders an Image Library search, the best matches first
 (the name, then a whole word of the name, of a tag, then inside a longer
 word), and adds Strict search for whole words only. Revision 5 makes the
 Unsaved course changes question say what changed since the last save: the
-areas first, each opening to its changes.
+areas first, each opening to its changes. Revision 6 gathers two small
+image categories into groups, as the other groups work: Actions with
+Movement, Concepts with Symbols.
 
 Build 273 continues Build 272's reorganization with the parts that need the
 most care ([plan](docs/272_MODULARIZATION_PLAN.md),
@@ -947,7 +949,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.74, Build 274, Revision 5 is a time-limited Beta with an expiry of **2026-11-15 23:59:59 local time** (30 days after the 16 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.74, Build 274, Revision 6 is a time-limited Beta with an expiry of **2026-11-15 23:59:59 local time** (30 days after the 16 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

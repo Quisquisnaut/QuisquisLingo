@@ -77,23 +77,20 @@ void main() {
         imageCategoryGroupLabels.keys.toSet(),
         imageCategoryGroups.keys.toSet(),
       );
-      // The categories that stand alone (owner's list).
+      // The categories that stand alone (owner's list; Build 274 Revision 6
+      // put Actions with Movement and Concepts with Symbols).
       final alone = {
         for (final category in imageCategories)
           if (!isCharacterCategory(category) && !seen.containsKey(category))
             category,
       };
       expect(alone, {
-        'actions',
         'clothing_accessories',
         'colors',
-        'concepts',
         'flags',
         'lesson_icons',
-        'movement',
         'other',
         'school_work',
-        'symbols',
       });
     });
 

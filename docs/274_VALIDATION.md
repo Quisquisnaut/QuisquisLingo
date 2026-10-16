@@ -195,6 +195,43 @@ The owner's point 8 of 13 October 2026.
 - `flutter analyze`: no issues. The complete suite on the final tree:
   **4,895 passed, 1 skipped**, none failed.
 
+## Revision 6 (2.0.74+274006), two small image categories join a group
+
+The owner's point 9 of 13 October 2026.
+
+- New tests: `test/category_groups_274_test.dart`, **4 passed**, the file
+  run six times clean after its last change: the two groups' categories,
+  lookups and labels; the stored categories unchanged; all four
+  categories in the bundled catalog; a group's whole name (with "&" or
+  "and", also in Strict search) finds both categories while a category's
+  name finds its own; the library shows one chip per group, its row with
+  "all …" and its two categories, and the counts of each.
+- Changed: `test/image_category_groups_265_test.dart` (the categories that
+  stand alone no longer include Actions, Movement, Concepts, Symbols).
+- Run with them: `image_category_groups_265_test`,
+  `image_library_categories_264_test`, `image_search_order_274_test`,
+  `image_search_keys_271_test`: all passed.
+- Independent read-only review: nothing blocking; the code change was
+  found correct (every reader of the group functions, the search words of
+  the four categories, the chip order, the picture card's link, Image Bank
+  mapping, the counts in the catalog: Actions 104, Movement 6, Concepts 22,
+  Symbols 5). Corrected: the README's Beta line still named Revision 5;
+  `docs/COURSE_EDITOR.md` listed the groups of Build 265 only; the AGENTS
+  wording on the search words; the test's `findsNothing` for chips the
+  lazy chip row had not built (it now reads the whole row). Its re-review
+  of the corrections found nothing.
+- Known and left, as for the earlier groups (found by the review, not
+  caused by this revision): a group's chip also shows the pictures tagged
+  with one of its categories' names, while searching the group's whole
+  name finds only the pictures whose own category is in the group
+  ("concepts & symbols": 35 pictures on the chip, 27 by the search; "food
+  & drink" behaves alike); and a Course-scoped Image Bank picture filed
+  under a category equal to a group key (`actions_movement`, `people`…)
+  is listed under no chip of its own.
+- `flutter analyze`: no issues, on the final tree.
+- Complete suite on the final tree (`flutter test --concurrency=1`):
+  **4,915 passed, 1 skipped**, 42 minutes.
+
 ## Revision 5 (2.0.74+274005), Unsaved course changes names what changed
 
 The owner's request and decisions of 16 October 2026.

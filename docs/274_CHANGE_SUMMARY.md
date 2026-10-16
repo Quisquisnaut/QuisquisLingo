@@ -179,6 +179,27 @@ progression.
 The picture records, their categories and tags, Courses, Image Banks and
 learner data.
 
+## Revision 6 (2.0.74+274006): two small image categories join a group
+
+### Before
+
+- Movement (6 pictures) and Symbols (5) each had a chip of their own in
+  the Image Library, beside Actions and Concepts.
+
+### Now
+
+- Two more groups, shown like the others (one chip, a second row with its
+  categories): **actions & movement** (Actions, Movement) and **concepts &
+  symbols** (Concepts, Symbols).
+- A group's whole name in Search finds its pictures; a category's own
+  name finds that category only.
+
+### What does not change
+
+The stored category of every picture, Courses, Image Banks, the
+validator's category list, the search order of Revision 4 and Strict
+search.
+
 ## Revision 5 (2.0.74+274005): Unsaved course changes names what changed
 
 ### Before

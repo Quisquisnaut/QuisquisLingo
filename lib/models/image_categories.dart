@@ -184,6 +184,8 @@ bool isCharacterCategory(String category) =>
 /// categories, as it does for the characters. Display only: every picture
 /// keeps its own category, and a category is in one group at most; the
 /// categories of no group stand alone. Group keys are never category IDs.
+/// Build 274 Revision 6 (the owner's point 9 of 13 October 2026): Movement
+/// joins Actions, Symbols joins Concepts.
 const imageCategoryGroups = <String, List<String>>{
   'people': [
     'people_family',
@@ -258,6 +260,8 @@ const imageCategoryGroups = <String, List<String>>{
   ],
   'free_time': ['hobbies_leisure', 'sports', 'games', 'art_cinema'],
   'nature_animals': ['nature', 'animals'],
+  'actions_movement': ['actions', 'movement'],
+  'concepts_symbols': ['concepts', 'symbols'],
 };
 
 /// The groups' names as the library shows them.
@@ -273,6 +277,8 @@ const imageCategoryGroupLabels = <String, String>{
   'history_stories': 'history & stories',
   'free_time': 'free time',
   'nature_animals': 'nature & animals',
+  'actions_movement': 'actions & movement',
+  'concepts_symbols': 'concepts & symbols',
 };
 
 final _groupOfCategory = <String, String>{

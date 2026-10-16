@@ -196,6 +196,8 @@ groups below became Revision 6.
 
 ## Revision 6: two small categories join a group (point 9)
 
+Delivered as `2.0.74+274006`.
+
 - **Today**: Movement (6 pictures: Fast, Spin, Bounce, Fall, Grow, Shrink)
   and Symbols (5: Prohibition sign, Power, Play, Pause, Stop) each have a
   chip of their own beside Actions (104) and Concepts (22).

@@ -20,8 +20,8 @@ Help EN/IT/ES wherever a screen or a rule an author reads changes.
 | 2 | Playback on request (points 6 and 4) | done |
 | 3 | A new Listening preset, Listen and pick the missing word (point 7) | done (`c9c8f73a`) |
 | 4 | Image Library search: the order and Strict search (point 8) | done (`73a422b4`) |
-| 5 | Unsaved course changes names what changed (owner request of 16 October 2026) | in progress |
-| 6 | Two small categories join a group (point 9) | planned |
+| 5 | Unsaved course changes names what changed (owner request of 16 October 2026) | done, `141357e7` |
+| 6 | Two small categories join a group (point 9) | in progress |
 
 ## Owner decisions
 
@@ -242,6 +242,22 @@ In progress (16 October 2026, the owner's "Go on with the plan").
   Course has nothing to reconcile, nothing was saved, the logs say nothing.
   Cause not found; proposed: the dialog names what changed.
 
+## Revision 6 (2.0.74+274006): two small image categories join a group
+
+- Done: `imageCategoryGroups` / `imageCategoryGroupLabels`
+  (`lib/models/image_categories.dart`) gain `actions_movement` (Actions,
+  Movement) and `concepts_symbols` (Concepts, Symbols); the Help's list of
+  groups EN/IT/ES; `test/category_groups_274_test.dart`; the 265 test's
+  categories that stand alone; version 274006; CHANGELOG, README, AGENTS,
+  plan, change summary, validation.
+- Done: the independent review (nothing blocking; README Beta line,
+  COURSE_EDITOR.md groups, AGENTS wording and the test's lazy chip row
+  corrected) and its re-review (nothing); `flutter analyze` clean.
+- Done: complete suite 4,915 passed, 1 skipped.
+- To do: commit "Build 274 Revision 6: two small image categories join a
+  group"; push.
+  Build 274's plan is then complete: merge into main on the owner's go.
+
 ## Revision 5 (2.0.74+274005): Unsaved course changes names what changed
 
 Owner request of 16 October 2026 ("do it here"), after the unexplained
@@ -269,6 +285,6 @@ Revision 6.
   like the one now in its place; corrected with "was 1st in the list"),
   and a last check that found nothing; `flutter analyze` clean; complete
   suite 4,911 passed, 1 skipped.
-- To do: commit
-  "Build 274 Revision 5: Unsaved course changes names what changed"; push.
+- Committed `141357e7` "Build 274 Revision 5: Unsaved course changes
+  names what changed" and pushed `build-274`.
   Then Revision 6 (category groups).

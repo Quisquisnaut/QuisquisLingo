@@ -1,3 +1,22 @@
+# 2.0.74 (Build 274, Revision 6) - Two small image categories join a group - 2026-10-16
+
+The owner's point 9 of 13 October 2026 (`docs/274_PLAN.md`).
+
+- **The Image Library has two more groups**: **actions & movement**
+  (Actions, Movement) and **concepts & symbols** (Concepts, Symbols). Each
+  is one chip, as the other groups are; choosing it shows all its pictures
+  and a second row with "all …" and its two categories. Movement (6
+  pictures) and Symbols (5) no longer have a chip of their own beside the
+  larger categories.
+- Typing a group's whole name in Search ("actions & movement" or "actions
+  and movement") finds the pictures of both its categories; a category's
+  own name ("movement") still finds only that category.
+- Display only: every picture keeps its stored category. Courses, Image
+  Banks and the validator's category list are unchanged.
+- Help in English, Italian and Spanish (the Editor Help's question on
+  finding a picture lists the groups).
+- Tests: `test/category_groups_274_test.dart` (4 tests).
+
 # 2.0.74 (Build 274, Revision 5) - Unsaved course changes names what changed - 2026-10-16
 
 The owner's request and decisions of 16 October 2026, after leaving the
