@@ -13,25 +13,37 @@ import 'preset_recipes.dart';
 /// This is the one place where a preset reaches what learners see: a
 /// title, never behaviour, grading or the Audit.
 abstract final class ExerciseTitle {
-  static final Expando<Object> _slugs = Expando('exercise title');
+  static final Expando<Object> _presets = Expando('exercise title');
   static const Object _none = Object();
 
-  /// The catalog slug of [exercise]'s title (`title.<slug>`), or null.
-  static String? slugFor(Exercise exercise) {
-    final cached = _slugs[exercise];
+  /// The preset that represents [exercise], recognized once.
+  static String? _presetOf(Exercise exercise) {
+    final cached = _presets[exercise];
     if (cached != null) return identical(cached, _none) ? null : '$cached';
-    String? slug;
+    String? presetId;
     try {
-      final presetId = PresetRecipes.recognize(exercise);
-      final name = presetId == null
-          ? null
-          : ExercisePresetRegistry.byId(presetId)?.name;
-      slug = name == null ? null : slugOfName(name);
+      presetId = PresetRecipes.recognize(exercise);
     } on Object {
-      slug = null;
+      presetId = null;
     }
-    _slugs[exercise] = slug ?? _none;
-    return slug;
+    _presets[exercise] = presetId ?? _none;
+    return presetId;
+  }
+
+  /// The catalog slug of [exercise]'s title (`title.<slug>`), or null. In a
+  /// Course in the same language ([sameLanguage], Build 275 Revision 1) a
+  /// translation preset is named as there
+  /// ([ExercisePresetRegistry.sameLanguageNames]): Pick the word, Type the
+  /// meaning.
+  static String? slugFor(Exercise exercise, {bool sameLanguage = false}) {
+    final presetId = _presetOf(exercise);
+    if (presetId == null) return null;
+    final name =
+        (sameLanguage
+            ? ExercisePresetRegistry.sameLanguageNames[presetId]
+            : null) ??
+        ExercisePresetRegistry.byId(presetId)?.name;
+    return name == null ? null : slugOfName(name);
   }
 
   /// `Pick the translation (to target)` → `pick_the_translation`.

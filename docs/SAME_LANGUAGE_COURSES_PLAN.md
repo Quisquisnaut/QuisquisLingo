@@ -172,6 +172,11 @@ the three catalogs.
 
 ## Revision 1: what learners read
 
+Delivered as `2.0.75+275001`. The lines follow the rule of Build 263
+Revision 0 (no line opens with the first word of its title): "Write the
+word for this meaning." under TYPE THE WORD, "Form the sentence…" under
+BUILD THE SENTENCE.
+
 - **Today** (`lib/localization/exercise_copy/exercise_copy_en.dart` and the
   six others; `lib/localization/learner_panel/`):
   - titles `title.pick_the_translation`, `title.type_the_translation`,
@@ -210,7 +215,8 @@ the three catalogs.
   today.
 - A translation Course is unchanged: the Laboratory presentation baseline
   stays as it is (a test checks it).
-- **To confirm when the revision starts** (consequences, not yet decided):
+- **To confirm when the revision starts** (consequences, not yet decided;
+  left as they are in Revision 1 and put to the owner):
   - Word Lookup skips text marked as the Course's source language; in a
     same-language Course a meaning is in the language being learned, so
     Word Lookup could look its words up too.
@@ -253,7 +259,9 @@ the three catalogs.
   action impossible for this Course is not shown, the rule of Build 272
   Revision 17's follow-up). An existing exercise made with one still opens
   and plays.
-- The Round Wizard needs no change: it creates only "to target" presets,
+- The Round Wizard creates only "to target" presets (its Build prompt,
+  "Build the translation of …", was changed in Revision 1 to "Build the
+  sentence for …" in a same-language Course),
   which all make sense here.
 
 ### Forms, GuideBook and Wizard texts

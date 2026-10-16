@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
+import '../services/course_language_pair.dart';
 import '../services/course_language_resolver.dart';
 import '../services/first_letter_answer_service.dart';
 import '../widgets/bundled_picture.dart';
@@ -5541,8 +5542,10 @@ class _RoundScreenState extends State<RoundScreen> {
                         ex.canonicalEvaluation.correctOrders.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Semantics(
+                        // Build 275 Revision 1: answers, not
+                        // translations, in a same-language Course.
                         label:
-                            '${ex.canonicalEvaluation.correctOrders.length} correct translations',
+                            '${ex.canonicalEvaluation.correctOrders.length} correct ${CourseLanguagePair.isSameLanguage(widget.course) ? 'answers' : 'translations'}',
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

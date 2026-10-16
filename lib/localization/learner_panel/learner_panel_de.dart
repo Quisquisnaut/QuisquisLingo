@@ -141,4 +141,14 @@ const learnerPanelDe = <String, String>{
   'wordLookup.notice':
       'Tippe auf ein gepunktet unterstrichenes Wort, um eine Übersetzung aus dem GuideBook des Kurses zu sehen. Nur manche Übungsarten haben sie. Sie ist ein Hinweis, eine mögliche Übersetzung, und stimmt nicht immer mit der Lösung der Übung überein.',
   'wordLookup.action': 'Vokabeln in diesem Text',
+  // Build 275 Revision 1: a Course in the same language.
+  'sameLanguage.correctAnswers': 'Richtige Antworten:',
+  'sameLanguage.otherCorrectAnswers': 'Weitere richtige Antworten:',
+  'sameLanguage.somePossibleAnswers': 'Einige mögliche Antworten:',
+  'sameLanguage.wordLookup.note':
+      'Eine mögliche Bedeutung aus dem GuideBook dieses Kurses.',
+  'sameLanguage.wordLookup.notes':
+      'Einige mögliche Bedeutungen aus dem GuideBook dieses Kurses.',
+  'sameLanguage.wordLookup.notice':
+      'Tippe auf ein gepunktet unterstrichenes Wort, um seine Bedeutung aus dem GuideBook des Kurses zu sehen. Nur manche Übungsarten haben sie. Sie ist ein Hinweis, eine mögliche Bedeutung, und stimmt nicht immer mit der Lösung der Übung überein.',
 };

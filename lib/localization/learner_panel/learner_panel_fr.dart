@@ -139,4 +139,14 @@ const learnerPanelFr = <String, String>{
   'wordLookup.notice':
       'Touchez un mot souligné en pointillés pour voir une traduction tirée du GuideBook du cours. Seuls certains types d\'exercice en ont. C\'est une aide, une traduction possible : elle ne correspond pas toujours à la réponse de l\'exercice.',
   'wordLookup.action': 'Vocabulaire de ce texte',
+  // Build 275 Revision 1: a Course in the same language.
+  'sameLanguage.correctAnswers': 'Réponses correctes :',
+  'sameLanguage.otherCorrectAnswers': 'Autres réponses correctes :',
+  'sameLanguage.somePossibleAnswers': 'Quelques réponses possibles :',
+  'sameLanguage.wordLookup.note':
+      'Un sens possible, tiré du GuideBook de ce cours.',
+  'sameLanguage.wordLookup.notes':
+      'Quelques sens possibles, tirés du GuideBook de ce cours.',
+  'sameLanguage.wordLookup.notice':
+      'Touchez un mot souligné en pointillés pour voir son sens, tiré du GuideBook du cours. Seuls certains types d\'exercice en ont. C\'est une aide, un sens possible : il ne correspond pas toujours à la réponse de l\'exercice.',
 };

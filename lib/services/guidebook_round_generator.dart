@@ -118,16 +118,20 @@ class GuidebookGenerationPlan {
 class GuidebookRoundGenerator {
   /// [articles] are the learning language's articles, as Word Lookup
   /// compares words (`WordLookupArticles.forLanguage`): Spell the word in the
-  /// picture spells a word without its leading article.
+  /// picture spells a word without its leading article. [sameLanguage]:
+  /// the Course is in the same language (`CourseLanguagePair`), so a
+  /// prompt never asks for a translation (Build 275 Revision 1).
   GuidebookRoundGenerator({
     int randomSeed = 0,
     AuthoringIdGenerator? draftIds,
     DateTime Function()? now,
     Set<String> articles = const {},
+    bool sameLanguage = false,
   }) : _randomSeed = randomSeed,
        _draftIds = draftIds ?? TimestampAuthoringIdGenerator(),
        _now = now ?? (() => DateTime.now().toUtc()),
-       _articles = articles;
+       _articles = articles,
+       _sameLanguage = sameLanguage;
 
   static const int defaultRoundCount = 6;
 
@@ -186,6 +190,7 @@ class GuidebookRoundGenerator {
   final AuthoringIdGenerator _draftIds;
   final DateTime Function() _now;
   final Set<String> _articles;
+  final bool _sameLanguage;
 
   _Material _material(Guidebook guidebook) =>
       _Material(guidebook, articles: _articles);
@@ -654,7 +659,9 @@ class GuidebookRoundGenerator {
         final answer = _words(item.shown);
         return _legacy(
           type: 'build_translation',
-          prompt: 'Build the translation of “${item.clue}”.',
+          prompt: _sameLanguage
+              ? 'Build the sentence for “${item.clue}”.'
+              : 'Build the translation of “${item.clue}”.',
           tokens: answer,
           correctTranslations: [item.shown],
         );

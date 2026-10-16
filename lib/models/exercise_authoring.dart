@@ -599,6 +599,19 @@ abstract final class ExercisePresetRegistry {
   static String? currentIdFor(String id) =>
       byId(id) != null ? id : successorOf[id];
 
+  /// What the translation presets are called in a Course in the same
+  /// language (Build 275, owner decisions of 16 October 2026): "word" and
+  /// "meaning", never "translation". The stored preset IDs never change.
+  static const sameLanguageNames = <String, String>{
+    'translation_choice_to_target': 'Pick the word',
+    'translation_choice_to_source': 'Pick the meaning',
+    'type_translation_to_target': 'Type the word',
+    'type_translation_to_source': 'Type the meaning',
+    'build_translation_to_target': 'Build the sentence',
+    'build_translation_to_source': 'Build the meaning',
+    'word_match': 'Match words and meanings',
+  };
+
   /// The name an author reads for a preset ID: the preset's name, else the
   /// ID with its underscores as spaces (a preset this version does not know).
   static String nameOrId(String id) =>

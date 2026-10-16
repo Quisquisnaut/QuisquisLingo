@@ -3,6 +3,35 @@
 Courses in the same language (`docs/SAME_LANGUAGE_COURSES_PLAN.md`, the
 owner's idea and decisions of 16 October 2026).
 
+## Revision 1 (2.0.75+275001): what learners read
+
+### Before
+
+- A same-language Course's exercises said "Pick the translation",
+  "Translate into English." and "Correct translations:".
+
+### Now
+
+- They say "word" and "meaning": PICK THE WORD / "Choose the word for
+  this meaning.", TYPE THE MEANING / "Write the meaning of this word.",
+  BUILD THE SENTENCE, MATCH WORDS AND MEANINGS, "Correct answers:", and
+  Word Lookup offers "one possible meaning". No language is named.
+- In the seven learner languages; Round, Review, Duel and Preview alike.
+- The Round Wizard's Build prompt reads "Build the sentence for “…”." in
+  a same-language Course (it said "Build the translation of “…”."), and
+  the screen reader counts "correct answers" there.
+
+### Owner decisions (16 October 2026)
+
+- Names change for learners (and, in Revision 2, in the Course Editor);
+  the stored preset IDs never change.
+
+### What does not change
+
+A translation Course; what Word Lookup looks up and which texts offer a
+speaker (both open points for the owner); Course files, scoring and
+learner data.
+
 ## Revision 0 (2.0.75+275000): choosing the kind of Course
 
 ### Before

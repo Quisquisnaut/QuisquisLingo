@@ -2,6 +2,7 @@ import '../localization/exercise_copy/exercise_copy_catalogs.dart';
 import '../localization/exercise_copy/exercise_copy_en.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
+import 'course_language_pair.dart';
 import 'exercise_title.dart';
 import 'flashcard_sides.dart';
 import 'language_catalog.dart';
@@ -38,24 +39,87 @@ class ExerciseCopyService {
   static Map<String, String> _copy(Course course) =>
       _merged[instructionLanguage(course)]!;
 
-  /// The learner heading for an exercise of [kind].
-  static String typeLabel(Course course, LearnerExerciseKind kind) {
+  /// The learner heading for an exercise of [kind]. In a Course in the
+  /// same language a translation kind is headed as its preset's title there
+  /// (Build 275 Revision 1), by the direction [features] give (the word
+  /// asked for when there are none).
+  static String typeLabel(
+    Course course,
+    LearnerExerciseKind kind, [
+    ExerciseFeatures? features,
+  ]) {
     final c = _copy(course);
+    if (CourseLanguagePair.isSameLanguage(course)) {
+      final meaning = _asksMeaning(kind, features);
+      final slug = switch (kind) {
+        LearnerExerciseKind.selectTranslation =>
+          meaning ? 'pick_the_meaning' : 'pick_the_word',
+        LearnerExerciseKind.inputTranslation =>
+          meaning ? 'type_the_meaning' : 'type_the_word',
+        LearnerExerciseKind.arrangeTranslation =>
+          meaning ? 'build_the_meaning' : 'build_the_sentence',
+        _ => null,
+      };
+      final heading = slug == null ? null : c['title.$slug'];
+      if (heading != null) return heading;
+    }
     return c['type.${kind.name}'] ?? c['type.default']!;
+  }
+
+  /// In a Course in the same language, whether an exercise of [kind] asks
+  /// for a meaning (the answers are on the learners' side) rather than for
+  /// a word: Pick the meaning, Type the meaning, Build the meaning.
+  static bool _asksMeaning(
+    LearnerExerciseKind kind,
+    ExerciseFeatures? features,
+  ) {
+    if (features == null) return false;
+    return kind == LearnerExerciseKind.selectTranslation
+        ? features.itemLanguage == TextLanguage.source
+        : features.promptLanguage == TextLanguage.target;
+  }
+
+  /// The line of a translation kind in a Course in the same language
+  /// (Build 275 Revision 1): "word" and "meaning", no language named; null
+  /// for every other kind and Course.
+  static String? _sameLanguageLine(
+    Course course,
+    LearnerExerciseKind kind, [
+    ExerciseFeatures? features,
+  ]) {
+    if (!CourseLanguagePair.isSameLanguage(course)) return null;
+    final meaning = _asksMeaning(kind, features);
+    final key = switch (kind) {
+      LearnerExerciseKind.selectTranslation =>
+        meaning ? 'selectMeaning' : 'selectWord',
+      LearnerExerciseKind.inputTranslation =>
+        meaning ? 'inputMeaning' : 'inputWord',
+      LearnerExerciseKind.arrangeTranslation =>
+        meaning ? 'arrangeMeaning' : 'arrangeSentence',
+      LearnerExerciseKind.matchTranslation => 'matchTranslation',
+      _ => null,
+    };
+    return key == null ? null : _copy(course)['instruction.sameLanguage.$key'];
   }
 
   /// The learner title of [exercise] (Build 261 Revision 3, owner decisions
   /// of 2 October 2026): the name of the preset that represents it
   /// ([ExerciseTitle]) in the instruction language, else its kind's heading.
   static String title(Course course, Exercise exercise) {
-    final slug = ExerciseTitle.slugFor(exercise);
+    final slug = ExerciseTitle.slugFor(
+      exercise,
+      sameLanguage: CourseLanguagePair.isSameLanguage(course),
+    );
+    final features = ExerciseFeatures(exercise);
     return (slug == null ? null : _copy(course)['title.$slug']) ??
-        typeLabel(course, ExerciseFeatures(exercise).kind);
+        typeLabel(course, features.kind, features);
   }
 
   /// The learner instruction for an exercise of [kind]. Without an
   /// exercise, a translation line names the target language.
   static String instruction(Course course, LearnerExerciseKind kind) {
+    final same = _sameLanguageLine(course, kind);
+    if (same != null) return same;
     final c = _copy(course);
     return _withLanguage(
       course,
@@ -143,6 +207,10 @@ class ExerciseCopyService {
                 )
           : c['instruction.flashcardWordFirst'] ?? c['instruction.default']!;
     }
+    // A Course in the same language says "word" and "meaning" (Build 275
+    // Revision 1).
+    final same = _sameLanguageLine(course, kind, features);
+    if (same != null) return same;
     final prompt = [
       features.primaryText,
       features.questionText,

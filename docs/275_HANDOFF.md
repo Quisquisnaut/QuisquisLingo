@@ -17,8 +17,8 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
 
 | Rev | What | State |
 |---|---|---|
-| 0 | Choosing the kind of Course (Wizard, New Course, Course Info, the FAQ) | in progress |
-| 1 | What learners read ("word" and "meaning") | planned |
+| 0 | Choosing the kind of Course (Wizard, New Course, Course Info, the FAQ) | done, `db0bd468` |
+| 1 | What learners read ("word" and "meaning") | in progress |
 | 2 | What authors read (preset names, forms, GuideBook) | planned |
 | 3 | A test Course to import (En-En Exercise Lab) | planned |
 | 4 | Several correct translations in the GuideBook | planned (display option: owner's choice pending) |
@@ -49,6 +49,32 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
   neither, even one that alone would be fine. The kind is protected;
   owner's call whether to offer the tags one at a time.
 
+## Revision 1 (2.0.75+275001): what learners read
+
+- Done: `ExercisePresetRegistry.sameLanguageNames`, `ExerciseTitle`
+  (`sameLanguage:`), `ExerciseCopyService` (`typeLabel` with features,
+  `_asksMeaning`, `_sameLanguageLine`), `LearnerPanelText.sameLanguageKeys`,
+  `CourseLanguagePair`'s cache; 14 exercise-copy and 6 learner-panel keys
+  in the seven catalogs; the localization document; version 275001 (release
+  17 October 2026, Beta expiry 2026-11-16); CHANGELOG, README, AGENTS,
+  plan, change summary, validation; `test/same_language_learner_275_test.dart`.
+- Owner points of this revision, not done (the plan's "to confirm"):
+  Word Lookup still skips meanings (text marked as the source language)
+  in a same-language Course; playback on request still offers no speaker
+  for a meaning.
+- Owner points the review found: "word" also labels a sentence (a Pick
+  the word whose options are sentences reads "Choose the word for this
+  meaning."; a Type the meaning of a sentence "Write the meaning of this
+  word."; Revision 4's Type whole sentences will read TYPE THE WORD), as
+  the owner's names say; the lines could be made neutral. A Flashcard
+  shown meaning first says "Think of the English word…" in an English to
+  English Course (harmless).
+- Done: the independent review and its re-review (corrections in
+  `docs/275_VALIDATION.md`); `flutter analyze` clean.
+- Done: complete suite 4,944 passed, 1 skipped.
+- To do: commit "Build 275 Revision 1: what learners read in a
+  same-language Course"; push. Then Revision 2 (what authors read).
+
 ## Revision 0 (2.0.75+275000): choosing the kind of Course
 
 - Done: `CourseLanguagePair` and `CourseKind`
@@ -69,5 +95,8 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
   analyze` clean.
 - Done: complete suite 4,935 passed, 1 skipped. The owner approved the
   FAQ text (16 October 2026: "All good").
-- To do: commit "Build 275 Revision 0: choosing the kind of Course"; push
-  `build-275`. Then Revision 1 (what learners read).
+- Committed `db0bd468` "Build 275 Revision 0: choosing the kind of
+  Course" and pushed `build-275`. Next: Revision 1 (what learners read).
+- Offered to the owner, not done: a line under the two language fields
+  saying how to enter two variants (today the refusal and the Help say
+  it).

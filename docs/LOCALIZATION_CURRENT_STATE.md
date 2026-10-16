@@ -1,6 +1,6 @@
 # Localization: current state
 
-12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10); and on 16 October 2026 for Build 274 Revision 3 (`2.0.74+274003`): Listen and pick the missing word (its title, heading and two lines, the answers' Sound N, its Help).
+12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10); on 16 October 2026 for Build 274 Revision 3 (`2.0.74+274003`): Listen and pick the missing word (its title, heading and two lines, the answers' Sound N, its Help); for Build 275 Revision 0 (`2.0.75+275000`): the Course kind's Help question and Course Info's same-language line; and on 17 October 2026 for Build 275 Revision 1 (`2.0.75+275001`): what learners read in a Course in the same language (the two tables "A Course in the same language").
 
 This document says what QuisquisLingo shows in which language today, and lists the texts that are translated. The tables are generated from the catalogs in `lib/localization/` as they are in this revision.
 
@@ -23,8 +23,8 @@ One page was added to the second group after these decisions: the start page of 
 | The app interface: Home, Settings, Profile, Courses, Course Studio, the Course Editor, the wizards, dialogs, menus, error messages | English | Nothing: always English | In the screens |
 | The names of a Course's items (section 3) | English | Nothing: always English | In the screens and inside the catalogs |
 | Labels the author chooses for Lessons and Rounds | As the author wrote them | The Course | The Course file |
-| Exercise titles, headings and instruction lines (123 texts) | English, Spanish, Italian, German, Portuguese, Dutch, French | The Course's Source language | `lib/localization/exercise_copy/` |
-| The buttons and messages of a Round, the Duel and the Review page (129 texts) | The same seven | The Course's Source language | `lib/localization/learner_panel/` |
+| Exercise titles, headings and instruction lines (137 texts) | English, Spanish, Italian, German, Portuguese, Dutch, French | The Course's Source language | `lib/localization/exercise_copy/` |
+| The buttons and messages of a Round, the Duel and the Review page (135 texts) | The same seven | The Course's Source language | `lib/localization/learner_panel/` |
 | Names of languages inside those lines, such as "Traduci in tedesco." (62 languages) | The same seven | The Course's Source language | `lib/localization/language_names.dart` |
 | Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (836 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
 | The Welcome Wizard (15 texts) | English, Italian, Spanish | The language chosen in Create Profile (the Help Language) | `lib/localization/welcome_text.dart` |
@@ -114,7 +114,7 @@ These were left as they are. They are for the future project to decide.
 
 English, with the Italian translation as the example. Spanish has the same texts; German, Portuguese, Dutch and French have those of 6.1 and 6.2. Words in braces, such as `{xp}`, are filled in by the app.
 
-### 6.1 Buttons and messages around an exercise (129 texts, 7 languages)
+### 6.1 Buttons and messages around an exercise (135 texts, 7 languages)
 
 #### A Round (80)
 
@@ -275,7 +275,18 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `linkAskOpen` | Open link | Apri il link |
 | `linkAskCancel` | Cancel | Annulla |
 
-### 6.2 Exercise titles, headings and instruction lines (123 texts, 7 languages)
+#### A Course in the same language (Build 275 Revision 1) (6)
+
+| Key | English | Italian |
+|---|---|---|
+| `sameLanguage.correctAnswers` | Correct answers: | Risposte corrette: |
+| `sameLanguage.otherCorrectAnswers` | Other correct answers: | Altre risposte corrette: |
+| `sameLanguage.somePossibleAnswers` | Some possible answers: | Alcune risposte possibili: |
+| `sameLanguage.wordLookup.note` | One possible meaning from this Course's GuideBook. | Uno dei significati possibili, dal GuideBook del Corso. |
+| `sameLanguage.wordLookup.notes` | Some possible meanings from this Course's GuideBook. | Alcuni dei significati possibili, dal GuideBook del Corso. |
+| `sameLanguage.wordLookup.notice` | Tap a word with a dotted underline to see its meaning from this Course's GuideBook. Only some exercise types have them. It is a hint, one possible meaning: it does not always match the answer to the exercise. | Tocca una parola sottolineata a puntini per vederne il significato dal GuideBook del Corso. Solo alcuni tipi di esercizio le hanno. È un aiuto, uno dei significati possibili: non sempre coincide con la soluzione dell'esercizio. |
+
+### 6.2 Exercise titles, headings and instruction lines (137 texts, 7 languages)
 
 #### Exercise titles (41)
 
@@ -414,6 +425,25 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `instruction.selectSounds` | Play each sound, then choose the right one. | Riproduci ogni suono, poi scegli quello giusto. |
 | `instruction.selectSoundsGap` | Play each sound, then choose the one that fills the gap. | Riproduci ogni suono, poi scegli quello che completa lo spazio vuoto. |
 | `instruction.selectTranslation` | Choose the correct {language} translation | Seleziona la traduzione corretta in {language} |
+
+#### A Course in the same language (Build 275 Revision 1) (14)
+
+| Key | English | Italian |
+|---|---|---|
+| `title.pick_the_word` | PICK THE WORD | SCEGLI LA PAROLA |
+| `title.pick_the_meaning` | PICK THE MEANING | SCEGLI IL SIGNIFICATO |
+| `title.type_the_word` | TYPE THE WORD | SCRIVI LA PAROLA |
+| `title.type_the_meaning` | TYPE THE MEANING | SCRIVI IL SIGNIFICATO |
+| `title.build_the_sentence` | BUILD THE SENTENCE | COMPONI LA FRASE |
+| `title.build_the_meaning` | BUILD THE MEANING | COMPONI IL SIGNIFICATO |
+| `title.match_words_and_meanings` | MATCH WORDS AND MEANINGS | ABBINA PAROLE E SIGNIFICATI |
+| `instruction.sameLanguage.selectWord` | Choose the word for this meaning. | Seleziona la parola che corrisponde a questo significato. |
+| `instruction.sameLanguage.selectMeaning` | Choose the correct meaning. | Seleziona il significato corretto. |
+| `instruction.sameLanguage.inputWord` | Write the word for this meaning. | Inserisci la parola che corrisponde a questo significato. |
+| `instruction.sameLanguage.inputMeaning` | Write the meaning of this word. | Inserisci il significato di questa parola. |
+| `instruction.sameLanguage.arrangeSentence` | Form the sentence for this meaning with the word blocks. | Forma con i blocchi di parole la frase che corrisponde a questo significato. |
+| `instruction.sameLanguage.arrangeMeaning` | Form the meaning of this sentence with the word blocks. | Forma con i blocchi di parole il significato di questa frase. |
+| `instruction.sameLanguage.matchTranslation` | Pair each word with its meaning. | Accoppia ogni parola al suo significato. |
 
 ### 6.3 The Welcome Wizard (15 texts, 3 languages)
 

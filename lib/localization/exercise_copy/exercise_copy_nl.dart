@@ -139,4 +139,24 @@ const exerciseCopyNl = <String, String>{
   'title.page': 'PAGINA',
   'instruction.selectTranslation':
       'Selecteer de juiste vertaling naar het {language}',
+  // Build 275 Revision 1: a Course in the same language.
+  'title.pick_the_word': 'KIES HET WOORD',
+  'title.pick_the_meaning': 'KIES DE BETEKENIS',
+  'title.type_the_word': 'TYP HET WOORD',
+  'title.type_the_meaning': 'TYP DE BETEKENIS',
+  'title.build_the_sentence': 'MAAK DE ZIN',
+  'title.build_the_meaning': 'MAAK DE BETEKENIS',
+  'title.match_words_and_meanings': 'KOPPEL WOORDEN EN BETEKENISSEN',
+  'instruction.sameLanguage.selectWord':
+      'Selecteer het woord bij deze betekenis.',
+  'instruction.sameLanguage.selectMeaning': 'Selecteer de juiste betekenis.',
+  'instruction.sameLanguage.inputWord': 'Schrijf het woord bij deze betekenis.',
+  'instruction.sameLanguage.inputMeaning':
+      'Schrijf de betekenis van dit woord.',
+  'instruction.sameLanguage.arrangeSentence':
+      'Vorm met de woordblokken de zin bij deze betekenis.',
+  'instruction.sameLanguage.arrangeMeaning':
+      'Vorm met de woordblokken de betekenis van deze zin.',
+  'instruction.sameLanguage.matchTranslation':
+      'Zet elk woord bij zijn betekenis.',
 };

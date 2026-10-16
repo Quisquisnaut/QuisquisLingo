@@ -1,6 +1,7 @@
 import '../localization/learner_panel/learner_panel_catalogs.dart';
 import '../localization/learner_panel/learner_panel_en.dart';
 import '../models/course_models.dart';
+import 'course_language_pair.dart';
 import 'exercise_copy_service.dart';
 
 /// The learner panel's buttons and messages (Build 260 Revision 1): Check,
@@ -19,6 +20,17 @@ abstract final class LearnerPanelText {
       language: {...learnerPanelEn, ...catalog},
   };
 
+  /// The texts a Course in the same language says otherwise (Build 275
+  /// Revision 1): answers and meanings, never translations.
+  static const sameLanguageKeys = <String, String>{
+    'correctTranslations': 'sameLanguage.correctAnswers',
+    'otherCorrectTranslations': 'sameLanguage.otherCorrectAnswers',
+    'somePossibleTranslations': 'sameLanguage.somePossibleAnswers',
+    'wordLookup.note': 'sameLanguage.wordLookup.note',
+    'wordLookup.notes': 'sameLanguage.wordLookup.notes',
+    'wordLookup.notice': 'sameLanguage.wordLookup.notice',
+  };
+
   /// The text of [key] for [course], with each `{name}` replaced by
   /// [values]`[name]`.
   static String of(
@@ -29,6 +41,10 @@ abstract final class LearnerPanelText {
     final catalog =
         _merged[ExerciseCopyService.instructionLanguage(course)] ??
         _merged['en']!;
+    final sameKey = sameLanguageKeys[key];
+    if (sameKey != null && CourseLanguagePair.isSameLanguage(course)) {
+      key = sameKey;
+    }
     var text = catalog[key] ?? learnerPanelEn[key]!;
     for (final MapEntry(:key, :value) in values.entries) {
       text = text.replaceAll('{$key}', '$value');

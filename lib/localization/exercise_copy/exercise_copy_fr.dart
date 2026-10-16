@@ -142,4 +142,23 @@ const exerciseCopyFr = <String, String>{
   'title.page': 'PAGE',
   'instruction.selectTranslation':
       'Sélectionne la bonne traduction en {language}',
+  // Build 275 Revision 1: a Course in the same language.
+  'title.pick_the_word': 'CHOISIS LE MOT',
+  'title.pick_the_meaning': 'CHOISIS LE SENS',
+  'title.type_the_word': 'ÉCRIS LE MOT',
+  'title.type_the_meaning': 'ÉCRIS LE SENS',
+  'title.build_the_sentence': 'CONSTRUIS LA PHRASE',
+  'title.build_the_meaning': 'CONSTRUIS LE SENS',
+  'title.match_words_and_meanings': 'ASSOCIE MOTS ET SENS',
+  'instruction.sameLanguage.selectWord':
+      'Sélectionne le mot qui correspond à ce sens.',
+  'instruction.sameLanguage.selectMeaning': 'Sélectionne le sens correct.',
+  'instruction.sameLanguage.inputWord':
+      'Saisis le mot qui correspond à ce sens.',
+  'instruction.sameLanguage.inputMeaning': 'Saisis le sens de ce mot.',
+  'instruction.sameLanguage.arrangeSentence':
+      'Forme avec les blocs de mots la phrase qui correspond à ce sens.',
+  'instruction.sameLanguage.arrangeMeaning':
+      'Forme avec les blocs de mots le sens de cette phrase.',
+  'instruction.sameLanguage.matchTranslation': 'Relie chaque mot à son sens.',
 };

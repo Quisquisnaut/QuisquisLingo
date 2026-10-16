@@ -1,3 +1,31 @@
+# 2.0.75 (Build 275, Revision 1) - What learners read in a same-language Course - 2026-10-17
+
+The plan's Revision 1 (`docs/SAME_LANGUAGE_COURSES_PLAN.md`).
+
+- **In a Course in the same language the translation exercises say "word"
+  and "meaning"**, never "translation", and name no language:
+  - titles PICK THE WORD, PICK THE MEANING, TYPE THE WORD, TYPE THE
+    MEANING, BUILD THE SENTENCE, BUILD THE MEANING, MATCH WORDS AND
+    MEANINGS;
+  - lines "Choose the word for this meaning.", "Choose the correct
+    meaning.", "Write the word for this meaning.", "Write the meaning of
+    this word.", "Form the sentence for this meaning with the word
+    blocks.", "Form the meaning of this sentence with the word blocks.",
+    "Pair each word with its meaning." (no line opens with its title's
+    first word, the rule of Build 263);
+  - the answer feedback "Correct answers:", "Other correct answers:",
+    "Some possible answers:";
+  - Word Lookup "One possible meaning from this Course's GuideBook." and
+    its notice.
+- In the seven learner languages (English, Spanish, Italian, German,
+  Portuguese, Dutch, French; six translated by AI, as before); the Round,
+  Review, the Duel and the Preview all show them.
+- The Round Wizard's Build the sentence prompt reads "Build the sentence
+  for “…”." in a same-language Course (it said "Build the translation of
+  “…”."), and the screen reader counts "correct answers".
+- A translation Course reads exactly as before.
+- Tests: `test/same_language_learner_275_test.dart` (9 tests).
+
 # 2.0.75 (Build 275, Revision 0) - Choosing the kind of Course - 2026-10-16
 
 The owner's idea and decisions of 16 October 2026: Courses that teach a

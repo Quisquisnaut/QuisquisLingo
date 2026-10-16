@@ -140,4 +140,14 @@ const learnerPanelIt = <String, String>{
   'wordLookup.notice':
       'Tocca una parola sottolineata a puntini per vederne una traduzione dal GuideBook del Corso. Solo alcuni tipi di esercizio le hanno. È un aiuto, una delle traduzioni possibili: non sempre coincide con la soluzione dell\'esercizio.',
   'wordLookup.action': 'Vocaboli di questo testo',
+  // Build 275 Revision 1: a Course in the same language.
+  'sameLanguage.correctAnswers': 'Risposte corrette:',
+  'sameLanguage.otherCorrectAnswers': 'Altre risposte corrette:',
+  'sameLanguage.somePossibleAnswers': 'Alcune risposte possibili:',
+  'sameLanguage.wordLookup.note':
+      'Uno dei significati possibili, dal GuideBook del Corso.',
+  'sameLanguage.wordLookup.notes':
+      'Alcuni dei significati possibili, dal GuideBook del Corso.',
+  'sameLanguage.wordLookup.notice':
+      'Tocca una parola sottolineata a puntini per vederne il significato dal GuideBook del Corso. Solo alcuni tipi di esercizio le hanno. È un aiuto, uno dei significati possibili: non sempre coincide con la soluzione dell\'esercizio.',
 };

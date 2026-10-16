@@ -35,7 +35,11 @@ enum CourseKind {
 /// languages never change once it is created, and Course Info refuses a tag
 /// that would change its kind, so its kind never changes either.
 abstract final class CourseLanguagePair {
-  static bool isSameLanguage(Course course) => sameLanguages(
+  /// Kept for each Course object (a Course is never changed in place): the
+  /// learner panel asks it for every text it draws.
+  static final _same = Expando<bool>('same language');
+
+  static bool isSameLanguage(Course course) => _same[course] ??= sameLanguages(
     CourseLanguageResolver.learning(course),
     CourseLanguageResolver.base(course),
   );

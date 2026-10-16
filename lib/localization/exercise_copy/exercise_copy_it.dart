@@ -142,4 +142,26 @@ const exerciseCopyIt = <String, String>{
   'title.page': 'PAGINA',
   'instruction.selectTranslation':
       'Seleziona la traduzione corretta in {language}',
+  // Build 275 Revision 1: a Course in the same language.
+  'title.pick_the_word': 'SCEGLI LA PAROLA',
+  'title.pick_the_meaning': 'SCEGLI IL SIGNIFICATO',
+  'title.type_the_word': 'SCRIVI LA PAROLA',
+  'title.type_the_meaning': 'SCRIVI IL SIGNIFICATO',
+  'title.build_the_sentence': 'COMPONI LA FRASE',
+  'title.build_the_meaning': 'COMPONI IL SIGNIFICATO',
+  'title.match_words_and_meanings': 'ABBINA PAROLE E SIGNIFICATI',
+  'instruction.sameLanguage.selectWord':
+      'Seleziona la parola che corrisponde a questo significato.',
+  'instruction.sameLanguage.selectMeaning':
+      'Seleziona il significato corretto.',
+  'instruction.sameLanguage.inputWord':
+      'Inserisci la parola che corrisponde a questo significato.',
+  'instruction.sameLanguage.inputMeaning':
+      'Inserisci il significato di questa parola.',
+  'instruction.sameLanguage.arrangeSentence':
+      'Forma con i blocchi di parole la frase che corrisponde a questo significato.',
+  'instruction.sameLanguage.arrangeMeaning':
+      'Forma con i blocchi di parole il significato di questa frase.',
+  'instruction.sameLanguage.matchTranslation':
+      'Accoppia ogni parola al suo significato.',
 };

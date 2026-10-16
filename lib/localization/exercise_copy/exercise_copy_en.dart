@@ -136,4 +136,22 @@ const exerciseCopyEn = <String, String>{
   'title.before_you_start': 'BEFORE YOU START',
   'title.page': 'PAGE',
   'instruction.selectTranslation': 'Choose the correct {language} translation',
+  // Build 275 Revision 1: a Course in the same language.
+  'title.pick_the_word': 'PICK THE WORD',
+  'title.pick_the_meaning': 'PICK THE MEANING',
+  'title.type_the_word': 'TYPE THE WORD',
+  'title.type_the_meaning': 'TYPE THE MEANING',
+  'title.build_the_sentence': 'BUILD THE SENTENCE',
+  'title.build_the_meaning': 'BUILD THE MEANING',
+  'title.match_words_and_meanings': 'MATCH WORDS AND MEANINGS',
+  'instruction.sameLanguage.selectWord': 'Choose the word for this meaning.',
+  'instruction.sameLanguage.selectMeaning': 'Choose the correct meaning.',
+  'instruction.sameLanguage.inputWord': 'Write the word for this meaning.',
+  'instruction.sameLanguage.inputMeaning': 'Write the meaning of this word.',
+  'instruction.sameLanguage.arrangeSentence':
+      'Form the sentence for this meaning with the word blocks.',
+  'instruction.sameLanguage.arrangeMeaning':
+      'Form the meaning of this sentence with the word blocks.',
+  'instruction.sameLanguage.matchTranslation':
+      'Pair each word with its meaning.',
 };

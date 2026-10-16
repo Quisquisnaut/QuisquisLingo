@@ -138,4 +138,14 @@ const learnerPanelEn = <String, String>{
   'wordLookup.notice':
       'Tap a word with a dotted underline to see a translation from this Course\'s GuideBook. Only some exercise types have them. It is a hint, one possible translation: it does not always match the answer to the exercise.',
   'wordLookup.action': 'Vocabulary in this text',
+  // Build 275 Revision 1: a Course in the same language.
+  'sameLanguage.correctAnswers': 'Correct answers:',
+  'sameLanguage.otherCorrectAnswers': 'Other correct answers:',
+  'sameLanguage.somePossibleAnswers': 'Some possible answers:',
+  'sameLanguage.wordLookup.note':
+      'One possible meaning from this Course\'s GuideBook.',
+  'sameLanguage.wordLookup.notes':
+      'Some possible meanings from this Course\'s GuideBook.',
+  'sameLanguage.wordLookup.notice':
+      'Tap a word with a dotted underline to see its meaning from this Course\'s GuideBook. Only some exercise types have them. It is a hint, one possible meaning: it does not always match the answer to the exercise.',
 };

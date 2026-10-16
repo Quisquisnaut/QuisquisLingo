@@ -138,4 +138,14 @@ const learnerPanelPt = <String, String>{
   'wordLookup.notice':
       'Toque numa palavra sublinhada a pontilhado para ver uma tradução do GuideBook deste curso. Só alguns tipos de exercício as têm. É uma ajuda, uma tradução possível: nem sempre corresponde à resposta do exercício.',
   'wordLookup.action': 'Vocabulário deste texto',
+  // Build 275 Revision 1: a Course in the same language.
+  'sameLanguage.correctAnswers': 'Respostas corretas:',
+  'sameLanguage.otherCorrectAnswers': 'Outras respostas corretas:',
+  'sameLanguage.somePossibleAnswers': 'Algumas respostas possíveis:',
+  'sameLanguage.wordLookup.note':
+      'Um dos significados possíveis, do GuideBook deste curso.',
+  'sameLanguage.wordLookup.notes':
+      'Alguns dos significados possíveis, do GuideBook deste curso.',
+  'sameLanguage.wordLookup.notice':
+      'Toque numa palavra sublinhada a pontilhado para ver o seu significado no GuideBook deste curso. Só alguns tipos de exercício as têm. É uma ajuda, um significado possível: nem sempre corresponde à resposta do exercício.',
 };

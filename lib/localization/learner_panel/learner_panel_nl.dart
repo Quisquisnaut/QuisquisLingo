@@ -142,4 +142,14 @@ const learnerPanelNl = <String, String>{
   'wordLookup.notice':
       'Tik op een woord met een stippellijn eronder om een vertaling uit het GuideBook van de cursus te zien. Alleen sommige soorten oefeningen hebben ze. Het is een hulp, één mogelijke vertaling: die komt niet altijd overeen met het antwoord van de oefening.',
   'wordLookup.action': 'Woorden in deze tekst',
+  // Build 275 Revision 1: a Course in the same language.
+  'sameLanguage.correctAnswers': 'Juiste antwoorden:',
+  'sameLanguage.otherCorrectAnswers': 'Andere juiste antwoorden:',
+  'sameLanguage.somePossibleAnswers': 'Enkele mogelijke antwoorden:',
+  'sameLanguage.wordLookup.note':
+      'Eén mogelijke betekenis uit het GuideBook van deze cursus.',
+  'sameLanguage.wordLookup.notes':
+      'Enkele mogelijke betekenissen uit het GuideBook van deze cursus.',
+  'sameLanguage.wordLookup.notice':
+      'Tik op een woord met een stippellijn eronder om de betekenis ervan uit het GuideBook van de cursus te zien. Alleen sommige soorten oefeningen hebben ze. Het is een hulp, één mogelijke betekenis: die komt niet altijd overeen met het antwoord van de oefening.',
 };

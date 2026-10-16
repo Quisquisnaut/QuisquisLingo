@@ -146,4 +146,24 @@ const exerciseCopyDe = <String, String>{
   'title.page': 'SEITE',
   'instruction.selectTranslation':
       'Wähle die richtige Übersetzung auf {language}',
+  // Build 275 Revision 1: a Course in the same language.
+  'title.pick_the_word': 'WORT AUSWÄHLEN',
+  'title.pick_the_meaning': 'BEDEUTUNG AUSWÄHLEN',
+  'title.type_the_word': 'WORT EINGEBEN',
+  'title.type_the_meaning': 'BEDEUTUNG EINGEBEN',
+  'title.build_the_sentence': 'SATZ BILDEN',
+  'title.build_the_meaning': 'BEDEUTUNG BILDEN',
+  'title.match_words_and_meanings': 'WÖRTER UND BEDEUTUNGEN ZUORDNEN',
+  'instruction.sameLanguage.selectWord': 'Wähle das Wort zu dieser Bedeutung.',
+  'instruction.sameLanguage.selectMeaning': 'Wähle die richtige Bedeutung.',
+  'instruction.sameLanguage.inputWord':
+      'Schreibe das Wort zu dieser Bedeutung.',
+  'instruction.sameLanguage.inputMeaning':
+      'Schreibe die Bedeutung dieses Wortes.',
+  'instruction.sameLanguage.arrangeSentence':
+      'Bilde mit den Wortbausteinen den Satz zu dieser Bedeutung.',
+  'instruction.sameLanguage.arrangeMeaning':
+      'Bilde mit den Wortbausteinen die Bedeutung dieses Satzes.',
+  'instruction.sameLanguage.matchTranslation':
+      'Bilde Paare aus jedem Wort und seiner Bedeutung.',
 };

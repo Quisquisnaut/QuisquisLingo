@@ -11,6 +11,7 @@ import '../models/exercise_image_metadata.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_editor_device_state.dart';
 import '../services/course_flag_service.dart';
+import '../services/course_language_pair.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_governance_resolver.dart';
 import '../services/course_governance_service.dart';
@@ -3390,6 +3391,7 @@ class _GuidebookRoundGeneratorScreenState
     articles: WordLookupArticles.forLanguage(
       CourseLanguageResolver.learning(widget.course).code,
     ),
+    sameLanguage: CourseLanguagePair.isSameLanguage(widget.course),
   );
 
   void _preparePlan({bool regenerate = false}) {
