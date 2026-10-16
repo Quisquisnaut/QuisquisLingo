@@ -6,14 +6,14 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Since Build 272 Revision 17 it is no Course of the app: `assets/courses/exercise_laboratory_en_it.json` stays in the app only as the source of Fill with an example (and as a bundled test Course for the tests); people import `demo_courses/exercise_laboratory_en_it.json`, the same Course as a custom Course, `course_5df44010-fd64-4c81-a2c8-deb49207f980`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 12, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 124 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
+- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 125 runnable examples across all 49 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
 - Course rights explicitly allow Fork, so the imported Course can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
 
 ## Source inventory and supported modes
 
-The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 48 presets has at least one example below.
+The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 49 presets has at least one example below.
 
 | Lesson | Preset | Examples |
 | --- | --- | ---: |
@@ -33,6 +33,7 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | Select | `listening_answer_source` | 1 |
 | Select | `picture_choice` | 1 |
 | Select | `listening_image_choice` | 1 |
+| Select | `listening_pick_missing_word` | 1 |
 | Input | `type_translation` | 10 |
 | Input | `fill_blank` | 3 |
 | Input | `type_missing_word` | 3 |
@@ -104,6 +105,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Source-language answers, pictures and true or false | listening_source_question | listening_answer_source | Listen and answer (to source); a source-language question about a passage | At nine |
 | Select / Source-language answers, pictures and true or false | picture_choice | picture_choice | What is in the picture; picture prompt, text answers | la mela |
 | Select / Source-language answers, pictures and true or false | listening_image | listening_image_choice | Listen and pick the image; captioned picture answers | il gatto |
+| Select / Source-language answers, pictures and true or false | listening_pick_word | listening_pick_missing_word | Listen and pick the missing word; three spoken answers, one with its own text | dorme |
 | Input / Translations and accepted variants | input_literal | type_translation | One literal accepted translation | grazie |
 | Input / Translations and accepted variants | input_explicit | type_translation | Multiple explicit accepted translations and ranked feedback | ciao / salve / buongiorno |
 | Input / Translations and accepted variants | input_optional | type_translation | Optional subject with {...} | mangio una mela / io mangio una mela |
@@ -219,8 +221,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 124 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 124 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 125 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 125 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

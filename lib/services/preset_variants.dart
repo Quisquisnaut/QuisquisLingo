@@ -75,6 +75,7 @@ abstract final class PresetVariants {
     'page',
     'sort_into_groups',
     'fill_the_slots',
+    'listening_pick_missing_word',
   };
 
   /// The form the editor shows for [presetId]: its own or its base's.
@@ -482,6 +483,9 @@ abstract final class PresetVariants {
       // The Assign recipes (Build 256 Revision 7 follow-up).
       'sort_into_groups' => f.kind == LearnerExerciseKind.assignGroups,
       'fill_the_slots' => f.kind == LearnerExerciseKind.assignSlots,
+      // Build 274 Revision 3.
+      'listening_pick_missing_word' =>
+        f.kind == LearnerExerciseKind.selectSounds,
       _ =>
         exercise.primitive != ExercisePrimitive.input ||
             !hasInWordGap(exercise),

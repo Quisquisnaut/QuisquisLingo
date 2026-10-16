@@ -115,6 +115,13 @@ const exerciseCopyPt = <String, String>{
   'title.type_what_you_hear': 'ESCREVER O QUE OUVE',
   'title.listen_and_fill_the_gaps': 'OUVIR E PREENCHER AS LACUNAS',
   'title.listen_and_match': 'OUVIR E ASSOCIAR',
+  // Build 274 Revision 3: answers that are sounds.
+  'type.selectSounds': 'ESCOLHER O SOM',
+  'instruction.selectSounds': 'Reproduza cada som e depois escolha o certo.',
+  'instruction.selectSoundsGap':
+      'Reproduza cada som e depois escolha o que encaixa na lacuna.',
+  'title.listen_and_pick_the_missing_word':
+      'OUVIR E ESCOLHER A PALAVRA EM FALTA',
   'title.listen_and_pick_the_image': 'OUVIR E ESCOLHER A IMAGEM',
   'title.spell_what_you_hear': 'SOLETRAR O QUE OUVE',
   'title.read_and_answer': 'LER E RESPONDER',

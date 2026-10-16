@@ -204,9 +204,19 @@ abstract final class ElementRoles {
       types: {'text'},
       place: ElementPlace.item,
     ),
+    // Build 274 Revision 3: an answer's own text, kept back until the
+    // learner has answered (Listen and pick the missing word).
+    ElementRole(
+      'after_answer',
+      'The text an answer shows once the learner has answered (Listen and '
+          'pick the missing word).',
+      types: {'text'},
+      place: ElementPlace.item,
+    ),
     ElementRole(
       'primary',
-      'The sound of this item (Match the sounds).',
+      'The sound of this item (Listen and match, Listen and pick the missing '
+          'word): a text the voice reads, or a recording of the Audio Library.',
       types: {'audio'},
       place: ElementPlace.item,
     ),

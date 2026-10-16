@@ -290,6 +290,13 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                         and element.get("role", "primary") not in spec["text_roles"]
                     ):
                         issues.append(f"{label} applies to a text element only as {sorted(spec['text_roles'])}")
+                # Build 274 Revision 3: a recording named by its id is an
+                # answer's sound only.
+                if "recording" in element:
+                    issues.append(
+                        f"{where}: prompt element {prompt_index}: a recording "
+                        "named by its id plays only as an answer"
+                    )
                 if element_type == "link":
                     url = element.get("url")
                     if not (isinstance(url, str) and re.match(r"^https://[^/\s]+", url)):
@@ -363,6 +370,22 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 parts = item.get("content", [])
                 if isinstance(parts, list):
                     item_values[item_id] = next((str(part.get("text", "")) for part in parts if isinstance(part, dict) and part.get("type") == "text"), "")
+                    # Build 274 Revision 3: an answer's sound is a text or a
+                    # recording named by its id, on an audio element of a
+                    # Select's item.
+                    for part in parts:
+                        if not isinstance(part, dict) or "recording" not in part:
+                            continue
+                        recording = part.get("recording")
+                        label = f"{where}: Item {item_index} recording"
+                        if not isinstance(recording, str) or not recording.strip():
+                            issues.append(f"{label} must be a non-empty string")
+                        elif part.get("type") != "audio":
+                            issues.append(f"{label} applies to audio only")
+                        elif str(part.get("text", "")):
+                            issues.append(f"{label}: a sound is either a text or a recording, never both")
+                        elif primitive != "select":
+                            issues.append(f"{label} plays only as the answer of a Select")
                 side = item.get("side")
                 if primitive == "match" and side not in {"left", "right"}:
                     issues.append(f"{where}: Match Item {item_index} needs a side")

@@ -709,6 +709,24 @@ abstract final class PrimitiveCapabilityRegistry {
         OptionKey.pictureBorder: PictureBorder.values,
       },
     ),
+    // Build 274 Revision 3: one choice checked on Check, as sound answers
+    // need (a tap plays a sound and chooses it).
+    SupportedConfiguration(
+      primitive: ExercisePrimitive.select,
+      description: 'One choice among listed items, checked on Check.',
+      evaluationModes: [EvaluationMode.exactItem],
+      values: {
+        OptionKey.selectionMode: [SelectionMode.single],
+        OptionKey.selectionTarget: [SelectionTarget.items],
+        OptionKey.itemReuse: [ItemReuse.forbidden],
+        OptionKey.layout: [LayoutValue.list, LayoutValue.grid],
+        OptionKey.evaluationTiming: [EvaluationTiming.explicit],
+        OptionKey.pictureSize: PictureSize.values,
+        OptionKey.pictureShape: PictureShape.values,
+        OptionKey.picturesPerRow: PicturesPerRow.values,
+        OptionKey.pictureBorder: PictureBorder.values,
+      },
+    ),
     SupportedConfiguration(
       primitive: ExercisePrimitive.select,
       description: 'Several choices among listed items, checked on Check.',

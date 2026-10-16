@@ -35,6 +35,29 @@ Help EN/IT/ES wherever a screen or a rule an author reads changes.
   Laboratory's named icons (sole, luna, albero) state no language. Asked,
   the owner chose to count a word that states no language as the target
   language; a word marked as the source language gets no speaker.
+- **16 October 2026, Revision 3: the format of sound answers** (asked
+  before any code). An answer of the new Listening preset is a Select item
+  whose sound is an audio element with either `text` (spoken by the device
+  voice or by the recording given that text, as today) or `recording` (the
+  ID of an Audio Library recording, played whatever its text; may have
+  none); its own text, shown only once the learner has answered, is a text
+  element with the new role `after_answer`. After answering an answer shows
+  its `after_answer` text, else its sound's `text`, else the recording's
+  Audio Library text, else nothing (an Audit Info). The owner chose:
+  - the Audio Library ID, not the file (`media:<sha>.mp3`): the Audio
+    Library stays the one list of recordings; Fork and Copy as New Course
+    remap the ID; a deleted recording leaves an Audit Error;
+  - **Delete asks first** in the Audio Library when answers use the
+    recording, naming the exercises;
+  - **On-Device TTS plays no recordings, chosen ones included** (the
+    owner: "If you want it to keep playing, why switch to On-Device TTS
+    only?"): such an answer has no sound, an Audit Error, the exercise is
+    skipped until the mode or the answer changes;
+  - **Course Info warns first** when the mode is switched to On-Device TTS
+    while answers use recordings (how many; go on or keep the mode).
+  Choosing on Check is the existing `evaluationTiming: explicit`, newly
+  runnable for a single-answer Select. `minimumAppBuild` 274003 for a
+  Course that uses it.
 
 ## Revision 0 (2.0.74+274000): the Course Editor's top bar and breadcrumbs
 
@@ -127,4 +150,66 @@ In the working tree (15 October 2026):
 - `flutter analyze` clean; complete suite 4,842 passed, 1 skipped;
   committed and pushed.
 
-Next: Revision 3, a new Listening preset (point 7).
+## Revision 3 (2.0.74+274003): Listen and pick the missing word
+
+In progress (16 October 2026; version already 274003, because a Course
+stamped `minimumAppBuild` 274003 must be readable by the app under test):
+
+- Done: `PromptElement.recording` (parse: audio only, never with a text,
+  never in the prompt; serialized; kept by `copyWith`, `withPlural`, the
+  canonical editor's row; remapped by Fork/Copy in
+  `AuthoringDuplicationService._copyPrompt`), role `after_answer`
+  (`ElementRoles`; `ExerciseItem.text` leaves it out), the Select
+  configuration single + `evaluationTiming: explicit` in the runtime-support
+  table, `ExerciseFeatures.hasSoundItems` / `soundOf` / `afterAnswerTextOf`
+  / `checkedOnCheck`, kind `selectSounds` (difficulty recognizeTarget,
+  Audit kind name), copy `type.selectSounds`, `instruction.selectSounds`,
+  `instruction.selectSoundsGap`, `title.listen_and_pick_the_missing_word`
+  and learner panel `soundNumber` in seven languages; `SoundAnswers`
+  (`lib/services/sound_answers.dart`: `recordingOf`, `shownText`,
+  `recordingIds`, `answersWithRecordings`, `needsThisBuild`,
+  `withMinimumAppBuild` in `CourseMinimumBuild.stamp`);
+  `RecordedAudioService.playClips` (the body of `playConcatenated`); Round
+  screen `_soundChoiceExercise` / `_soundAnswer` (`sound-answer-<i>`,
+  `sound-answer-text-<i>`, `sound-answer-mark-<i>`, `sound-answers-check`),
+  `_playAnswerSound`, `_singleCheckChoiceExercise` (`single-check-option-<i>`,
+  `single-check-submit`), the hint, `CorrectAnswerText.of(audioLibrary:)`;
+  availability (`_soundsAvailable`); Duel exclusion; `CourseAudioUsage`
+  (uses by id, `answersNaming`); the Audio Library's Delete asks
+  (`audio-delete-named-dialog`) and the audio source menu warns before On-
+  Device TTS (`audio-tts-named-dialog`: the only place the mode is set is
+  the Audio Library, not Course Info).
+- Done since (16 October 2026): the Audit rules (135: 69 Errors, 44
+  Warnings, 22 Infos); the preset (registry, recipe, builder, decompose,
+  form `SoundAnswersEditor`, field Help, Search, Fill with an example);
+  Python tools and `docs/capabilities_v12.json`; the Laboratory example
+  (125 examples) and its presentation record; Help EN/IT/ES (the preset,
+  its three fields, the Audio Library's audio modes and recordings);
+  `docs/LOCALIZATION_CURRENT_STATE.md`; the tables of the existing tests;
+  `test/listen_pick_missing_word_274_test.dart` (28, six clean runs);
+  CHANGELOG, README, AGENTS, change summary, validation.
+- The independent review (16 October 2026) found thirteen faults, all
+  confirmed and corrected: the preset did not fit a Listen Round (and one
+  copy would empty that Round); a Test Round showed the marks; a blank row
+  could make another answer the correct one; picture answers graded on
+  Check fell into the list of words; the sound kind ignored selection mode,
+  inline gaps and timing; the Audit did not check the sentence and gap the
+  form asks for; recordings were accepted where nothing plays them (now a
+  format error outside a Select, the Error SOUND_ANSWERS_NOT_PLAYABLE inside
+  one, and the Python validator mirrors the refusals); the dialogs'
+  grammar and consequences; the recording's failure message; the Story
+  log's answer text; a false unsaved-changes prompt; a doubled Error.
+  Tests added for each (38 in the new file). 136 rules, 70 Errors.
+- The re-review closed all thirteen; six residuals corrected; the new file
+  38 passed, six clean runs; `flutter analyze` clean. Kept as designed: the
+  preset's sentence and gap Warnings follow the stored preset (sound
+  answers without a gap are legitimate).
+- The complete suite: 4,885 passed, 1 skipped (after a first run whose
+  two failures were test tables: the mascots' anchors, the importable
+  Laboratory's version 2). Committed as "Build 274 Revision 3: Listen and
+  pick the missing word" and pushed to build-274.
+- Next: Revision 4 (Image Library search order, Strict search), then
+  Revision 5 (category groups). Merge into main only on the owner's go.
+- To tell the owner: the warning before On-Device TTS is in the Audio
+  Library's audio source menu (the only place the mode is set), not in
+  Course Info.

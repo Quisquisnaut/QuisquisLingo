@@ -1,6 +1,6 @@
 # Localization: current state
 
-12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10).
+12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10); and on 16 October 2026 for Build 274 Revision 3 (`2.0.74+274003`): Listen and pick the missing word (its title, heading and two lines, the answers' Sound N, its Help).
 
 This document says what QuisquisLingo shows in which language today, and lists the texts that are translated. The tables are generated from the catalogs in `lib/localization/` as they are in this revision.
 
@@ -23,10 +23,10 @@ One page was added to the second group after these decisions: the start page of 
 | The app interface: Home, Settings, Profile, Courses, Course Studio, the Course Editor, the wizards, dialogs, menus, error messages | English | Nothing: always English | In the screens |
 | The names of a Course's items (section 3) | English | Nothing: always English | In the screens and inside the catalogs |
 | Labels the author chooses for Lessons and Rounds | As the author wrote them | The Course | The Course file |
-| Exercise titles, headings and instruction lines (119 texts) | English, Spanish, Italian, German, Portuguese, Dutch, French | The Course's Source language | `lib/localization/exercise_copy/` |
-| The buttons and messages of a Round, the Duel and the Review page (128 texts) | The same seven | The Course's Source language | `lib/localization/learner_panel/` |
+| Exercise titles, headings and instruction lines (123 texts) | English, Spanish, Italian, German, Portuguese, Dutch, French | The Course's Source language | `lib/localization/exercise_copy/` |
+| The buttons and messages of a Round, the Duel and the Review page (129 texts) | The same seven | The Course's Source language | `lib/localization/learner_panel/` |
 | Names of languages inside those lines, such as "Traduci in tedesco." (62 languages) | The same seven | The Course's Source language | `lib/localization/language_names.dart` |
-| Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (828 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
+| Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (833 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
 | The Welcome Wizard (15 texts) | English, Italian, Spanish | The language chosen in Create Profile (the Help Language) | `lib/localization/welcome_text.dart` |
 | The start page, shown while a learner has no Course to study (27 texts) | English, Italian, Spanish | The Help Language | `lib/localization/start_page_text.dart` |
 | The content of a Course | Whatever its author wrote | The Course | The Course file |
@@ -114,9 +114,9 @@ These were left as they are. They are for the future project to decide.
 
 English, with the Italian translation as the example. Spanish has the same texts; German, Portuguese, Dutch and French have those of 6.1 and 6.2. Words in braces, such as `{xp}`, are filled in by the app.
 
-### 6.1 Buttons and messages around an exercise (128 texts, 7 languages)
+### 6.1 Buttons and messages around an exercise (129 texts, 7 languages)
 
-#### A Round (79)
+#### A Round (80)
 
 | Key | English | Italian |
 |---|---|---|
@@ -146,6 +146,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `reviewTheFlashcard` | Review the flashcard. | Ripassa la scheda. |
 | `playAudio` | Play audio | Riproduci l’audio |
 | `playAudioAgain` | Play audio again | Riascolta |
+| `soundNumber` | Sound {n} | Suono {n} |
 | `playSound` | Play sound | Riproduci il suono |
 | `play` | Play | Riproduci |
 | `audioUnavailable` | Audio unavailable | Audio non disponibile |
@@ -274,9 +275,9 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `linkAskOpen` | Open link | Apri il link |
 | `linkAskCancel` | Cancel | Annulla |
 
-### 6.2 Exercise titles, headings and instruction lines (119 texts, 7 languages)
+### 6.2 Exercise titles, headings and instruction lines (123 texts, 7 languages)
 
-#### Exercise titles (40)
+#### Exercise titles (41)
 
 | Key | English | Italian |
 |---|---|---|
@@ -304,6 +305,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `title.type_what_you_hear` | TYPE WHAT YOU HEAR | SCRIVI CIÒ CHE SENTI |
 | `title.listen_and_fill_the_gaps` | LISTEN AND FILL THE GAPS | ASCOLTA E RIEMPI GLI SPAZI |
 | `title.listen_and_match` | LISTEN AND MATCH | ASCOLTA E ABBINA |
+| `title.listen_and_pick_the_missing_word` | LISTEN AND PICK THE MISSING WORD | ASCOLTA E SCEGLI LA PAROLA MANCANTE |
 | `title.listen_and_pick_the_image` | LISTEN AND PICK THE IMAGE | ASCOLTA E SCEGLI L’IMMAGINE |
 | `title.spell_what_you_hear` | SPELL WHAT YOU HEAR | COMPONI CIÒ CHE SENTI |
 | `title.read_and_answer` | READ AND ANSWER | LEGGI E RISPONDI |
@@ -321,7 +323,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `title.before_you_start` | BEFORE YOU START | PRIMA DI INIZIARE |
 | `title.page` | PAGE | PAGINA |
 
-#### Headings by kind of exercise (used when an exercise has no title of its own) (32)
+#### Headings by kind of exercise (used when an exercise has no title of its own) (33)
 
 | Key | English | Italian |
 |---|---|---|
@@ -357,8 +359,9 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `type.assignGaps` | FILL THE GAPS | RIEMPI GLI SPAZI |
 | `type.selectPicture` | WHAT IS IN THE PICTURE? | COSA C’È NELL’IMMAGINE? |
 | `type.selectCompleteAll` | ONE WORD FILLS ALL | UNA PAROLA PER TUTTI |
+| `type.selectSounds` | PICK THE SOUND | SCEGLI IL SUONO |
 
-#### Instruction lines (47)
+#### Instruction lines (49)
 
 | Key | English | Italian |
 |---|---|---|
@@ -408,6 +411,8 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `instruction.arrangeWordClue` | Form the word the clue describes. | Compita la parola descritta dall’indizio. |
 | `instruction.arrangeGaps` | Choose a word for each gap. | Metti una parola in ogni spazio. |
 | `instruction.selectCompleteAll` | Choose the word that fills every gap. | Scegli la parola che completa tutti gli spazi. |
+| `instruction.selectSounds` | Play each sound, then choose the right one. | Riproduci ogni suono, poi scegli quello giusto. |
+| `instruction.selectSoundsGap` | Play each sound, then choose the one that fills the gap. | Riproduci ogni suono, poi scegli quello che completa lo spazio vuoto. |
 | `instruction.selectTranslation` | Choose the correct {language} translation | Seleziona la traduzione corretta in {language} |
 
 ### 6.3 The Welcome Wizard (15 texts, 3 languages)
@@ -851,7 +856,7 @@ Answers, section bodies, the description of each exercise type and the Help of e
 
 | Part of Help | Long texts |
 |---|---|
-| Exercise Help, Exercise primitives Help and the field Help of the exercise forms | 198 |
+| Exercise Help, Exercise primitives Help and the field Help of the exercise forms | 203 |
 | Editor Help | 105 |
 | Course Studio Help | 54 |
 | Advanced (Admin) Help | 43 |
@@ -861,7 +866,7 @@ Answers, section bodies, the description of each exercise type and the Help of e
 | All Courses Help and Course Library Help | 11 |
 | The field Help of the GuideBook module page | 9 |
 | Debug Help | 3 |
-| Total | 491 |
+| Total | 496 |
 
 ### 6.10 The start page (27 texts, 3 languages)
 

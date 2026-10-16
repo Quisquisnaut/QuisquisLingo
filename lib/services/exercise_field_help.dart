@@ -79,6 +79,10 @@ enum ExerciseAuthoringField {
   pictureAnswers,
   // Build 267 Revision 8: every preset form.
   editorNotes,
+  // Build 274 Revision 3: Listen and pick the missing word.
+  spokenSentence,
+  soundGapSentence,
+  soundAnswers,
 }
 
 class ExerciseFieldHelp {
@@ -235,6 +239,14 @@ abstract final class ExerciseFieldHelpRegistry {
         'pictureBorder',
       ],
       'spell_heard': ['tts', 'order', 'extraWords'],
+      'listening_pick_missing_word': [
+        'tts',
+        'question',
+        'prompt',
+        'soundAnswers',
+        'correct',
+        'hint',
+      ],
       'picture_choice': ['prompt', 'answers', 'correct'],
       'picture_name': ['prompt', 'accepted', 'hint'],
       'picture_blocks': ['prompt', 'order', 'extraWords', 'hint'],
@@ -266,7 +278,8 @@ abstract final class ExerciseFieldHelpRegistry {
     // A Before you start card has no picture (Build 257); Match pictures to
     // words has only the pictures of its words (Build 259 Revision 5), and
     // Select the image and Listen and pick the image only the pictures of
-    // their answers (Build 263 Revision 0).
+    // their answers (Build 263 Revision 0); Listen and pick the missing word
+    // has no picture (Build 274 Revision 3).
     return [
       ...selected,
       if (presetId != 'script_recognition' &&
@@ -274,7 +287,8 @@ abstract final class ExerciseFieldHelpRegistry {
           presetId != 'page' &&
           presetId != 'picture_word_match' &&
           presetId != 'icon_choice' &&
-          presetId != 'listening_image_choice')
+          presetId != 'listening_image_choice' &&
+          presetId != 'listening_pick_missing_word')
         'image',
     ];
   }
@@ -519,9 +533,11 @@ abstract final class ExerciseFieldHelpRegistry {
       'gap_choice' => ExerciseAuthoringField.gapSentence,
       // One word fills all (Build 259 Revision 4).
       'one_word_fills_all' => ExerciseAuthoringField.allGapsSentence,
+      'listening_pick_missing_word' => ExerciseAuthoringField.soundGapSentence,
       _ => ExerciseAuthoringField.question,
     },
     'tts' => switch (presetId) {
+      'listening_pick_missing_word' => ExerciseAuthoringField.spokenSentence,
       'flashcard' ||
       'picture_flashcard' => ExerciseAuthoringField.pronunciationTts,
       'spell_heard' => ExerciseAuthoringField.spokenWord,
@@ -592,6 +608,7 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.extraWords,
     },
     'slotReuse' => ExerciseAuthoringField.slotReuse,
+    'soundAnswers' => ExerciseAuthoringField.soundAnswers,
     'editorNotes' => ExerciseAuthoringField.editorNotes,
     'pictureSize' ||
     'pictureShape' ||
@@ -818,6 +835,36 @@ abstract final class ExerciseFieldHelpRegistry {
       validation:
           'Select one valid Correct answer number. Avoid duplicate answers and make distractors plausible but unambiguously wrong. Select the image also needs one icon/image key per answer in the same order.',
       example: 'caffè\nacqua\npane',
+    ),
+    ExerciseAuthoringField.spokenSentence => const ExerciseFieldHelp(
+      title: 'Spoken sentence',
+      purpose:
+          'The whole sentence the learner hears, the missing word included. It plays by itself when the exercise starts, and again with the Play button.',
+      entryRules:
+          'Enter the sentence as it is spoken. The device voice reads it, or the Audio Library recording given exactly this text plays, as the Course’s audio source says.',
+      validation:
+          'Required: a Published save refuses it empty. Keep it the same sentence as Sentence with the gap, with the word in place of ___.',
+      example: 'Il gatto dorme sul divano.',
+    ),
+    ExerciseAuthoringField.soundGapSentence => const ExerciseFieldHelp(
+      title: 'Sentence with the gap',
+      purpose:
+          'The sentence as the learner sees it, with a gap where the missing word goes.',
+      entryRules:
+          'Write the sentence and put ___ (three underscores) in the place of the missing word.',
+      validation:
+          'Required, with exactly one ___ gap: a Published save refuses it otherwise.',
+      example: 'Il gatto ___ sul divano.',
+    ),
+    ExerciseAuthoringField.soundAnswers => const ExerciseFieldHelp(
+      title: 'Answers',
+      purpose:
+          'The answers the learner plays: each one is a sound. A tap plays an answer and chooses it; Check grades.',
+      entryRules:
+          'Give each answer a word, which the device voice reads (or its Audio Library recording, found by its text), or, in a Course whose audio source is Recorded MP3 only or Hybrid, a recording of the Audio Library, which may have no text. Text shown after the answer is optional: once answered, each answer shows that text, else its word, else its recording’s text.',
+      validation:
+          'At least two answers, each with a sound. On-Device TTS plays no recordings: an answer that is a recording then has no sound (a Course Audit Error). An answer that shows no text after the answer is a Course Audit Info.',
+      example: 'dorme · dormono · a recording of “dormire”',
     ),
     ExerciseAuthoringField.correctAnswer => const ExerciseFieldHelp(
       title: 'Correct answer number',

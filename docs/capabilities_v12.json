@@ -422,6 +422,52 @@
           }
         },
         {
+          "description": "One choice among listed items, checked on Check.",
+          "evaluationModes": [
+            "exactItem"
+          ],
+          "values": {
+            "selectionMode": [
+              "single"
+            ],
+            "selectionTarget": [
+              "items"
+            ],
+            "itemReuse": [
+              "forbidden"
+            ],
+            "layout": [
+              "list",
+              "grid"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ],
+            "pictureSize": [
+              "course",
+              "normal",
+              "large"
+            ],
+            "pictureShape": [
+              "course",
+              "round",
+              "square"
+            ],
+            "picturesPerRow": [
+              "course",
+              "automatic",
+              "one",
+              "two",
+              "three"
+            ],
+            "pictureBorder": [
+              "course",
+              "none",
+              "thin"
+            ]
+          }
+        },
+        {
           "description": "Several choices among listed items, checked on Check.",
           "evaluationModes": [
             "exactSet"
@@ -2104,6 +2150,13 @@
       "textRoles": [
         "icon"
       ]
+    },
+    {
+      "key": "recording",
+      "elementTypes": [
+        "audio"
+      ],
+      "type": "string"
     }
   ]
 }

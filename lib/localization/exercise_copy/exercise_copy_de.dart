@@ -120,6 +120,14 @@ const exerciseCopyDe = <String, String>{
   'title.type_what_you_hear': 'SCHREIBEN, WAS DU HÖRST',
   'title.listen_and_fill_the_gaps': 'HÖREN UND LÜCKEN FÜLLEN',
   'title.listen_and_match': 'HÖREN UND ZUORDNEN',
+  // Build 274 Revision 3: answers that are sounds.
+  'type.selectSounds': 'TON AUSWÄHLEN',
+  'instruction.selectSounds':
+      'Spiele jeden Ton ab und wähle dann den richtigen.',
+  'instruction.selectSoundsGap':
+      'Spiele jeden Ton ab und wähle dann den, der in die Lücke passt.',
+  'title.listen_and_pick_the_missing_word':
+      'HÖREN UND FEHLENDES WORT AUSWÄHLEN',
   'title.listen_and_pick_the_image': 'HÖREN UND BILD AUSWÄHLEN',
   'title.spell_what_you_hear': 'BUCHSTABIERE, WAS DU HÖRST',
   'title.read_and_answer': 'LESEN UND ANTWORTEN',

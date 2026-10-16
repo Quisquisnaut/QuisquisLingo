@@ -895,6 +895,48 @@ enum AuditCode {
     'Matching text repeats after ignoring case and punctuation and collapsing whitespace.',
     'A repeated meaning may be deliberate (two sounds, one meaning): any matching that reads the same is accepted. If it is not, give each pair distinct matching text.',
   ),
+  // Build 274 Revision 3 (owner decisions of 16 October 2026): answers that
+  // are sounds.
+  soundAnswerEmpty(
+    'SOUND_ANSWER_EMPTY',
+    AuditSeverity.error,
+    'Exercise: Listen and pick the missing word',
+    'An answer has no sound.',
+    'An answer of a Select whose answers are sounds has neither a text to speak nor a recording.',
+    'Give the answer a word, or choose one of the Audio Library recordings.',
+  ),
+  soundAnswerRecordingMissing(
+    'SOUND_ANSWER_RECORDING_MISSING',
+    AuditSeverity.error,
+    'Exercise: Listen and pick the missing word',
+    'An answer plays a recording the Audio Library does not have.',
+    'The answer names a recording by its id, and no Audio Library recording has that id: it was deleted, or the exercise came from another Course.',
+    'Choose another recording for the answer, or give it a word.',
+  ),
+  soundAnswerRecordingNotPlayed(
+    'SOUND_ANSWER_RECORDING_NOT_PLAYED',
+    AuditSeverity.error,
+    'Exercise: Listen and pick the missing word',
+    'An answer plays a recording, and On-Device TTS plays no recordings.',
+    'The Course’s audio source is On-Device TTS, which plays no recordings, chosen ones included: the answer has no sound.',
+    'Set the audio source to Recorded MP3 only or Hybrid in the Audio Library, or give the answer a word.',
+  ),
+  soundAnswersNotPlayable(
+    'SOUND_ANSWERS_NOT_PLAYABLE',
+    AuditSeverity.error,
+    'Exercise: Listen and pick the missing word',
+    'An answer names a recording that this exercise never plays.',
+    'A Select’s answer names a recording by its id, but the exercise is not one whose answers are sounds: every answer a sound, one answer chosen, no inline gaps, graded on Check.',
+    'In the canonical editor, choose one answer graded on Check (evaluationTiming explicit, single selection, no inline gaps) and give every answer a sound, or give the answer a word instead of the recording.',
+  ),
+  soundAnswerTextMissing(
+    'SOUND_ANSWER_TEXT_MISSING',
+    AuditSeverity.info,
+    'Exercise: Listen and pick the missing word',
+    'An answer shows no text after the learner has answered.',
+    'The answer has no text of its own, no word, and its recording has no text in the Audio Library.',
+    'Write the text shown after the answer, so learners see what they heard; recommended, never required.',
+  ),
   matchPairCount(
     'MATCH_PAIR_COUNT',
     AuditSeverity.info,

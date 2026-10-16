@@ -81,6 +81,8 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
     LearnerExerciseKind.arrangeLines,
   },
   'listening_image_choice': {LearnerExerciseKind.selectListen},
+  // Build 274 Revision 3: answers that are sounds.
+  'listening_pick_missing_word': {LearnerExerciseKind.selectSounds},
   'spell_heard': {LearnerExerciseKind.arrangeWord},
   // What is in the picture has its own title (Build 259 Revision 3).
   'picture_choice': {LearnerExerciseKind.selectPicture},

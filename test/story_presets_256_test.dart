@@ -264,8 +264,9 @@ void main() {
     expect(line.base, 'dialogue_line');
     expect(ExercisePresetRegistry.byId('story_cover')!.base, 'story_cover');
     // 43 since Build 257 added Before you start, 44 with Page (Build 258),
-    // 46 with Listen and choose (Build 259 Revision 2).
-    expect(ExercisePresetRegistry.presets, hasLength(46));
+    // 46 with Listen and choose (Build 259 Revision 2), 47 with Listen and
+    // pick the missing word (Build 274 Revision 3).
+    expect(ExercisePresetRegistry.presets, hasLength(47));
     expect(
       ExercisePresetRegistry.helpByPreset['dialogue_line'],
       contains('narrator'),

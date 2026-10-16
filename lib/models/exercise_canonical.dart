@@ -155,6 +155,9 @@ const pageElementAttributeTypes = <String, Set<String>>{
   'readAloud': {'text'},
   'url': {'link'},
   'plural': {'image', 'text'},
+  // Build 274 Revision 3: the Audio Library recording an answer's sound
+  // plays (an item's audio element only).
+  'recording': {'audio'},
 };
 
 /// The roles a text element must have to carry `plural`: only the icon key

@@ -1,3 +1,71 @@
+# 2.0.74 (Build 274, Revision 3) - Listen and pick the missing word - 2026-10-16
+
+The owner's point 7 of 13 October 2026 (`docs/274_PLAN.md`) and the owner's
+decisions of 16 October 2026 on the format, asked before any code.
+
+- **A new Listening preset, Listen and pick the missing word.** The learner
+  hears the whole sentence, which plays by itself, and sees it with one
+  ___ gap. The answers are sounds: a tap plays an answer and chooses it,
+  and Check grades. Before answering an answer shows only its place
+  ("Sound 2"); once answered, its text, and the right answer and a wrong
+  choice are marked. The form asks for the spoken sentence, the sentence
+  with the gap, an optional instruction or context, the answers, the
+  correct answer number and an optional hint. It is an audio exercise (left
+  out while Audio Exercises is off) and never in the Duel. Its title and
+  instruction line exist in the seven learner languages; its Help in
+  English, Italian and Spanish.
+- **An answer's sound is a word or a recording.** A word is spoken as any
+  text: the device voice, or the Audio Library recording that has that
+  text. In a Course whose audio source is Recorded MP3 only or Hybrid, an
+  answer may instead be a recording of the Audio Library, chosen in the
+  form (with a Play button), which needs no text. Each answer may have its
+  own text, shown only once the learner has answered; without it the
+  answer shows its word, else its recording's text, else nothing.
+- **The format** (owner decisions of 16 October 2026): an answer names its
+  recording by the Audio Library's id (`recording`, on an item's audio
+  element, never beside a text), and its own text is a text element with
+  the role `after_answer`. A Course that uses them, or grades a single
+  choice on Check, records `minimumAppBuild` 274003. Fork and Copy as New
+  Course give recordings new ids and the answers follow them.
+- **On-Device TTS plays no recordings, chosen ones included** (owner: "If
+  you want it to keep playing, why switch to On-Device TTS only?"). Such an
+  answer has no sound, the Course Audit shows an Error, and the exercise is
+  skipped until the audio source or the answer changes. In the Audio
+  Library, switching the audio source to On-Device TTS while answers play
+  recordings asks first (how many, keep the source or switch).
+- **Deleting a recording that answers play asks first** in the Audio
+  Library, naming the exercises; a recording no answer names is deleted at
+  once, as before. A recording an answer names counts as used (Used in N
+  exercises, Check unused MP3 files) and is no "orphan MP3" for the Audit,
+  even without a text.
+- **The Course Audit**: SOUND_ANSWER_EMPTY (an answer with no sound),
+  SOUND_ANSWER_RECORDING_MISSING (a recording the Audio Library does not
+  have), SOUND_ANSWER_RECORDING_NOT_PLAYED (On-Device TTS) and
+  SOUND_ANSWERS_NOT_PLAYABLE (a recording in a Select whose answers are not
+  sounds, which never plays it) are Errors; SOUND_ANSWER_TEXT_MISSING (an
+  answer that shows nothing once answered) is an Info. The preset's spoken
+  sentence and its ___ gap, which the form asks for, are also checked
+  (LISTENING_AUDIO_REQUIRED, GAP_SENTENCE_REQUIRED, GAP_MARKER_MISSING,
+  Warnings). 136 rules: 70 Errors, 44 Warnings, 22 Infos.
+- **Answers are sounds only when every answer is a sound, one answer is
+  chosen and Check grades, outside inline gaps**; any other Select whose
+  answers carry audio plays as before. A recording named by its id is the
+  answer of a Select only: anywhere else it is a format error.
+- **It fits a Listen Round** (its sentence is heard whole and shown with a
+  gap), and in a **Test Round** it marks nothing right or wrong before the
+  results page.
+- **One choice graded on Check** is a configuration this version plays
+  (a single-answer Select with `evaluationTiming: explicit`): sound answers
+  use it; picture answers keep their grid, where a tap chooses and Check
+  grades; any other such Select shows its answers with a Check button.
+- **The form counts the answers as it numbers them**: the correct answer
+  number names the row "Answer N", a blank row is left out without
+  shifting the others, and a correct row left without a sound is refused.
+- The Exercise Laboratory has an example (word answers: the Laboratory has
+  no recordings), and its importable copy is version 2.
+- Tests: `test/listen_pick_missing_word_274_test.dart` (38 tests); the
+  Laboratory presentation baseline gains the example's record.
+
 # 2.0.74 (Build 274, Revision 2) - playback on request - 2026-10-16
 
 The owner's points 6 and 4 of 13 October 2026 (`docs/274_PLAN.md`). Nothing

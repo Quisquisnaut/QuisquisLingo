@@ -473,7 +473,9 @@ class AuthoringDuplicationService {
         for (final item in source.items)
           item.copyWith(
             id: mapped(item.id),
-            content: [for (final element in item.content) _copyPrompt(element)],
+            content: [
+              for (final element in item.content) _copyPrompt(element, remap),
+            ],
           ),
       ],
       targets: source.targets,
@@ -525,5 +527,13 @@ class AuthoringDuplicationService {
 
   /// A fresh element with every attribute, including the Course Model v12
   /// language, playback and required attributes.
-  PromptElement _copyPrompt(PromptElement source) => source.copyWith();
+  /// A copy of [source]; an answer's recording follows its Audio Library
+  /// recording when the Course's recordings get new IDs (Fork, Copy as New
+  /// Course: Build 274 Revision 3).
+  PromptElement _copyPrompt(
+    PromptElement source, [
+    Map<String, String> remap = const {},
+  ]) => source.recording.isEmpty
+      ? source.copyWith()
+      : source.copyWith(recording: remap[source.recording] ?? source.recording);
 }

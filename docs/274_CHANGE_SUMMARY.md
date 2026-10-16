@@ -109,3 +109,49 @@ record them.
 
 Nothing plays by itself. Course files, what authors write, the Duel,
 grading, scoring, progression and learner data.
+
+## Revision 3 (2.0.74+274003): Listen and pick the missing word
+
+### Before
+
+- No Listening exercise asked the learner to choose among sounds.
+- A sound was always found by its text, so a recording without a text could
+  not be an answer.
+
+### Now
+
+- A new preset, **Listen and pick the missing word**: the whole sentence is
+  spoken by itself and shown with one ___ gap; the answers are sounds; a
+  tap plays an answer and chooses it, Check grades. Before answering an
+  answer shows only its place ("Sound 2"); once answered, its text, with
+  the right answer and a wrong choice marked.
+- An answer is a word, spoken as any text, or (in a Course whose audio
+  source is Recorded MP3 only or Hybrid) a recording of the Audio Library,
+  which needs no text. Each answer may have its own text shown once
+  answered; else it shows its word, else its recording's text.
+- On-Device TTS plays no recordings, chosen ones included: such an answer
+  has no sound, the Audit shows an Error and the exercise is skipped.
+  Switching the audio source to On-Device TTS while answers play
+  recordings asks first.
+- Deleting a recording that answers play asks first, naming the exercises.
+- The Audit has five new rules (four Errors, one Info), and checks the
+  preset's spoken sentence and gap (Warnings).
+- It fits a Listen Round; in a Test Round it marks nothing before the
+  results page.
+- A single-answer Select graded on Check is now playable; picture answers
+  keep their grid (a tap chooses, Check grades).
+- The form counts the answers as it numbers them, so a blank row never
+  makes another the correct one.
+- Help in English, Italian and Spanish; the learner's title and line in
+  seven languages; a Laboratory example.
+
+### Owner decisions (16 October 2026)
+
+- An answer names its recording by its Audio Library id, not its file.
+- Delete asks first; On-Device TTS plays no chosen recordings; the switch
+  to it warns first (it lives in the Audio Library's audio source menu).
+
+### What does not change
+
+Every other exercise, Course file and learner data; scoring and
+progression.

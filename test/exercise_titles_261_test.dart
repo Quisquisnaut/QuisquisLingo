@@ -36,7 +36,8 @@ void main() {
       for (final preset in ExercisePresetRegistry.presets)
         ExerciseTitle.slugOfName(preset.name),
     };
-    expect(slugs, hasLength(40));
+    // 41 with Listen and pick the missing word (Build 274 Revision 3).
+    expect(slugs, hasLength(41));
     for (final preset in ExercisePresetRegistry.presets) {
       final slug = ExerciseTitle.slugOfName(preset.name);
       final english = exerciseCopyEn['title.$slug'];

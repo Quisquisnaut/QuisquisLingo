@@ -117,6 +117,13 @@ const exerciseCopyIt = <String, String>{
   'title.type_what_you_hear': 'SCRIVI CIÒ CHE SENTI',
   'title.listen_and_fill_the_gaps': 'ASCOLTA E RIEMPI GLI SPAZI',
   'title.listen_and_match': 'ASCOLTA E ABBINA',
+  // Build 274 Revision 3: answers that are sounds.
+  'type.selectSounds': 'SCEGLI IL SUONO',
+  'instruction.selectSounds': 'Riproduci ogni suono, poi scegli quello giusto.',
+  'instruction.selectSoundsGap':
+      'Riproduci ogni suono, poi scegli quello che completa lo spazio vuoto.',
+  'title.listen_and_pick_the_missing_word':
+      'ASCOLTA E SCEGLI LA PAROLA MANCANTE',
   'title.listen_and_pick_the_image': 'ASCOLTA E SCEGLI L’IMMAGINE',
   'title.spell_what_you_hear': 'COMPONI CIÒ CHE SENTI',
   'title.read_and_answer': 'LEGGI E RISPONDI',

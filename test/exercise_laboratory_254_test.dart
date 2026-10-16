@@ -106,8 +106,10 @@ Exercise _author(Exercise exercise) {
         slots: hints.slots,
         extraWords: hints.extraWords,
         slotReuse: hints.slotReuse,
-        // A Page's blocks (Build 258 Revision 3) come from decompose too.
+        // A Page's blocks (Build 258 Revision 3) come from decompose too,
+        // as do the answers that are sounds (Build 274 Revision 3).
         pageBlocks: hints.pageBlocks,
+        soundAnswers: hints.soundAnswers,
         cardReadAloud: hints.cardReadAloud,
         prompt: canonicalOnly
             ? hints.prompt
@@ -502,6 +504,25 @@ Future<void> _answer(
     await _tap(tester, find.byKey(const Key('page-continue')));
     return;
   }
+  if (kind == LearnerExerciseKind.selectSounds) {
+    // Answers that are sounds (Build 274 Revision 3): a tap plays one and
+    // chooses it; the right one says the right word. Then Check.
+    final features = ExerciseFeatures(exercise);
+    final correct = exercise.canonicalEvaluation.correctItemIds.single;
+    final word = features
+        .soundOf(exercise.items.singleWhere((item) => item.id == correct))!
+        .text;
+    final start = speech.spoken.length;
+    for (var i = 0; i < exercise.items.length; i++) {
+      await _tap(tester, find.byKey(ValueKey('sound-answer-$i')));
+      if (speech.spoken.isNotEmpty && speech.spoken.last == word) break;
+    }
+    // The answers are shuffled: only the one chosen is kept, so the record
+    // does not depend on the order the others were heard in.
+    speech.spoken.removeRange(start, speech.spoken.length - 1);
+    await _tap(tester, find.byKey(const Key('sound-answers-check')));
+    return;
+  }
   if (exercise.primitive == ExercisePrimitive.assign) {
     // Tap an item, then its destination (Build 256 Revision 7); gaps are
     // slots inside the text, groups and slots are bins.
@@ -723,8 +744,9 @@ void main() {
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
       // 125 with Listen and answer (to source) (Build 259 Revision 2), 126
       // with the Complete the text alternatives (Revision 3), 124 with One
-      // word fills all replacing the four reusable-option gaps (Revision 4).
-      expect(examples, hasLength(124));
+      // word fills all replacing the four reusable-option gaps (Revision 4);
+      // 125 with Listen and pick the missing word (Build 274 Revision 3).
+      expect(examples, hasLength(125));
       // The examples cover every preset but Before you start, whose card
       // opens every Round (Build 257).
       expect({

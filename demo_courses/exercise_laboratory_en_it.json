@@ -11,7 +11,7 @@
     "profileId": "afb065f8-701c-48d2-85f7-c80d44abecb9"
   },
   "originalCreatedAtUtc": "2026-09-25T00:00:00.000Z",
-  "courseVersion": "1",
+  "courseVersion": "2",
   "lastVersionEditorProfileId": "afb065f8-701c-48d2-85f7-c80d44abecb9",
   "lastVersionEditorDisplayName": "QuisquisLingo",
   "publicationState": "published",
@@ -2467,6 +2467,78 @@
                   "mode": "exactItem",
                   "correctItemIds": [
                     "qql_lab254_listening_image_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_listening_pick_word",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_pick_missing_word"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "options": {
+                  "evaluationTiming": "explicit"
+                },
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "Il gatto dorme sul divano.",
+                    "playback": "automatic"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Il gatto ___ sul divano."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "qql_lab254_listening_pick_word_item_0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "audio",
+                        "text": "dorme"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_listening_pick_word_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "audio",
+                        "text": "dormono"
+                      },
+                      {
+                        "role": "after_answer",
+                        "type": "text",
+                        "text": "dormono (they sleep)"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_listening_pick_word_item_2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "audio",
+                        "text": "dormire"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "qql_lab254_listening_pick_word_item_0"
                   ]
                 }
               }
@@ -9750,5 +9822,5 @@
       "voice": "male"
     }
   ],
-  "minimumAppBuild": 258000
+  "minimumAppBuild": 274003
 }

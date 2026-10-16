@@ -3404,6 +3404,13 @@ class PromptElement {
   /// copies. Image elements and `icon` elements only; absent means one.
   final bool? plural;
 
+  /// Build 274 Revision 3 (owner decisions of 16 October 2026): the `id` of
+  /// the Audio Library recording an answer's sound plays, whatever text that
+  /// recording has (it may have none). An item's audio element only, and
+  /// never with a [text]: a sound is either a text (the device voice reads
+  /// it, or the recording given that text plays) or a recording.
+  final String recording;
+
   const PromptElement({
     this.role = 'primary',
     required this.type,
@@ -3422,6 +3429,7 @@ class PromptElement {
     this.readAloud,
     this.url = '',
     this.plural,
+    this.recording = '',
   });
 
   bool get isAudio => type == 'audio';
@@ -3449,6 +3457,7 @@ class PromptElement {
     readAloud: readAloud,
     url: url,
     plural: value ? true : null,
+    recording: recording,
   );
   bool get isText => type == 'text';
   bool get isImage => type == 'image';
@@ -3480,6 +3489,7 @@ class PromptElement {
     bool? readAloud,
     String? url,
     bool? plural,
+    String? recording,
   }) => PromptElement(
     role: role ?? this.role,
     type: type ?? this.type,
@@ -3498,6 +3508,7 @@ class PromptElement {
     readAloud: readAloud ?? this.readAloud,
     url: url ?? this.url,
     plural: plural ?? this.plural,
+    recording: recording ?? this.recording,
   );
 
   Map<String, dynamic> toJson() => {
@@ -3519,6 +3530,7 @@ class PromptElement {
     if (readAloud != null) 'readAloud': readAloud,
     if (url.isNotEmpty) 'url': url,
     if (plural != null) 'plural': plural,
+    if (recording.isNotEmpty) 'recording': recording,
   };
   factory PromptElement.fromJson(Map<String, dynamic> j) {
     final source = j['sharedImageSource'];
@@ -3627,10 +3639,22 @@ class PromptElement {
         'element.plural applies to a picture: an image element or an icon element.',
       );
     }
+    final recording = attribute(
+      'recording',
+      (value) => value is String && value.trim().isNotEmpty ? value : null,
+      pageElementAttributeTypes['recording']!,
+      'the id of an Audio Library recording',
+    );
+    final text = JsonRead.optionalString(j, 'text', '');
+    if (recording != null && text.isNotEmpty) {
+      throw const FormatException(
+        'element.recording: a sound is either a text or a recording, never both.',
+      );
+    }
     return PromptElement(
       role: role,
       type: type,
-      text: JsonRead.optionalString(j, 'text', ''),
+      text: text,
       asset: JsonRead.optionalString(j, 'asset', ''),
       speaker: JsonRead.optionalString(j, 'speaker', ''),
       speakerId: JsonRead.optionalString(j, 'speakerId', ''),
@@ -3649,6 +3673,7 @@ class PromptElement {
       readAloud: readAloud,
       url: url ?? '',
       plural: plural,
+      recording: recording?.trim() ?? '',
     );
   }
 }
@@ -3867,8 +3892,14 @@ class ExerciseItem {
     content: content ?? this.content,
     side: side ?? this.side,
   );
+
+  /// The item's text; an `after_answer` text is kept back until the learner
+  /// has answered (Build 274 Revision 3), so it is not the item's text.
   String get text =>
-      content.where((e) => e.type == 'text').map((e) => e.text).firstOrNull ??
+      content
+          .where((e) => e.type == 'text' && e.role != 'after_answer')
+          .map((e) => e.text)
+          .firstOrNull ??
       '';
   String get audio =>
       content.where((e) => e.type == 'audio').map((e) => e.text).firstOrNull ??
@@ -4322,24 +4353,41 @@ class Exercise {
     if (j.containsKey('feedback') && rawFeedback is! Map) {
       throw const FormatException('exercise.feedback must be an object.');
     }
+    final promptElements = JsonRead.requiredList(
+      j,
+      'prompt',
+      'exercise',
+      PromptElement.fromJson,
+    );
+    // Build 274 Revision 3: a recording named by its id is an answer's
+    // sound; the prompt's sounds are found by their text.
+    if (promptElements.any((element) => element.recording.isNotEmpty)) {
+      throw const FormatException(
+        'exercise.prompt: a recording named by its id plays only as an answer.',
+      );
+    }
+    final items = JsonRead.optionalList(
+      j,
+      'items',
+      'exercise',
+      ExerciseItem.fromJson,
+    );
+    if (primitive != ExercisePrimitive.select &&
+        items.any(
+          (item) => item.content.any((element) => element.recording.isNotEmpty),
+        )) {
+      throw const FormatException(
+        'exercise.items: a recording named by its id plays only as the answer of a Select.',
+      );
+    }
     return Exercise.canonical(
       id: contentId,
       publicationState: publicationState,
       updatedAt: JsonRead.requiredUtcTimestamp(j, 'updatedAt', 'exercise'),
       primitive: primitive,
       options: parsedOptions.options,
-      promptElements: JsonRead.requiredList(
-        j,
-        'prompt',
-        'exercise',
-        PromptElement.fromJson,
-      ),
-      items: JsonRead.optionalList(
-        j,
-        'items',
-        'exercise',
-        ExerciseItem.fromJson,
-      ),
+      promptElements: promptElements,
+      items: items,
       targets: JsonRead.optionalList(
         j,
         'targets',

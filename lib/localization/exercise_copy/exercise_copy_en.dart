@@ -113,6 +113,12 @@ const exerciseCopyEn = <String, String>{
   'title.type_what_you_hear': 'TYPE WHAT YOU HEAR',
   'title.listen_and_fill_the_gaps': 'LISTEN AND FILL THE GAPS',
   'title.listen_and_match': 'LISTEN AND MATCH',
+  // Build 274 Revision 3: answers that are sounds.
+  'type.selectSounds': 'PICK THE SOUND',
+  'instruction.selectSounds': 'Play each sound, then choose the right one.',
+  'instruction.selectSoundsGap':
+      'Play each sound, then choose the one that fills the gap.',
+  'title.listen_and_pick_the_missing_word': 'LISTEN AND PICK THE MISSING WORD',
   'title.listen_and_pick_the_image': 'LISTEN AND PICK THE IMAGE',
   'title.spell_what_you_hear': 'SPELL WHAT YOU HEAR',
   'title.read_and_answer': 'READ AND ANSWER',

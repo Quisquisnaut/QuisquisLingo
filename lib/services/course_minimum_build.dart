@@ -4,6 +4,7 @@ import 'lesson_icon_pictures.dart';
 import 'page_blocks.dart';
 import 'picture_answers.dart';
 import 'plural_pictures.dart';
+import 'sound_answers.dart';
 
 /// The oldest build of QuisquisLingo that can play a Course (Build 273
 /// Revision 9): each feature listed here, added by a build that an earlier
@@ -25,6 +26,8 @@ abstract final class CourseMinimumBuild {
     // Build 265 Revision 11: and one that marks a picture plural.
     stamped = PluralPictures.withMinimumAppBuild(stamped);
     // Build 267 Revision 8: and one whose exercises carry Editor Notes.
-    return EditorNotes.withMinimumAppBuild(stamped);
+    stamped = EditorNotes.withMinimumAppBuild(stamped);
+    // Build 274 Revision 3: and one with answers that are sounds.
+    return SoundAnswers.withMinimumAppBuild(stamped);
   }
 }

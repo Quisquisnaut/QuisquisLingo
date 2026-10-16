@@ -65,6 +65,8 @@ abstract final class PresetRecipes {
     // The Assign presets (Build 256 Revision 7 follow-up).
     'sort_into_groups',
     'fill_the_slots',
+    // Listen and pick the missing word (Build 274 Revision 3).
+    'listening_pick_missing_word',
     // Name what you see (Revision 7 fourth follow-up).
     'picture_blocks',
     // Before you start (Build 257).
@@ -140,6 +142,7 @@ abstract final class PresetRecipes {
       LearnerExerciseKind.arrangeSentence,
     },
     'listening_image_choice': {LearnerExerciseKind.selectListen},
+    'listening_pick_missing_word': {LearnerExerciseKind.selectSounds},
     'spell_heard': {LearnerExerciseKind.arrangeWord},
     'picture_choice': {LearnerExerciseKind.selectPicture},
     'picture_name': {LearnerExerciseKind.inputPictureName},
@@ -464,6 +467,18 @@ abstract final class PresetRecipes {
           ? extraBlocks
           : unassigned,
       slotReuse: isAssign && f.assignItemReuse,
+      // Build 274 Revision 3: the answers that are sounds.
+      soundAnswers: [
+        if (f.hasSoundItems)
+          for (final item in items)
+            SoundAnswerDraft(
+              word: f.soundOf(item)?.recording.isEmpty ?? true
+                  ? f.soundOf(item)?.text ?? ''
+                  : '',
+              recording: f.soundOf(item)?.recording ?? '',
+              afterAnswer: f.afterAnswerTextOf(item),
+            ),
+      ],
       guidebookButton: f.guidebookButton,
       pageBlocks: presetId == 'page' ? f.pageBlocks : const [],
       cardReadAloud: cardReadAloud,

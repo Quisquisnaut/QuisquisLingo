@@ -23,8 +23,11 @@ void main() {
       // duplicates (AUDIO_MATCH_ANSWER/SOUND/TEXT_DUPLICATE). Build 266:
       // GUIDEBOOK_MODULE_EMPTY and ROUND_FOCUS_MODULE_MISSING (Warnings),
       // GUIDEBOOK_MODULE_OVERVIEW_LONG (Info). Build 272 Revision 14:
-      // LICENSE_RIGHTS_HOLDER_MISSING (Warning).
-      expect(definitions.length, 131);
+      // LICENSE_RIGHTS_HOLDER_MISSING (Warning). Build 274 Revision 3:
+      // SOUND_ANSWER_EMPTY, SOUND_ANSWER_RECORDING_MISSING,
+      // SOUND_ANSWER_RECORDING_NOT_PLAYED and SOUND_ANSWERS_NOT_PLAYABLE
+      // (Errors), SOUND_ANSWER_TEXT_MISSING (Info).
+      expect(definitions.length, 136);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -33,7 +36,7 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.error)
             .length,
-        66,
+        70,
       );
       expect(
         definitions
@@ -44,7 +47,7 @@ void main() {
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,
-        21,
+        22,
       );
       for (final rule in definitions) {
         expect(rule.code, matches(RegExp(r'^[A-Z][A-Z0-9_]+$')));

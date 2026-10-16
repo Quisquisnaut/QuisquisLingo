@@ -31,6 +31,11 @@ enum LearnerExerciseKind {
   /// Select with an automatic `passage` audio prompt.
   selectListenPassage,
 
+  /// Select whose answers are sounds (Listen and pick the missing word,
+  /// Build 274 Revision 3): a tap plays an answer and chooses it, Check
+  /// grades; each answer shows its text only once answered.
+  selectSounds,
+
   /// Select with a written `passage`.
   selectRead,
 
@@ -296,6 +301,35 @@ class ExerciseFeatures {
 
   bool get hasImageItems =>
       items.any((item) => item.content.any((e) => e.isImage));
+
+  /// Build 274 Revision 3: a Select whose every answer is a sound, one of
+  /// them chosen and graded on Check, outside inline gaps (a tap plays an
+  /// answer, so it cannot answer). Any other Select whose answers carry
+  /// audio plays as before this build.
+  bool get hasSoundItems =>
+      primitive == ExercisePrimitive.select &&
+      items.isNotEmpty &&
+      checkedOnCheck &&
+      !multipleSelection &&
+      !hasInlineTargets &&
+      items.every((item) => item.content.any((e) => e.isAudio));
+
+  /// The sound of [item]: its first audio element (a text or a recording).
+  PromptElement? soundOf(ExerciseItem item) =>
+      item.content.where((e) => e.isAudio).firstOrNull;
+
+  /// The author's own text of [item], shown once the learner has answered
+  /// (role `after_answer`); empty when there is none.
+  String afterAnswerTextOf(ExerciseItem item) => item.content
+      .where((e) => e.isText && e.role == 'after_answer')
+      .map((e) => e.text.trim())
+      .firstWhere((text) => text.isNotEmpty, orElse: () => '');
+
+  /// Whether the learner's choice is graded on Check, not on the tap
+  /// (`evaluationTiming: explicit`).
+  bool get checkedOnCheck =>
+      options.enumValue<EvaluationTiming>(OptionKey.evaluationTiming) ==
+      EvaluationTiming.explicit;
   bool get hasIconItems =>
       items.any((item) => item.content.any((e) => e.role == 'icon'));
   bool get hasCharacterItems => items.any(
@@ -658,6 +692,7 @@ class ExerciseFeatures {
         if (characterImages.isNotEmpty || hasCharacterItems) {
           return LearnerExerciseKind.selectCharacter;
         }
+        if (hasSoundItems) return LearnerExerciseKind.selectSounds;
         if (contextText.isNotEmpty ||
             contextAudio.isNotEmpty ||
             dialogueTurns.isNotEmpty) {

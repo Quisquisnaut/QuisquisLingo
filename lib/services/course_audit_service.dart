@@ -17,6 +17,7 @@ import 'page_blocks.dart';
 import 'preset_recipes.dart';
 import 'translation_choice_service.dart';
 import 'round_type_compatibility.dart';
+import 'sound_answers.dart';
 import 'timed_round_rules.dart';
 
 export 'audit_code_registry.dart' show AuditSeverity;
@@ -418,8 +419,17 @@ class CourseAuditService {
       );
     }
     final audioKeys = <String>{};
+    // Build 274 Revision 3: a recording an answer names by its id is used,
+    // with or without a text.
+    final named = <String>{
+      for (final lesson in course.lessons)
+        for (final round in lesson.rounds)
+          for (final exercise in round.exercises)
+            ...SoundAnswers.recordingIds(exercise),
+    };
     for (final clip in course.audioLibrary) {
       final key = clip.text.trim().toLowerCase();
+      if (key.isEmpty && named.contains(clip.id)) continue;
       if (key.isEmpty) {
         issues.add(
           CourseAuditIssue.fromCode(
@@ -890,6 +900,64 @@ class CourseAuditService {
               roundId: r.id,
             ),
           );
+        }
+        // Build 274 Revision 3: answers that are sounds, against the
+        // Course's Audio Library and its audio source.
+        for (final ex in roundExercises) {
+          final soundFeatures = ExerciseFeatures(ex);
+          if (soundFeatures.kind != LearnerExerciseKind.selectSounds) continue;
+          void flag(AuditCode code, String message) => issues.add(
+            CourseAuditIssue.fromCode(
+              code,
+              message: message,
+              location: rl,
+              roundId: r.id,
+              exerciseId: ex.id,
+            ),
+          );
+          final missing = <int>[];
+          final notPlayed = <int>[];
+          final silent = <int>[];
+          for (final (index, item) in ex.items.indexed) {
+            final sound = soundFeatures.soundOf(item);
+            if (sound == null) continue;
+            if (sound.recording.isNotEmpty) {
+              if (SoundAnswers.recordingOf(sound, course.audioLibrary) ==
+                  null) {
+                missing.add(index + 1);
+              } else if (course.audioMode == 'tts') {
+                notPlayed.add(index + 1);
+              }
+            }
+            if ((sound.text.trim().isNotEmpty || sound.recording.isNotEmpty) &&
+                SoundAnswers.shownText(
+                  soundFeatures,
+                  item,
+                  course.audioLibrary,
+                ).isEmpty) {
+              silent.add(index + 1);
+            }
+          }
+          String answers(List<int> numbers) =>
+              '${numbers.length == 1 ? 'Answer' : 'Answers'} ${numbers.join(', ')}';
+          if (missing.isNotEmpty) {
+            flag(
+              AuditCode.soundAnswerRecordingMissing,
+              '${answers(missing)} play${missing.length == 1 ? 's' : ''} a recording the Audio Library does not have.',
+            );
+          }
+          if (notPlayed.isNotEmpty) {
+            flag(
+              AuditCode.soundAnswerRecordingNotPlayed,
+              '${answers(notPlayed)} play${notPlayed.length == 1 ? 's' : ''} a recording, and On-Device TTS plays no recordings.',
+            );
+          }
+          if (silent.isNotEmpty) {
+            flag(
+              AuditCode.soundAnswerTextMissing,
+              '${answers(silent)} show${silent.length == 1 ? 's' : ''} no text after the learner has answered.',
+            );
+          }
         }
         for (final ex in roundExercises) {
           final lineFeatures = ExerciseFeatures(ex);
@@ -1655,6 +1723,8 @@ class CourseAuditService {
       ' Sort into groups needs groups (categories): one target per group, named by the text before it, holding its words.',
     'fill_the_slots' =>
       ' Fill the slots needs slots: one target per slot, named by the text before it, holding one word.',
+    'listening_pick_missing_word' =>
+      ' Listen and pick the missing word needs answers that are sounds: a word or a recording each.',
     'script_recognition' =>
       ' Recognize characters needs character images in the prompt or the options.',
     'reading_answer_target' =>
@@ -1675,6 +1745,7 @@ class CourseAuditService {
     LearnerExerciseKind.selectCharacter => 'Recognize characters',
     LearnerExerciseKind.selectListen => 'What do you hear',
     LearnerExerciseKind.selectListenPassage => 'Listen and choose',
+    LearnerExerciseKind.selectSounds => 'Listen and pick the missing word',
     LearnerExerciseKind.selectRead => 'Reading comprehension',
     LearnerExerciseKind.selectDialogue => 'Dialogue response',
     LearnerExerciseKind.selectContext => 'Contextual comprehension',
@@ -1789,8 +1860,17 @@ class CourseAuditService {
         'Prompt media must be text, audio or image; a Page may also hold links.',
       );
     }
+    // Build 274 Revision 3: an answer may name a recording instead, and an
+    // answer that is a sound without either is SOUND_ANSWER_EMPTY's.
+    final soundAnswerElements = f.kind == LearnerExerciseKind.selectSounds
+        ? {for (final item in ex.items) ...item.content}
+        : const <PromptElement>{};
     if (elements.any(
-      (element) => element.isAudio && element.text.trim().isEmpty,
+      (element) =>
+          element.isAudio &&
+          element.text.trim().isEmpty &&
+          element.recording.isEmpty &&
+          !soundAnswerElements.contains(element),
     )) {
       add(
         AuditCode.promptMediaUnsupported,
@@ -1948,6 +2028,25 @@ class CourseAuditService {
                 'Listening comprehension passage is very short; make sure it tests comprehension.',
               );
             }
+          // Build 274 Revision 3: the form asks for both to publish.
+          case 'listening_pick_missing_word':
+            if ((f.automaticAudio?.text ?? '').trim().isEmpty) {
+              add(
+                AuditCode.listeningAudioRequired,
+                'Listen and pick the missing word has no spoken sentence. Enter the sentence the learner should hear.',
+              );
+            }
+            if (f.questionText.trim().isEmpty) {
+              add(
+                AuditCode.gapSentenceRequired,
+                'Listen and pick the missing word needs the sentence with the gap.',
+              );
+            } else if (!RegExp(r'___').hasMatch(f.questionText)) {
+              add(
+                AuditCode.gapMarkerMissing,
+                'Listen and pick the missing word: the sentence must contain the ___ gap marker.',
+              );
+            }
           case 'gap_choice':
             if (f.questionText.trim().isEmpty) {
               add(
@@ -2068,6 +2167,17 @@ class CourseAuditService {
     // 4. Content rules by primitive and kind, from canonical data.
     switch (ex.primitive) {
       case ExercisePrimitive.select:
+        // Build 274 Revision 3: a recording plays only when the answers are
+        // sounds (inline gaps included, which never are).
+        if (f.kind != LearnerExerciseKind.selectSounds &&
+            ex.items.any(
+              (item) => item.content.any((e) => e.recording.isNotEmpty),
+            )) {
+          add(
+            AuditCode.soundAnswersNotPlayable,
+            'An answer names a recording, but the answers are sounds only when each answer is one, a single answer is chosen and Check grades, outside inline gaps: this exercise never plays it.',
+          );
+        }
         if (f.selectInline) {
           _auditGapFill(f, itemIdSet, add);
           break;
@@ -2104,13 +2214,32 @@ class CourseAuditService {
             'Correct Item ID does not resolve to a visible answer option.',
           );
         }
-        if (itemValues.any((value) => value.trim().isEmpty)) {
+        // Build 274 Revision 3: an answer that is a sound is its word or
+        // the recording it names.
+        final sounds = kind == LearnerExerciseKind.selectSounds;
+        final answerKeys = sounds
+            ? [
+                for (final item in ex.items)
+                  switch (f.soundOf(item)) {
+                    final sound? when sound.recording.isNotEmpty =>
+                      'recording:${sound.recording}',
+                    final sound? => sound.text,
+                    null => '',
+                  },
+              ]
+            : itemValues;
+        if (sounds && answerKeys.any((key) => key.trim().isEmpty)) {
+          add(
+            AuditCode.soundAnswerEmpty,
+            'Every answer needs a sound: a word, or a recording of the Audio Library.',
+          );
+        } else if (!sounds && itemValues.any((value) => value.trim().isEmpty)) {
           add(AuditCode.choiceAnswerEmpty, 'Answer options cannot be blank.');
         }
         final repeated = f.isTranslationChoice
             ? TranslationChoice.hasRepeatedAnswers(itemValues)
-            : itemValues.map((e) => e.trim().toLowerCase()).toSet().length !=
-                  itemValues.length;
+            : answerKeys.map((e) => e.trim().toLowerCase()).toSet().length !=
+                  answerKeys.length;
         if (repeated) {
           add(
             AuditCode.choiceAnswerDuplicate,
@@ -2198,6 +2327,14 @@ class CourseAuditService {
               'The declared correct option does not occur in the reading passage. Review this generated Reading exercise for a likely vocabulary mismatch.',
             );
           }
+        }
+        // Build 274 Revision 3: one gap, as Pick the missing word.
+        if (kind == LearnerExerciseKind.selectSounds &&
+            f.promptBlankCount > 1) {
+          add(
+            AuditCode.gapMarkerCount,
+            'Listen and pick the missing word should normally contain exactly one gap.',
+          );
         }
         if (kind == LearnerExerciseKind.selectComplete) {
           final sentence = ex.promptElements

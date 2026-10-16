@@ -121,6 +121,15 @@ void main() {
         'picturesPerRow',
       ],
       'spell_heard': ['tts', 'order', 'extraWords'],
+      // Build 274 Revision 3.
+      'listening_pick_missing_word': [
+        'tts',
+        'question',
+        'prompt',
+        'soundAnswers',
+        'correct',
+        'hint',
+      ],
       // Their optional questions became Instruction or context (Build 259).
       'picture_choice': ['prompt', 'answers', 'correct'],
       'picture_name': ['prompt', 'accepted', 'hint'],

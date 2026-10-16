@@ -82,6 +82,11 @@ class PrimitiveElementRow extends StatelessWidget {
     plural: element.isText && !pluralTextRoles.contains(role ?? element.role)
         ? null
         : element.plural,
+    // Build 274 Revision 3: an answer's recording, kept while the element is
+    // still a sound without a text.
+    recording: element.isAudio && (text ?? element.text).isEmpty
+        ? element.recording
+        : '',
   );
 
   static const _keep = Object();

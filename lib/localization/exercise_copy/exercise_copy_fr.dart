@@ -118,6 +118,12 @@ const exerciseCopyFr = <String, String>{
   'title.type_what_you_hear': 'ÉCRIS CE QUE TU ENTENDS',
   'title.listen_and_fill_the_gaps': 'ÉCOUTE ET REMPLIS LES TROUS',
   'title.listen_and_match': 'ÉCOUTE ET ASSOCIE',
+  // Build 274 Revision 3: answers that are sounds.
+  'type.selectSounds': 'CHOISIS LE SON',
+  'instruction.selectSounds': 'Lance chaque son, puis choisis le bon.',
+  'instruction.selectSoundsGap':
+      'Lance chaque son, puis choisis celui qui remplit le vide.',
+  'title.listen_and_pick_the_missing_word': 'ÉCOUTE ET CHOISIS LE MOT MANQUANT',
   'title.listen_and_pick_the_image': 'ÉCOUTE ET CHOISIS L’IMAGE',
   'title.spell_what_you_hear': 'ÉPELLE CE QUE TU ENTENDS',
   'title.read_and_answer': 'LIS ET RÉPONDS',

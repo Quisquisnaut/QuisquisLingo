@@ -699,6 +699,43 @@ def complete_text_exercise(text: str, answers: list[str], *, updated_at: str,
     return value
 
 
+def pick_missing_word_exercise(spoken: str, sentence: str, answers: list[dict], correct: int, *,
+                               updated_at: str, item_prefix: str, instruction: str = "",
+                               hint: str = "") -> dict:
+    """Listen and pick the missing word (Build 274 Revision 3): the whole
+    sentence spoken by itself, shown with one ___ gap; the answers are sounds,
+    each {"word": ...} or {"recording": <Audio Library id>}, with an optional
+    "after_answer" text; one correct answer (0-based), graded on Check.
+    Mirrors the Dart recipe (ExerciseDraftBuilder._buildPickMissingWord)."""
+    assert len(re.findall(r"_{3,}", sentence)) == 1, sentence
+    assert len(answers) >= 2 and 0 <= correct < len(answers), (answers, correct)
+    prompt = []
+    if instruction:
+        prompt.append({"role": "primary", "type": "text", "text": instruction})
+    prompt.append({"role": "primary", "type": "audio", "text": spoken, "playback": "automatic"})
+    prompt.append({"role": "question", "type": "text", "text": sentence})
+    items = []
+    for index, answer in enumerate(answers):
+        sound = ({"role": "primary", "type": "audio", "recording": answer["recording"]}
+                 if answer.get("recording") else
+                 {"role": "primary", "type": "audio", "text": answer["word"]})
+        content = [sound]
+        if answer.get("after_answer"):
+            content.append({"role": "after_answer", "type": "text", "text": answer["after_answer"]})
+        items.append({"id": f"{item_prefix}_item_{index}", "content": content})
+    value = {
+        "updatedAt": updated_at, "primitive": "select",
+        "options": _ordered_options({"evaluationTiming": "explicit"}),
+        "prompt": prompt,
+        "items": items,
+        "evaluation": _ordered_evaluation({"mode": "exactItem",
+                                           "correctItemIds": [items[correct]["id"]]}),
+    }
+    if hint:
+        value["hint"] = hint
+    return value
+
+
 def becomes_exercise(content: dict) -> bool:
     """Whether a v11 Content is an exercise once converted: an exercise, a
     presentation or, since Build 257, a Lesson introduction (a Before you

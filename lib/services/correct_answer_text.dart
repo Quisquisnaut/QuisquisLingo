@@ -2,6 +2,7 @@ import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import 'answer_engine.dart';
 import 'answer_grader.dart';
+import 'sound_answers.dart';
 
 /// A text of the learner panel by its key, in the Course's language
 /// (`LearnerPanelText.of` on the screen).
@@ -56,11 +57,21 @@ class CorrectAnswerText {
     Exercise ex,
     ExerciseFeatures f, {
     String displayedCorrection = '',
+    List<CourseAudioClip> audioLibrary = const [],
   }) {
     switch (ex.primitive) {
       case ExercisePrimitive.select:
         if (f.hasInlineTargets) return _gapAnswerText(ex, f);
         if (f.multipleSelection) return _selectMultiAnswerText(ex);
+        // Build 274 Revision 3: a sound answer's text as it shows once
+        // answered; empty when it has none (the screen names its place).
+        if (f.kind == LearnerExerciseKind.selectSounds) {
+          final id = ex.canonicalEvaluation.correctItemIds.firstOrNull;
+          final item = ex.items.where((item) => item.id == id).firstOrNull;
+          return item == null
+              ? text('seeCourseAnswer')
+              : SoundAnswers.shownText(f, item, audioLibrary);
+        }
         final value = AnswerGrader.itemValue(
           ex,
           ex.canonicalEvaluation.correctItemIds.firstOrNull,

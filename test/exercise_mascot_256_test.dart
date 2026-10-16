@@ -109,6 +109,8 @@ const _allowedAnchors = <String, Set<ExerciseMascotAnchor>>{
   'listening_choose_source': {ExerciseMascotAnchor.playButton},
   'listening_answer_target': {ExerciseMascotAnchor.playButton},
   'listening_answer_source': {ExerciseMascotAnchor.playButton},
+  // Build 274 Revision 3: beside the Play button of its sentence.
+  'listening_pick_missing_word': {ExerciseMascotAnchor.playButton},
   'reading_answer_target': {ExerciseMascotAnchor.question},
   'type_translation_to_target': {ExerciseMascotAnchor.prompt},
   'type_translation_to_source': {ExerciseMascotAnchor.prompt},
@@ -145,6 +147,7 @@ const _laboratoryShows = {
   'listening_choose_source',
   'listening_answer_target',
   'listening_answer_source',
+  'listening_pick_missing_word',
   'type_translation_to_target',
   'type_translation_to_source',
   'listening_spelling',

@@ -53,6 +53,8 @@ const _expected = <String, int?>{
   'picture_choice': 2,
   'super_match': 2,
   'sort_into_groups': 2,
+  // Build 274 Revision 3: a target-language word picked by ear.
+  'listening_pick_missing_word': 2,
   'word_order': 3,
   'picture_blocks': 3,
   'gap_blocks': 3,

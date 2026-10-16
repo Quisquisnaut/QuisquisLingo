@@ -208,6 +208,17 @@ const _formFields = <String, Map<String, String>>{
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
+  // Build 274 Revision 3: every answer's two text fields share the Answers
+  // Help (as a Page's blocks share theirs).
+  'listening_pick_missing_word': {
+    'Spoken sentence': 'tts',
+    'Sentence with the gap': 'question',
+    'Instruction or context (optional)': 'prompt',
+    'Word': 'soundAnswers',
+    'Text shown after the answer (optional)': 'soundAnswers',
+    'Correct answer number': 'correct',
+    'Hint (optional)': 'hint',
+  },
   'spell_heard': {
     'Spoken word': 'tts',
     'Blocks of the word, in order': 'order',
@@ -516,9 +527,25 @@ void main() {
   }
 }
 
-Finder _field(String label) => find.byWidgetPredicate(
-  (widget) => widget is TextField && widget.decoration?.labelText == label,
+/// The first field with [label], or none while it is not built yet (an
+/// answer of Listen and pick the missing word has one Word field per answer).
+Finder _field(String label) => _FirstOrNone(
+  find.byWidgetPredicate(
+    (widget) => widget is TextField && widget.decoration?.labelText == label,
+  ),
 );
+
+class _FirstOrNone extends ChainedFinder {
+  _FirstOrNone(super.parent);
+
+  @override
+  String get description =>
+      '${parent.describeMatch(Plurality.many)} (the first)';
+
+  @override
+  Iterable<Element> filter(Iterable<Element> parentCandidates) =>
+      parentCandidates.take(1);
+}
 
 Finder _help(String fieldKey) =>
     find.byKey(ValueKey('exercise-field-help-$fieldKey'));

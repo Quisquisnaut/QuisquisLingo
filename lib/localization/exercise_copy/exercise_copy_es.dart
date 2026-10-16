@@ -118,6 +118,14 @@ const exerciseCopyEs = <String, String>{
   'title.type_what_you_hear': 'ESCRIBE LO QUE OYES',
   'title.listen_and_fill_the_gaps': 'ESCUCHA Y RELLENA LOS HUECOS',
   'title.listen_and_match': 'ESCUCHA Y RELACIONA',
+  // Build 274 Revision 3: answers that are sounds.
+  'type.selectSounds': 'ELIGE EL SONIDO',
+  'instruction.selectSounds':
+      'Reproduce cada sonido y luego elige el correcto.',
+  'instruction.selectSoundsGap':
+      'Reproduce cada sonido y luego elige el que encaja en el hueco.',
+  'title.listen_and_pick_the_missing_word':
+      'ESCUCHA Y ELIGE LA PALABRA QUE FALTA',
   'title.listen_and_pick_the_image': 'ESCUCHA Y ELIGE LA IMAGEN',
   'title.spell_what_you_hear': 'DELETREA LO QUE OYES',
   'title.read_and_answer': 'LEE Y RESPONDE',

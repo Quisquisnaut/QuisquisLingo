@@ -27,6 +27,8 @@ const learnerPanelIt = <String, String>{
   'reviewTheFlashcard': 'Ripassa la scheda.',
   'playAudio': 'Riproduci l’audio',
   'playAudioAgain': 'Riascolta',
+  // Build 274 Revision 3: an answer that is a sound.
+  'soundNumber': 'Suono {n}',
   'playSound': 'Riproduci il suono',
   'play': 'Riproduci',
   'audioUnavailable': 'Audio non disponibile',

@@ -211,6 +211,10 @@ class ExerciseCopyService {
         return c['instruction.$variant'] ?? instruction(course, kind);
       }
     }
+    // Sound answers (Build 274 Revision 3): the one that fills the gap.
+    if (kind == LearnerExerciseKind.selectSounds && features.hasBlankInPrompt) {
+      return c['instruction.selectSoundsGap'] ?? instruction(course, kind);
+    }
     // Spelling without a picture (Build 259 Revision 4): heard, or from a
     // clue.
     if (kind == LearnerExerciseKind.arrangeWord &&

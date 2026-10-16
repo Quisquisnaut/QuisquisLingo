@@ -27,6 +27,8 @@ const learnerPanelEn = <String, String>{
   'reviewTheFlashcard': 'Review the flashcard.',
   'playAudio': 'Play audio',
   'playAudioAgain': 'Play audio again',
+  // Build 274 Revision 3: an answer that is a sound.
+  'soundNumber': 'Sound {n}',
   'playSound': 'Play sound',
   'play': 'Play',
   'audioUnavailable': 'Audio unavailable',

@@ -50,6 +50,7 @@ abstract final class PresetExamples {
     'missing_word': 'qql_lab254_input_missing_one',
     'audio_match': 'qql_lab254_match_sounds',
     'listening_image_choice': 'qql_lab254_listening_image',
+    'listening_pick_missing_word': 'qql_lab254_listening_pick_word',
     'spell_heard': 'qql_lab254_spell_heard_letters',
     'reading_answer_target': 'qql_lab254_reading_dialogue',
     'icon_choice': 'qql_lab254_select_asset_options',

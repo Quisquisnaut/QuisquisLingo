@@ -8,6 +8,42 @@ import 'preset_variants.dart';
 
 /// A detached snapshot of the Exercise form. It holds no controllers or Course
 /// working copy, and building it has no effect on the authoring session.
+/// An answer of Listen and pick the missing word as its form holds it
+/// (Build 274 Revision 3): a [word] the voice reads, or a [recording] (the
+/// id of an Audio Library recording), and an optional text shown once the
+/// learner has answered.
+class SoundAnswerDraft {
+  const SoundAnswerDraft({
+    this.word = '',
+    this.recording = '',
+    this.afterAnswer = '',
+  });
+
+  final String word;
+  final String recording;
+  final String afterAnswer;
+
+  /// A row with nothing written or chosen in it.
+  bool get isBlank =>
+      word.trim().isEmpty && recording.isEmpty && afterAnswer.trim().isEmpty;
+
+  /// Whether the answer has a sound.
+  bool get hasSound => word.trim().isNotEmpty || recording.isNotEmpty;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SoundAnswerDraft &&
+      other.word == word &&
+      other.recording == recording &&
+      other.afterAnswer == afterAnswer;
+
+  @override
+  int get hashCode => Object.hash(word, recording, afterAnswer);
+
+  @override
+  String toString() => 'SoundAnswerDraft($word, $recording, $afterAnswer)';
+}
+
 class ExerciseDraftValues {
   ExerciseDraftValues({
     required this.original,
@@ -60,8 +96,10 @@ class ExerciseDraftValues {
     this.picturesPerRow = 'course',
     this.pictureBorder = 'course',
     Set<String> pluralPictures = const {},
+    List<SoundAnswerDraft> soundAnswers = const [],
   }) : correctTranslations = List.unmodifiable(correctTranslations),
-       pluralPictures = Set.unmodifiable(pluralPictures);
+       pluralPictures = Set.unmodifiable(pluralPictures),
+       soundAnswers = List.unmodifiable(soundAnswers);
 
   final Exercise original;
   final String type;
@@ -170,6 +208,10 @@ class ExerciseDraftValues {
   /// icon key.
   final Set<String> pluralPictures;
 
+  /// Listen and pick the missing word's answers, in order (Build 274
+  /// Revision 3).
+  final List<SoundAnswerDraft> soundAnswers;
+
   ExerciseDraftValues copyWith({
     String? type,
     bool? useInlineGaps,
@@ -237,6 +279,7 @@ class ExerciseDraftValues {
     picturesPerRow: picturesPerRow,
     pictureBorder: pictureBorder,
     pluralPictures: pluralPictures,
+    soundAnswers: soundAnswers,
   );
 
   /// Script recognition already owns its canonical Select construction and
@@ -262,6 +305,11 @@ enum ExerciseDraftField {
   prompt,
   missingWords,
   image,
+
+  /// Listen and pick the missing word (Build 274 Revision 3): the spoken
+  /// sentence and the answers.
+  tts,
+  soundAnswers,
 }
 
 enum ExerciseDraftErrorCode {
@@ -318,6 +366,17 @@ enum ExerciseDraftErrorCode {
   /// A spelling exercise has fewer than two blocks (Build 265 Revision 11,
   /// owner report of 7 October 2026: one block is no puzzle).
   blocksTooFew,
+
+  /// Listen and pick the missing word (Build 274 Revision 3): the sentence
+  /// shown has no ___ gap, or more than one.
+  oneGapRequired,
+
+  /// Listen and pick the missing word has fewer than two answers.
+  soundAnswersTooFew,
+
+  /// An answer of Listen and pick the missing word has neither a word nor a
+  /// recording; the line is the answer's number.
+  soundAnswerEmpty,
 }
 
 class ExerciseDraftFieldError {
@@ -374,6 +433,11 @@ abstract final class ExerciseDraftBuilder {
     'build_translation_to_target': (ExerciseDraftField.prompt, 'Sentence'),
     'build_translation_to_source': (ExerciseDraftField.prompt, 'Sentence'),
     'spell_word': (ExerciseDraftField.prompt, 'Clue (source language)'),
+    // Build 274 Revision 3.
+    'listening_pick_missing_word': (
+      ExerciseDraftField.question,
+      'Sentence with the gap',
+    ),
   };
 
   static ExerciseDraftBuildResult build(ExerciseDraftValues draft) {
@@ -727,6 +791,9 @@ abstract final class ExerciseDraftBuilder {
     if (type == 'fill_the_slots') return _buildFillTheSlots(draft);
     if (type == 'sentence_order') return _buildSentenceOrder(draft);
     if (type == 'complete_text') return _buildCompleteText(draft);
+    if (type == 'listening_pick_missing_word') {
+      return _buildPickMissingWord(draft);
+    }
     if (type == 'script_recognition') {
       final candidate = draft.scriptCandidate;
       return candidate == null
@@ -1511,6 +1578,149 @@ abstract final class ExerciseDraftBuilder {
                 targetId: 'gap_${i + 1}',
                 answers: [if (i < answers.length) answers[i]],
               ),
+          ],
+        ),
+        hint: draft.hint.trim(),
+        feedback: original.feedback,
+        authoringMetadata: original.authoringMetadata,
+      ),
+    );
+  }
+
+  /// Listen and pick the missing word (Build 274 Revision 3, owner
+  /// decisions of 13 and 16 October 2026): the whole sentence is spoken by
+  /// itself (`primary` audio, automatic) and shown with one `___` gap (the
+  /// `question`), under an optional Instruction or context (`primary` text
+  /// without a language); the answers are sounds, each a word or an Audio
+  /// Library recording named by its id, with an optional `after_answer`
+  /// text; one correct answer, graded on Check (`evaluationTiming:
+  /// explicit`); an optional hint. Answers keep their item IDs by place.
+  /// The form numbers its rows ("Answer 2"): the correct answer number and
+  /// every refusal count them so, and a blank row is left out of the
+  /// exercise, never renumbering the others' meaning.
+  static ExerciseDraftBuildResult _buildPickMissingWord(
+    ExerciseDraftValues draft,
+  ) {
+    final original = draft.original;
+    final spoken = draft.tts.trim();
+    final sentence = draft.question.trim();
+    final rows = draft.soundAnswers;
+    // The rows kept, with their numbers in the form.
+    final kept = [
+      for (final (index, answer) in rows.indexed)
+        if (!answer.isBlank) (index + 1, answer),
+    ];
+    final answers = [for (final (_, answer) in kept) answer];
+    final correct = int.tryParse(draft.correct.trim());
+    if (_strict(draft)) {
+      if (spoken.isEmpty) {
+        return _failure(
+          ExerciseDraftField.tts,
+          ExerciseDraftErrorCode.textRequired,
+          detail: 'Spoken sentence',
+        );
+      }
+      if (RegExp(r'_{3,}').allMatches(sentence).length != 1) {
+        return _failure(
+          ExerciseDraftField.question,
+          ExerciseDraftErrorCode.oneGapRequired,
+        );
+      }
+      if (answers.length < 2) {
+        return _failure(
+          ExerciseDraftField.soundAnswers,
+          ExerciseDraftErrorCode.soundAnswersTooFew,
+        );
+      }
+      for (final (number, answer) in kept) {
+        if (!answer.hasSound) {
+          return _failure(
+            ExerciseDraftField.soundAnswers,
+            ExerciseDraftErrorCode.soundAnswerEmpty,
+            line: number,
+          );
+        }
+      }
+      if (correct == null || correct < 1 || correct > rows.length) {
+        return _failure(
+          ExerciseDraftField.correct,
+          ExerciseDraftErrorCode.correctAnswerNumber,
+        );
+      }
+      // The correct row left blank (a Recording chosen and no recording
+      // picked, say) has no sound: never let another row take its place.
+      if (rows[correct - 1].isBlank) {
+        return _failure(
+          ExerciseDraftField.soundAnswers,
+          ExerciseDraftErrorCode.soundAnswerEmpty,
+          line: correct,
+        );
+      }
+    }
+    final keptIds = original.primitive == ExercisePrimitive.select
+        ? [for (final item in original.items) item.id]
+        : const <String>[];
+    final usedIds = <String>{};
+    String idFor(int index) {
+      if (index < keptIds.length && usedIds.add(keptIds[index])) {
+        return keptIds[index];
+      }
+      var n = index;
+      while (!usedIds.add('item_$n')) {
+        n++;
+      }
+      return 'item_$n';
+    }
+
+    final items = [
+      for (var i = 0; i < answers.length; i++)
+        ExerciseItem(
+          id: idFor(i),
+          content: [
+            answers[i].recording.isNotEmpty
+                ? PromptElement(type: 'audio', recording: answers[i].recording)
+                : PromptElement(type: 'audio', text: answers[i].word.trim()),
+            if (answers[i].afterAnswer.trim().isNotEmpty)
+              PromptElement(
+                role: 'after_answer',
+                type: 'text',
+                text: answers[i].afterAnswer.trim(),
+              ),
+          ],
+        ),
+    ];
+    final correctIndex = correct == null
+        ? -1
+        : kept.indexWhere((row) => row.$1 == correct);
+    return ExerciseDraftBuildResult.success(
+      Exercise.canonical(
+        id: original.id,
+        publicationState: draft.publicationState,
+        updatedAt: original.updatedAt,
+        primitive: ExercisePrimitive.select,
+        options: PrimitiveOptions({
+          OptionKey.evaluationTiming: const EnumOptionValue(
+            EvaluationTiming.explicit,
+          ),
+        }),
+        promptElements: [
+          if (draft.prompt.trim().isNotEmpty)
+            PromptElement(type: 'text', text: draft.prompt.trim()),
+          if (spoken.isNotEmpty)
+            PromptElement(
+              type: 'audio',
+              text: spoken,
+              playback: AudioPlayback.automatic,
+            ),
+          if (sentence.isNotEmpty)
+            PromptElement(role: 'question', type: 'text', text: sentence),
+        ],
+        items: items,
+        canonicalEvaluation: CanonicalEvaluation(
+          mode: EvaluationMode.exactItem,
+          correctItemIds: [
+            if (correctIndex >= 0 && correctIndex < items.length)
+              items[correctIndex].id,
           ],
         ),
         hint: draft.hint.trim(),

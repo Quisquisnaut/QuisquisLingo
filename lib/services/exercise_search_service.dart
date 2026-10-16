@@ -188,6 +188,12 @@ abstract final class ExerciseSearchRegistry {
       presetId: 'listening_image_choice',
       fields: [_audio, _prompt, _items],
     ),
+    // Build 274 Revision 3: the answers' words and their texts shown after
+    // the answer are item texts.
+    ExerciseTypeSearchDefinition(
+      presetId: 'listening_pick_missing_word',
+      fields: [_audio, _prompt, _items, _hint],
+    ),
     ExerciseTypeSearchDefinition(
       presetId: 'spell_heard',
       fields: [_audio, _items, _orders],

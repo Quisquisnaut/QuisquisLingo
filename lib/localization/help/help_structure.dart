@@ -335,6 +335,7 @@ const exerciseHelpPresetIds = <String>[
   'sort_into_groups',
   'fill_the_slots',
   'listening_image_choice',
+  'listening_pick_missing_word',
   'spell_heard',
   'picture_choice',
   'picture_name',
@@ -566,6 +567,17 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
       'exerciseHelp.field.sentence_order.extraWords.body',
   'sentence_order.hint': 'exerciseHelp.field.gap_choice.hint.body',
   'sentence_order.image': 'exerciseHelp.field.choice.image.body',
+  // Build 274 Revision 3.
+  'listening_pick_missing_word.tts':
+      'exerciseHelp.field.listening_pick_missing_word.tts.body',
+  'listening_pick_missing_word.question':
+      'exerciseHelp.field.listening_pick_missing_word.question.body',
+  'listening_pick_missing_word.prompt': 'exerciseHelp.field.instruction.body',
+  'listening_pick_missing_word.soundAnswers':
+      'exerciseHelp.field.listening_pick_missing_word.soundAnswers.body',
+  'listening_pick_missing_word.correct':
+      'exerciseHelp.field.gap_choice.correct.body',
+  'listening_pick_missing_word.hint': 'exerciseHelp.field.gap_choice.hint.body',
   'listening_image_choice.tts': 'exerciseHelp.field.listening_choice.tts.body',
   'listening_image_choice.prompt': 'exerciseHelp.field.instruction.body',
   'listening_image_choice.answers': 'exerciseHelp.field.choice.answers.body',

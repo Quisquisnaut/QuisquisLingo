@@ -27,6 +27,8 @@ const learnerPanelDe = <String, String>{
   'reviewTheFlashcard': 'Sieh dir die Karte noch einmal an.',
   'playAudio': 'Audio abspielen',
   'playAudioAgain': 'Erneut abspielen',
+  // Build 274 Revision 3: an answer that is a sound.
+  'soundNumber': 'Ton {n}',
   'playSound': 'Ton abspielen',
   'play': 'Abspielen',
   'audioUnavailable': 'Audio nicht verfügbar',

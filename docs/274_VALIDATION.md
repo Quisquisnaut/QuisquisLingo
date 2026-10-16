@@ -114,3 +114,56 @@ language).
   expiry 2026-11-15 23:59:59.
 - `flutter analyze`: no issues.
 - Complete suite: **4,842 passed, 1 skipped, 0 failed**.
+
+## Revision 3 (2.0.74+274003), Listen and pick the missing word
+
+The owner's point 7 of 13 October 2026; the format decided on 16 October
+2026 before any code.
+
+- New tests: `test/listen_pick_missing_word_274_test.dart`, **28
+  passed**, the file run six times clean after its last change.
+- Existing tests that keep tables of the presets, the rules or the
+  Laboratory were brought up to date: the rule counts (three files), the
+  difficulty levels, the field Help inventories (two files), the titles, the
+  title-and-line table, the kinds per preset, the preset count, and the
+  Laboratory test (125 examples; it answers sound answers by tapping until
+  the right word plays, then keeps only that one in its spoken list).
+- The Laboratory presentation baseline gains the example's record; no other
+  record changed.
+- Focused runs during the work: the 65 test files nearest to the change, then
+  the files that had failed and those not reached (15, then 9); every
+  failure was one of the tables above or of the new test itself (an
+  official Course cannot be copied, a Maintainer needs a UUIDv4, Hybrid plays
+  a word's recording instead of the voice), none in the app's behaviour.
+- The Exercise field Help test finds the first field of a label (the form
+  has one Word field per answer) without failing while the field is not
+  built yet.
+- Independent read-only review (a fresh reader, about 23 minutes): thirteen
+  faults, all confirmed in the code and corrected with a test each: the
+  preset did not fit a Listen Round (a copy moved there would have emptied
+  the Round); a Test Round showed the marks; a blank row could make another
+  answer the correct one on a Published save; picture answers graded on
+  Check fell into the list of words; the sound kind ignored selection mode,
+  inline gaps and timing; the Audit did not check the sentence and gap the
+  form asks for; recordings were accepted where nothing plays them; the
+  dialogs' grammar and consequences; the recording's failure message; the
+  Story log's answer text; a false unsaved-changes prompt; a doubled Error.
+- Re-review of the corrections (the same reader): all thirteen closed; six
+  residuals corrected (the new rule now also covers a Select with inline
+  gaps; the On-Device TTS dialog's singular; a recording without text that
+  answers name shows Used in N exercises; "missing or unreadable"; the
+  validator refuses any text beside a recording, as Dart does; AGENTS says
+  four refusals). Kept as designed and told to the owner: the preset's
+  sentence and gap Warnings follow the stored preset, as every preset rule
+  does (sound answers without a gap are a legitimate exercise).
+- After the corrections: the new file 38 passed, six clean runs; the 20
+  test files nearest to them 529 passed; `flutter analyze` clean; both
+  Python checks clean.
+- The first complete suite: 4,883 passed, 1 skipped, 2 failed, both tables
+  of existing tests that did not know the preset yet: the mascots' anchors
+  (`exercise_mascot_256_test`: the mascot stands beside its sentence's Play
+  button, as for Listen and choose) and the importable Laboratory's Course
+  version (`no_bundled_course_272_r17_test`: 2, raised on purpose). Both
+  files then passed (46), and the suite ran again.
+- `flutter analyze`: no issues. The second complete suite, on the final
+  tree: **4,885 passed, 1 skipped**, none failed.

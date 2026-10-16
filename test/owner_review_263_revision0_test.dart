@@ -71,6 +71,8 @@ const _presetLines = <String, List<String>>{
   'missing_word': ['inputListenGaps'],
   'audio_match': ['matchAudio'],
   'listening_image_choice': ['selectListen'],
+  // Build 274 Revision 3: its sentence always has its gap.
+  'listening_pick_missing_word': ['selectSoundsGap'],
   'spell_heard': ['arrangeWordHeard'],
   'reading_answer_target': ['selectContext'],
   'icon_choice': ['selectImage'],

@@ -431,6 +431,16 @@ abstract final class ExercisePresetRegistry {
       audioEssentialCandidate: true,
       base: 'icon_choice',
     ),
+    // Build 274 Revision 3 (the owner's point 7 of 13 October 2026).
+    ExercisePreset(
+      id: 'listening_pick_missing_word',
+      name: 'Listen and pick the missing word',
+      description:
+          'Learner hears a whole sentence, sees it with a gap and picks the sound that fills the gap; each answer shows its word once answered.',
+      category: ExerciseCategory.listening,
+      primitive: ExercisePrimitive.select,
+      audioEssentialCandidate: true,
+    ),
     ExercisePreset(
       id: 'spell_heard',
       name: 'Spell what you hear',
@@ -725,6 +735,8 @@ abstract final class ExercisePresetRegistry {
         'The learner taps a word, then the slot it fills, and checks when every slot is filled. Enter an optional instruction or context and one slot per line as “what the learner sees = the word”, for example “… gatto = il”. Extra words that fill no slot are optional; a switch lets one word fill more than one slot.',
     'listening_image_choice':
         'The learner hears a word or a sentence and picks the matching picture. Provide the spoken text, an optional instruction or context, the answer labels and one picture per answer, and the correct answer.',
+    'listening_pick_missing_word':
+        'The learner hears the whole sentence, sees it with one ___ gap and plays the answers, which are sounds: a tap plays one and chooses it, Check grades. Provide the spoken sentence, the sentence with the gap, an optional instruction or context, at least two answers (each a word the voice reads, or a recording of the Audio Library in a Course with recordings, with an optional text shown once answered), the correct answer number and an optional hint.',
     'spell_heard':
         'The learner hears a word and spells it from letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed.',
     'one_word_fills_all':

@@ -27,6 +27,8 @@ const learnerPanelNl = <String, String>{
   'reviewTheFlashcard': 'Bekijk de kaart nog eens.',
   'playAudio': 'Audio afspelen',
   'playAudioAgain': 'Opnieuw afspelen',
+  // Build 274 Revision 3: an answer that is a sound.
+  'soundNumber': 'Geluid {n}',
   'playSound': 'Geluid afspelen',
   'play': 'Afspelen',
   'audioUnavailable': 'Audio niet beschikbaar',

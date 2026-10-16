@@ -43,6 +43,7 @@ import '../services/crash_log_service.dart';
 import '../services/answer_grader.dart';
 import '../services/correct_answer_text.dart';
 import '../services/playback_on_request.dart';
+import '../services/sound_answers.dart';
 import '../services/audio_exercise_availability_service.dart';
 import '../services/audio_diagnostic_service.dart';
 import '../services/exercise_mascot_policy.dart';
@@ -363,6 +364,10 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _translationFeedbackPartial = false;
   List<String> _acceptedDifferences = const [];
   int? _selected;
+
+  /// The answer chosen before Check (Build 274 Revision 3: sound answers,
+  /// and a single choice graded on Check).
+  int? _pendingChoice;
   final TextEditingController _textController = TextEditingController();
   final FocusNode _textFocusNode = FocusNode();
   final List<String> _builtOrder = [];
@@ -894,6 +899,7 @@ class _RoundScreenState extends State<RoundScreen> {
     _translationFeedbackPartial = false;
     _acceptedDifferences = const [];
     _selected = null;
+    _pendingChoice = null;
     _textController.clear();
     _builtOrder.clear();
     for (final c in _missingWordControllers) {
@@ -1263,9 +1269,23 @@ class _RoundScreenState extends State<RoundScreen> {
 
   /// The right answer to [ex] as the learner panel writes it (Build 273
   /// Revision 2: [CorrectAnswerText]).
-  String _correctAnswerText(Exercise ex) => CorrectAnswerText(
-    _t,
-  ).of(ex, _features, displayedCorrection: _displayedCorrection);
+  String _correctAnswerText(Exercise ex) {
+    final text = CorrectAnswerText(_t).of(
+      ex,
+      _features,
+      displayedCorrection: _displayedCorrection,
+      audioLibrary: widget.course.audioLibrary,
+    );
+    if (text.isNotEmpty || _features.kind != LearnerExerciseKind.selectSounds) {
+      return text;
+    }
+    // A sound answer with no text is named by its place (Build 274
+    // Revision 3).
+    final place = _choiceOptions.indexWhere((option) => option.correct);
+    return place < 0
+        ? _t('seeCourseAnswer')
+        : _t('soundNumber', {'n': '${place + 1}'});
+  }
 
   String _itemValue(Exercise ex, String? itemId) =>
       AnswerGrader.itemValue(ex, itemId);
@@ -1506,6 +1526,19 @@ class _RoundScreenState extends State<RoundScreen> {
   String? _learnerAnswerText() {
     final selected = _selected;
     if (selected != null && selected < _choiceOptions.length) {
+      // An answer that is a sound shows what it shows once answered, else
+      // its place (Build 274 Revision 3).
+      final item = _choiceOptions[selected].item;
+      if (_features.kind == LearnerExerciseKind.selectSounds && item != null) {
+        final shown = SoundAnswers.shownText(
+          _features,
+          item,
+          widget.course.audioLibrary,
+        );
+        return shown.isNotEmpty
+            ? shown
+            : _t('soundNumber', {'n': '${selected + 1}'});
+      }
       return _choiceOptions[selected].text;
     }
     if (_builtOrder.isNotEmpty) {
@@ -2320,7 +2353,8 @@ class _RoundScreenState extends State<RoundScreen> {
           const SizedBox(height: 16),
         ],
         if ((f.kind == LearnerExerciseKind.selectComplete ||
-                f.kind == LearnerExerciseKind.selectCompleteAll) &&
+                f.kind == LearnerExerciseKind.selectCompleteAll ||
+                f.kind == LearnerExerciseKind.selectSounds) &&
             ex.hint.trim().isNotEmpty) ...[
           Text(
             _t('hint', {'hint': ex.hint}),
@@ -2354,12 +2388,19 @@ class _RoundScreenState extends State<RoundScreen> {
     final f = _features;
     if (f.hasInlineTargets) return _selectGapFillExercise(ex);
     if (f.multipleSelection) return _multiSelectChoiceExercise(ex);
-    // Icon keys and captioned pictures make a grid; image-only options (a
-    // Recognize characters text-to-image exercise) keep the list below.
+    // Build 274 Revision 3: answers that are sounds, and a single choice
+    // graded on Check.
+    if (f.kind == LearnerExerciseKind.selectSounds) {
+      return _soundChoiceExercise(ex);
+    }
+    // Icon keys and captioned pictures make a grid (graded on the tap, or
+    // on Check); image-only options (a Recognize characters text-to-image
+    // exercise) keep the list below.
     if (f.hasIconItems ||
         ex.items.any((item) => item.image.isNotEmpty && item.text.isNotEmpty)) {
       return _iconChoiceExercise(ex);
     }
+    if (f.checkedOnCheck) return _singleCheckChoiceExercise(ex);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(_choiceOptions.length, (i) {
@@ -2395,6 +2436,175 @@ class _RoundScreenState extends State<RoundScreen> {
         .map((i) => _choiceOptions[i].item!.id)
         .toSet();
     _mark(_grader.multiChoice(ex, selectedIds));
+  }
+
+  /// Answers that are sounds (Build 274 Revision 3): a tap plays an answer
+  /// and chooses it, Check grades. Before answering an answer shows only its
+  /// place ("Sound 2"); once answered, its text ([SoundAnswers.shownText]).
+  Widget _soundChoiceExercise(Exercise ex) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < _choiceOptions.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _soundAnswer(i),
+          ),
+        const SizedBox(height: 6),
+        FilledButton(
+          key: const Key('sound-answers-check'),
+          onPressed: _answered || _pendingChoice == null
+              ? null
+              : () => _answerChoice(_pendingChoice!),
+          child: Text(_t('check')),
+        ),
+      ],
+    );
+  }
+
+  Widget _soundAnswer(int i) {
+    final scheme = Theme.of(context).colorScheme;
+    final option = _choiceOptions[i];
+    final item = option.item;
+    final chosen = _answered ? _selected == i : _pendingChoice == i;
+    final shown = !_answered || item == null
+        ? ''
+        : SoundAnswers.shownText(_features, item, widget.course.audioLibrary);
+    // A Test Round shows right and wrong only on its results page.
+    final IconData? mark =
+        !_answered || widget.round.roundType == RoundType.test
+        ? null
+        : option.correct
+        ? Icons.check_circle
+        : chosen
+        ? Icons.cancel
+        : null;
+    return OutlinedButton(
+      key: ValueKey('sound-answer-$i'),
+      style: OutlinedButton.styleFrom(
+        alignment: AlignmentDirectional.centerStart,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        backgroundColor: chosen ? scheme.secondaryContainer : null,
+        side: BorderSide(
+          color: chosen ? scheme.primary : scheme.outline,
+          width: chosen ? 2 : 1,
+        ),
+      ),
+      onPressed: item == null
+          ? null
+          : () {
+              if (!_answered) setState(() => _pendingChoice = i);
+              unawaited(_playAnswerSound(item));
+            },
+      child: Row(
+        children: [
+          const Icon(Icons.volume_up_outlined),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_t('soundNumber', {'n': '${i + 1}'})),
+                if (shown.isNotEmpty)
+                  Text(
+                    shown,
+                    key: ValueKey('sound-answer-text-$i'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+              ],
+            ),
+          ),
+          if (mark != null)
+            Icon(
+              mark,
+              key: ValueKey('sound-answer-mark-$i'),
+              color: option.correct ? scheme.primary : scheme.error,
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// An answer's sound (Build 274 Revision 3): the Audio Library recording
+  /// it names, or its text, spoken as any text is. On-Device TTS plays no
+  /// recordings, chosen ones included (owner decision of 16 October 2026).
+  /// Nothing else is stopped, as Listen and match's sounds stop nothing (a
+  /// stopped recording would hand a Hybrid Course's sentence to the voice).
+  Future<void> _playAnswerSound(ExerciseItem item) async {
+    final sound = _features.soundOf(item);
+    if (sound == null) return;
+    if (sound.recording.isEmpty) return _speakText(sound.text);
+    final clip = SoundAnswers.recordingOf(sound, widget.course.audioLibrary);
+    final tts = widget.course.audioMode == 'tts';
+    final played =
+        !tts &&
+        clip != null &&
+        await _recordedAudio.playClips(
+          [clip],
+          courseId: widget.course.courseId,
+          enableDiagnostics: !widget.previewMode,
+        );
+    if (!played && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(
+            tts
+                ? 'This answer is a recording, and the Course’s audio source, On-Device TTS, plays no recordings.'
+                : clip == null
+                ? 'This answer’s recording is not in the Course’s Audio Library.'
+                : 'This answer’s recording cannot be played: its MP3 file is missing or unreadable.',
+          ),
+        ),
+      );
+    }
+  }
+
+  /// One choice graded on Check (Build 274 Revision 3), for a Select whose
+  /// answers are not sounds: a tap chooses, Check grades.
+  Widget _singleCheckChoiceExercise(Exercise ex) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        RadioGroup<int>(
+          groupValue: _answered ? _selected : _pendingChoice,
+          onChanged: (value) {
+            if (_answered || value == null) return;
+            setState(() => _pendingChoice = value);
+          },
+          child: Column(
+            children: [
+              for (var i = 0; i < _choiceOptions.length; i++)
+                RadioListTile<int>(
+                  key: ValueKey('single-check-option-$i'),
+                  value: i,
+                  enabled: !_answered,
+                  title: _choiceOptions[i].item?.image.isNotEmpty == true
+                      ? Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: SizedBox(
+                            height: 96,
+                            child: PluralPicture.wrap(
+                              plural: _choiceOptions[i].item!.pictureIsPlural,
+                              child: _itemImage(_choiceOptions[i].item!.image),
+                            ),
+                          ),
+                        )
+                      : Text(_choiceOptions[i].text),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('single-check-submit'),
+          onPressed: _answered || _pendingChoice == null
+              ? null
+              : () => _answerChoice(_pendingChoice!),
+          child: Text(_t('check')),
+        ),
+      ],
+    );
   }
 
   Widget _multiSelectChoiceExercise(Exercise ex) {
@@ -4024,7 +4234,38 @@ class _RoundScreenState extends State<RoundScreen> {
   /// override; without a choice large squares, two per row. Every row is
   /// centred, so the pictures a last row does not fill stand in its middle;
   /// the earlier look (normal, round, as many as fit) keeps its tiles.
+  /// Picture answers; graded on the tap, or (Build 274 Revision 3) a tap
+  /// chooses and Check grades.
   Widget _iconChoiceExercise(Exercise ex) {
+    final grid = _iconChoiceGrid(ex);
+    if (!_features.checkedOnCheck) return grid;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        grid,
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('single-check-submit'),
+          onPressed: _answered || _pendingChoice == null
+              ? null
+              : () => _answerChoice(_pendingChoice!),
+          child: Text(_t('check')),
+        ),
+      ],
+    );
+  }
+
+  /// A tap on picture answer [i]: it answers, or chooses when Check grades.
+  void _tapPicture(int i) {
+    if (_answered) return;
+    if (_features.checkedOnCheck) {
+      setState(() => _pendingChoice = i);
+    } else {
+      _answerChoice(i);
+    }
+  }
+
+  Widget _iconChoiceGrid(Exercise ex) {
     final style = widget.course.pictureAnswers.overriddenBy(ex.options);
     final width = style.size == PictureSize.large ? 176.0 : 112.0;
     final perRow = style.perRowCount;
@@ -4096,8 +4337,15 @@ class _RoundScreenState extends State<RoundScreen> {
     // Build 267 Revision 7 (owner decisions of 9 October 2026): a thin grey
     // line around the tile, following its shape; without it the tile is
     // drawn as before.
-    final side = bordered
-        ? BorderSide(color: Theme.of(context).colorScheme.outline, width: 1.5)
+    final scheme = Theme.of(context).colorScheme;
+    // Graded on Check (Build 274 Revision 3): the chosen picture is ringed.
+    final chosen =
+        _features.checkedOnCheck &&
+        (_answered ? _selected == i : _pendingChoice == i);
+    final side = chosen
+        ? BorderSide(color: scheme.primary, width: 3)
+        : bordered
+        ? BorderSide(color: scheme.outline, width: 1.5)
         : BorderSide.none;
     final item = _choiceOptions[i].item;
     final image = item?.image ?? '';
@@ -4140,7 +4388,7 @@ class _RoundScreenState extends State<RoundScreen> {
             ),
           ),
           clipBehavior: Clip.antiAlias,
-          onPressed: _answered ? null : () => _answerChoice(i),
+          onPressed: _answered ? null : () => _tapPicture(i),
           child: image.isNotEmpty
               ? PluralPicture.wrap(
                   plural: plural,
@@ -4177,8 +4425,8 @@ class _RoundScreenState extends State<RoundScreen> {
       height: (image.isNotEmpty ? 150 : 120) * scale,
       child: FilledButton.tonal(
         key: bordered ? ValueKey('picture-answer-border-$i') : null,
-        style: bordered ? FilledButton.styleFrom(side: side) : null,
-        onPressed: _answered ? null : () => _answerChoice(i),
+        style: bordered || chosen ? FilledButton.styleFrom(side: side) : null,
+        onPressed: _answered ? null : () => _tapPicture(i),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

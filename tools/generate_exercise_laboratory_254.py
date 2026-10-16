@@ -27,7 +27,7 @@ import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, becomes_exercise, before_you_start, complete_text_exercise, page_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
+from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, becomes_exercise, before_you_start, complete_text_exercise, page_exercise, convert_course_v11_to_v12, pick_missing_word_exercise, story_cover, story_flow, story_line  # noqa: E402
 from qql_course_v12 import guidebook, guidebook_entry, guidebook_module, vocabulary_pair  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -496,6 +496,24 @@ class Laboratory:
         self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
                            "preset": "complete_text", "capability": capability, "answer": answer})
 
+    def pick_missing_word(self, key: str, after: str, spoken: str, sentence: str,
+                          answers: list[dict], correct: int, capability: str, answer: str, *,
+                          instruction: str = "", hint: str = "") -> None:
+        """Listen and pick the missing word (Build 274 Revision 3): answers
+        that are sounds have no v11 shape, so the example joins its Round in
+        the canonical shape, after `after`."""
+        identity = "qql_lab254_" + key
+        self.canonical_extras.append(("qql_lab254_" + after, {
+            "id": identity, "publicationState": "published", "kind": "exercise",
+            "required": True, "editorTemplate": "listening_pick_missing_word",
+            "exercise": pick_missing_word_exercise(
+                spoken, sentence, answers, correct, updated_at=STAMP, item_prefix=identity,
+                instruction=instruction, hint=hint),
+        }))
+        self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
+                           "preset": "listening_pick_missing_word", "capability": capability,
+                           "answer": answer})
+
     def start_story_lesson(self, title: str, description: str) -> None:
         self.start_lesson(title, description)
         self.story_lessons.append(self.lessons.pop())
@@ -642,6 +660,9 @@ def laboratory() -> Laboratory:
     lab.choose("listening_source_question", "listening_answer_source", [audio("Il treno per Roma parte alle nove.", "passage"), text("When does the train leave?", "question", "source")], ["At nine", "At ten", "At noon"], 0, "Listen and answer (to source); a source-language question about a passage", language="source")
     lab.choose("picture_choice", "picture_choice", [text("What is this?"), image("apple", "An apple", "picture")], ["la mela", "la pera", "il pane"], 0, "What is in the picture; picture prompt, text answers")
     lab.choose("listening_image", "listening_image_choice", [audio("il gatto")], ["il gatto", "il cane", "il cavallo"], 0, "Listen and pick the image; captioned picture answers", images=["cat", "dog", "horse"])
+    # Build 274 Revision 3: the answers are sounds (words here: the
+    # Laboratory has no recordings); one shows its own text once answered.
+    lab.pick_missing_word("listening_pick_word", "listening_image", "Il gatto dorme sul divano.", "Il gatto ___ sul divano.", [{"word": "dorme"}, {"word": "dormono", "after_answer": "dormono (they sleep)"}, {"word": "dormire"}], 0, "Listen and pick the missing word; three spoken answers, one with its own text", "dorme")
 
     lab.start_lesson("Input", "Type a translation, a missing fragment, a complete word, or a transcription. Accepted answers can include optional wording and alternatives. Accents are preserved; ordinary capitalization, punctuation and spacing are normalized. Only Type the translation and Type the missing word tolerate one omitted or duplicated repeated letter.")
     lab.start_round("input_answers", "Translations and accepted variants", "Type a natural Italian translation. These examples demonstrate several ways an author can record equivalent answers; the answer notation is never shown as the learner prompt.")
@@ -889,8 +910,9 @@ def course(lab: Laboratory) -> dict:
         {"id": "qql_lab254_character_luca", "name": "Luca", "avatar": "assets/avatars/dog.png",
          "language": "target", "voice": "male"},
     ]
-    # Build 258: a Course with a Page needs a build that draws Pages.
-    value["minimumAppBuild"] = 258000
+    # Build 258: a Course with a Page needs a build that draws Pages; Build
+    # 274 Revision 3: one whose answers are sounds needs that build.
+    value["minimumAppBuild"] = 274003
     # The checksum excludes the local verification status.
     checksum_value = dict(value)
     checksum_value.pop("publisherVerificationStatus")
@@ -914,7 +936,9 @@ def external(official: dict) -> dict:
         "originalCourseCreator": creator,
         "maintainer": {"profileId": EXTERNAL_MAINTAINER},
         "originalCreatedAtUtc": STAMP,
-        "courseVersion": "1",
+        # Build 274 Revision 3: version 2 (Listen and pick the missing word),
+        # so a device that has version 1 takes the file as an update.
+        "courseVersion": "2",
         "lastVersionEditorProfileId": EXTERNAL_MAINTAINER,
         "lastVersionEditorDisplayName": "QuisquisLingo",
         **rest,

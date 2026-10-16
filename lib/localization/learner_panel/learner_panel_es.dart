@@ -27,6 +27,8 @@ const learnerPanelEs = <String, String>{
   'reviewTheFlashcard': 'Repasa la tarjeta.',
   'playAudio': 'Reproducir audio',
   'playAudioAgain': 'Volver a reproducir',
+  // Build 274 Revision 3: an answer that is a sound.
+  'soundNumber': 'Sonido {n}',
   'playSound': 'Reproducir sonido',
   'play': 'Reproducir',
   'audioUnavailable': 'Audio no disponible',

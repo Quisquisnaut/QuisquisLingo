@@ -114,6 +114,13 @@ const exerciseCopyNl = <String, String>{
   'title.type_what_you_hear': 'SCHRIJF WAT JE HOORT',
   'title.listen_and_fill_the_gaps': 'LUISTER EN VUL DE GATEN',
   'title.listen_and_match': 'LUISTER EN KOPPEL',
+  // Build 274 Revision 3: answers that are sounds.
+  'type.selectSounds': 'KIES HET GELUID',
+  'instruction.selectSounds': 'Speel elk geluid af en kies dan het juiste.',
+  'instruction.selectSoundsGap':
+      'Speel elk geluid af en kies dan het geluid dat in het gat past.',
+  'title.listen_and_pick_the_missing_word':
+      'LUISTER EN KIES HET ONTBREKENDE WOORD',
   'title.listen_and_pick_the_image': 'LUISTER EN KIES DE AFBEELDING',
   'title.spell_what_you_hear': 'SPEL WAT JE HOORT',
   'title.read_and_answer': 'LEES EN ANTWOORD',

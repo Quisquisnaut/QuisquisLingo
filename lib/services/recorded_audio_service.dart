@@ -328,6 +328,22 @@ class RecordedAudioService {
     required String courseId,
     Duration gap = const Duration(milliseconds: 90),
     bool enableDiagnostics = true,
+  }) => playClips(
+    segment(text, library),
+    courseId: courseId,
+    gap: gap,
+    enableDiagnostics: enableDiagnostics,
+  );
+
+  /// Plays [clips] one after the other (Build 274 Revision 3: an answer's
+  /// recording named by its id is one clip). False when [clips] is null or
+  /// empty, when a recording's file cannot be found, or when playback fails
+  /// or is stopped.
+  Future<bool> playClips(
+    List<CourseAudioClip>? clips, {
+    required String courseId,
+    Duration gap = const Duration(milliseconds: 90),
+    bool enableDiagnostics = true,
   }) async {
     final lifecycle = AudioDiagnosticLifecycle.start(
       kind: 'recorded',
@@ -336,7 +352,6 @@ class RecordedAudioService {
     AudioPlayer? player;
     var disposalOutcome = 'not_initialized';
     try {
-      final clips = segment(text, library);
       final sources = <Source>[];
       if (clips != null) {
         for (final clip in clips) {

@@ -20,6 +20,7 @@ import '../widgets/labelled_text.dart';
 import '../services/course_audio_usage.dart';
 import '../services/course_audio_texts.dart';
 import '../services/course_media_store.dart';
+import '../services/sound_answers.dart';
 import '../widgets/folder_opener.dart';
 import '../widgets/library_save_notice.dart';
 import 'audio_texts_screen.dart';
@@ -61,6 +62,10 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   final AudioPlayer _previewPlayer = AudioPlayer();
   late Course _course;
   bool _routeMayPop = false;
+
+  /// Rebuilds the audio source menu when a switch is kept back (Build 274
+  /// Revision 3), so it shows the source the Course keeps.
+  int _sourceMenuVersion = 0;
 
   /// The recording whose preview plays; its row and Associate recording
   /// both show it.
@@ -269,13 +274,129 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   Future<void> _deleteById(String id) async {
     final i = _course.audioLibrary.indexWhere((e) => e.id == id);
     if (i < 0) return;
+    // Build 274 Revision 3 (owner decision of 16 October 2026): a recording
+    // that answers name by its id is deleted only after asking.
+    final naming = CourseAudioUsage.answersNaming(_course, id);
+    if (naming.isNotEmpty && !await _confirmDeleteNamed(naming)) return;
+    if (!mounted) return;
+    final at = _course.audioLibrary.indexWhere((e) => e.id == id);
+    if (at < 0) return;
     if (_playing.value == id) {
       await _previewPlayer.stop();
       _playing.value = null;
     }
-    final list = [..._course.audioLibrary]..removeAt(i);
+    final list = [..._course.audioLibrary]..removeAt(at);
     setState(() => _course = _copy(clips: list));
     unawaited(_refreshMissingClips());
+  }
+
+  /// Build 274 Revision 3 (owner decision of 16 October 2026): On-Device TTS
+  /// plays no recordings, chosen ones included, so switching to it while
+  /// answers play recordings asks first.
+  Future<void> _chooseSource(String mode) async {
+    if (mode == _course.audioMode) return;
+    final named = SoundAnswers.answersWithRecordings(_course);
+    if (mode == 'tts' && named > 0) {
+      final go = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          key: const Key('audio-tts-named-dialog'),
+          title: const Text('Answers will lose their sound'),
+          content: Text(
+            '$named answer${named == 1 ? '' : 's'} of this Course play'
+            '${named == 1 ? 's' : ''} a recording of the Audio Library. '
+            'On-Device TTS plays no recordings, so '
+            '${named == 1 ? 'it' : 'those answers'} will have no sound and '
+            'the Course Audit shows an Error for each exercise concerned. '
+            'Until ${named == 1 ? 'it is' : 'they are'} fixed, learners skip '
+            '${named == 1 ? 'that exercise' : 'those exercises'} and the '
+            'Course cannot be imported on another device.',
+          ),
+          actions: [
+            TextButton(
+              key: const Key('audio-tts-named-keep'),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Keep the current source'),
+            ),
+            FilledButton(
+              key: const Key('audio-tts-named-switch'),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Switch to On-Device TTS'),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (go != true) {
+        setState(() => _sourceMenuVersion++);
+        return;
+      }
+    }
+    setState(() => _course = _copy(mode: mode));
+  }
+
+  /// Asks before deleting a recording that answers play, naming their
+  /// exercises.
+  Future<bool> _confirmDeleteNamed(List<AudioClipUse> naming) async {
+    final count = naming.length;
+    final answer = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('audio-delete-named-dialog'),
+        title: const Text('Answers play this recording'),
+        content: SizedBox(
+          width: 520,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  count == 1
+                      ? '1 exercise plays this recording as an answer. Once '
+                            'it is deleted, the answers that play it have no '
+                            'sound and the Course Audit shows an Error for the '
+                            'exercise. '
+                            'Until it is fixed, learners skip the exercise '
+                            'and the Course cannot be imported on another '
+                            'device.'
+                      : '$count exercises play this recording as an answer. '
+                            'Once it is deleted, those answers have no sound '
+                            'and the Course Audit shows an Error for each '
+                            'exercise. Until they are fixed, learners skip '
+                            'those exercises and the Course cannot be imported '
+                            'on another device.',
+                ),
+              ),
+              for (final (index, use) in naming.indexed)
+                ListTile(
+                  key: Key('audio-delete-named-$index'),
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    ExerciseLabels.summary(use.exercise),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: _usePlace(use),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            key: const Key('audio-delete-named-cancel'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('audio-delete-named-confirm'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    return answer ?? false;
   }
 
   Future<void> _preview(CourseAudioClip clip) async {
@@ -384,7 +505,11 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         key: const Key('audio-clip-uses-dialog'),
-        title: Text('“${clip.text.trim()}” is heard in'),
+        title: Text(
+          clip.text.trim().isEmpty
+              ? 'This recording is heard in'
+              : '“${clip.text.trim()}” is heard in',
+        ),
         content: SizedBox(
           width: 520,
           child: ListView(
@@ -394,7 +519,8 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                 padding: EdgeInsets.only(bottom: 8),
                 child: Text(
                   'Only texts that recordings say from beginning to end '
-                  'count. Tap an exercise to open it.',
+                  'count, and answers that name the recording. Tap an '
+                  'exercise to open it.',
                 ),
               ),
               for (final (index, use) in uses.indexed)
@@ -522,29 +648,32 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         children: [
           const LibrarySaveNotice(key: Key('audio-library-save-notice')),
           const SizedBox(height: 10),
-          DropdownButtonFormField<String>(
-            key: const Key('audio-source'),
-            initialValue: _course.audioMode,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              isDense: true,
-              labelText: 'Course audio source',
+          KeyedSubtree(
+            key: ValueKey('audio-source-$_sourceMenuVersion'),
+            child: DropdownButtonFormField<String>(
+              key: const Key('audio-source'),
+              initialValue: _course.audioMode,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                labelText: 'Course audio source',
+              ),
+              items: const [
+                DropdownMenuItem(value: 'tts', child: Text('On-Device TTS')),
+                DropdownMenuItem(
+                  value: 'recorded',
+                  child: Text('Recorded MP3 only'),
+                ),
+                DropdownMenuItem(
+                  value: 'hybrid',
+                  child: Text('Hybrid: MP3 + TTS fallback'),
+                ),
+              ],
+              onChanged: (v) {
+                if (v != null) unawaited(_chooseSource(v));
+              },
             ),
-            items: const [
-              DropdownMenuItem(value: 'tts', child: Text('On-Device TTS')),
-              DropdownMenuItem(
-                value: 'recorded',
-                child: Text('Recorded MP3 only'),
-              ),
-              DropdownMenuItem(
-                value: 'hybrid',
-                child: Text('Hybrid: MP3 + TTS fallback'),
-              ),
-            ],
-            onChanged: (v) {
-              if (v != null) setState(() => _course = _copy(mode: v));
-            },
           ),
           const SizedBox(height: 6),
           Text(
@@ -739,6 +868,9 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   Widget _clipCard(CourseAudioClip clip) {
     final hasText = clip.text.trim().isNotEmpty;
     final missing = _missingClipIds.contains(clip.id);
+    // Build 274 Revision 3: a recording without text that answers name is
+    // used too, and says where.
+    final named = !hasText && (_uses[clip.id] ?? const []).isNotEmpty;
     // Follow-up (owner decision of 11 October 2026): a recording without
     // text shows the name its file came with, in grey, so freshly imported
     // recordings can be told apart without opening each one.
@@ -770,7 +902,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                   fontStyle: FontStyle.italic,
                 ),
               ),
-        subtitle: hasText || missing || original.isNotEmpty
+        subtitle: hasText || named || missing || original.isNotEmpty
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -790,11 +922,11 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                       key: Key('audio-clip-missing-${clip.id}'),
                       style: TextStyle(color: scheme.error),
                     ),
-                  if (hasText) _usesLine(clip),
+                  if (hasText || named) _usesLine(clip),
                 ],
               )
             : null,
-        isThreeLine: hasText && missing,
+        isThreeLine: (hasText || named) && missing,
         onTap: () => _editById(clip.id),
         trailing: IconButton(
           tooltip: 'Delete this recording',

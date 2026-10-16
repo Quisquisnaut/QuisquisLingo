@@ -57,6 +57,9 @@ abstract final class ExerciseDifficulty {
             : DifficultyLevel.recognizeTarget;
       case LearnerExerciseKind.assignGroups:
         return DifficultyLevel.recognizeTarget;
+      // Build 274 Revision 3: a target-language word picked by ear.
+      case LearnerExerciseKind.selectSounds:
+        return DifficultyLevel.recognizeTarget;
       case LearnerExerciseKind.assignSlots:
       case LearnerExerciseKind.assignGaps:
         return DifficultyLevel.build;

@@ -21,6 +21,9 @@ abstract final class RoundTypeCompatibility {
     LearnerExerciseKind.inputListenWrite,
     LearnerExerciseKind.inputListenGaps,
     LearnerExerciseKind.matchAudio,
+    // Build 274 Revision 3: the sentence is heard whole and shown with its
+    // gap, and the answers are sounds.
+    LearnerExerciseKind.selectSounds,
   };
   static const _readingKinds = {
     LearnerExerciseKind.selectRead,

@@ -43,6 +43,10 @@ class DuelEligibilityService {
     if (!exercise.isExecutable) return false;
     final features = ExerciseFeatures(exercise);
     if (features.multipleSelection || features.hasInlineTargets) return false;
+    // Build 274 Revision 3: the Duel draws its answers as words and grades
+    // the tap, so answers that are sounds, or a choice graded on Check, stay
+    // out.
+    if (features.hasSoundItems || features.checkedOnCheck) return false;
     final evaluation = exercise.canonicalEvaluation;
     if (evaluation.mode != EvaluationMode.exactItem) return false;
     if (exercise.items.length < 2 || evaluation.correctItemIds.length != 1) {

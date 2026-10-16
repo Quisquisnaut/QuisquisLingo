@@ -301,8 +301,10 @@ void main() {
     });
   });
 
-  test('the four messages are Infos of the registry: 131 rules, 66 Errors, '
-      '44 Warnings, 21 Infos', () {
+  // Build 274 Revision 3 added the five SOUND_ANSWER rules (four Errors,
+  // one Info).
+  test('the four messages are Infos of the registry: 136 rules, 70 Errors, '
+      '44 Warnings, 22 Infos', () {
     for (final code in const [
       AuditCode.matchPairCount,
       AuditCode.audioMatchPairCount,
@@ -313,10 +315,10 @@ void main() {
     }
     int count(AuditSeverity severity) =>
         AuditCode.values.where((code) => code.severity == severity).length;
-    expect(AuditCode.values, hasLength(131));
-    expect(count(AuditSeverity.error), 66);
+    expect(AuditCode.values, hasLength(136));
+    expect(count(AuditSeverity.error), 70);
     expect(count(AuditSeverity.warning), 44);
-    expect(count(AuditSeverity.info), 21);
+    expect(count(AuditSeverity.info), 22);
   });
 
   test('nothing turns red for them: no Audit concern on the exercise, its '

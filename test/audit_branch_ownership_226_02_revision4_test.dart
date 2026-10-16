@@ -222,8 +222,9 @@ void main() {
     // READING_ANSWER_IN_TEXT; Build 266: GUIDEBOOK_MODULE_EMPTY,
     // GUIDEBOOK_MODULE_OVERVIEW_LONG and ROUND_FOCUS_MODULE_MISSING; Build
     // 267: GUIDEBOOK_MODULE_SIZE and GUIDEBOOK_MODULE_COUNT.
-    // Build 272 Revision 14: LICENSE_RIGHTS_HOLDER_MISSING.
-    expect(AuditCode.values, hasLength(131));
+    // Build 272 Revision 14: LICENSE_RIGHTS_HOLDER_MISSING. Build 274
+    // Revision 3: the five SOUND_ANSWER rules.
+    expect(AuditCode.values, hasLength(136));
   });
 
   test(

@@ -2,6 +2,7 @@ import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import 'inline_marks.dart';
 import 'playback_on_request.dart';
+import 'sound_answers.dart';
 
 /// Where one recording is heard: an exercise of a Round of a Lesson.
 class AudioClipUse {
@@ -78,6 +79,8 @@ abstract final class CourseAudioUsage {
           final clipIds = <String>{
             for (final text in spokenTexts(exercise))
               ...?segment(text)?.map((clip) => clip.id),
+            // Build 274 Revision 3: the recordings answers name by their id.
+            ...SoundAnswers.recordingIds(exercise),
           };
           for (final id in clipIds) {
             uses
@@ -99,6 +102,22 @@ abstract final class CourseAudioUsage {
 
   /// The recordings with a text that no exercise plays. Recordings without
   /// text are not listed: the Audio Library shows them under #.
+  /// The exercises whose answers name the recording [clipId] by its id
+  /// (Build 274 Revision 3), in Course order: deleting the recording leaves
+  /// those answers without a sound.
+  static List<AudioClipUse> answersNaming(Course course, String clipId) => [
+    for (final (lessonIndex, lesson) in course.lessons.indexed)
+      for (final (roundIndex, round) in lesson.rounds.indexed)
+        for (final (exerciseIndex, exercise) in round.exercises.indexed)
+          if (SoundAnswers.recordingIds(exercise).contains(clipId))
+            AudioClipUse(
+              lessonIndex: lessonIndex,
+              roundIndex: roundIndex,
+              exerciseIndex: exerciseIndex,
+              exercise: exercise,
+            ),
+  ];
+
   static List<CourseAudioClip> unused(
     Course course,
     Map<String, List<AudioClipUse>> uses,

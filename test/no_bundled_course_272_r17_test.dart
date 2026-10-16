@@ -244,7 +244,9 @@ void main() {
       expect(course.courseId, isNot(laboratoryCourseId));
       expect(course.courseId, 'course_5df44010-fd64-4c81-a2c8-deb49207f980');
       expect(course.maintainer?.profileId, isNotNull);
-      expect(course.courseVersion, '1');
+      // Version 2 since Build 274 Revision 3 added Listen and pick the
+      // missing word: a device that has version 1 takes it as an update.
+      expect(course.courseVersion, '2');
       expect(course.publicationState.isPublished, isTrue);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
       expect(course.lessons, hasLength(8));

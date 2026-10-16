@@ -24,6 +24,7 @@ import '../widgets/editor_breadcrumbs.dart';
 import '../widgets/editor_dialogs.dart';
 import '../widgets/exercise_editor_intro.dart';
 import '../widgets/page_block_editor.dart';
+import '../widgets/sound_answers_editor.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/exercise_draft_builder.dart';
@@ -107,6 +108,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   bool _guidebookButton = false;
   // Page (Build 258 Revision 2): the Page's blocks as the form edits them.
   List<PromptElement> _pageBlocks = const [];
+
+  /// Listen and pick the missing word's answers (Build 274 Revision 3).
+  List<SoundAnswerDraft> _soundAnswers = const [];
   // A Flashcard's read-aloud: none, manual (on request) or automatic; the
   // spoken text is the word itself.
   String _cardReadAloud = 'manual';
@@ -798,6 +802,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _slotReuse = draft.slotReuse;
     _guidebookButton = draft.guidebookButton;
     _pageBlocks = draft.pageBlocks;
+    // The two empty rows the answers' editor starts with (Build 274
+    // Revision 3), so a new exercise left untouched has no changes.
+    _soundAnswers = draft.soundAnswers.isEmpty
+        ? const [SoundAnswerDraft(), SoundAnswerDraft()]
+        : draft.soundAnswers;
     _cardReadAloud = draft.cardReadAloud;
     _dialogueReadAloud = draft.dialogueReadAloud;
     _pictureSize = draft.pictureSize;
@@ -873,6 +882,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     final variant = switch (_type) {
       'listening_choose_target' => 'selectListenHeard',
       'listening_choose_source' => 'selectListenMeaning',
+      // Build 274 Revision 3: the sentence always has its gap.
+      'listening_pick_missing_word' => 'selectSoundsGap',
       _ => null,
     };
     return variant == null
@@ -1299,6 +1310,39 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper:
                 'One per answer, in the same order. Left empty, the answers are plain text and the exercise plays as Choose the answer.',
           ),
+        ];
+      // Listen and pick the missing word (Build 274 Revision 3, the owner's
+      // decisions of 13 and 16 October 2026).
+      case 'listening_pick_missing_word':
+        return [
+          _field(
+            _tts,
+            'Spoken sentence',
+            lines: 2,
+            helper:
+                'The whole sentence, as the learner hears it, missing word included. It plays by itself.',
+          ),
+          _field(
+            _question,
+            'Sentence with the gap',
+            lines: 2,
+            helper:
+                'The sentence as the learner sees it, with ___ (three underscores) where the missing word goes.',
+          ),
+          _instructionField(),
+          SoundAnswersEditor(
+            key: ValueKey('sound-answers-${_exercise.id}-$_formGeneration'),
+            answers: _soundAnswers,
+            course: widget.course,
+            readOnly: widget.readOnly,
+            helpButton: () => _helpButton('soundAnswers'),
+            onChanged: (answers) => setState(() {
+              _soundAnswers = answers;
+              _dirty = true;
+            }),
+          ),
+          _field(_correct, 'Correct answer number'),
+          _field(_hint, 'Hint (optional)', lines: 2),
         ];
       case 'listening_choose_target':
       case 'listening_choose_source':
@@ -2307,6 +2351,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         slotReuse: _slotReuse,
         guidebookButton: _guidebookButton,
         pageBlocks: _pageBlocks,
+        soundAnswers: _soundAnswers,
         cardReadAloud: _cardReadAloud,
         dialogueReadAloud: _dialogueReadAloud,
         pictureSize: _pictureSize,
@@ -2442,6 +2487,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'For one gap, use Pick the missing word.',
       ExerciseDraftErrorCode.gapCountMismatch =>
         '${error.detail}: give one line per ___ gap, in order.',
+      ExerciseDraftErrorCode.oneGapRequired =>
+        'Sentence with the gap: mark the missing word with one ___ (three underscores).',
+      ExerciseDraftErrorCode.soundAnswersTooFew =>
+        'Answers: give at least two answers.',
+      ExerciseDraftErrorCode.soundAnswerEmpty =>
+        'Answer ${error.line}: write its word or choose its recording.',
       ExerciseDraftErrorCode.slotWordRepeated =>
         'Slots: “${error.detail}” is listed more than once. Turn on “A '
             'word may fill more than one slot” when one word answers '
@@ -2680,6 +2731,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _slotReuse,
     _guidebookButton,
     jsonEncode([for (final block in _pageBlocks) block.toJson()]),
+    [
+      for (final answer in _soundAnswers)
+        '${answer.word}\u0002${answer.recording}\u0002${answer.afterAnswer}',
+    ].join('\u0003'),
     _cardReadAloud,
     _dialogueReadAloud,
     _pictureSize,
@@ -3070,7 +3125,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 _type != 'page' &&
                 _type != 'picture_word_match' &&
                 _type != 'icon_choice' &&
-                _type != 'listening_image_choice')
+                _type != 'listening_image_choice' &&
+                _type != 'listening_pick_missing_word')
               ExerciseImageField(
                 course: widget.course,
                 asset: _imageAsset,
