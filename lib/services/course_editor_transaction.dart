@@ -122,9 +122,12 @@ class CourseEditorTransaction {
   );
 
   static String _semanticJson(Course course) =>
-      jsonEncode(_semanticValue(course.toJson()));
+      jsonEncode(semanticValue(course.toJson()));
 
-  static Object? _semanticValue(Object? value) {
+  /// [value] as the Course Editor compares it: every map's keys in
+  /// order, every `updatedAt` left out. [CourseChangeSummary] names
+  /// the differences by the same rule.
+  static Object? semanticValue(Object? value) {
     if (value is Map) {
       final normalized = SplayTreeMap<String, Object?>();
       for (final entry in value.entries) {
@@ -133,12 +136,12 @@ class CourseEditorTransaction {
         // semantic authoring value. Ignoring them lets a user restore the
         // original content without leaving a false dirty transaction.
         if (key == 'updatedAt') continue;
-        normalized[key] = _semanticValue(entry.value);
+        normalized[key] = semanticValue(entry.value);
       }
       return normalized;
     }
     if (value is List) {
-      return value.map(_semanticValue).toList(growable: false);
+      return value.map(semanticValue).toList(growable: false);
     }
     return value;
   }

@@ -194,3 +194,49 @@ The owner's point 8 of 13 October 2026.
   whole words of a name, 13 of a tag, 184 inside: Strict keeps 98 of 282.
 - `flutter analyze`: no issues. The complete suite on the final tree:
   **4,895 passed, 1 skipped**, none failed.
+
+## Revision 5 (2.0.74+274005), Unsaved course changes names what changed
+
+The owner's request and decisions of 16 October 2026.
+
+- New tests: `test/course_changes_274_test.dart`, **16 passed**,
+  the file run six times clean after its last change: every area and
+  kind of change on the importable Laboratory, a time stamp is no
+  change at any level (also beside a real one), Course Info in the
+  form's order, each recording and character by its name, Lessons and
+  Rounds named as the breadcrumbs name them (with and without Round
+  numbering), untitled Rounds of one type told apart by their place, two
+  Lessons sharing one ID still a change, a Story's steps apart from its
+  options (also a removed step marked "Needs the Story's audio", removed
+  as the Round editor removes it), the order alone is
+  said as the order, a field no area names is still named, a Course never
+  saved says so; both questions on the Course Editor, the areas closed
+  and opened; the owner's case (the audio source to MP3 and back) asks
+  nothing on leaving.
+- The owner's report: traced in the code and on a copy of the stored
+  Course (the Audio Library's round trip for both MP3 modes, with the
+  publication reconciliation, returns the Course unchanged; the Image
+  Library hands back a Course only on add or remove; the stored Course
+  has nothing to reconcile; nothing was saved; the logs say nothing).
+  Cause not found; with this revision the question says what it finds.
+- Independent read-only review, then two re-reviews of its corrections.
+  The review found the claim "empty exactly when the Editor sees no
+  change" broken in several places (a time stamp of a Lesson or Round
+  named as a change, a Story's steps written again named as its options,
+  the custom flag and a version loaded from Version history unnamed, two
+  fallback lines missing) and asked for each recording, picture and
+  character by its name, Course Info in the form's order, Lessons and
+  Rounds named as the breadcrumbs name them, the never-saved notice and
+  a list that cannot be made logged rather than blocking the question.
+  The first re-review found one more fault (a removed step marked "Needs
+  the Story's audio" gave a false options line) and smaller ones (untitled
+  Rounds of one type read alike, no fallback under Lessons for two
+  Lessons sharing one ID, Course Info not quite in the form's order, an
+  order of the keys left to an unstable sort, a doc comment moved); the
+  second, that a removed Round could read like the one now in its place
+  ("was 1st in the list" since). All corrected; the last re-review found
+  nothing. Not covered by a test: the dialog when the list cannot be made
+  (no way to make it fail on a real Course without a test seam).
+- `flutter analyze`: no issues, on the final tree.
+- Complete suite on the final tree (`flutter test --concurrency=1`):
+  **4,911 passed, 1 skipped**, 45 minutes.

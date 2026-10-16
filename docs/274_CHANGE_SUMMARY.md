@@ -178,3 +178,32 @@ progression.
 
 The picture records, their categories and tags, Courses, Image Banks and
 learner data.
+
+## Revision 5 (2.0.74+274005): Unsaved course changes names what changed
+
+### Before
+
+- Leaving the Course Editor (or Edit) with unsaved changes asked Save
+  course or Discard changes without saying what had changed.
+
+### Now
+
+- The question lists the areas that changed (Course Info, Lesson Options,
+  Audio Library, Image Library, Story characters, Lessons…); a tap on one
+  shows every change in it, down to the exercise. Text only.
+- Untitled Rounds of one type, which read alike while Round numbering is
+  off, add their place: "Practice (2nd in the list)"; a removed one says
+  the place it had, "(was 1st in the list)". A Course never
+  saved says so: Discard changes means it is not created.
+- Both questions show it: leaving the Course Editor and leaving Edit.
+
+### Owner decisions (16 October 2026)
+
+- All the detail, but in a closed list: the areas first, opened on a tap.
+- Every change when an area is open; nothing is cut.
+- Both questions; text only, no links.
+
+### What does not change
+
+When the question is asked, what Save course and Discard changes do,
+Course files and learner data.

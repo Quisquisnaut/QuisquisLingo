@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../widgets/difficulty_badge.dart';
@@ -21,6 +22,9 @@ import '../services/course_service.dart';
 import '../services/course_wizard.dart';
 import '../services/course_wizard_memory.dart';
 import '../services/course_audit_service.dart';
+import '../services/app_errors.dart';
+import '../services/course_change_summary.dart';
+import '../services/diagnostic_log_service.dart';
 import '../services/duel_eligibility_service.dart';
 import '../services/settings_service.dart';
 import '../services/exercise_search_service.dart';
@@ -83,6 +87,7 @@ import '../widgets/quick_import_access.dart';
 import '../widgets/reported_action.dart';
 import '../services/course_backup_retention.dart';
 import '../widgets/course_backup_purge.dart';
+import '../widgets/course_changes_list.dart';
 import '../widgets/labelled_text.dart';
 import '../services/course_audio_usage.dart';
 import '../widgets/course_saving.dart';
@@ -518,6 +523,24 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
+  /// What changed since the last save (Build 274 Revision 5). A list that
+  /// cannot be made is logged and left out: the question is still asked.
+  List<CourseChangeArea> _changesSinceSave() {
+    try {
+      return CourseChangeSummary.between(_session.originalCourse, _course);
+    } catch (error, stack) {
+      unawaited(
+        DiagnosticLogService().log(
+          AppErrorCode.unexpectedError,
+          context: 'The list of unsaved course changes could not be made.',
+          exception: error,
+          stackTrace: stack,
+        ),
+      );
+      return const [];
+    }
+  }
+
   /// [beforePop] runs only when the Editor really closes: Continue Course
   /// Wizard (Build 267) leaves through here, so unconfirmed changes are
   /// confirmed or cancelled first.
@@ -527,6 +550,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       return;
     }
     var versionNotes = _pendingVersionNotes;
+    // Build 274 Revision 5: what changed since the last save.
+    final changes = _changesSinceSave();
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -541,6 +566,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               children: [
                 const Text(
                   'The changes applied in this Course Editor are not saved yet. Save course writes them as one new course version; Discard changes drops all of them.',
+                ),
+                const SizedBox(height: 12),
+                CourseChangesList(
+                  areas: changes,
+                  neverSaved: _session.isNewCourse,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -768,6 +798,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   Future<bool> _resolveChangesBeforeModeSwitch() async {
     if (!_dirty) return true;
     var versionNotes = _pendingVersionNotes;
+    // Build 274 Revision 5: what changed since the last save.
+    final changes = _changesSinceSave();
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -782,6 +814,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               children: [
                 const Text(
                   'The changes applied in this Course Editor are not saved yet. Save course writes them as one new course version, Discard changes drops all of them, or keep editing.',
+                ),
+                const SizedBox(height: 12),
+                CourseChangesList(
+                  areas: changes,
+                  neverSaved: _session.isNewCourse,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(

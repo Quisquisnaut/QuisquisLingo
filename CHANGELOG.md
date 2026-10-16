@@ -1,3 +1,38 @@
+# 2.0.74 (Build 274, Revision 5) - Unsaved course changes names what changed - 2026-10-16
+
+The owner's request and decisions of 16 October 2026, after leaving the
+Course Editor asked about unsaved changes when none seemed to have been
+made (Italian Demo 2: the audio source switched to MP3 and back, pictures
+searched; not reproduced, and no cause found in the code: the Audio
+Library's round trip returns the Course unchanged).
+
+- **The "Unsaved course changes" question says what changed since the last
+  save.** At first it shows the areas only: Course Info, Version
+  history, Draft or Published, Lesson Options, Audio Library, Image
+  Library, Story characters, Lessons, and Other Course details for
+  anything no area names. A tap on an area opens all its changes, one line each, as the
+  screens name them: "Estimated study hours", "Audio source: On-Device TTS
+  → Hybrid: MP3 + TTS fallback", "Recording “dorme”: added", "Lesson 2:
+  Greetings: its title", "Lesson 2: Greetings › Round 3 · Practice: At the
+  bar › Exercise 4: changed", "Lesson 3: Food: removed", "The order of the
+  Lessons". Course Info names its fields in the order the Course Info
+  Editor shows them. A removed Lesson, Round or exercise is named as it
+  was saved; one moved to another Lesson or Round shows as removed there
+  and added here. Rounds that would read alike (untitled Rounds of one
+  type while Round numbering is off) add their place: "Practice (2nd in
+  the list)", and a removed one the place it had: "Practice (was 1st in
+  the list): removed". A time stamp alone is never a change. Text only: nothing opens
+  from the list.
+- **Both questions show it**: leaving the Course Editor, and leaving Edit
+  for another mode (View only, Inspection or Locked).
+- The list compares exactly as the Editor decides that something changed
+  (the Course's JSON, every time stamp left out), so it is never empty
+  when the question is asked.
+- Help in English, Italian and Spanish (the Editor Help's question on
+  leaving the Course Editor).
+- Tests: `test/course_changes_274_test.dart` (16 tests).
+- The plan's Revision 5 (two category groups) becomes Revision 6.
+
 # 2.0.74 (Build 274, Revision 4) - Image Library search order and Strict search - 2026-10-16
 
 The owner's point 8 of 13 October 2026 (`docs/274_PLAN.md`).

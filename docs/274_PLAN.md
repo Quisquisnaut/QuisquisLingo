@@ -186,7 +186,15 @@ Working name **Listen and pick the missing word**.
   `exercise-image-strict-search`). Help EN/IT/ES (`findPicture`).
 - A search that names a whole category or group keeps finding its pictures.
 
-## Revision 5: two small categories join a group (point 9)
+## Revision 5: Unsaved course changes names what changed (owner request of 16 October 2026)
+
+Added during the Build at the owner's request, after a question about
+unsaved changes that he could not explain or reproduce: the question lists
+the areas that changed, each opening to its details (owner decisions: all
+the detail in a closed list, both questions, text only). The category
+groups below became Revision 6.
+
+## Revision 6: two small categories join a group (point 9)
 
 - **Today**: Movement (6 pictures: Fast, Spin, Bounce, Fall, Grow, Shrink)
   and Symbols (5: Prohibition sign, Power, Play, Pause, Stop) each have a

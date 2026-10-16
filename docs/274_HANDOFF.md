@@ -18,9 +18,10 @@ Help EN/IT/ES wherever a screen or a rule an author reads changes.
 | 0 | The Course Editor's top bar and breadcrumbs (points 1 and 3) | done |
 | 1 | Two recommendations stop being Warnings (points 2 and 5) | delivered early, as Build 272 Revision 16 |
 | 2 | Playback on request (points 6 and 4) | done |
-| 3 | A new Listening preset, Listen and pick the missing word (point 7) | planned |
-| 4 | Image Library search: the order and Strict search (point 8) | planned |
-| 5 | Two small categories join a group (point 9) | planned |
+| 3 | A new Listening preset, Listen and pick the missing word (point 7) | done (`c9c8f73a`) |
+| 4 | Image Library search: the order and Strict search (point 8) | done (`73a422b4`) |
+| 5 | Unsaved course changes names what changed (owner request of 16 October 2026) | in progress |
+| 6 | Two small categories join a group (point 9) | planned |
 
 ## Owner decisions
 
@@ -240,3 +241,34 @@ In progress (16 October 2026, the owner's "Go on with the plan").
   Image Library hands back a Course only on add or remove, the stored
   Course has nothing to reconcile, nothing was saved, the logs say nothing.
   Cause not found; proposed: the dialog names what changed.
+
+## Revision 5 (2.0.74+274005): Unsaved course changes names what changed
+
+Owner request of 16 October 2026 ("do it here"), after the unexplained
+question on leaving Italian Demo 2. Owner decisions (AskUserQuestion): all
+the detail, in a collapsed list that shows the areas first and opens each
+on a tap, every change when open; both questions (leaving the Course
+Editor, leaving Edit); text only. The plan's category groups became
+Revision 6.
+
+- Done: `CourseChangeSummary` (`lib/services/course_change_summary.dart`)
+  on `CourseEditorTransaction.semanticValue` (made public);
+  `CourseChangesList` (`lib/widgets/course_changes_list.dart`) in both
+  dialogs; Help EN/IT/ES `leaveEditor`; version 274005; CHANGELOG, README,
+  AGENTS, plan, change summary, validation;
+  `test/course_changes_274_test.dart` (16, six clean runs).
+- Done: the independent review (its faults corrected: time stamps at
+  every level, a Story's steps apart from its options, each recording,
+  picture and character by name, Course Info in the form's order, the
+  never-saved notice, a list that cannot be made logged); its re-review
+  (one more fault: a removed step marked "Needs the Story's audio" gave a
+  false options line; corrected, with the place added to Rounds that
+  read alike, the fallback under Lessons and a stable key order);
+  `flutter analyze` clean before the second round.
+- Done: the second re-review (one more fault: a removed Round could read
+  like the one now in its place; corrected with "was 1st in the list"),
+  and a last check that found nothing; `flutter analyze` clean; complete
+  suite 4,911 passed, 1 skipped.
+- To do: commit
+  "Build 274 Revision 5: Unsaved course changes names what changed"; push.
+  Then Revision 6 (category groups).
