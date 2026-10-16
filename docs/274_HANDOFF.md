@@ -11,6 +11,13 @@ before the suite), an independent read-only review, `flutter analyze` and
 the complete suite once on the final tree; one commit, the branch pushed.
 Help EN/IT/ES wherever a screen or a rule an author reads changes.
 
+**Done.** Revisions 0, 2–6 delivered (Revision 1 came early as Build 272
+Revision 16); `build-274` fast-forwarded into `main` and pushed on
+16 October 2026 at the owner's go, then deleted locally and on origin.
+Owner decision of the same day: the Courses switch keeps its name "Show
+unavailable" and its rule. Next: Build 275, same-language Courses
+(`docs/SAME_LANGUAGE_COURSES_PLAN.md`).
+
 ## Revision order
 
 | Rev | What | State |
@@ -21,7 +28,7 @@ Help EN/IT/ES wherever a screen or a rule an author reads changes.
 | 3 | A new Listening preset, Listen and pick the missing word (point 7) | done (`c9c8f73a`) |
 | 4 | Image Library search: the order and Strict search (point 8) | done (`73a422b4`) |
 | 5 | Unsaved course changes names what changed (owner request of 16 October 2026) | done, `141357e7` |
-| 6 | Two small categories join a group (point 9) | in progress |
+| 6 | Two small categories join a group (point 9) | done, `8cb8e422` |
 
 ## Owner decisions
 
@@ -254,8 +261,8 @@ In progress (16 October 2026, the owner's "Go on with the plan").
   COURSE_EDITOR.md groups, AGENTS wording and the test's lazy chip row
   corrected) and its re-review (nothing); `flutter analyze` clean.
 - Done: complete suite 4,915 passed, 1 skipped.
-- To do: commit "Build 274 Revision 6: two small image categories join a
-  group"; push.
+- Committed `8cb8e422` "Build 274 Revision 6: two small image categories
+  join a group" and pushed `build-274`.
   Build 274's plan is then complete: merge into main on the owner's go.
 
 ## Revision 5 (2.0.74+274005): Unsaved course changes names what changed
