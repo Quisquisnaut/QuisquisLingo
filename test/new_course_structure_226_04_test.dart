@@ -309,6 +309,9 @@ void main() {
       // Build 267: through the Course Wizard's Create it myself.
       await tester.tap(find.byKey(const Key('course-wizard-manual')));
       await tester.pumpAndSettle();
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('new-course-kind-other')));
+      await tester.pumpAndSettle();
       expect(tester.widget<TextField>(_lessons).controller!.text, '3');
       expect(tester.widget<TextField>(_rounds).controller!.text, '1');
     },
@@ -421,6 +424,9 @@ Future<void> _open(WidgetTester tester) async {
   // Build 267: New Course opens the Course Wizard; Create it myself goes on
   // with New Course's form.
   await tester.tap(find.byKey(const Key('course-wizard-manual')));
+  await tester.pumpAndSettle();
+  // Build 275 Revision 0: the kind of Course comes first.
+  await tester.tap(find.byKey(const Key('new-course-kind-other')));
   await tester.pumpAndSettle();
   await _enter(
     tester,

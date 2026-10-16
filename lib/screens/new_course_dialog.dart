@@ -6,6 +6,7 @@ import '../controllers/new_course_form.dart';
 import '../models/course_metadata_options.dart';
 import '../models/course_models.dart';
 import '../services/course_credits.dart';
+import '../services/course_language_pair.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
 import '../services/course_media_store.dart';
@@ -13,6 +14,7 @@ import '../services/course_wizard.dart';
 import '../services/profile_service.dart';
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
+import '../widgets/course_kind_choice.dart';
 import '../widgets/language_field.dart';
 
 /// Opens New Course's form for [creator], the active learner. Returns the
@@ -101,7 +103,13 @@ class _NewCourseDialogState extends State<NewCourseDialog> {
       _tell(error.message?.toString() ?? 'Check the Course name.');
       return;
     }
-    // The language fields show what is missing.
+    // Build 275 Revision 0: the kind is told; the language fields show
+    // what is missing.
+    final kindProblem = _form.kindProblem;
+    if (kindProblem != null) {
+      _tell(kindProblem);
+      return;
+    }
     if (!_form.languagesChosen) return;
     if (widget.titleTaken(title)) {
       final continueAnyway = await showDialog<bool>(
@@ -145,6 +153,12 @@ class _NewCourseDialogState extends State<NewCourseDialog> {
                 'Continue to Editor to prepare this course. It is saved only when you confirm the course changes in the editor.',
               ),
               const SizedBox(height: 12),
+              CourseKindChoice(
+                kind: _form.kind,
+                keyPrefix: 'new-course',
+                onChanged: (kind) => setState(() => _form.kind = kind),
+              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: _form.title,
                 maxLength: 120,
@@ -153,20 +167,31 @@ class _NewCourseDialogState extends State<NewCourseDialog> {
                   labelText: 'Course title *',
                 ),
               ),
-              const SizedBox(height: 8),
-              LanguageField(
-                controller: _form.source,
-                label: 'Source language *',
-                keyPrefix: 'new-course-source-language',
-                onChanged: () => setState(() {}),
-              ),
-              const SizedBox(height: 8),
-              LanguageField(
-                controller: _form.target,
-                label: 'Target language *',
-                keyPrefix: 'new-course-target-language',
-                onChanged: () => setState(() {}),
-              ),
+              if (_form.kind == CourseKind.sameLanguage) ...[
+                const SizedBox(height: 8),
+                LanguageField(
+                  key: const ValueKey('new-course-language-field'),
+                  controller: _form.target,
+                  label: 'Language *',
+                  keyPrefix: 'new-course-language',
+                  onChanged: () => setState(() {}),
+                ),
+              ] else if (_form.kind == CourseKind.otherLanguage) ...[
+                const SizedBox(height: 8),
+                LanguageField(
+                  controller: _form.source,
+                  label: 'Source language *',
+                  keyPrefix: 'new-course-source-language',
+                  onChanged: () => setState(() {}),
+                ),
+                const SizedBox(height: 8),
+                LanguageField(
+                  controller: _form.target,
+                  label: 'Target language *',
+                  keyPrefix: 'new-course-target-language',
+                  onChanged: () => setState(() {}),
+                ),
+              ],
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 key: const Key('new-course-owner'),

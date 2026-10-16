@@ -26,7 +26,7 @@ One page was added to the second group after these decisions: the start page of 
 | Exercise titles, headings and instruction lines (123 texts) | English, Spanish, Italian, German, Portuguese, Dutch, French | The Course's Source language | `lib/localization/exercise_copy/` |
 | The buttons and messages of a Round, the Duel and the Review page (129 texts) | The same seven | The Course's Source language | `lib/localization/learner_panel/` |
 | Names of languages inside those lines, such as "Traduci in tedesco." (62 languages) | The same seven | The Course's Source language | `lib/localization/language_names.dart` |
-| Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (833 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
+| Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (836 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
 | The Welcome Wizard (15 texts) | English, Italian, Spanish | The language chosen in Create Profile (the Help Language) | `lib/localization/welcome_text.dart` |
 | The start page, shown while a learner has no Course to study (27 texts) | English, Italian, Spanish | The Help Language | `lib/localization/start_page_text.dart` |
 | The content of a Course | Whatever its author wrote | The Course | The Course file |
@@ -435,7 +435,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `step5.title` | Make your own Course | Crea il tuo corso |
 | `step5.body` | Anyone can write a Course with Course Studio, the editor QuisquisLingo keeps hidden. Psst: to wake it up, tap Version and Build in Settings ten times. | Chiunque può scrivere un corso con Course Studio, l'editor che QuisquisLingo tiene nascosto. Psst: per svegliarlo, tocca dieci volte Version and Build in Settings. |
 
-### 6.4 Course Info (81 texts, 3 languages)
+### 6.4 Course Info (82 texts, 3 languages)
 
 | Key | English | Italian |
 |---|---|---|
@@ -476,6 +476,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `courseInfo.languages` | Languages | Lingue |
 | `courseInfo.learningLanguage` | Learning language: {value} | Lingua studiata: {value} |
 | `courseInfo.baseLanguage` | Base language: {value} | Lingua di partenza: {value} |
+| `courseInfo.sameLanguage` | Same-language Course: everything is in the language being learned. | Corso nella stessa lingua: tutto è nella lingua che si studia. |
 | `courseInfo.licenseRights` | License / Rights | License / Rights |
 | `courseInfo.license` | License: {value} | Licenza: {value} |
 | `courseInfo.rightsHolder` | Rights Holder: {value} | Rights Holder: {value} |
@@ -725,7 +726,7 @@ The titles of the Help pages and of their sections.
 | `technical.jsonStructure.duel.title` | Duel | Duel |
 | `technical.jsonStructure.compatibility.title` | Compatibility | Compatibilità |
 
-### 6.7 Editor Help: the questions (90 texts, 3 languages)
+### 6.7 Editor Help: the questions (91 texts, 3 languages)
 
 Each question has an answer, translated as well (counted in 6.9).
 
@@ -749,6 +750,7 @@ Each question has an answer, translated as well (counted in 6.9).
 | `editorHelp.qa.restore.q` | How do I go back to an earlier version? | Come torno a una versione precedente? |
 | `editorHelp.qa.privateCourse.q` | What is a Private course? | Che cos’è un Private course? |
 | `editorHelp.qa.courseLanguages.q` | How do I choose the Course languages? | Come scelgo le lingue del Course? |
+| `editorHelp.qa.courseKind.q` | Same language or another language: which Course should I make? | Nella stessa lingua o attraverso un’altra: quale Course creare? |
 | `editorHelp.qa.courseInfo.q` | Where do I change the Course name and description? | Dove cambio il nome e la descrizione del Course? |
 | `editorHelp.qa.license.q` | Which license can I choose? | Quale licenza posso scegliere? |
 | `editorHelp.qa.authors.q` | How do I credit authors and rights holders? | Come do credito ad autori e titolari dei diritti? |
@@ -857,7 +859,7 @@ Answers, section bodies, the description of each exercise type and the Help of e
 | Part of Help | Long texts |
 |---|---|
 | Exercise Help, Exercise primitives Help and the field Help of the exercise forms | 203 |
-| Editor Help | 105 |
+| Editor Help | 106 |
 | Course Studio Help | 54 |
 | Advanced (Admin) Help | 43 |
 | Technical reference | 33 |
@@ -866,7 +868,7 @@ Answers, section bodies, the description of each exercise type and the Help of e
 | All Courses Help and Course Library Help | 11 |
 | The field Help of the GuideBook module page | 9 |
 | Debug Help | 3 |
-| Total | 496 |
+| Total | 497 |
 
 ### 6.10 The start page (27 texts, 3 languages)
 

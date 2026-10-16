@@ -4,11 +4,13 @@ import '../models/course_flag_selection.dart';
 import '../models/course_metadata_options.dart';
 import '../models/course_models.dart';
 import '../services/course_credits.dart';
+import '../services/course_language_pair.dart';
 import '../services/course_library_operations.dart';
 import '../services/course_wizard.dart';
 import '../services/formal_name_policy.dart';
 import '../services/new_course_structure.dart';
 import '../services/profile_service.dart';
+import '../widgets/course_kind_choice.dart';
 import '../widgets/language_field.dart';
 import 'course_credit_rows.dart';
 
@@ -63,7 +65,8 @@ class NewCourseForm {
       roundsPerLesson = TextEditingController(
         text: '${NewCourseStructure.defaultRoundsPerLesson}',
       ),
-      maintainerProfileId = creator.learnerProfileId {
+      maintainerProfileId = creator.learnerProfileId,
+      kind = prefill?.kind ?? _kindOfLanguages(prefill) {
     if (prefill != null && source.isHandEntered) {
       source.tag.text = prefill.sourceLanguageTag;
     }
@@ -74,6 +77,29 @@ class NewCourseForm {
 
   /// The active learner: Original Course Creator and first Author.
   final LearnerProfile creator;
+
+  /// Build 275 Revision 0: the kind of Course, from the Course Wizard or
+  /// chosen here (none at first). In the same language [target] is the one
+  /// Language field and both languages are written from it.
+  CourseKind? kind;
+
+  /// A Wizard's values that carry languages but no kind: the kind they
+  /// make.
+  static CourseKind? _kindOfLanguages(CourseWizardBasics? prefill) {
+    if (prefill == null ||
+        prefill.sourceLanguage.trim().isEmpty ||
+        prefill.targetLanguage.trim().isEmpty) {
+      return null;
+    }
+    return CourseLanguagePair.sameChoices(
+          learningName: prefill.targetLanguage,
+          learningTag: prefill.targetLanguageTag,
+          baseName: prefill.sourceLanguage,
+          baseTag: prefill.sourceLanguageTag,
+        )
+        ? CourseKind.sameLanguage
+        : CourseKind.otherLanguage;
+  }
 
   final TextEditingController title;
   final LanguageFieldController source;
@@ -161,14 +187,44 @@ class NewCourseForm {
     parameterName: 'courseName',
   );
 
-  /// Whether both languages are chosen; their fields show what is missing.
-  bool get languagesChosen => source.choice != null && target.choice != null;
+  /// Whether the languages the kind asks for are chosen; their fields show
+  /// what is missing.
+  bool get languagesChosen => switch (kind) {
+    null => false,
+    CourseKind.sameLanguage => target.choice != null,
+    CourseKind.otherLanguage => source.choice != null && target.choice != null,
+  };
+
+  /// What the author must still decide about the kind, or null: a kind not
+  /// chosen, or Through another language naming one language twice.
+  String? get kindProblem {
+    if (kind == null) return CourseKindChoice.missing;
+    final sourceLanguage = source.choice;
+    final targetLanguage = target.choice;
+    if (kind == CourseKind.otherLanguage &&
+        sourceLanguage != null &&
+        targetLanguage != null &&
+        CourseLanguagePair.sameChoices(
+          learningName: targetLanguage.name,
+          learningTag: targetLanguage.tag,
+          baseName: sourceLanguage.name,
+          baseTag: sourceLanguage.tag,
+        )) {
+      return CourseKindChoice.sameLanguageTwice(targetLanguage.name);
+    }
+    return null;
+  }
 
   /// What the fields come to, with the checked [title] (see [validTitle]).
   /// [operations] builds the Course (its clock stamps it).
   NewCourseSubmission submit(String title, CourseLibraryOperations operations) {
-    final sourceLanguage = source.choice;
+    final problem = kindProblem;
+    if (problem != null) return NewCourseRefused(message: problem);
     final targetLanguage = target.choice;
+    // In the same language both languages are the one chosen.
+    final sourceLanguage = kind == CourseKind.sameLanguage
+        ? targetLanguage
+        : source.choice;
     if (sourceLanguage == null || targetLanguage == null) {
       return const NewCourseRefused();
     }

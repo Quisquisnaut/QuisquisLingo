@@ -463,6 +463,10 @@ Future<void> _openCreation(WidgetTester tester) async {
     ),
     findsOneWidget,
   );
+  // Build 275 Revision 0: the kind of Course comes first, at the top of
+  // the form.
+  await tester.tap(find.byKey(const Key('new-course-kind-other')));
+  await tester.pump();
 }
 
 Future<void> _openCourseFlagChooser(WidgetTester tester) async {

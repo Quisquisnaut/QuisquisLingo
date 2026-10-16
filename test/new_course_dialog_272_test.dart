@@ -197,6 +197,9 @@ Future<void> _openForm(WidgetTester tester) async {
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('course-wizard-manual')));
   await tester.pumpAndSettle();
+  // Build 275 Revision 0: the kind of Course comes first.
+  await tester.tap(find.byKey(const Key('new-course-kind-other')));
+  await tester.pumpAndSettle();
 }
 
 Finder _field(String label) => find.byWidgetPredicate(

@@ -112,6 +112,9 @@ void main() {
       // Build 267: through the Course Wizard's Create it myself.
       await tester.tap(find.byKey(const Key('course-wizard-manual')));
       await tester.pumpAndSettle();
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('new-course-kind-other')));
+      await tester.pumpAndSettle();
       await tester.enterText(_field('Course title *'), 'MyTest');
       // Build 267 Revision 9: Source starts empty.
       await tester.enterText(_field('Source language *'), 'English');

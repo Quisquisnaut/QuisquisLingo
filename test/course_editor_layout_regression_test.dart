@@ -131,6 +131,9 @@ void main() {
     await tester.pumpUntilFileIoState(
       () => find.byType(AlertDialog).evaluate().isNotEmpty,
     );
+    // Build 275 Revision 0: the kind of Course comes first.
+    await tester.tap(find.byKey(const Key('new-course-kind-other')));
+    await tester.pump();
 
     final maintainerHelper = find.text(
       'The person currently responsible for maintaining this Course.',
@@ -322,6 +325,9 @@ void main() {
       await tester.pumpUntilFileIoState(
         () => find.byType(AlertDialog).evaluate().isNotEmpty,
       );
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('new-course-kind-other')));
+      await tester.pump();
       expect(find.text('License / Rights'), findsOneWidget);
       expect(
         find.byKey(const Key('new-course-rights-holder-name-0')),

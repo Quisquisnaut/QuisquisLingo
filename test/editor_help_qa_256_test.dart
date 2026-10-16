@@ -49,8 +49,9 @@ void main() {
     // 5: What do the difficulty bars mean? Build 265: How does Word Lookup
     // use the GuideBook vocabulary? Build 266 Revision 1: How do I write
     // GuideBook entries? How long should a module be? Build 267: How does
-    // the Course Wizard work?
-    expect(ids, hasLength(90));
+    // the Course Wizard work? Build 275 Revision 0: Same language or another
+    // language: which Course should I make?
+    expect(ids, hasLength(91));
     expect(ids.toSet(), hasLength(ids.length));
     for (final catalog in [helpEn, helpIt, helpEs]) {
       for (final topic in editorHelpQuestionsByTopic.keys) {

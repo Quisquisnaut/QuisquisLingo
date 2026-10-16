@@ -611,6 +611,10 @@ void main() {
       expect(find.byKey(const Key('course-wizard-manual')), findsOneWidget);
       // The variant is optional and says so; the long explanation is hidden.
       expect(_field('Language variant (optional)'), findsOneWidget);
+      // Build 275 Revision 0: the languages follow the kind of Course.
+      expect(_field('Source language *'), findsNothing);
+      await tester.tap(find.byKey(const Key('course-wizard-kind-other')));
+      await tester.pump();
       expect(_field('Source language *'), findsOneWidget);
       expect(find.textContaining('American English'), findsWidgets);
       expect(find.textContaining('Italian of Italy'), findsNothing);
@@ -659,6 +663,9 @@ void main() {
       await _openStudio(tester);
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('course-wizard-kind-other')));
+      await tester.pump();
       await tester.enterText(_field('Course title *'), 'Italian at the bar');
       // Build 267 Revision 9: Source starts empty.
       await tester.enterText(_field('Source language *'), 'English');
@@ -781,6 +788,9 @@ void main() {
       await _openStudio(tester);
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('course-wizard-kind-other')));
+      await tester.pump();
       await tester.enterText(_field('Course title *'), 'Italian at the bar');
       await tester.enterText(_field('Source language *'), 'English');
       await tester.enterText(_field('Target language *'), 'Italian');
@@ -1202,6 +1212,9 @@ void main() {
       await _openStudio(tester);
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('course-wizard-kind-other')));
+      await tester.pump();
       await tester.enterText(_field('Course title *'), 'Italian at the bar');
       await tester.enterText(_field('Source language *'), 'English');
       await tester.enterText(_field('Target language *'), 'Italian');

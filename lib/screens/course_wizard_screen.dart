@@ -13,6 +13,7 @@ import '../services/course_audit_service.dart';
 import '../services/course_authoring_session.dart';
 import '../controllers/course_credit_rows.dart';
 import '../services/course_credits.dart';
+import '../services/course_language_pair.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
 import '../services/course_service.dart';
@@ -29,6 +30,7 @@ import '../services/settings_service.dart';
 import '../services/timed_round_rules.dart';
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
+import '../widgets/course_kind_choice.dart';
 import '../widgets/language_field.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/reported_action.dart';
@@ -156,6 +158,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   final _source = LanguageFieldController();
   final _target = LanguageFieldController();
   final _variant = TextEditingController();
+
+  /// Build 275 Revision 0: the kind of Course, chosen before the languages
+  /// (none at first). In the same language, [_target] is the one Language
+  /// field and both languages are written from it.
+  CourseKind? _kind;
 
   // Step 2.
   final _description = TextEditingController();
@@ -305,6 +312,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     _title.text = basics.title;
     _variant.text = basics.variant;
     if (_starting) {
+      _kind = basics.kind;
       _source.text.text = basics.sourceLanguage;
       _source.tag.clear();
       _target.text.text = basics.targetLanguage;
@@ -379,6 +387,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   }
 
   CourseWizardBasics get _basicsValue => CourseWizardBasics(
+    kind: _kind,
     title: _title.text,
     sourceLanguage: _source.text.text,
     targetLanguage: _target.text.text,
@@ -479,10 +488,28 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           return error.message?.toString() ?? 'Check the Course title.';
         }
         if (_starting) {
-          if (_source.isEmpty) return 'Choose the source language.';
-          if (_target.isEmpty) return 'Choose the target language.';
-          if (_source.tagError != null) return _source.tagError;
-          if (_target.tagError != null) return _target.tagError;
+          switch (_kind) {
+            case null:
+              return CourseKindChoice.missing;
+            case CourseKind.sameLanguage:
+              if (_target.isEmpty) return 'Choose the language.';
+              if (_target.tagError != null) return _target.tagError;
+            case CourseKind.otherLanguage:
+              if (_source.isEmpty) return 'Choose the source language.';
+              if (_target.isEmpty) return 'Choose the target language.';
+              if (_source.tagError != null) return _source.tagError;
+              if (_target.tagError != null) return _target.tagError;
+              final source = _source.choice!;
+              final target = _target.choice!;
+              if (CourseLanguagePair.sameChoices(
+                learningName: target.name,
+                learningTag: target.tag,
+                baseName: source.name,
+                baseTag: source.tag,
+              )) {
+                return CourseKindChoice.sameLanguageTwice(target.name);
+              }
+          }
         }
         return null;
       case CourseWizardStep.flag:
@@ -539,7 +566,12 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.basics =>
       _title.text.trim().isNotEmpty ||
           _variant.text.trim().isNotEmpty ||
-          (_starting && (!_source.isEmpty || !_target.isEmpty)),
+          // The kind alone is no content (the example keeps it), nor is a
+          // field the kind hides.
+          (_starting &&
+              (_kind == CourseKind.sameLanguage
+                  ? !_target.isEmpty
+                  : !_source.isEmpty || !_target.isEmpty)),
     CourseWizardStep.flag =>
       _cover.isNotEmpty || _flag != const CourseFlagSelection.automatic(),
     CourseWizardStep.about =>
@@ -776,8 +808,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _tell('Select or create a learner profile first.');
       return;
     }
-    final source = _source.choice!;
+    // In the same language both languages are the one chosen.
     final target = _target.choice!;
+    final source = _kind == CourseKind.sameLanguage ? target : _source.choice!;
     final course = _ops.newWizardCourse(
       creator: profile,
       title: title,
@@ -805,13 +838,16 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
 
   /// Continue by hand: New Course's form with what this screen holds.
   void _createManually() {
-    final source = _source.choice;
+    final same = _kind == CourseKind.sameLanguage;
+    final sourceField = same ? _target : _source;
+    final source = sourceField.choice;
     final target = _target.choice;
     Navigator.of(context).pop(
       CourseWizardCreateManually(
         CourseWizardBasics(
+          kind: _kind,
           title: _title.text.trim(),
-          sourceLanguage: source?.name ?? _source.text.text.trim(),
+          sourceLanguage: source?.name ?? sourceField.text.text.trim(),
           sourceLanguageTag: source?.tag ?? '',
           targetLanguage: target?.name ?? _target.text.text.trim(),
           targetLanguageTag: target?.tag ?? '',
@@ -1191,19 +1227,28 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     setState(() {
       switch (_step) {
         case CourseWizardStep.basics:
-          _setBasics(CourseWizardSample.basics);
+          // Once the Course exists, its kind comes from its languages.
+          _setBasics(
+            CourseWizardSample.basicsFor(
+              _starting ? _kind : CourseLanguagePair.kindOf(_working),
+            ),
+          );
         case CourseWizardStep.flag:
           // The example has no cover of its own: a cover chosen stays.
           _setPicture(
             CourseWizardPicture(coverImage: _cover, coverCredit: _coverCredit),
           );
         case CourseWizardStep.about:
-          _setAbout(CourseWizardSample.about);
+          _setAbout(
+            CourseWizardSample.aboutFor(CourseLanguagePair.kindOf(_working)),
+          );
           _setCredits(CourseWizardSample.credits(_authorName));
         case CourseWizardStep.options:
           _setOptions(CourseWizardSample.options);
         case CourseWizardStep.lessons:
-          _setLessons(CourseWizardSample.lessons);
+          _setLessons(
+            CourseWizardSample.lessonsFor(CourseLanguagePair.kindOf(_working)),
+          );
         case CourseWizardStep.guidebook ||
             CourseWizardStep.rounds ||
             CourseWizardStep.check:
@@ -1861,17 +1906,21 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   ({String short, List<String> more}) get _explanationText => switch (_step) {
     CourseWizardStep.basics when _starting => (
       short:
-          'Set a title for your Course and insert the learner\'s language '
-          '(Source) and the language to be studied (Target). Use the full '
-          'language name (e.g. English) or its code (en). Capitals don\'t '
-          'matter.',
+          'Choose what kind of Course you make, then set its title and its '
+          'language or languages. Use the full language name (e.g. English) '
+          'or its code (en). Capitals don\'t matter.',
       more: const [
+        'Through another language: learners read instructions and '
+            'translations in the language they already speak (Source) while '
+            'they learn another (Target), for example Italian for English '
+            'speakers. In the same language: everything is in the language '
+            'being learned, and each word or sentence has a meaning in that '
+            'language instead of a translation, for example English '
+            'explained in English. Which should I choose? explains both. The '
+            'kind and the languages never change later.',
         'Title: what learners see in the list of Courses, for example '
-            '“Italian at the bar”. Source language: the language your '
-            'learners already speak; QQL writes its instructions and '
-            'translations in it. Target language: the language they learn. '
-            'The list button beside each language shows every language QQL '
-            'knows. The languages never change later.',
+            '“Italian at the bar”. The list button beside a language shows '
+            'every language QQL knows.',
         'Variant (optional): which form of the target language, for '
             'example “American English”. You can leave it empty.',
         'Continue with Wizard takes you through the rest step by step. '
@@ -1883,9 +1932,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.basics => (
       short: 'The Course\'s title and its variant.',
       more: const [
-        'Learners see the title in the list of Courses. The languages cannot '
-            'change: learners\' XP and streaks belong to the language they '
-            'learn. The variant is optional, for example “American English”.',
+        'Learners see the title in the list of Courses. The kind of Course '
+            'and its languages cannot change: learners\' XP and streaks '
+            'belong to the language they learn. The variant is optional, for '
+            'example “American English”.',
       ],
     ),
     CourseWizardStep.flag => (
@@ -1993,6 +2043,17 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   // ---- Steps
 
   List<Widget> _basicsFields() => [
+    if (_starting) ...[
+      _heading(
+        'What kind of Course?',
+        tooltip: 'Through another language, or in the same language.',
+      ),
+      CourseKindChoice(
+        kind: _kind,
+        keyPrefix: 'course-wizard',
+        onChanged: (kind) => setState(() => _kind = kind),
+      ),
+    ],
     _heading('Title', tooltip: 'What learners see in the list of Courses.'),
     TextField(
       key: ValueKey('course-wizard-title-$_generation'),
@@ -2004,11 +2065,30 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         helperText: 'For example “Italian at the bar”.',
       ),
     ),
-    _heading(
-      'Languages',
-      tooltip: 'The language learners speak, then the one they learn.',
-    ),
-    if (_starting) ...[
+    if (!_starting) ...[
+      _heading('Languages', tooltip: 'The kind of Course and its languages.'),
+      Text(
+        key: const Key('course-wizard-kind-shown'),
+        CourseKindChoice.shown(
+          CourseLanguagePair.kindOf(_working),
+          _working.sourceLanguage,
+          _working.targetLanguage,
+        ),
+      ),
+    ] else if (_kind == CourseKind.sameLanguage) ...[
+      _heading('Language', tooltip: 'The language learned and explained.'),
+      LanguageField(
+        key: ValueKey('course-wizard-language-$_generation'),
+        controller: _target,
+        label: 'Language *',
+        keyPrefix: 'course-wizard-language',
+        onChanged: () => setState(() {}),
+      ),
+    ] else if (_kind == CourseKind.otherLanguage) ...[
+      _heading(
+        'Languages',
+        tooltip: 'The language learners speak, then the one they learn.',
+      ),
       LanguageField(
         key: ValueKey('course-wizard-source-$_generation'),
         controller: _source,
@@ -2024,11 +2104,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         keyPrefix: 'course-wizard-target-language',
         onChanged: () => setState(() {}),
       ),
-    ] else
-      Text(
-        key: const Key('course-wizard-languages'),
-        '${_working.sourceLanguage} → ${_working.targetLanguage}',
-      ),
+    ],
     _heading('Variant', tooltip: 'Which form of the target language.'),
     TextField(
       key: ValueKey('course-wizard-variant-$_generation'),

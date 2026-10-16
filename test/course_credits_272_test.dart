@@ -367,6 +367,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('course-wizard-manual')));
       await tester.pumpAndSettle();
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('new-course-kind-other')));
+      await tester.pumpAndSettle();
       await _enter(tester, _field('Course title *'), 'Credits by hand');
       await _enter(tester, _field('Source language *'), 'English');
       await _enter(tester, _field('Target language *'), 'Italian');
@@ -444,6 +447,9 @@ void main() {
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('course-wizard-manual')));
+      await tester.pumpAndSettle();
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('new-course-kind-other')));
       await tester.pumpAndSettle();
       await _enter(tester, _field('Course title *'), 'Credits by hand');
       await _enter(tester, _field('Source language *'), 'English');

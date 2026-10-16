@@ -9,6 +9,7 @@ import '../models/course_metadata_options.dart';
 import '../models/course_models.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
+import '../services/course_language_pair.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_governance_resolver.dart';
 import '../services/course_service.dart';
@@ -303,6 +304,17 @@ class CourseInfoScreen extends StatefulWidget {
               CourseLanguageResolver.base(course).displayLabel,
             ),
           ].join('\n'),
+          children: [
+            // Build 275 Revision 0: a Course taught in its own language.
+            if (CourseLanguagePair.isSameLanguage(course))
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  _t(locale, 'sameLanguage'),
+                  key: const Key('course-info-same-language'),
+                ),
+              ),
+          ],
         ),
         if (course.forkProvenance != null)
           CourseForkProvenanceCard(

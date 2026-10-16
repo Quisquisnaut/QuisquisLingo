@@ -4,9 +4,11 @@ import 'package:quisquislingo_app/controllers/new_course_form.dart';
 import 'package:quisquislingo_app/models/course_flag_selection.dart';
 import 'package:quisquislingo_app/models/course_metadata_options.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/services/course_language_pair.dart';
 import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_wizard.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/widgets/course_kind_choice.dart';
 
 /// Build 272 Revision 3: New Course's form, without its dialog.
 void main() {
@@ -19,6 +21,7 @@ void main() {
   }
 
   NewCourseForm filled() => open()
+    ..kind = CourseKind.otherLanguage
     ..title.text = 'By hand'
     ..source.text.text = 'English'
     ..target.text.text = 'Italian';
@@ -29,6 +32,8 @@ void main() {
     test('empty, with the creator as Author and New Course\'s defaults', () {
       final form = open();
       expect(form.title.text, isEmpty);
+      // Build 275 Revision 0: no kind of Course is chosen at first.
+      expect(form.kind, isNull);
       expect(form.source.isEmpty, isTrue);
       expect(form.target.isEmpty, isTrue);
       expect(form.maintainerProfileId, _profileId);
@@ -63,6 +68,8 @@ void main() {
         ),
       );
       expect(form.title.text, 'Italian at the bar');
+      // Two languages and no kind: the kind they make.
+      expect(form.kind, CourseKind.otherLanguage);
       expect(form.source.text.text, 'English');
       expect(form.target.text.text, 'Venexian');
       expect(form.variant.text, 'Lagoon');
@@ -136,6 +143,14 @@ void main() {
       form.title.text = 'By hand';
       expect(form.validTitle(), 'By hand');
       expect(form.languagesChosen, isFalse);
+      // Build 275 Revision 0: without a kind the form says so.
+      expect(form.kindProblem, CourseKindChoice.missing);
+      expect(
+        (form.submit('By hand', operations) as NewCourseRefused).message,
+        CourseKindChoice.missing,
+      );
+      form.kind = CourseKind.otherLanguage;
+      expect(form.kindProblem, isNull);
       // Without a language nothing is made and nothing is said: the
       // language fields show what is missing.
       final refused = form.submit('By hand', operations) as NewCourseRefused;

@@ -6,6 +6,7 @@ import '../models/exercise_features.dart';
 import 'authoring_duplication_service.dart';
 import 'course_audit_service.dart';
 import 'course_credits.dart';
+import 'course_language_pair.dart';
 import 'duel_eligibility_service.dart';
 import 'guidebook_module_sample.dart';
 import 'guidebook_round_generator.dart';
@@ -151,6 +152,7 @@ final class CourseWizardPaused extends CourseWizardOutcome {
 /// Step 1: what every Course needs.
 class CourseWizardBasics {
   const CourseWizardBasics({
+    this.kind,
     this.title = '',
     this.sourceLanguage = '',
     this.sourceLanguageTag = '',
@@ -159,6 +161,11 @@ class CourseWizardBasics {
     this.variant = '',
   });
 
+  /// The kind of Course the author chose (Build 275 Revision 0), or null
+  /// before a choice. Form state only: a Course's kind is derived from its
+  /// languages ([CourseLanguagePair]); in the same language both languages
+  /// are the one chosen.
+  final CourseKind? kind;
   final String title;
   final String sourceLanguage;
   final String sourceLanguageTag;
@@ -167,6 +174,7 @@ class CourseWizardBasics {
   final String variant;
 
   bool get isEmpty =>
+      kind == null &&
       title.trim().isEmpty &&
       sourceLanguage.trim().isEmpty &&
       targetLanguage.trim().isEmpty &&
@@ -1063,12 +1071,29 @@ abstract final class CourseWizardPublish {
 abstract final class CourseWizardSample {
   /// The variant is left empty: it is optional (owner, 9 October 2026).
   static const basics = CourseWizardBasics(
+    kind: CourseKind.otherLanguage,
     title: 'Italian at the bar',
     sourceLanguage: 'English',
     sourceLanguageTag: 'en',
     targetLanguage: 'Italian',
     targetLanguageTag: 'it',
   );
+
+  /// In the same language (Build 275 Revision 0, the owner's default e of
+  /// 16 October 2026): English explained in English, at the café.
+  static const sameLanguageBasics = CourseWizardBasics(
+    kind: CourseKind.sameLanguage,
+    title: 'English at the café',
+    sourceLanguage: 'English',
+    sourceLanguageTag: 'en',
+    targetLanguage: 'English',
+    targetLanguageTag: 'en',
+  );
+
+  /// The example of the kind chosen; with none chosen, Through another
+  /// language's.
+  static CourseWizardBasics basicsFor(CourseKind? kind) =>
+      kind == CourseKind.sameLanguage ? sameLanguageBasics : basics;
 
   /// The flag of the language learners learn, chosen automatically.
   static const picture = CourseWizardPicture();
@@ -1084,6 +1109,22 @@ abstract final class CourseWizardSample {
     studyHours: 4,
     keywords: ['Italian', 'bar', 'food and drink', 'travel'],
   );
+
+  static const sameLanguageAbout = CourseWizardAbout(
+    description:
+        'Order a coffee and a pastry in a café, ask for the bill and find '
+        'your way back to the station, all explained in English: every new '
+        'word comes with its meaning in simple English. For learners who '
+        'already get by in English.',
+    startLevel: 'B1',
+    targetLevel: 'B2',
+    studyHours: 4,
+    keywords: ['English', 'café', 'food and drink', 'travel'],
+  );
+
+  /// The About step's example for a Course of [kind].
+  static CourseWizardAbout aboutFor(CourseKind kind) =>
+      kind == CourseKind.sameLanguage ? sameLanguageAbout : about;
 
   /// The active profile is the author and the rights holder; the license
   /// lets others Fork the Course.
@@ -1114,16 +1155,25 @@ abstract final class CourseWizardSample {
     GuidebookModuleSample.module(id: ids.next('module'), ids: ids),
   ];
 
-  static final lessons = [
+  static final lessons = _lessons('At the bar');
+
+  /// The same Lessons at the café, for the same-language example.
+  static final sameLanguageLessons = _lessons('At the café');
+
+  /// The Lessons step's example for a Course of [kind].
+  static List<CourseWizardLessonDraft> lessonsFor(CourseKind kind) =>
+      kind == CourseKind.sameLanguage ? sameLanguageLessons : lessons;
+
+  static List<CourseWizardLessonDraft> _lessons(String firstSection) => [
     CourseWizardLessonDraft(
       title: 'Coffee and pastries',
       iconAsset: LessonIconCatalog.byId('coffee').assetPath,
-      sectionName: 'At the bar',
+      sectionName: firstSection,
     ),
     CourseWizardLessonDraft(
       title: 'Paying the bill',
       iconAsset: LessonIconCatalog.byId('shopping').assetPath,
-      sectionName: 'At the bar',
+      sectionName: firstSection,
     ),
     CourseWizardLessonDraft(
       title: 'Back to the station',

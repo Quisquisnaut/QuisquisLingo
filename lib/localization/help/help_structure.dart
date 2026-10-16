@@ -45,6 +45,8 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
     'privateCourse',
     // Build 260 Revision 0.
     'courseLanguages',
+    // Build 275 Revision 0.
+    'courseKind',
     'license',
     'authors',
     'mediaCredits',

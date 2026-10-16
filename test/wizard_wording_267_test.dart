@@ -86,13 +86,15 @@ void main() {
       _tall(tester);
       await tester.pumpWidget(const MaterialApp(home: CourseWizardScreen()));
       await tester.pumpAndSettle();
+      // Build 275 Revision 0: the kind of Course comes first.
+      await tester.tap(find.byKey(const Key('course-wizard-kind-other')));
+      await tester.pump();
       expect(_text(tester, 'course-wizard-source-language'), isEmpty);
       expect(
         find.text(
-          'Set a title for your Course and insert the learner\'s language '
-          '(Source) and the language to be studied (Target). Use the full '
-          'language name (e.g. English) or its code (en). Capitals don\'t '
-          'matter.',
+          'Choose what kind of Course you make, then set its title and its '
+          'language or languages. Use the full language name (e.g. English) '
+          'or its code (en). Capitals don\'t matter.',
         ),
         findsOneWidget,
       );
@@ -224,6 +226,9 @@ void main() {
     await tester.tap(find.byKey(const Key('create-course-icon-action')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('course-wizard-manual')));
+    await tester.pumpAndSettle();
+    // Build 275 Revision 0: the kind of Course comes first.
+    await tester.tap(find.byKey(const Key('new-course-kind-other')));
     await tester.pumpAndSettle();
     expect(find.text('Create new course'), findsOneWidget);
     expect(_text(tester, 'new-course-source-language'), isEmpty);

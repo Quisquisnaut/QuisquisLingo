@@ -9,6 +9,7 @@ import '../services/course_credits.dart';
 import '../services/course_governance_resolver.dart';
 import '../services/course_governance_service.dart';
 import '../services/course_info_update_service.dart';
+import '../services/course_language_pair.dart';
 import '../services/course_language_resolver.dart';
 import '../services/editor_display_preferences.dart';
 import '../services/language_catalog.dart';
@@ -191,6 +192,15 @@ class _CourseInfoEditorState extends State<CourseInfoEditor> {
       }
     }
     if (!mounted) return;
+    // Build 275 Revision 0: a tag never changes the kind of Course.
+    if (!_form.keepsKind(source, target)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(CourseInfoUpdateService.kindChangeRefusal),
+        ),
+      );
+      return;
+    }
     setState(() {
       _form.sourceTag = source;
       _form.targetTag = target;
@@ -548,6 +558,16 @@ class _CourseInfoEditorState extends State<CourseInfoEditor> {
                       ),
                     ),
                   ],
+                ),
+              // Build 275 Revision 0: the kind, from the two languages.
+              if (CourseLanguagePair.isSameLanguage(course))
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Same-language Course: everything is in the language '
+                    'being learned.',
+                    key: const Key('course-info-editor-same-language'),
+                  ),
                 ),
               if (_form.sourceTag.isEmpty || _form.targetTag.isEmpty)
                 Align(

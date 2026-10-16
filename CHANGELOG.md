@@ -1,3 +1,46 @@
+# 2.0.75 (Build 275, Revision 0) - Choosing the kind of Course - 2026-10-16
+
+The owner's idea and decisions of 16 October 2026: Courses that teach a
+language in that same language (`docs/SAME_LANGUAGE_COURSES_PLAN.md`).
+
+- **What kind of Course?** The Course Wizard's first step now starts with
+  two cards, neither chosen at first: **Through another language** (for
+  example Italian for English speakers: the two language fields follow, as
+  before) and **In the same language** (for example English explained in
+  English: one **Language** field, written on both sides). Continue with
+  Wizard says what is missing until a kind is chosen, and refuses Through
+  another language with the same language twice.
+- **New Course's form** (Continue by hand) has the same two cards, filled
+  in from the Wizard; Continue to Editor says when no kind is chosen.
+- **Which should I choose?**, under the cards, opens a new Editor Help
+  answer, "Same language or another language: which Course should I
+  make?": how each kind works and its didactic pros and cons. The answers
+  on the Course languages and on the Course Wizard point to it.
+- **Fill with an example follows the kind**: In the same language fills
+  an English to English example, "English at the café", and the About and
+  Lessons steps' examples follow it.
+- **Once the Course exists**, the Wizard's first step shows its kind
+  ("In the same language: English"). Course Info and the Course Info
+  Editor say "Same-language Course" under its languages.
+- The kind is never stored: it comes from the two languages. Two variants
+  of one language (British and American English) are Through another
+  language; a region on one side only (English and English (US)) is the
+  same language. The list holds languages, not variants: for a Course
+  between two variants, type each by hand with its tag (English (UK) with
+  en-GB), as the refusal and the Help say. A side stored without a tag
+  takes the tag of the listed language its name names, so "Français" and
+  "French" are one language. Course Info's Add the language tags from the
+  list refuses tags that would change the kind of Course (a tag chosen for
+  a language typed by hand could have made it same-language). Course
+  files, scoring and learner data are unchanged.
+- Known until the next revisions: a same-language Course's exercises and
+  forms still say "translation", "source" and "target" (Revision 1 brings
+  "word" and "meaning" to learners, Revision 2 to authors).
+- Help in English, Italian and Spanish (the new answer and the two that
+  point to it; Course Info's line).
+- Tests: `test/same_language_courses_275_test.dart` (20 tests); the tests
+  that create a Course by hand choose its kind first.
+
 # 2.0.74 (Build 274, Revision 6) - Two small image categories join a group - 2026-10-16
 
 The owner's point 9 of 13 October 2026 (`docs/274_PLAN.md`).

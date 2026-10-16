@@ -298,6 +298,14 @@ class CourseInfoForm {
   bool keepsLearningLanguage(String candidate) =>
       CourseInfoUpdateService.keepsLearningLanguage(course, candidate);
 
+  /// Whether the two tags keep the kind of Course (Build 275 Revision 0).
+  bool keepsKind(String sourceTag, String targetTag) =>
+      CourseInfoUpdateService.keepsKind(
+        course,
+        sourceTag: sourceTag,
+        targetTag: targetTag,
+      );
+
   // ---- Apply
 
   /// The Course name as typed, checked. Throws an [ArgumentError] whose
