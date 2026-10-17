@@ -124,7 +124,8 @@ enum AuditCode {
     AuditSeverity.error,
     'Audio Library',
     'More than one recording maps to the same text.',
-    'Recorded-audio mapping text repeats after trimming and ignoring case.',
+    'Recorded-audio mapping text repeats after trimming and ignoring case, '
+        "with ' ’ ʼ read as one apostrophe.",
     'Keep one intended recording per mapping text.',
   ),
   recordedAudioLibraryEmpty(

@@ -5,6 +5,7 @@ import '../models/guidebook_text.dart';
 import '../models/one_line_text.dart';
 import '../models/preset_successors.dart';
 import 'answer_engine.dart';
+import 'audio_segmenter.dart';
 import 'course_credits.dart';
 import 'course_language_pair.dart';
 import 'first_letter_answer_service.dart';
@@ -432,7 +433,12 @@ class CourseAuditService {
             ...SoundAnswers.recordingIds(exercise),
     };
     for (final clip in course.audioLibrary) {
-      final key = clip.text.trim().toLowerCase();
+      // Build 276 Revision 0 (owner decision of 17 October 2026): capitals
+      // and the spaces around a text, and ' ’ ʼ are one apostrophe (L' and
+      // L’ are one text; L and L' two).
+      final key = AudioSegmenter.unifyApostrophes(
+        clip.text.trim().toLowerCase(),
+      );
       if (key.isEmpty && named.contains(clip.id)) continue;
       if (key.isEmpty) {
         issues.add(

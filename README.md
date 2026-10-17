@@ -1,8 +1,16 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.75+275005 · Build 275, Revision 5 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.76+276000 · Build 276, Revision 0 · Course Model v12 (`formatVersion: 12`).**
 
-**QuisquisLingo 2.0.75 Beta — QQL 275, Courses in the same language (Course Model v12)**
+**QuisquisLingo 2.0.76 Beta — QQL 276, hearing every target-language text (Course Model v12)**
+
+Build 276 lets learners hear the target-language texts a Course has a voice
+for ([plan](docs/276_PLAN.md), [change summary](docs/276_CHANGE_SUMMARY.md)).
+Revision 0 fixes how recordings are matched to texts with an apostrophe:
+the article L' and the letter L, or un' and un, are two texts with their
+own recordings, and ' ’ ʼ are one apostrophe (dov'è = dov’è). A text that
+borrowed a recording without its apostrophe now shows as missing in Texts
+in this Course.
 
 Build 275 lets a Course teach a language in that same language: English
 explained in English, Spanish in Spanish, any language in itself

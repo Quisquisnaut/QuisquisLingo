@@ -1,3 +1,48 @@
+# 2.0.76 (Build 276, Revision 0) - The apostrophe in a recording's text - 2026-10-17
+
+The first revision of Build 276 (`docs/276_PLAN.md`, the owner's brief and
+answers of 17 October 2026: let learners hear every target-language text a
+Course has a voice for, and match recordings to texts with an apostrophe).
+
+- **An apostrophe beside a letter counts** when QQL matches a text to the
+  Audio Library's recordings. The article L' and the letter L, or un' and
+  un, are now two texts, each with its own recording; before, the
+  apostrophe at the edge of a text was dropped with the other punctuation,
+  so L' played the recording of the letter L. The same holds for an
+  apostrophe that starts a word ('n, 'o).
+- **Single quotes around a word or a phrase** ('ciao', ‘come here’) are
+  quote marks and still do not count, so "She said 'come here'." finds the
+  recordings of its words. Around a single letter they are apostrophes:
+  rock 'n' roll does not borrow the recording of the letter n. An
+  apostrophe beside a digit (80') is still punctuation. A text that opens
+  a word with an apostrophe and ends a later word with one ('O sole, pe'
+  te) could be either: QQL looks for the recordings of the words as
+  written first ('O, pe'), then for those without the two marks (o, pe),
+  as it did before. So in such a text, and only there, an elision without
+  its own recording can still play the recording of the word without it
+  ('Ndo vai, l' amico: l' that of the letter L).
+- **' ’ and ʼ are one apostrophe**, at the edges and inside words: dov'è
+  and dov’è are one text, so a recording written with a straight
+  apostrophe plays a text written with a curly one.
+- **What changes in a Course with recordings**: a text that played a
+  recording without its apostrophe (L', un', 'o) may now have none. In
+  Hybrid the device's voice reads it while Text-to-speech is on; in
+  Recorded MP3 only an exercise that needs that audio is left out of the
+  Round, and a speaker says it cannot play.
+  Texts in this Course shows it as missing, with what is left to record
+  written as the author wrote it, and the recording it borrowed is no
+  longer counted for it in Used in N exercises (Check unused MP3 files may
+  then list that recording). Course files do not change.
+- **The Course Audit's duplicate recordings** (`AUDIO_MAPPING_DUPLICATE`)
+  keep their rule (capitals and the spaces around a text) and read the
+  three apostrophes as one: L' and L’ are the same text twice; L and L'
+  are two texts. A Course that already holds both (L' and L’, or dov'è and
+  dov’è) now gets this Error, which stops it being published or imported
+  until one of the two recordings is removed or given another text.
+- Help EN/IT/ES: the Editor Help answer on the Course's audio source says
+  how capitals, punctuation, apostrophes and single quotes count.
+- Tests: `test/apostrophe_key_276_test.dart`.
+
 # 2.0.75 (Build 275, Revision 5) - A test Course in the same language - 2026-10-17
 
 The plan's Revision 5 (`docs/SAME_LANGUAGE_COURSES_PLAN.md`) and the
