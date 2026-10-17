@@ -21,9 +21,9 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
 | 1 | What learners read ("word" and "meaning") | done, `2d524fec` |
 | 2 | The creator's choice of kind is stored (owner, 17 October 2026) | done, `46c494ce` |
 | 3 | Meanings (Word Lookup, speakers, neutral lines), the Wizard's question (owner, 17 October 2026) | done, `cb4c7de1` |
-| 4 | What authors read (preset names, forms, GuideBook), New Course's question | done |
-| 5 | A test Course to import (En-En Exercise Lab) | planned |
-| 6 | Several correct translations in the GuideBook | planned (display: option E, owner's choice of 17 October 2026, decision 17) |
+| 4 | What authors read (preset names, forms, GuideBook), New Course's question | done, `7093393b` |
+| 5 | A test Course to import (En-En Exercise Lab); the test Courses in `test_courses/` (owner) | done |
+| 6 | Several correct translations in the GuideBook | moved to Build 277 (owner, 17 October 2026) |
 
 ## Open points for the owner
 
@@ -68,6 +68,31 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
   together: an earlier Course whose two tags would change its kind gets
   neither, even one that alone would be fine. The kind is protected;
   owner's call whether to offer the tags one at a time.
+
+## Revision 5 (2.0.75+275005): a test Course in the same language
+
+- Owner request of 17 October 2026: the test Courses in a new folder,
+  `test_courses/`; no outside users to worry about.
+- Done: the move (generators, tests, current docs), the Lab's builder
+  made configurable, `tools/generate_same_language_lab_275.py` and
+  `test_courses/exercise_lab_en_en.json`, the Audit's identical-languages
+  warning only for a translation Course, the tests, version 275005, the
+  documents.
+- Done: the independent review and its corrections (content, the
+  Flashcard's meaning-first line, documents).
+- Done: six clean runs, `flutter analyze` clean, complete suite 4,988
+  passed, 1 skipped, 1 failed (a ZIP time stamp a second apart in
+  `file_dialogs_240_test`, passing alone). Committed "Build 275 Revision
+  5: a test Course in the same language" and pushed `build-275`.
+- **Change of plan (owner, 17 October 2026): Build 275 ends with Revision
+  5.** The plan's Revision 6 (several correct translations in the
+  GuideBook, to be split in two: the GuideBook syntax and alternatives,
+  then the Round Wizard) and the later revision for the raw preset IDs of
+  two earlier dialogs move to **Build 277**; the modularization leftovers
+  (Build 273's Revisions 10 to 12) to **Build 278**. **Build 276** is the
+  owner's new brief: let learners hear every target-language text a
+  Course has a voice for, and keep an elision's apostrophe in the audio
+  key (`AudioSegmenter.key`).
 
 ## Revision 4 (2.0.75+275004): what authors read
 

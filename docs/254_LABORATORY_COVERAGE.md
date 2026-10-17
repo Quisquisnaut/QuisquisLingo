@@ -3,7 +3,7 @@
 This document and the JSON are generated together by `tools/generate_exercise_laboratory_254.py`. Run its `--check` mode to detect drift. The current repository model, editor and learner are the source of truth; the Course does not add a new primitive or engine feature.
 
 - Course: **QQL Test: En-It Exercise Lab** (the Exercise Laboratory), `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
-- Since Build 272 Revision 17 it is no Course of the app: `assets/courses/exercise_laboratory_en_it.json` stays in the app only as the source of Fill with an example (and as a bundled test Course for the tests); people import `demo_courses/exercise_laboratory_en_it.json`, the same Course as a custom Course, `course_5df44010-fd64-4c81-a2c8-deb49207f980`.
+- Since Build 272 Revision 17 it is no Course of the app: `assets/courses/exercise_laboratory_en_it.json` stays in the app only as the source of Fill with an example (and as a bundled test Course for the tests); people import `test_courses/exercise_laboratory_en_it.json`, the same Course as a custom Course, `course_5df44010-fd64-4c81-a2c8-deb49207f980`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 12, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
 - Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 125 runnable examples across all 49 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).

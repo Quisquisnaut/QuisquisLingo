@@ -504,7 +504,7 @@ the module example; a translation Course unchanged.
 ## Revision 5: a test Course to import
 
 - **QQL Test: En-En Exercise Lab** (title in the style of the other test
-  Courses), `demo_courses/exercise_lab_en_en.json`, written by a generator
+  Courses), `test_courses/exercise_lab_en_en.json`, written by a generator
   `tools/generate_same_language_lab_275.py` as the Exercise Lab is.
 - Custom, the made-up QQL-user Maintainer of the other test Courses
   (`afb065f8-701c-48d2-85f7-c80d44abecb9`), Course version 1, derivative
@@ -518,7 +518,36 @@ the module example; a translation Course unchanged.
 - Tests: the file imports; every exercise plays; every title and line comes
   from the same-language keys; the GuideBook and Word Lookup read meanings.
 
+### As built (`2.0.75+275005`)
+
+- The owner's request of 17 October 2026: the test Courses to import moved
+  from `demo_courses/` to `test_courses/` (the two test Courses and the
+  Italian package demo the tests read); the generators, the tests and the
+  current documents follow.
+- `tools/generate_same_language_lab_275.py` builds with the En-It Lab's
+  `Laboratory` (given its own `prefix`, `stamp` and `vocabulary`; the Lab's
+  output is unchanged): six Lessons, one per group of presets (Vocabulary,
+  Grammar, Listening, Reading, Pictures, Cards), 13 Rounds, 49 examples
+  for the 44 presets offered (Before you start comes from each Round's
+  introduction; Sort into groups, Fill the slots, the Page and the Story
+  sit in their group's Lesson), a GuideBook module of words and meanings
+  in every Lesson. English/en-GB on both sides, flag EN.
+- Found while testing it: the Course Audit warned
+  `COURSE_LANGUAGES_IDENTICAL` on every same-language Course, so every
+  such Course was red; the warning is now for a translation Course only.
+- Found by the review: a two-sided Flashcard shown meaning first said
+  "Think of the English word…" in a same-language Course (Revision 1 left
+  it); it reads `instruction.sameLanguage.flashcardMeaningFirst` "Think of
+  the word, then turn the card." in the seven catalogs.
+- `test/same_language_lab_275_test.dart`: "every exercise plays" is
+  checked as every exercise executable and every step playable
+  (`RoundPlayabilityService`), not by answering each one on screen as the
+  En-It Lab's test does.
+
 ## Revision 6: several correct translations in the GuideBook
+
+Moved to Build 277 (owner, 17 October 2026), in two revisions: the
+GuideBook's syntax and alternatives, then the Round Wizard.
 
 The owner's example: English *I am a teacher* is German *Ich bin Lehrer.* or
 *Ich bin Lehrerin.* (and Italian *Sono un insegnante.*, *Sono

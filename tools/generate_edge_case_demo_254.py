@@ -7,7 +7,7 @@ copying, renaming or changing them. Run --check to detect drift without writes.
 
 Build 259 Revision 5 (owner request) took the Course out of the bundle. The
 generator writes two files with the same content:
-- demo_courses/edge_case_it_en.json, the Course to import (Import or Open
+- test_courses/edge_case_it_en.json, the Course to import (Import or Open
   from...): a custom Course with its own identity, since a bundled official
   Course is never imported and the bundled identity stays reserved;
 - test/fixtures/v12/edge_case_it_en.json, the former bundled Course, which the
@@ -26,7 +26,7 @@ from qql_course_v12 import becomes_exercise, convert_course_v11_to_v12, story_co
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "test/fixtures/v12/edge_case_it_en.json"
-EXTERNAL_OUTPUT = ROOT / "demo_courses/edge_case_it_en.json"
+EXTERNAL_OUTPUT = ROOT / "test_courses/edge_case_it_en.json"
 COURSE_ID = "course_6f6a1fa3-b834-4936-b324-92fb57f73502"
 # The importable Course's identity and its QQL-user Maintainer, allocated once
 # (UUIDv4) in Build 259 Revision 5.

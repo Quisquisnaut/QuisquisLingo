@@ -65,7 +65,7 @@ void main() {
     // Build 272 Revision 15 removed QQL Demo: English from Italian.
     expect(CourseService.hasCourse('EN_IT'), isFalse);
     // Build 259 Revision 5: the Edge Case left the bundle; it is imported
-    // from demo_courses/.
+    // from test_courses/.
     expect(CourseService.courseAssets.containsKey('EN_EDGE'), isFalse);
     // Build 255 Revision 6 removed the Spanish-to-English demo.
     expect(CourseService.hasCourse('EN'), isFalse);

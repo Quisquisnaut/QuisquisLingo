@@ -23,7 +23,7 @@ One page was added to the second group after these decisions: the start page of 
 | The app interface: Home, Settings, Profile, Courses, Course Studio, the Course Editor, the wizards, dialogs, menus, error messages | English | Nothing: always English | In the screens |
 | The names of a Course's items (section 3) | English | Nothing: always English | In the screens and inside the catalogs |
 | Labels the author chooses for Lessons and Rounds | As the author wrote them | The Course | The Course file |
-| Exercise titles, headings and instruction lines (137 texts) | English, Spanish, Italian, German, Portuguese, Dutch, French | The Course's Source language | `lib/localization/exercise_copy/` |
+| Exercise titles, headings and instruction lines (138 texts) | English, Spanish, Italian, German, Portuguese, Dutch, French | The Course's Source language | `lib/localization/exercise_copy/` |
 | The buttons and messages of a Round, the Duel and the Review page (135 texts) | The same seven | The Course's Source language | `lib/localization/learner_panel/` |
 | Names of languages inside those lines, such as "Traduci in tedesco." (62 languages) | The same seven | The Course's Source language | `lib/localization/language_names.dart` |
 | Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (854 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
@@ -286,7 +286,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `sameLanguage.wordLookup.notes` | Some possible meanings from this Course's GuideBook. | Alcuni dei significati possibili, dal GuideBook del Corso. |
 | `sameLanguage.wordLookup.notice` | Tap a word with a dotted underline to see its meaning from this Course's GuideBook. Only some exercise types have them. It is a hint, one possible meaning: it does not always match the answer to the exercise. | Tocca una parola sottolineata a puntini per vederne il significato dal GuideBook del Corso. Solo alcuni tipi di esercizio le hanno. È un aiuto, uno dei significati possibili: non sempre coincide con la soluzione dell'esercizio. |
 
-### 6.2 Exercise titles, headings and instruction lines (137 texts, 7 languages)
+### 6.2 Exercise titles, headings and instruction lines (138 texts, 7 languages)
 
 #### Exercise titles (41)
 
@@ -426,7 +426,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `instruction.selectSoundsGap` | Play each sound, then choose the one that fills the gap. | Riproduci ogni suono, poi scegli quello che completa lo spazio vuoto. |
 | `instruction.selectTranslation` | Choose the correct {language} translation | Seleziona la traduzione corretta in {language} |
 
-#### A Course in the same language (Build 275 Revision 1) (14)
+#### A Course in the same language (Build 275 Revision 1) (15)
 
 | Key | English | Italian |
 |---|---|---|
@@ -444,6 +444,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `instruction.sameLanguage.arrangeSentence` | Form the sentence for this meaning with the word blocks. | Forma con i blocchi di parole la frase che corrisponde a questo significato. |
 | `instruction.sameLanguage.arrangeMeaning` | Form the meaning of this sentence with the word blocks. | Forma con i blocchi di parole il significato di questa frase. |
 | `instruction.sameLanguage.matchTranslation` | Pair each item with its meaning. | Accoppia ogni elemento al suo significato. |
+| `instruction.sameLanguage.flashcardMeaningFirst` | Think of the word, then turn the card. | Pensa alla parola, poi gira la scheda. |
 
 ### 6.3 The Welcome Wizard (15 texts, 3 languages)
 

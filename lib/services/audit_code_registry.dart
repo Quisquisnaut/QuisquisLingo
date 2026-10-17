@@ -36,7 +36,7 @@ enum AuditCode {
     AuditSeverity.warning,
     'Course',
     'The source and target language names are the same.',
-    'The two stored language names match when case is ignored.',
+    'The two stored language names match when case is ignored, in a Course that teaches through another language.',
     'Check that the course language pair is intentional.',
   ),
   courseAuthorsMany(

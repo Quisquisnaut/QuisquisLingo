@@ -156,4 +156,6 @@ const exerciseCopyEn = <String, String>{
       'Form the meaning of this sentence with the word blocks.',
   'instruction.sameLanguage.matchTranslation':
       'Pair each item with its meaning.',
+  'instruction.sameLanguage.flashcardMeaningFirst':
+      'Think of the word, then turn the card.',
 };

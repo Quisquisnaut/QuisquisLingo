@@ -14,7 +14,7 @@ import 'package:quisquislingo_app/services/round_flow_authoring.dart';
 Map<String, dynamic> _demoJson() =>
     jsonDecode(
           File(
-            'demo_courses/italian_demo_2_pick_the_translation.json',
+            'test_courses/italian_demo_2_pick_the_translation.json',
           ).readAsStringSync(),
         )
         as Map<String, dynamic>;

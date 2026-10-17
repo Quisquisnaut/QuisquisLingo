@@ -3,6 +3,35 @@
 Courses in the same language (`docs/SAME_LANGUAGE_COURSES_PLAN.md`, the
 owner's idea and decisions of 16 October 2026).
 
+## Revision 5 (2.0.75+275005): a test Course in the same language
+
+### Before
+
+- No test Course was in the same language; the test Courses to import were
+  in `demo_courses/`; the Course Audit warned on every same-language Course
+  that its two languages were identical, so each was marked red.
+
+### Now
+
+- QQL Test: En-En Exercise Lab, to import from
+  `test_courses/exercise_lab_en_en.json`: an exercise for each of the 44
+  presets a same-language Course offers, in six Lessons with GuideBook
+  modules of words and meanings (AI-written, not reviewed).
+- The test Courses are in `test_courses/`.
+- The identical-languages warning is for a translation Course only.
+- A Flashcard shown meaning first names no language in a same-language
+  Course ("Think of the word, then turn the card.").
+
+### Owner decisions (17 October 2026)
+
+- The test Courses in a new `test_courses/` folder; no outside users to
+  keep the earlier path for.
+
+### What does not change
+
+The En-It Lab and the Edge Case Course (only their folder); Course files of
+learners, scoring, progression and learner data.
+
 ## Revision 4 (2.0.75+275004): what authors read
 
 ### Before

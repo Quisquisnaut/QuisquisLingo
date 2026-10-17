@@ -165,4 +165,6 @@ const exerciseCopyEs = <String, String>{
       'Construye con los bloques de palabras el significado de esta frase.',
   'instruction.sameLanguage.matchTranslation':
       'Empareja cada elemento con su significado.',
+  'instruction.sameLanguage.flashcardMeaningFirst':
+      'Piensa en la palabra y luego da la vuelta a la tarjeta.',
 };

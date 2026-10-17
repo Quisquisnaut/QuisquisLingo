@@ -12,7 +12,7 @@ String _media(String c) => 'media:${c * 64}.png';
 Map<String, dynamic> _json() =>
     jsonDecode(
           File(
-            'demo_courses/italian_demo_2_pick_the_translation.json',
+            'test_courses/italian_demo_2_pick_the_translation.json',
           ).readAsStringSync(),
         )
         as Map<String, dynamic>;

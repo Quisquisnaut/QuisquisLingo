@@ -1,5 +1,40 @@
 # Build 275 validation
 
+## Revision 5 (2.0.75+275005), a test Course in the same language
+
+- The move: every test file that reads the moved Courses (26 files):
+  **354 passed**; both generators' `--check` pass (the En-It Lab's
+  coverage document names the folder and was regenerated; its Course
+  files are unchanged).
+- The En-It Lab's builder made configurable: `--check` passes, its output
+  byte for byte the same.
+- New tests: `test/same_language_lab_275_test.dart`, **8 passed**: the import, the Audit (one warning, the Rights Holder), the identical-languages warning by kind, every offered preset and its recipe, every exercise playable, titles and lines, the Flashcard's meaning-first line by kind, GuideBook and Word Lookup. Six clean runs on the final file (8 tests each).
+- Run with them: the same-language, Audit, Wizard, version and Laboratory test files (497 passed before the review's corrections), then the catalog, title and Flashcard test files with the new file (66 passed).
+- Independent read-only review: nothing blocking; the Audit change, the
+  move and the Lab refactor verified. Corrected: Complete the text's hint
+  allowed tea and tram (one answer per gap now); Build the sentence's
+  meaning in the first person; Type what you see accepts "a loaf"; a
+  Flashcard shown meaning first named the language (a new same-language
+  line in seven catalogs); Read and answer's situation gave the answer
+  word ("evening"); the Story asks after the order; Word order with one
+  order only; more synonyms for "quick"; the GuideBook's glosses (counter,
+  sip, tip, a vague "an" entry) and the Grammar module's title; the
+  picture's alternative text; the generator counts the presets the Course
+  holds (44); the handoff's hash; no assertion on an absent folder. Left:
+  Word Lookup on a word whose GuideBook entry is the answer (as in the
+  En-It Lab, the owner's Build 265 decision). Its re-read of the
+  corrections: nothing blocking or to fix; acted on: two stale counts in
+  `LOCALIZATION_CURRENT_STATE`, a test of the new line in all seven
+  catalogs (present, no language, Build 263's rule), a full stop that
+  leaves Word order one order, the README's clause.
+- `flutter analyze`: **No issues found**.
+- Complete suite on the final tree (`flutter test --concurrency=1`):
+  **4,988 passed, 1 skipped, 1 failed** (53 minutes). The failure,
+  `file_dialogs_240_test` "Save as… writes exactly the bytes the Quick
+  Export writes", compares two Course ZIPs made a second apart: they
+  differed only in the ZIP's time stamp (byte 10). Run alone it passes
+  (15 passed); nothing in this revision touches it.
+
 ## Revision 4 (2.0.75+275004), what authors read
 
 - New tests: `test/same_language_authors_275_test.dart`, **23 passed**: the

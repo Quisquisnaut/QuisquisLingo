@@ -163,4 +163,6 @@ const exerciseCopyIt = <String, String>{
       'Forma con i blocchi di parole il significato di questa frase.',
   'instruction.sameLanguage.matchTranslation':
       'Accoppia ogni elemento al suo significato.',
+  'instruction.sameLanguage.flashcardMeaningFirst':
+      'Pensa alla parola, poi gira la scheda.',
 };

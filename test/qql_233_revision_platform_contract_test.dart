@@ -8,10 +8,10 @@ void main() {
   test('technical version matches the current public build label', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
 
-    expect(AppMetadata.technicalVersion, '2.0.75+275004');
-    expect(AppMetadata.publicBuildLabel, 'Build 275, Revision 4');
-    expect(AppMetadata.displayLabel, 'Version 2.0.75\nBuild 275, Revision 4');
-    expect(pubspec, contains('version: 2.0.75+275004'));
+    expect(AppMetadata.technicalVersion, '2.0.75+275005');
+    expect(AppMetadata.publicBuildLabel, 'Build 275, Revision 5');
+    expect(AppMetadata.displayLabel, 'Version 2.0.75\nBuild 275, Revision 5');
+    expect(pubspec, contains('version: 2.0.75+275005'));
   });
 
   test('platform application identities use the QuisquisLingo namespace', () {

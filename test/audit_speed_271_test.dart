@@ -16,7 +16,7 @@ const _files = [
   'test/fixtures/v12/edge_case_it_en.json',
   'test/fixtures/v12/laboratory_future_en_it.json',
   'test/fixtures/v12/korean_en.json',
-  'demo_courses/edge_case_it_en.json',
+  'test_courses/edge_case_it_en.json',
 ];
 
 Map<String, dynamic> _json(String path) =>

@@ -39,7 +39,7 @@ import 'support/quick_folders.dart';
 
 /// Build 272 Revision 17 (owner decisions of 13 October 2026): no Course
 /// comes with the app. The Exercise Laboratory left it and is imported from
-/// `demo_courses/`; its file stays in the app only for Fill with an example;
+/// `test_courses/`; its file stays in the app only for Fill with an example;
 /// a learner without a Course starts on the start page.
 ///
 /// Every test here runs without the bundled test Course of the other tests

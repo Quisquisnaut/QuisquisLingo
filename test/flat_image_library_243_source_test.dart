@@ -47,7 +47,7 @@ void main() {
       Map<String, dynamic>.from(
         jsonDecode(
               File(
-                'demo_courses/italian_demo_2_pick_the_translation.json',
+                'test_courses/italian_demo_2_pick_the_translation.json',
               ).readAsStringSync(),
             )
             as Map,
@@ -117,7 +117,7 @@ void main() {
     final courseJson =
         jsonDecode(
               File(
-                'demo_courses/italian_demo_2_pick_the_translation.json',
+                'test_courses/italian_demo_2_pick_the_translation.json',
               ).readAsStringSync(),
             )
             as Map<String, dynamic>;
@@ -209,7 +209,7 @@ void main() {
     final courseJson =
         jsonDecode(
               File(
-                'demo_courses/italian_demo_2_pick_the_translation.json',
+                'test_courses/italian_demo_2_pick_the_translation.json',
               ).readAsStringSync(),
             )
             as Map<String, dynamic>;

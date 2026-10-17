@@ -29,7 +29,7 @@ import 'support/test_directories.dart';
 Map<String, dynamic> _json() =>
     jsonDecode(
           File(
-            'demo_courses/exercise_laboratory_en_it.json',
+            'test_courses/exercise_laboratory_en_it.json',
           ).readAsStringSync(),
         )
         as Map<String, dynamic>;

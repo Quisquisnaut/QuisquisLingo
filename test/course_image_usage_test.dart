@@ -46,7 +46,7 @@ Set<String> _jsonWalkReferences(Course course) {
 Map<String, dynamic> _demoJson() =>
     jsonDecode(
           File(
-            'demo_courses/italian_demo_2_pick_the_translation.json',
+            'test_courses/italian_demo_2_pick_the_translation.json',
           ).readAsStringSync(),
         )
         as Map<String, dynamic>;
@@ -151,7 +151,7 @@ void main() {
   test('every bundled and demo Course gives the same references', () {
     final files = [
       ...Directory('assets/courses').listSync().whereType<File>(),
-      ...Directory('demo_courses').listSync().whereType<File>(),
+      ...Directory('test_courses').listSync().whereType<File>(),
     ].where((file) => file.path.endsWith('.json'));
     expect(files, isNotEmpty);
     for (final file in files) {

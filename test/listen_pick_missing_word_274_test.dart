@@ -45,7 +45,7 @@ Map<String, dynamic> _laboratoryJson({bool custom = false}) =>
     jsonDecode(
           File(
             custom
-                ? 'demo_courses/exercise_laboratory_en_it.json'
+                ? 'test_courses/exercise_laboratory_en_it.json'
                 : 'assets/courses/exercise_laboratory_en_it.json',
           ).readAsStringSync(),
         )

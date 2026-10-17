@@ -251,9 +251,9 @@ void main() {
         // The Laboratory's file in the app, and the Course to import (Build
         // 272 Revision 17).
         'assets/courses/exercise_laboratory_en_it.json',
-        'demo_courses/exercise_laboratory_en_it.json',
+        'test_courses/exercise_laboratory_en_it.json',
         // The Edge Case to import (Build 259 Revision 5).
-        'demo_courses/edge_case_it_en.json',
+        'test_courses/edge_case_it_en.json',
       ]) {
         final course = Course.fromJson(
           jsonDecode(File(path).readAsStringSync()) as Map<String, dynamic>,

@@ -25,7 +25,7 @@ class CourseService {
   // one and Build 259 Revision 5 the Edge Case (owner requests). Their
   // Course IDs stay reserved in CourseEditorService, as the demos removed
   // in Build 254 do. The Edge Case is an importable custom Course in
-  // demo_courses/ and, for the tests, the fixture
+  // test_courses/ and, for the tests, the fixture
   // test/fixtures/v12/edge_case_it_en.json. Build 262 Revision 0 removed
   // QQL Demo: Piedmontese (sorted by exercise type) and QQL Demo:
   // Piedmontese, and Build 272 Revision 15 QQL Demo: English from Italian
@@ -33,7 +33,7 @@ class CourseService {
   // repository (owner decisions of 2 and 13 October 2026). Build 272
   // Revision 17 removed the last one, the Exercise Laboratory (owner
   // decision of 13 October 2026): people import it from
-  // demo_courses/exercise_laboratory_en_it.json, a custom Course with its
+  // test_courses/exercise_laboratory_en_it.json, a custom Course with its
   // own identity. Its file stays in the app at [laboratoryAsset], only as
   // the source of the preset forms' Fill with an example (PresetExamples),
   // and its bundled identity stays reserved in CourseEditorService.

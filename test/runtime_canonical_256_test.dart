@@ -112,7 +112,7 @@ Course _load(String file) => Course.fromJson(
   jsonDecode(
         File(
           file == 'edge_case_it_en.json'
-              ? 'demo_courses/$file'
+              ? 'test_courses/$file'
               : 'assets/courses/$file',
         ).readAsStringSync(),
       )

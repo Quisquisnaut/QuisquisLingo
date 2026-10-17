@@ -6,7 +6,7 @@ import 'package:quisquislingo_app/services/course_service.dart';
 /// The Exercise Laboratory as a bundled test Course. Build 272 Revision 17
 /// took it out of the app at the owner's request: no Course comes with the
 /// app, people import the Laboratory from
-/// `demo_courses/exercise_laboratory_en_it.json` (a custom Course with its
+/// `test_courses/exercise_laboratory_en_it.json` (a custom Course with its
 /// own identity), and its file stays in the app only as the source of the
 /// preset forms' Fill with an example.
 ///
@@ -20,7 +20,7 @@ const laboratoryFixtureCode = 'IT';
 const laboratoryCourseId = 'course_50d68435-d2c2-4b63-9a0b-b23161357f1d';
 
 /// The Course to import, beside the app's file.
-const laboratoryImportPath = 'demo_courses/exercise_laboratory_en_it.json';
+const laboratoryImportPath = 'test_courses/exercise_laboratory_en_it.json';
 
 /// Registers the Laboratory as the bundled Course `IT`.
 void registerLaboratoryFixture() {

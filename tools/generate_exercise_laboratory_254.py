@@ -4,7 +4,7 @@
 Since Build 272 Revision 17 the Laboratory is no Course of the app: the
 file in assets/courses stays in the app only as the source of the preset
 forms' Fill with an example (and, for the tests, as a bundled test Course);
-people import demo_courses/exercise_laboratory_en_it.json, the same Course
+people import test_courses/exercise_laboratory_en_it.json, the same Course
 as a custom Course with its own identity.
 
 The examples are authored in the v11 shape the presets describe and pass
@@ -42,7 +42,7 @@ COURSE_ID = "course_50d68435-d2c2-4b63-9a0b-b23161357f1d"
 # The importable Course (Build 272 Revision 17): its own identity, allocated
 # once (UUIDv4), and the made-up QQL-user Maintainer the importable Edge
 # Case Course names too.
-EXTERNAL = ROOT / "demo_courses/exercise_laboratory_en_it.json"
+EXTERNAL = ROOT / "test_courses/exercise_laboratory_en_it.json"
 EXTERNAL_COURSE_ID = "course_5df44010-fd64-4c81-a2c8-deb49207f980"
 EXTERNAL_MAINTAINER = "afb065f8-701c-48d2-85f7-c80d44abecb9"
 OFFICIAL_ONLY_KEYS = (
@@ -261,8 +261,9 @@ MODULE_TITLES: dict[str, str] = {
 }
 
 
-def lab_guidebook(lesson: dict) -> dict:
+def lab_guidebook(lesson: dict, module_titles: dict[str, str] | None = None) -> dict:
     """The Lesson's v12 GuideBook: one module from its v11 content."""
+    titles = MODULE_TITLES if module_titles is None else module_titles
     prefix = lesson["lessonId"]
     content = lesson["guidebook"]["content"]
     overview = next(item["text"] for item in content if item["kind"] == "explanation")
@@ -272,12 +273,18 @@ def lab_guidebook(lesson: dict) -> dict:
             continue
         target, source = vocabulary_pair(item["text"])
         words.append(guidebook_entry(item["id"], target, source))
-    return guidebook([guidebook_module(f"{prefix}_module", MODULE_TITLES[lesson["title"]],
+    return guidebook([guidebook_module(f"{prefix}_module", titles[lesson["title"]],
                                        words=words, overview=overview)])
 
 
 class Laboratory:
-    def __init__(self) -> None:
+    def __init__(self, *, prefix: str = "qql_lab254_", stamp: str | None = None,
+                 vocabulary: dict[str, list[str]] | None = None) -> None:
+        # Build 275 Revision 5: the En-En Lab (tools/generate_same_language_lab_275.py)
+        # builds with its own ID prefix, time stamp and word lists.
+        self.prefix = prefix
+        self.stamp = stamp or STAMP
+        self.vocabulary = VOCABULARY if vocabulary is None else vocabulary
         self.lessons: list[dict] = []
         # The Story Lesson (Build 256 Revision 5) stands beside the five
         # primitive Lessons: its Round mixes a cover, lines and exercises of
@@ -293,9 +300,9 @@ class Laboratory:
         self.round: dict = {}
 
     def start_lesson(self, title: str, description: str) -> None:
-        prefix = f"qql_lab254_{title.lower()}"
+        prefix = f"{self.prefix}{title.lower()}"
         self.lesson = {
-            "lessonId": prefix, "publicationState": "published", "updatedAt": STAMP,
+            "lessonId": prefix, "publicationState": "published", "updatedAt": self.stamp,
             "title": title, "section": False,
             "guidebook": {"content": [{
                 "id": prefix + "_guide", "publicationState": "published",
@@ -304,18 +311,18 @@ class Laboratory:
             }, *[{
                 "id": f"{prefix}_vocab_{number:02d}", "publicationState": "published",
                 "kind": "vocabulary", "required": False, "role": "vocabulary", "text": word,
-            } for number, word in enumerate(VOCABULARY[title], 1)]]},
+            } for number, word in enumerate(self.vocabulary[title], 1)]]},
             "rounds": [], "duel": {"id": prefix + "_duel", "title": title + " Duel"},
         }
         self.lessons.append(self.lesson)
 
     def start_round(self, key: str, title: str, intro: str, visual: str = "generic") -> None:
         self.round = {
-            "id": "qql_lab254_round_" + key,
-            "publicationState": "published", "updatedAt": STAMP,
+            "id": self.prefix + "round_" + key,
+            "publicationState": "published", "updatedAt": self.stamp,
             "title": title, "visualType": visual,
             "content": [{
-                "id": "qql_lab254_intro_" + key, "publicationState": "published",
+                "id": self.prefix + "intro_" + key, "publicationState": "published",
                 "kind": "text", "required": False, "role": "lesson_intro", "text": intro,
             }],
         }
@@ -324,7 +331,7 @@ class Laboratory:
     def add(self, key: str, preset: str, prompts: list[dict], interaction: dict,
             evaluation: dict, capability: str, answer: str, *, hint: str = "",
             missing: list[str] | None = None) -> dict:
-        identity = "qql_lab254_" + key
+        identity = self.prefix + key
         # IDs are global in bundled validation, even though runtime Item IDs
         # need only be unique within one exercise.
         remap = {item["id"]: identity + "_" + item["id"] for item in interaction.get("items", [])}
@@ -339,7 +346,7 @@ class Laboratory:
             evaluation["pairs"] = [[remap[i] for i in pair] for pair in evaluation["pairs"]]
         if "gapAssignments" in evaluation:
             evaluation["gapAssignments"] = {gap: remap[i] for gap, i in evaluation["gapAssignments"].items()}
-        exercise = {"updatedAt": STAMP, "prompt": prompts,
+        exercise = {"updatedAt": self.stamp, "prompt": prompts,
                     "interaction": interaction, "evaluation": evaluation}
         if hint:
             exercise["hint"] = hint
@@ -468,7 +475,7 @@ class Laboratory:
             elements.append(text(translation, "usage_translation"))
         if picture:
             elements.append(image(picture, term, "picture"))
-        identity = "qql_lab254_" + key
+        identity = self.prefix + key
         self.round["content"].append({
             "id": identity, "publicationState": "published", "kind": "presentation",
             "required": True, "editorTemplate": preset,
@@ -486,11 +493,11 @@ class Laboratory:
         """Complete the text with an answer expression per gap (Build 259
         Revision 3): the v11 shape cannot express alternatives, so the example
         joins its Round in the canonical shape, after `after`."""
-        identity = "qql_lab254_" + key
-        self.canonical_extras.append(("qql_lab254_" + after, {
+        identity = self.prefix + key
+        self.canonical_extras.append((self.prefix + after, {
             "id": identity, "publicationState": "published", "kind": "exercise",
             "required": True, "editorTemplate": "complete_text",
-            "exercise": complete_text_exercise(text, answers, updated_at=STAMP,
+            "exercise": complete_text_exercise(text, answers, updated_at=self.stamp,
                                                instruction=instruction, hint=hint),
         }))
         self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
@@ -502,12 +509,12 @@ class Laboratory:
         """Listen and pick the missing word (Build 274 Revision 3): answers
         that are sounds have no v11 shape, so the example joins its Round in
         the canonical shape, after `after`."""
-        identity = "qql_lab254_" + key
-        self.canonical_extras.append(("qql_lab254_" + after, {
+        identity = self.prefix + key
+        self.canonical_extras.append((self.prefix + after, {
             "id": identity, "publicationState": "published", "kind": "exercise",
             "required": True, "editorTemplate": "listening_pick_missing_word",
             "exercise": pick_missing_word_exercise(
-                spoken, sentence, answers, correct, updated_at=STAMP, item_prefix=identity,
+                spoken, sentence, answers, correct, updated_at=self.stamp, item_prefix=identity,
                 instruction=instruction, hint=hint),
         }))
         self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
@@ -532,11 +539,11 @@ class Laboratory:
         shape with global item and target IDs; since the Revision 7
         follow-up it carries its preset (Sort into groups, Fill the slots),
         whose recipe represents it."""
-        identity = "qql_lab254_" + key
+        identity = self.prefix + key
         item_ids = {item_id: f"{identity}_{item_id}" for item_id, _ in items}
         target_ids = {target_id: f"{identity}_{target_id}" for target_id, _ in targets}
         exercise = assign_exercise(
-            updated_at=STAMP, mode=mode, instruction=question,
+            updated_at=self.stamp, mode=mode, instruction=question,
             items=[(item_ids[i], text) for i, text in items],
             targets=[(target_ids[t], label) for t, label in targets],
             assignments={target_ids[t]: [item_ids[i] for i in ids] for t, ids in assignments.items()},
@@ -554,11 +561,11 @@ class Laboratory:
     def page(self, key: str, blocks: list[dict], capability: str) -> None:
         """A Page example (Build 258 Revision 3): canonical content carrying
         the Page preset, whose recipe represents it."""
-        identity = "qql_lab254_" + key
+        identity = self.prefix + key
         self.round["content"].append({
             "id": identity, "publicationState": "published", "kind": "exercise",
             "required": True, "editorTemplate": "page",
-            "exercise": page_exercise(blocks, updated_at=STAMP),
+            "exercise": page_exercise(blocks, updated_at=self.stamp),
         })
         self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
                            "preset": "page", "capability": capability, "answer": "Continue"})
@@ -571,7 +578,7 @@ class Laboratory:
         self.round["story"] = {"title": story_title, "readAloud": read_aloud, "requiresAudio": []}
 
     def _story_entry(self, key: str, preset: str, exercise: dict, capability: str) -> None:
-        identity = "qql_lab254_" + key
+        identity = self.prefix + key
         self.round["content"].append({
             "id": identity, "publicationState": "published", "kind": "exercise",
             "required": True, "editorTemplate": preset, "exercise": exercise,
@@ -581,18 +588,18 @@ class Laboratory:
 
     def cover(self, key: str, picture: str, alternative: str, title_line: str, capability: str) -> None:
         self._story_entry(key, "story_cover", story_cover(
-            updated_at=STAMP, picture=f"assets/exercise_images/{picture}.webp",
+            updated_at=self.stamp, picture=f"assets/exercise_images/{picture}.webp",
             alternative=alternative, title_line=title_line), capability)
 
     def line(self, key: str, line: str, capability: str, *, speaker: str = "",
              language: str | None = None, mode: str = "both", read_aloud: str = "story",
              text_reveal: str = "immediate") -> None:
         self._story_entry(key, "dialogue_line", story_line(
-            line, updated_at=STAMP, speaker_id=speaker, language=language, mode=mode,
+            line, updated_at=self.stamp, speaker_id=speaker, language=language, mode=mode,
             read_aloud=read_aloud, text_reveal=text_reveal), capability)
 
     def needs_audio(self, key: str) -> None:
-        self.round["story"]["requiresAudio"].append("qql_lab254_" + key)
+        self.round["story"]["requiresAudio"].append(self.prefix + key)
 
     def finish_story(self) -> None:
         story = self.round.pop("story")
@@ -1089,7 +1096,7 @@ def coverage(lab: Laboratory) -> str:
         "# Build 254 Exercise Laboratory coverage", "",
         "This document and the JSON are generated together by `tools/generate_exercise_laboratory_254.py`. Run its `--check` mode to detect drift. The current repository model, editor and learner are the source of truth; the Course does not add a new primitive or engine feature.", "",
         f"- Course: **{TITLE}** (the Exercise Laboratory), `{COURSE_ID}`.",
-        f"- Since Build 272 Revision 17 it is no Course of the app: `assets/courses/exercise_laboratory_en_it.json` stays in the app only as the source of Fill with an example (and as a bundled test Course for the tests); people import `demo_courses/exercise_laboratory_en_it.json`, the same Course as a custom Course, `{EXTERNAL_COURSE_ID}`.",
+        f"- Since Build 272 Revision 17 it is no Course of the app: `assets/courses/exercise_laboratory_en_it.json` stays in the app only as the source of Fill with an example (and as a bundled test Course for the tests); people import `test_courses/exercise_laboratory_en_it.json`, the same Course as a custom Course, `{EXTERNAL_COURSE_ID}`.",
         "- Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.",
         "- Model 12, official Course version 1.0.0; all Lessons, Rounds and Content are Published.",
         f"- Exactly eight Lessons (six primitives, a Story and Pages), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {preset_count} authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).",

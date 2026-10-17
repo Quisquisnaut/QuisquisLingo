@@ -324,8 +324,11 @@ class CourseAuditService {
         ),
       );
     }
-    if (course.sourceLanguage.toLowerCase() ==
-        course.targetLanguage.toLowerCase()) {
+    // A Course in the same language has one language on both sides by its
+    // creator's choice (Build 275 Revision 5: every such Course was red).
+    if (!CourseLanguagePair.isSameLanguage(course) &&
+        course.sourceLanguage.toLowerCase() ==
+            course.targetLanguage.toLowerCase()) {
       issues.add(
         CourseAuditIssue.fromCode(
           AuditCode.courseLanguagesIdentical,

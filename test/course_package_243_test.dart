@@ -31,7 +31,7 @@ void main() {
     final raw =
         jsonDecode(
               await File(
-                'demo_courses/italian_demo_2_pick_the_translation.json',
+                'test_courses/italian_demo_2_pick_the_translation.json',
               ).readAsString(),
             )
             as Map<String, dynamic>;
@@ -98,7 +98,7 @@ void main() {
       final raw =
           jsonDecode(
                 await File(
-                  'demo_courses/italian_demo_2_pick_the_translation.json',
+                  'test_courses/italian_demo_2_pick_the_translation.json',
                 ).readAsString(),
               )
               as Map<String, dynamic>;
@@ -254,7 +254,7 @@ void main() {
 
   test('the checked-in demo ZIP imports as a Course package', () async {
     final zip = await File(
-      'demo_courses/italian_demo_2_pick_the_translation.zip',
+      'test_courses/italian_demo_2_pick_the_translation.zip',
     ).readAsBytes();
     final imported = await packages.parse(
       zip,

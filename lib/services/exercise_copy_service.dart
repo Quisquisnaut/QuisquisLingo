@@ -198,8 +198,14 @@ class ExerciseCopyService {
     final kind = features.kind;
     if (FlashcardSides.isTwoSided(features)) {
       final c = _copy(course);
+      // Build 275 Revision 5: a Course in the same language names no
+      // language here either.
+      final sameLanguage = CourseLanguagePair.isSameLanguage(course)
+          ? c['instruction.sameLanguage.flashcardMeaningFirst']
+          : null;
       return meaningFirst
-          ? (c['instruction.flashcardMeaningFirst'] ??
+          ? (sameLanguage ??
+                    c['instruction.flashcardMeaningFirst'] ??
                     c['instruction.default']!)
                 .replaceAll(
                   '{language}',

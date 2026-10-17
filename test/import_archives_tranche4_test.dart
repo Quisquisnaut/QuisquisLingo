@@ -687,7 +687,7 @@ void main() {
     test('the bundled Courses fit every limit', () {
       for (final file in [
         ...Directory('assets/courses').listSync(),
-        ...Directory('demo_courses').listSync(),
+        ...Directory('test_courses').listSync(),
       ].whereType<File>().where((f) => f.path.endsWith('.json'))) {
         final text = file.readAsStringSync();
         JsonLimits.imports.check(text);

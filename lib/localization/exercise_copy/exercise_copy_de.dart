@@ -166,4 +166,6 @@ const exerciseCopyDe = <String, String>{
       'Bilde mit den Wortbausteinen die Bedeutung dieses Satzes.',
   'instruction.sameLanguage.matchTranslation':
       'Bilde Paare aus jedem Begriff und seiner Bedeutung.',
+  'instruction.sameLanguage.flashcardMeaningFirst':
+      'Überlege dir das Wort und dreh dann die Karte um.',
 };

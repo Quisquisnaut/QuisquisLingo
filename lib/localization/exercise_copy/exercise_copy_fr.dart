@@ -162,4 +162,6 @@ const exerciseCopyFr = <String, String>{
       'Forme avec les blocs de mots le sens de cette phrase.',
   'instruction.sameLanguage.matchTranslation':
       'Relie chaque élément à son sens.',
+  'instruction.sameLanguage.flashcardMeaningFirst':
+      'Pense au mot, puis retourne la carte.',
 };

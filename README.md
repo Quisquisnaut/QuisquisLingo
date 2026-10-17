@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.75+275004 · Build 275, Revision 4 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.75+275005 · Build 275, Revision 5 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.75 Beta — QQL 275, Courses in the same language (Course Model v12)**
 
@@ -28,7 +28,12 @@ authors read: preset names such as Pick the word and Type the meaning, the
 three "to source" twins that would do the same as their "to target" twins
 left out, forms, the GuideBook page and its Help in words and meanings, an
 English example module, and New Course's question before the languages
-become fixed.
+become fixed. Revision 5 adds a test Course to import, QQL Test: En-En
+Exercise Lab, with an exercise for every preset a same-language Course
+offers, and moves the test Courses from `demo_courses/` to
+`test_courses/`; a same-language Course is no longer marked red for having
+one language on both sides, and a Flashcard shown meaning first no longer
+names the language.
 
 Build 274 brings the owner's nine points of 13 October 2026
 ([plan](docs/274_PLAN.md), [change summary](docs/274_CHANGE_SUMMARY.md)).
@@ -1008,7 +1013,7 @@ On Android, the platform's own Auto Backup is deliberately left enabled, because
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- No bundled course: Courses are imported or created. Two test Courses to import are in `demo_courses/`, QQL Test: En-It Exercise Lab and QQL Test: It-En Edge Case Course
+- No bundled course: Courses are imported or created. Three test Courses to import are in `test_courses/`, QQL Test: En-It Exercise Lab, QQL Test: It-En Edge Case Course and QQL Test: En-En Exercise Lab (a Course in the same language)
 - Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses

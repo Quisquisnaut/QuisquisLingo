@@ -356,10 +356,10 @@ void main() {
 
   // Build 259 Revision 5 (owner request): the Edge Case left the bundle and
   // is imported, as a custom Course with its own identity, from
-  // demo_courses/.
+  // test_courses/.
   test('the Course to import is the same Course as a custom Course', () async {
     final imported = await transfer.courseFromBytes(
-      await File('demo_courses/edge_case_it_en.json').readAsBytes(),
+      await File('test_courses/edge_case_it_en.json').readAsBytes(),
       'edge_case_it_en.json',
     );
     expect(imported.originType, CourseOriginType.custom);

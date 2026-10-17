@@ -49,7 +49,7 @@ void main() {
     final raw =
         jsonDecode(
               await File(
-                'demo_courses/italian_demo_2_pick_the_translation.json',
+                'test_courses/italian_demo_2_pick_the_translation.json',
               ).readAsString(),
             )
             as Map<String, dynamic>;
@@ -387,7 +387,7 @@ void main() {
 
     test('a media-free JSON Course still opens', () async {
       final json = await File(
-        'demo_courses/italian_demo_2_pick_the_translation.json',
+        'test_courses/italian_demo_2_pick_the_translation.json',
       ).readAsBytes();
       backend.onOpen = () async => FileDialogResult.opened('course.json', json);
       final picked = await transfer.importPackageFromDialog();

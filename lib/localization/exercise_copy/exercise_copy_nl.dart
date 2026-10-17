@@ -159,4 +159,6 @@ const exerciseCopyNl = <String, String>{
       'Vorm met de woordblokken de betekenis van deze zin.',
   'instruction.sameLanguage.matchTranslation':
       'Zet elk item bij zijn betekenis.',
+  'instruction.sameLanguage.flashcardMeaningFirst':
+      'Bedenk het woord en draai dan de kaart om.',
 };
