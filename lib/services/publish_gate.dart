@@ -52,9 +52,13 @@ class PublishGate {
     );
   }
 
-  /// The Course Audit's findings on [exercise] alone.
-  List<CourseAuditIssue> exerciseIssues(Exercise exercise) =>
-      _service.auditExercise(exercise);
+  /// The Course Audit's findings on [exercise] alone; [sameLanguage]
+  /// (`CourseLanguagePair.isSameLanguage` of its Course) names the presets
+  /// as a Course in the same language does (Build 275 Revision 4).
+  List<CourseAuditIssue> exerciseIssues(
+    Exercise exercise, {
+    bool sameLanguage = false,
+  }) => _service.auditExercise(exercise, sameLanguage: sameLanguage);
 
   /// The Round type rules [exercise] breaks in [round] (Build 273
   /// Revision 3, owner decision: checked before Apply wherever an exercise

@@ -74,6 +74,12 @@ screen or a rule an author reads changes. When a learner catalog changes,
 12. **Advice to the author**: the Round Wizard's typed exercises accept only
     the answers the GuideBook gives, so every correct translation must be
     written in the GuideBook.
+17. **How the learner's GuideBook shows them** (owner, 17 October 2026,
+    option E of the mockup https://claude.ai/artifact/YJLEZmTbXeHPY4hPmCoCnS):
+    every form in full, in bold, one per line, the translation once after
+    the last; rows with the same Source **and** the same Context are shown
+    together as one entry, and rows whose Contexts differ stay separate,
+    each with its Context.
 
 ### The creator chooses (owner, 17 October 2026; Revision 2)
 
@@ -108,6 +114,22 @@ screen or a rule an author reads changes. When a learner catalog changes,
     first**: "Are you sure? After this step the kind of Course and its
     languages cannot be changed, unless you leave the Wizard without saving
     and start a new one."
+
+### What authors read (owner, 17 October 2026; Revision 4)
+
+18. **New Course asks too**: its Continue to Editor asks the Wizard's
+    question before the kind and the languages become fixed.
+19. **New Course's sample exercise** in a same-language Course reads
+    "Meaning in English" and "Word in English" (kept as proposed).
+20. **The Help texts that still named languages are fixed in Revision 4**:
+    Listen and answer's Question and the GuideBook picture's Help.
+21. **Two earlier dialogs that show raw preset IDs** (the reading-derived
+    exercises, the Round Wizard's findings), in both kinds of Course, are
+    fixed in a later revision of their own.
+22. **Word Lookup in a Course of synonyms paired both ways** (glad = happy,
+    happy = glad), which can show the answer in Pick the word or Type the
+    word, is left as it is: authors can avoid pairing both ways or turn
+    Word Lookup off in Lesson Options.
 
 ## The rule: one owner, the creator's choice stored
 
@@ -410,6 +432,75 @@ The names from `nameIn` in each caller; the three twins absent from the
 preset list and present in a stored exercise; the GuideBook labels and Help;
 the module example; a translation Course unchanged.
 
+### As built (`2.0.75+275004`)
+
+- `ExercisePresetRegistry.nameIn(id, sameLanguage:)`, `offeredIn`,
+  `notInSameLanguage`, `directionIn` ("To the word", "To the meaning"),
+  `descriptionIn` (the eleven renamed presets described in words and
+  meanings) and `directionOfIn` (the four that lose "(to target)" belong
+  to both directions there) take the flag, not the Course: the models file
+  imports no service, and the callers ask `CourseLanguagePair`. In a
+  same-language Course `nameIn` reads a retired ID as its successor when
+  that successor is renamed there; `descriptionIn` always reads it as its
+  successor. Callers: the
+  form's header and its preset list (search, direction filter, cards), the
+  Exercise Wizard (its chips, its plan, its guided steps and its planner's
+  pools, `ExerciseCreationPlanner.create(sameLanguage:)`), the Story sheet
+  (`_chooseStoryPreset(sameLanguage:)`) and the Story Wizard's step cards,
+  the Round Wizard's plan, the Round editor's rows
+  (`ExerciseLabels.typeLabel(sameLanguage:)`), Search (its type menu and
+  its results) and the Audit (`auditExercise(sameLanguage:)`, given by the
+  Course's audit, the Previews, the Round Wizard's approval and the
+  reading-derived exercises, and `PublishGate.exerciseIssues(sameLanguage:)`
+  on Apply): the two "no longer matches" messages, the kind they name
+  (`kindLabelIn`) and their hint, and the messages that name Pick, Type or
+  Build the translation. The Audit's sorting by type and the learner titles
+  (Revision 1) are as they were.
+- Field Help (`ExerciseFieldHelpRegistry.forEditorField(sameLanguage:)`):
+  the fields of the seven presets and of Read and answer in words and
+  meanings, titled as the form labels them; every preset's Instruction or
+  context without "translation". Read and answer's form speaks of no source
+  or target language.
+- New Course's sample exercise in a same-language Course: "Meaning in
+  English", "Word in English" (`NewCourseStructure.sampleExercise(
+  sameLanguage:)`; the AI's choice, for the owner to confirm).
+- The forms' texts are English, as the editor's interface is.
+- GuideBook page: `Word` / `Sentence` / `Meaning` labels and the
+  messages about a half-filled row, the lists' descriptions, the tooltips,
+  the braces line and the title example, the paste dialog's help and
+  examples and Paste list's refusals
+  (`GuidebookPasteList.read(sameLanguage:, sentences:)`); the field Help
+  reads `guidebookHelp.field.<field>.sameLanguage.title|body` (title,
+  sentences, words, target, source, context, pasteList; EN/IT/ES); the
+  Course Wizard's empty GuideBook line says "At the café". English never
+  leaves out its subject, so the example of `{…}` is "I would like {just}
+  an espresso".
+- Exercise Help adds `exerciseHelp.sameLanguageName` under a preset with a
+  same-language name and `exerciseHelp.sameLanguageNotOffered` under a
+  twin not offered (EN/IT/ES); its search finds those lines.
+- `GuidebookModuleSample.module(sameLanguage:)` ("At the café"; the
+  two senses of "the bill" with their pictures),
+  `GuidebookPasteList.sameLanguageExampleLines`,
+  `CourseWizardSample.guidebook(sameLanguage:)`; the Course Wizard's Word
+  Lookup line has a same-language example.
+- The owner's answers (decisions 19 to 22): Listen and answer's
+  Question Help and the GuideBook picture's Help
+  (`guidebookHelp.field.picture.sameLanguage.*`, EN/IT/ES) have
+  same-language versions; Choose the answer and Listen and choose name no
+  language in their Help. Known and left: two earlier dialogs show a
+  preset's raw ID in both kinds of Course (decision 21: a later
+  revision); the Pick helpers quote the learner line in English, as the
+  translation helpers do; "· To the word" stands beside every "to target"
+  preset, as "To target" did.
+- **New Course's question** (owner decision of 17 October 2026, after
+  Revision 3): `NewCourseDialog.confirmsLanguages` (off in the tests
+  written before it), asked after the form accepts its values ("Are you
+  sure? After this step the kind of Course and its languages cannot be
+  changed, unless you leave the Course Editor with Discard changes
+  before its first save and create the Course again."; Cancel
+  `new-course-languages-fixed-cancel`, Continue
+  `new-course-languages-fixed-confirm`).
+
 ## Revision 5: a test Course to import
 
 - **QQL Test: En-En Exercise Lab** (title in the style of the other test
@@ -466,9 +557,12 @@ translation.
   syntax, parsed by `AnswerExpressionParser` (one parser: never a second),
   refused with its messages, at most 128 forms. `GuidebookText` keeps its
   `{…}` display and gains the rest:
-  - the learner's GuideBook shows the first form in full and the others
-    below it, smaller ("also: Ich bin Lehrerin."), at most three, then
-    "and N more" (to show the owner as a mockup before building);
+  - the learner's GuideBook shows every form in full (decision 17): each
+    form a bold line, the translation once after the last
+    ("**Ich bin Lehrer.** / **Ich bin Lehrerin.** — I am a teacher.");
+    rows that are alternatives of each other (same Source and same
+    Context) are drawn as one such entry, in the author's order; rows with
+    different Contexts stay separate entries with their Context;
   - Word Lookup indexes every form (today both `{…}` forms);
   - Review shows the first form, and accepts any.
 - **What the Round Wizard does with alternatives** (rows and forms alike):

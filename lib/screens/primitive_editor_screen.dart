@@ -10,6 +10,7 @@ import '../models/exercise_image_metadata.dart';
 import '../services/canonical_exercise_draft.dart';
 import '../services/canonical_exercise_samples.dart';
 import '../services/course_audit_service.dart';
+import '../services/course_language_pair.dart';
 import '../services/publish_gate.dart';
 import '../services/course_language_resolver.dart';
 import '../services/round_type_compatibility.dart';
@@ -76,6 +77,12 @@ class _Slot<T> {
 class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
   late final CanonicalExerciseDraft _draft;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
+
+  /// The Course is in the same language: the Audit names its presets as
+  /// such a Course does (Build 275 Revision 4).
+  bool get _sameLanguage =>
+      widget.course != null &&
+      CourseLanguagePair.isSameLanguage(widget.course!);
   final _prompt = <_Slot<PromptElement>>[];
   final _items = <_Slot<ExerciseItem>>[];
   final _targets = <_Slot<ExerciseTarget>>[];
@@ -241,7 +248,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     }
     final candidate = _candidate(widget.exercise.publicationState);
     final errors = CourseAuditService()
-        .auditExercise(candidate)
+        .auditExercise(candidate, sameLanguage: _sameLanguage)
         .where((issue) => issue.severity == AuditSeverity.error)
         .map((issue) => '${issue.code}: ${issue.message}')
         .toList();
@@ -318,7 +325,10 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
         );
         return false;
       }
-      final issues = const PublishGate().exerciseIssues(exercise);
+      final issues = const PublishGate().exerciseIssues(
+        exercise,
+        sameLanguage: _sameLanguage,
+      );
       final errors = PublishGate.errorsIn(issues);
       if (errors.isNotEmpty) {
         await _showList(

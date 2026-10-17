@@ -27,6 +27,7 @@ class NewCourseStructure {
     required String learningLanguage,
     required DateTime updatedAt,
     AuthoringIdGenerator? ids,
+    bool sameLanguage = false,
   }) {
     if (lessonCount < 1 || lessonCount > 100) {
       throw RangeError.range(lessonCount, 1, 100, 'Number of Lessons');
@@ -61,6 +62,7 @@ class NewCourseStructure {
                     sourceLanguage: source,
                     learningLanguage: learning,
                     updatedAt: updatedAt,
+                    sameLanguage: sameLanguage,
                   ),
                 ],
               ),
@@ -71,12 +73,15 @@ class NewCourseStructure {
 
   /// Creates the shared Draft authoring example (Pick the translation, to
   /// target: the instruction is generated, so it has no authored prompt) used
-  /// by new Courses and by manually created Rounds.
+  /// by new Courses and by manually created Rounds. In a Course in the same
+  /// language ([sameLanguage]) it is Pick the word, so its placeholders name
+  /// a meaning and a word (Build 275 Revision 4).
   static LearningContent sampleExercise(
     AuthoringIdGenerator ids, {
     required String sourceLanguage,
     required String learningLanguage,
     required DateTime updatedAt,
+    bool sameLanguage = false,
   }) {
     final exerciseId = ids.next('exercise');
     final correctId = ids.next('item');
@@ -93,7 +98,9 @@ class NewCourseStructure {
           PromptElement(
             role: 'question',
             type: 'text',
-            text: 'Text in $sourceLanguage',
+            text: sameLanguage
+                ? 'Meaning in $sourceLanguage'
+                : 'Text in $sourceLanguage',
           ),
         ],
         interaction: ExerciseInteraction(
@@ -104,7 +111,9 @@ class NewCourseStructure {
               content: [
                 PromptElement(
                   type: 'text',
-                  text: 'Translation in $learningLanguage',
+                  text: sameLanguage
+                      ? 'Word in $learningLanguage'
+                      : 'Translation in $learningLanguage',
                 ),
               ],
             ),

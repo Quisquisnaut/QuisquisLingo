@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
+import '../services/course_language_pair.dart';
 import '../services/exercise_search_service.dart';
 import '../services/editor_display_preferences.dart';
 import '../services/lesson_presentation_service.dart';
@@ -110,7 +111,15 @@ class _CourseEditorSearchScreenState extends State<CourseEditorSearchScreen> {
                 for (final preset in ExercisePresetRegistry.presets)
                   DropdownMenuItem<String?>(
                     value: preset.id,
-                    child: Text(preset.name),
+                    // Build 275 Revision 4: the name the Course's kind gives.
+                    child: Text(
+                      ExercisePresetRegistry.nameIn(
+                        preset.id,
+                        sameLanguage: CourseLanguagePair.isSameLanguage(
+                          widget.course,
+                        ),
+                      ),
+                    ),
                   ),
               ],
               onChanged: (value) => setState(() => _exerciseType = value),

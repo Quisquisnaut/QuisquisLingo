@@ -12,6 +12,7 @@ import '../widgets/exercise_image_field.dart';
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
 import '../models/exercise_features.dart';
+import '../services/course_language_pair.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_hierarchy_update_service.dart';
 import '../services/course_audit_service.dart';
@@ -132,8 +133,18 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   /// The pictures marked Plural (Build 265 Revision 11), by asset or QQL
   /// icon key.
   Set<String> _pluralPictures = {};
-  static String labelForType(String type) =>
-      ExercisePresetRegistry.nameOrId(type);
+
+  /// Build 275 Revision 4: the Course is in the same language (its preset
+  /// names, its form texts and its preset list say so).
+  bool get _sameLanguage =>
+      widget.course != null &&
+      CourseLanguagePair.isSameLanguage(widget.course!);
+
+  /// The preset's name as an author of this Course reads it.
+  String _presetName(String type) =>
+      ExercisePresetRegistry.nameIn(type, sameLanguage: _sameLanguage);
+  String _presetDescription(String type) =>
+      ExercisePresetRegistry.descriptionIn(type, sameLanguage: _sameLanguage);
   late String _type;
   late String _contextMode;
   late final TextEditingController _prompt,
@@ -589,12 +600,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Text(
-        'Correct translations',
+        _sameLanguage ? 'Correct answers' : 'Correct translations',
         style: Theme.of(context).textTheme.titleSmall,
       ),
       const SizedBox(height: 4),
-      const Text(
-        'Each entry is one complete literal target-language sentence. Answer syntax and similarity matching are not used.',
+      Text(
+        _sameLanguage
+            ? 'Each entry is one complete answer, as the blocks form it. Answer syntax and similarity matching are not used.'
+            : 'Each entry is one complete literal target-language sentence. Answer syntax and similarity matching are not used.',
       ),
       const SizedBox(height: 8),
       if (widget.readOnly)
@@ -621,7 +634,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           key: const Key('add-correct-translation'),
           onPressed: widget.readOnly ? null : _addCorrectTranslation,
           icon: const Icon(Icons.add),
-          label: const Text('Add correct translation'),
+          label: Text(
+            _sameLanguage ? 'Add correct answer' : 'Add correct translation',
+          ),
         ),
       ),
       const SizedBox(height: 12),
@@ -644,7 +659,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 maxLines: 3,
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
-                  labelText: 'Correct translation ${index + 1}',
+                  labelText: _sameLanguage
+                      ? 'Correct answer ${index + 1}'
+                      : 'Correct translation ${index + 1}',
                   suffixIcon: _helpButton('correctTranslation'),
                   errorText: _correctTranslationErrorIndexes.contains(index)
                       ? _correctTranslationError
@@ -653,7 +670,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ),
             ),
             IconButton(
-              tooltip: 'Delete correct translation ${index + 1}',
+              tooltip: _sameLanguage
+                  ? 'Delete correct answer ${index + 1}'
+                  : 'Delete correct translation ${index + 1}',
               onPressed: widget.readOnly
                   ? null
                   : () => _removeCorrectTranslation(index),
@@ -704,7 +723,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }[controller]!;
 
   Future<void> _showFieldHelp(String fieldKey, {String? title}) {
-    final help = ExerciseFieldHelpRegistry.forEditorField(_type, fieldKey);
+    final help = ExerciseFieldHelpRegistry.forEditorField(
+      _type,
+      fieldKey,
+      sameLanguage: _sameLanguage,
+    );
     return showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -850,7 +873,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
 
   Widget _helpButton(String fieldKey) => IconButton(
     key: ValueKey('exercise-field-help-$fieldKey'),
-    tooltip: ExerciseFieldHelpRegistry.forEditorField(_type, fieldKey).purpose,
+    tooltip: ExerciseFieldHelpRegistry.forEditorField(
+      _type,
+      fieldKey,
+      sameLanguage: _sameLanguage,
+    ).purpose,
     onPressed: () => _showFieldHelp(fieldKey),
     icon: const Icon(Icons.help_outline),
   );
@@ -920,8 +947,22 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     ),
   );
 
-  Future<void> _showTypeTranslationHelp() =>
-      _showFieldHelp('accepted', title: 'Type the translation · answer syntax');
+  Future<void> _showTypeTranslationHelp() => _showFieldHelp(
+    'accepted',
+    title: _sameLanguage
+        ? '${_presetName(_type)} · answer syntax'
+        : 'Type the translation · answer syntax',
+  );
+
+  // Build 275 Revision 4 (review): a Course in the same language has
+  // correct answers, not correct translations.
+  String get _correctAnswersRequired => _sameLanguage
+      ? 'Add at least one non-empty correct answer.'
+      : 'Add at least one non-empty correct translation.';
+
+  String get _correctAnswersDuplicate => _sameLanguage
+      ? 'Correct answers contain duplicates after ignoring case, spacing and final punctuation. Remove or change the repeated entry.'
+      : 'Correct translations contain duplicates after ignoring case, spacing and final punctuation. Remove or change the repeated entry.';
 
   Future<void> _expandTranslationAnswers() async {
     if (widget.readOnly) return;
@@ -1116,13 +1157,19 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _prompt,
             'Sentence',
             lines: 3,
-            helper: _type.endsWith('_to_source')
+            // Build 275 Revision 4: a Course in the same language speaks of
+            // words and meanings.
+            helper: _sameLanguage
+                ? (_type.endsWith('_to_source')
+                      ? 'A word, phrase or sentence: the learner writes its meaning, such as a synonym.'
+                      : 'A meaning: the learner writes the word, phrase or sentence it describes.')
+                : _type.endsWith('_to_source')
                 ? 'In the target language: the text the learner translates into the source language.'
                 : 'In the source language: the text the learner translates into the target language.',
           ),
           _field(
             _accepted,
-            'Accepted translations',
+            _sameLanguage ? 'Accepted answers' : 'Accepted translations',
             lines: 5,
             helper:
                 'One complete equivalent answer per line. Optional {...}, alternatives [a|b], and scoped reorder (a <> b) syntax are supported.',
@@ -1201,18 +1248,25 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _prompt,
             'Sentence',
             lines: 3,
-            helper: _type.endsWith('_to_source')
+            helper: _sameLanguage
+                ? (_type.endsWith('_to_source')
+                      ? 'A sentence: the learner builds its meaning from the blocks.'
+                      : 'A meaning: the learner builds the sentence it describes from the blocks.')
+                : _type.endsWith('_to_source')
                 ? 'In the target language: the complete sentence the learner translates into the source language.'
                 : 'In the source language: the complete sentence the learner translates into the target language.',
           ),
           _field(
             _tokens,
-            _type.endsWith('_to_source')
+            _sameLanguage
+                ? 'Available blocks'
+                : _type.endsWith('_to_source')
                 ? 'Available source-language blocks'
                 : 'Available target-language blocks',
             lines: 5,
-            helper:
-                'One literal block per line. Include enough occurrences to construct every correct translation; repeated words need separate blocks.',
+            helper: _sameLanguage
+                ? 'One literal block per line. Include enough occurrences to construct every correct answer; repeated words need separate blocks.'
+                : 'One literal block per line. Include enough occurrences to construct every correct translation; repeated words need separate blocks.',
           ),
           _correctTranslationsEditor(),
         ];
@@ -1264,10 +1318,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _instructionField(),
           _field(
             _pairs,
-            'Translation pairs',
+            _sameLanguage ? 'Meaning and word pairs' : 'Translation pairs',
             lines: 5,
-            helper:
-                'At least two lines: source = target. Three is the usual number.',
+            helper: _sameLanguage
+                ? 'At least two lines: meaning = word. Three is the usual number.'
+                : 'At least two lines: source = target. Three is the usual number.',
           ),
         ];
       case 'super_match':
@@ -1388,19 +1443,23 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         // in the source language and is never read aloud; the dialogue is in
         // the target language and may be read aloud line by line.
         return [
+          // Build 275 Revision 4: a Course in the same language has one
+          // language.
           _field(
             _prompt,
-            'Text to read (source language)',
+            _sameLanguage ? 'Text to read' : 'Text to read (source language)',
             lines: 5,
-            helper:
-                'In the learners’ own language: the situation or the explanation the dialogue needs. It is never read aloud.',
+            helper: _sameLanguage
+                ? 'The situation or the explanation the dialogue needs. It is never read aloud.'
+                : 'In the learners’ own language: the situation or the explanation the dialogue needs. It is never read aloud.',
           ),
           _field(
             _dialogue,
             'Dialogue lines (optional)',
             lines: 4,
-            helper:
-                'One line per turn as Speaker: text, in the target language.',
+            helper: _sameLanguage
+                ? 'One line per turn as Speaker: text.'
+                : 'One line per turn as Speaker: text, in the target language.',
           ),
           _choiceField(
             fieldKey: 'dialogueReadAloud',
@@ -1419,7 +1478,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _question,
             'Question',
             lines: 2,
-            helper: 'In the target language.',
+            helper: _sameLanguage
+                ? 'The question about the text or the dialogue.'
+                : 'In the target language.',
           ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
@@ -1470,7 +1531,17 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _question,
             'Sentence',
             lines: 2,
-            helper: toTarget
+            helper: _sameLanguage
+                ? (toTarget
+                      ? 'A meaning: a definition, a synonym or a short '
+                            'explanation. Do not write an instruction: QQL '
+                            'shows “Choose the answer that fits this '
+                            'meaning.” automatically.'
+                      : 'One word, phrase or sentence. The learner can '
+                            'play it with text-to-speech when available. Do '
+                            'not write an instruction: QQL shows “Choose the '
+                            'correct meaning.” automatically.')
+                : toTarget
                 ? 'One word, phrase or sentence in the course source '
                       'language. Do not write an instruction: QQL shows '
                       '“Choose the correct [Target language] translation” '
@@ -1485,7 +1556,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _answers,
             'Answer options',
             lines: 4,
-            helper: toTarget
+            helper: _sameLanguage
+                ? (toTarget
+                      ? 'One word, phrase or sentence per line, from 2 to 5 '
+                            'options, each different. Blank lines are '
+                            'ignored. The learner sees the options in random '
+                            'order.'
+                      : 'One meaning per line, from 2 to 5 options, each '
+                            'different. Blank lines are ignored. The learner '
+                            'sees the options in random order.')
+                : toTarget
                 ? 'One complete target-language translation per line, from 2 '
                       'to 5 options, each a different phrase. Blank lines '
                       'are ignored. The learner sees the options in random '
@@ -1991,10 +2071,15 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     // in the source language. Cards and notes have no direction and show
     // under All only.
     PresetDirection? direction;
+    PresetDirection directionOf(ExercisePreset preset) =>
+        ExercisePresetRegistry.directionOfIn(
+          preset,
+          sameLanguage: _sameLanguage,
+        );
     bool matchesDirection(ExercisePreset preset) =>
         direction == null ||
-        preset.direction == direction ||
-        preset.direction == PresetDirection.both;
+        directionOf(preset) == direction ||
+        directionOf(preset) == PresetDirection.both;
     bool matchesQuery(String name, String description, String group) {
       final needle = query.toLowerCase();
       return needle.isEmpty ||
@@ -2011,6 +2096,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           final visible = ExercisePresetRegistry.presets
               .where(
                 (preset) =>
+                    ExercisePresetRegistry.offeredIn(
+                      preset.id,
+                      sameLanguage: _sameLanguage,
+                    ) &&
                     (widget.round == null ||
                         RoundTypeCompatibility.canOfferPreset(
                           widget.round!.roundType,
@@ -2018,8 +2107,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                         )) &&
                     matchesDirection(preset) &&
                     matchesQuery(
-                      preset.name,
-                      preset.description,
+                      _presetName(preset.id),
+                      _presetDescription(preset.id),
                       preset.category.label,
                     ),
               )
@@ -2063,15 +2152,25 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                   const SizedBox(height: 12),
                   SegmentedButton<PresetDirection?>(
                     key: const Key('exercise-preset-direction'),
-                    segments: const [
-                      ButtonSegment(value: null, label: Text('All')),
+                    segments: [
+                      const ButtonSegment(value: null, label: Text('All')),
                       ButtonSegment(
                         value: PresetDirection.toTarget,
-                        label: Text('To target'),
+                        label: Text(
+                          ExercisePresetRegistry.directionIn(
+                            PresetDirection.toTarget,
+                            sameLanguage: _sameLanguage,
+                          ),
+                        ),
                       ),
                       ButtonSegment(
                         value: PresetDirection.toSource,
-                        label: Text('To source'),
+                        label: Text(
+                          ExercisePresetRegistry.directionIn(
+                            PresetDirection.toSource,
+                            sameLanguage: _sameLanguage,
+                          ),
+                        ),
                       ),
                     ],
                     selected: {direction},
@@ -2097,12 +2196,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                           key: ValueKey('exercise-preset-${preset.id}'),
                           child: ListTile(
                             leading: PresetActionChip(preset.action),
-                            title: Text(preset.name),
+                            title: Text(_presetName(preset.id)),
                             subtitle: Text(
-                              preset.direction == PresetDirection.none ||
-                                      preset.direction == PresetDirection.both
-                                  ? preset.description
-                                  : '${preset.description} · ${preset.direction.label}',
+                              directionOf(preset) == PresetDirection.none ||
+                                      directionOf(preset) ==
+                                          PresetDirection.both
+                                  ? _presetDescription(preset.id)
+                                  : '${_presetDescription(preset.id)} · ${ExercisePresetRegistry.directionIn(preset.direction, sameLanguage: _sameLanguage)}',
                             ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () => Navigator.pop(sheetContext, preset.id),
@@ -2405,8 +2505,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _correctTranslationErrorIndexes = error.indexes;
         _correctTranslationError =
             error.code == ExerciseDraftErrorCode.correctTranslationsRequired
-            ? 'Add at least one non-empty correct translation.'
-            : 'Correct translations contain duplicates after ignoring case, spacing and final punctuation. Remove or change the repeated entry.';
+            ? _correctAnswersRequired
+            : _correctAnswersDuplicate;
       });
       return;
     }
@@ -2414,9 +2514,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ExerciseDraftErrorCode.translationChoiceAnswers ||
       ExerciseDraftErrorCode.answerExpression => error.detail!,
       ExerciseDraftErrorCode.correctTranslationsRequired =>
-        'Add at least one non-empty correct translation.',
+        _correctAnswersRequired,
       ExerciseDraftErrorCode.correctTranslationsDuplicate =>
-        'Correct translations contain duplicates after ignoring case, spacing and final punctuation. Remove or change the repeated entry.',
+        _correctAnswersDuplicate,
       ExerciseDraftErrorCode.pairLine =>
         'Pairs line ${error.line}: enter both values as left = right, one pair per line. Complete or remove this line before Preview or Save.',
       ExerciseDraftErrorCode.correctAnswerNumber =>
@@ -2582,7 +2682,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       );
       return false;
     }
-    final issues = const PublishGate().exerciseIssues(ex);
+    final issues = const PublishGate().exerciseIssues(
+      ex,
+      sameLanguage: _sameLanguage,
+    );
     final errors = PublishGate.errorsIn(issues);
     final warnings = PublishGate.warningCount(issues);
     if (errors.isNotEmpty) {
@@ -2662,7 +2765,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (!await _validateScriptImages(candidate)) return;
     if (!mounted) return;
     final errors = CourseAuditService()
-        .auditExercise(candidate)
+        .auditExercise(candidate, sameLanguage: _sameLanguage)
         .where((issue) => issue.severity == AuditSeverity.error)
         .map((issue) => '${issue.code}: ${issue.message}')
         .toList();
@@ -3053,11 +3156,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                   // The preset's name in bold (owner request, 29 September
                   // 2026), here and on the locked "Exercise type" line.
                   title: Text(
-                    labelForType(_type),
+                    _presetName(_type),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: Text(
-                    '${ExercisePresetRegistry.byId(_type)!.category.label} · ${ExercisePresetRegistry.byId(_type)!.description}',
+                    '${ExercisePresetRegistry.byId(_type)!.category.label} · ${_presetDescription(_type)}',
                   ),
                   trailing: const Icon(Icons.unfold_more),
                   onTap: widget.readOnly ? null : _choosePreset,
@@ -3090,7 +3193,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Exercise type'),
                 subtitle: Text(
-                  labelForType(_type),
+                  _presetName(_type),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 trailing: const Icon(Icons.lock_outline),
@@ -3101,10 +3204,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => ExerciseHelpScreen(
-                      // Pick the translation opens straight on its own
-                      // chapter by pre-filling the search with its name.
+                      // Pick the translation opens on its own chapter by
+                      // pre-filling the search with its name (in a Course
+                      // in the same language "Pick the word" also finds
+                      // Pick the words for the gaps).
                       initialQuery: TranslationChoice.isTranslationChoice(_type)
-                          ? labelForType(_type)
+                          ? _presetName(_type)
                           : '',
                     ),
                   ),

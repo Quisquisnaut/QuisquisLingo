@@ -617,6 +617,109 @@ abstract final class ExercisePresetRegistry {
   static String nameOrId(String id) =>
       byId(id)?.name ?? id.replaceAll('_', ' ');
 
+  /// Build 275 Revision 4: in a Course in the same language, the "to target"
+  /// presets whose "to source" twin is not offered keep their name without
+  /// the direction.
+  static const _sameLanguageWithoutDirection = <String, String>{
+    'choice_target': 'Choose the answer',
+    'listening_choose_target': 'Listen and choose',
+    'listening_answer_target': 'Listen and answer',
+    'reading_answer_target': 'Read and answer',
+  };
+
+  /// The "to source" twins a Course in the same language does not offer for
+  /// new exercises: there they would do exactly what their "to target" twin
+  /// does. An exercise made with one still opens and plays.
+  static const notInSameLanguage = <String>{
+    'choice_source',
+    'listening_choose_source',
+    'listening_answer_source',
+  };
+
+  /// The one owner of the name an author reads for a preset (Build 275
+  /// Revision 4): in a Course in the same language ([sameLanguage], from
+  /// `CourseLanguagePair.isSameLanguage`), the translation presets speak of
+  /// words and meanings ([sameLanguageNames]) and the "to target" presets
+  /// above lose their direction; elsewhere [nameOrId].
+  static String nameIn(String id, {required bool sameLanguage}) {
+    if (sameLanguage) {
+      // A retired ID still stored on an exercise is named as its successor.
+      final current = currentIdFor(id) ?? id;
+      final name =
+          sameLanguageNames[current] ?? _sameLanguageWithoutDirection[current];
+      if (name != null) return name;
+    }
+    return nameOrId(id);
+  }
+
+  /// What the presets [nameIn] renames do in a Course in the same language
+  /// (Build 275 Revision 4): words and meanings, no translation and no
+  /// source or target language.
+  static const _sameLanguageDescriptions = <String, String>{
+    'translation_choice_to_target':
+        'Select: learner reads a meaning and picks the word it describes.',
+    'translation_choice_to_source':
+        'Select: learner reads a word and picks its meaning.',
+    'type_translation_to_target':
+        'Learner reads a meaning and types the word or sentence it describes.',
+    'type_translation_to_source':
+        'Learner reads a word or sentence and types its meaning, such as a synonym.',
+    'build_translation_to_target':
+        'Learner reads a meaning and arranges blocks into the sentence it describes.',
+    'build_translation_to_source':
+        'Learner reads a sentence and arranges blocks into its meaning.',
+    'word_match': 'Learner matches words with their meanings.',
+    'choice_target':
+        'Learner answers a question by choosing: grammar, culture or meaning.',
+    'listening_choose_target':
+        'Learner listens to a word or a sentence and chooses what was heard; no question.',
+    'listening_answer_target':
+        'Learner listens to a word, a sentence or a passage and answers a question about it.',
+    'reading_answer_target':
+        'Learner reads a situation and dialogue lines, then answers a question.',
+  };
+
+  /// The description an author reads for a preset in a Course of that kind
+  /// (Build 275 Revision 4), empty for an ID this version does not know.
+  static String descriptionIn(String id, {required bool sameLanguage}) {
+    final current = currentIdFor(id) ?? id;
+    if (sameLanguage) {
+      final description = _sameLanguageDescriptions[current];
+      if (description != null) return description;
+    }
+    return byId(current)?.description ?? '';
+  }
+
+  /// The direction of [preset] in a Course of that kind (Build 275
+  /// Revision 4): in a Course in the same language the presets that lose
+  /// their direction there ([nameIn]) belong to both directions, so the
+  /// picker lists them under every filter and names no direction beside
+  /// them.
+  static PresetDirection directionOfIn(
+    ExercisePreset preset, {
+    required bool sameLanguage,
+  }) => sameLanguage && _sameLanguageWithoutDirection.containsKey(preset.id)
+      ? PresetDirection.both
+      : preset.direction;
+
+  /// Whether the preset [id] is offered for a new exercise in a Course of
+  /// that kind.
+  static bool offeredIn(String id, {required bool sameLanguage}) =>
+      !sameLanguage || !notInSameLanguage.contains(id);
+
+  /// The direction an author reads beside a preset: in a Course in the same
+  /// language, "To the word" and "To the meaning" (Build 275 Revision 4).
+  static String directionIn(
+    PresetDirection direction, {
+    required bool sameLanguage,
+  }) => !sameLanguage
+      ? direction.label
+      : switch (direction) {
+          PresetDirection.toTarget => 'To the word',
+          PresetDirection.toSource => 'To the meaning',
+          _ => direction.label,
+        };
+
   static ExercisePreset? byId(String id) {
     for (final preset in presets) {
       if (preset.id == id) return preset;

@@ -1023,6 +1023,7 @@ class CourseLibraryOperations {
         lessonCount: lessonCount,
         roundsPerLesson: roundsPerLesson,
         updatedAt: updatedAt,
+        sameLanguage: sameLanguage,
       ),
     );
   }

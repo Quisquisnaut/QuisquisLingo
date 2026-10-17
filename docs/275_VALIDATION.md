@@ -1,5 +1,63 @@
 # Build 275 validation
 
+## Revision 4 (2.0.75+275004), what authors read
+
+- New tests: `test/same_language_authors_275_test.dart`, **23 passed**: the
+  names of the eleven presets in both kinds and every other preset
+  unchanged; a retired ID named as its successor, the descriptions and the
+  directions by kind; the twins not offered and the direction labels; the
+  Exercise Wizard's pools without the twins in a same-language Course and
+  with them in a translation Course; the Round editor's rows, Search's
+  results and the Audit's message by kind; the Audit's messages through
+  the publish gate (Pick, Type and Build; a Pick that plays as Type is
+  "This exercise"), the learner kind and the mismatch hint by kind; the
+  field Help of the renamed presets (no translation, source or target;
+  titles as the labels; every other preset and a translation Course as
+  before; the Instruction or context; Listen and answer's Question), the
+  module title's and the picture's Help in three languages, a Help
+  button's tooltip and dialog,
+  Read and answer's labels and Exercise Help's search by kind;
+  the form's header and preset
+  list (names, direction filter, the twins absent, every preset in a
+  translation Course); the forms' texts by kind; the Story sheet by kind;
+  the GuideBook page's labels and field Help, a half-filled row's messages,
+  the braces line and the title example, Paste list's refusals by kind, a
+  translation Course's Target and Source, Fill with an example and the
+  paste help in English; the samples well formed (the sentence with
+  `{just}`, the two bills' pictures); New Course's sample exercise by
+  kind; Exercise Help's lines and search; New Course's question (Cancel,
+  by its key, keeps the form; Continue makes the Course). Run six times
+  before the review's corrections (15, then 19 tests, all passed each
+  time) and six times on the final file (23 tests, all passed each time).
+- Run with them: every test file that touches the changed code (the
+  exercise forms, the Exercise Wizard and its planner, the Story steps, the
+  GuideBook pages, Exercise Help, the Audit, Search, New Course, the
+  catalog checks), 62 files: **1,061 passed**.
+- Independent read-only review: nothing blocking; corrected: the Story
+  Wizard's step cards and the Exercise Wizard's plan used the earlier
+  names; the Audit's literal messages, its mismatch hint and the publish
+  gate's checks named translations; the descriptions and the direction
+  filter; the GuideBook page's row messages, braces line, title example
+  and Paste list's refusals; the form's errors; "{I} would like" (English
+  never leaves out its subject); the bird's "bill" without its picture; a
+  retired ID; New Course's message ("before its first save"). Its
+  re-review (a new reader): nothing blocking; corrected: the field Help of
+  the renamed presets and of every Instruction or context, New Course's
+  sample exercise, the Audit's name for a Pick that plays as Type and for
+  the learner kinds, Read and answer's form and hint, Exercise Help's
+  search, the module title's Help and the Wizard's empty GuideBook line,
+  the documents' claims; left and recorded: two earlier dialogs' raw IDs,
+  the English quote in the Pick helpers, "· To the word" beside the
+  "to target" presets. A third read of those corrections (the same
+  reader): nothing blocking or to fix; acted on: the Round editor rows'
+  fallback for an exercise without a preset (`kindLabelIn`), the comment
+  on Exercise Help's search, the documents' wording; recorded: the field
+  Help of Choose the answer, Listen and choose and Listen and answer and
+  the GuideBook picture's Help still name the languages.
+- `flutter analyze`: **No issues found**.
+- Complete suite on the final tree (`flutter test --concurrency=1`):
+  **4,981 passed, 1 skipped** (55 minutes).
+
 ## Revision 3 (2.0.75+275003), meanings and the Wizard's first step
 
 - New tests: `test/same_language_meanings_275_test.dart`, **9 passed**: for

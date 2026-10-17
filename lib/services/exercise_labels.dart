@@ -14,10 +14,18 @@ abstract final class ExerciseLabels {
       ? e.editorTemplate
       : ExerciseFeatures(e).kind.name;
 
-  /// The friendly type label: the preset's name, else the kind's.
-  static String typeLabel(Exercise e) =>
-      ExercisePresetRegistry.byId(e.editorTemplate)?.name ??
-      CourseAuditService.kindLabel(ExerciseFeatures(e).kind);
+  /// The friendly type label: the preset's name (in a Course in the same
+  /// language its name there, Build 275 Revision 4), else the kind's.
+  static String typeLabel(Exercise e, {bool sameLanguage = false}) =>
+      ExercisePresetRegistry.byId(e.editorTemplate) != null
+      ? ExercisePresetRegistry.nameIn(
+          e.editorTemplate,
+          sameLanguage: sameLanguage,
+        )
+      : CourseAuditService.kindLabelIn(
+          ExerciseFeatures(e).kind,
+          sameLanguage: sameLanguage,
+        );
 
   /// One line that identifies an exercise in a list: its sentence, context,
   /// main text, term, question, meaning or spoken text, else its ID.

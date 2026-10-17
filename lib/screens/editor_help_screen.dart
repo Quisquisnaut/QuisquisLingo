@@ -448,6 +448,34 @@ class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
     return KeyEventResult.handled;
   }
 
+  /// Build 275 Revision 4: what the preset is called in a Course in the
+  /// same language, or that such a Course does not offer it; empty when
+  /// neither applies.
+  String _sameLanguageNote(AppLocale locale, ExercisePreset preset) {
+    final twin = preset.twin;
+    if (ExercisePresetRegistry.notInSameLanguage.contains(preset.id) &&
+        twin != null) {
+      return _t(locale, 'exerciseHelp.sameLanguageNotOffered').replaceAll(
+        '{name}',
+        ExercisePresetRegistry.nameIn(twin, sameLanguage: true),
+      );
+    }
+    final name = ExercisePresetRegistry.nameIn(preset.id, sameLanguage: true);
+    return name == preset.name
+        ? ''
+        : _t(
+            locale,
+            'exerciseHelp.sameLanguageName',
+          ).replaceAll('{name}', name);
+  }
+
+  /// A preset's Help with its same-language note.
+  String _presetBody(AppLocale locale, ExercisePreset preset) {
+    final body = _t(locale, 'exerciseHelp.preset.${preset.id}.body');
+    final note = _sameLanguageNote(locale, preset);
+    return note.isEmpty ? body : '$body\n\n$note';
+  }
+
   List<Widget> _searchResults(AppLocale locale) {
     bool matches(String text) => text.toLowerCase().contains(_query);
     final results = <Widget>[];
@@ -456,7 +484,7 @@ class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
         locale,
         'exerciseHelp.preset.${preset.id}.description',
       );
-      final body = _t(locale, 'exerciseHelp.preset.${preset.id}.body');
+      final body = _presetBody(locale, preset);
       if (matches('${preset.name}\n$description\n$body')) {
         results.add(
           _HelpSection(
@@ -571,10 +599,7 @@ class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
           ),
         ),
         for (final preset in ExercisePresetRegistry.inCategory(category))
-          _HelpSection(
-            title: preset.name,
-            body: _t(locale, 'exerciseHelp.preset.${preset.id}.body'),
-          ),
+          _HelpSection(title: preset.name, body: _presetBody(locale, preset)),
       ],
     Padding(
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),

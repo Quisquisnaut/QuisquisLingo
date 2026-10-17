@@ -20,10 +20,10 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
 | 0 | Choosing the kind of Course (Wizard, New Course, Course Info, the FAQ) | done, `db0bd468` |
 | 1 | What learners read ("word" and "meaning") | done, `2d524fec` |
 | 2 | The creator's choice of kind is stored (owner, 17 October 2026) | done, `46c494ce` |
-| 3 | Meanings (Word Lookup, speakers, neutral lines), the Wizard's question (owner, 17 October 2026) | done |
-| 4 | What authors read (preset names, forms, GuideBook) | planned |
+| 3 | Meanings (Word Lookup, speakers, neutral lines), the Wizard's question (owner, 17 October 2026) | done, `cb4c7de1` |
+| 4 | What authors read (preset names, forms, GuideBook), New Course's question | done |
 | 5 | A test Course to import (En-En Exercise Lab) | planned |
-| 6 | Several correct translations in the GuideBook | planned (display option: owner's choice pending) |
+| 6 | Several correct translations in the GuideBook | planned (display: option E, owner's choice of 17 October 2026, decision 17) |
 
 ## Open points for the owner
 
@@ -32,19 +32,24 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
   variants of one language make a translation Course, typed by hand with
   their tags; "typing a meaning" until Revision 4 names the preset) was
   approved by the owner on 16 October 2026 ("All good").
-- Revision 6's display of alternatives (options A to D of the mockup;
-  A recommended).
+- Closed: Revision 6's display of alternatives, option E (every form in
+  full, the translation once; owner, 17 October 2026, written into the plan
+  as decision 17 by the session "Next version ideas"; renumbered from 13,
+  which Revision 2 uses).
 - Closed on 17 October 2026 (Revision 3): Word Lookup on meanings and a
   speaker for meanings (both yes), "word" for a sentence (neutral lines,
   titles kept); the Wizard's first step stays read-only and Continue with
   Wizard asks first; Save writes, Apply only changes the working copy
   (already so everywhere).
-- Asked of the owner: should New Course's Continue to Editor ask the same
-  question as the Wizard?
-- For the owner (found by Revision 3's review): in a Course of synonyms
+- Closed: New Course's Continue to Editor asks the same question as the
+  Wizard (owner, 17 October 2026; Revision 4).
+- Closed (owner, 17 October 2026: leave it): in a Course of synonyms
   whose GuideBook pairs both ways (glad = happy, happy = glad), looking up
-  a meaning's word in Pick the word or Type the word shows the answer. A
-  later remedy: leave the exercise's own answer out of the card.
+  a meaning's word in Pick the word or Type the word shows the answer.
+- To do in a later revision (owner, 17 October 2026): the reading-derived
+  exercises dialog and the Round Wizard's findings show raw preset IDs
+  ("type translation to target") in both kinds of Course; show the
+  presets' names.
 - The FAQ describes the finished Build: until Revisions 1 and 4 a
   same-language Course's exercises and forms still say translation,
   source and target (said in the CHANGELOG).
@@ -63,6 +68,33 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
   together: an earlier Course whose two tags would change its kind gets
   neither, even one that alone would be fine. The kind is protected;
   owner's call whether to offer the tags one at a time.
+
+## Revision 4 (2.0.75+275004): what authors read
+
+- Done: `nameIn` / `offeredIn` / `directionIn` and every caller, the
+  planner, the forms, the GuideBook page and its field Help, the samples,
+  Exercise Help, New Course's question, Help EN/IT/ES,
+  `LOCALIZATION_CURRENT_STATE`, tests, the documents, version 275004, six
+  clean runs, the independent review.
+- Done: the review's corrections (the Story Wizard's step cards and the
+  Exercise Wizard's plan, the Audit's messages and the publish gate,
+  `descriptionIn` / `directionOfIn`, the GuideBook messages and Paste list,
+  the form's errors, "I would like {just} an espresso" and the bills'
+  pictures, a retired ID, New Course's message), their tests and documents.
+- Done: the re-review (a new reader: the first reviewer could not be
+  reached after the session's context was summarized) and its
+  corrections: field Help, the New Course sample, the Audit's kinds and
+  families, Read and answer, Exercise Help's search, the title Help, the
+  Wizard's empty GuideBook line, the documents; 22 tests.
+- Done: six clean runs (23 tests), `flutter analyze` clean, complete
+  suite 4,981 passed, 1 skipped. Committed "Build 275 Revision 4: what
+  authors read in a same-language Course" and pushed `build-275`. Next:
+  Revision 5 (the En-En test Course).
+- Owner's answers of 17 October 2026 (plan decisions 19 to 22): the
+  sample kept; the remaining Help texts fixed in this revision (Listen
+  and answer's Question, the GuideBook picture); the raw preset IDs of two
+  earlier dialogs in a later revision of their own; the Word Lookup case
+  of synonyms paired both ways left as it is.
 
 ## Revision 3 (2.0.75+275003): meanings, and the Wizard's first step
 

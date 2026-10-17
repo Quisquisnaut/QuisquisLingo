@@ -3653,6 +3653,7 @@ class _GuidebookRoundGeneratorScreenState
             location:
                 '${round.displayTitle(roundIndex)} · ${ExerciseLabels.kindName(exercise)}',
             roundId: round.id,
+            sameLanguage: CourseLanguagePair.isSameLanguage(widget.course),
           ),
         );
       }
@@ -3938,7 +3939,7 @@ class _GuidebookRoundGeneratorScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Difficulty ${(round.difficulty * 100).round()}% · ${round.presetIds.map((id) => ExercisePresetRegistry.byId(id)!.name).join(', ')}',
+                  'Difficulty ${(round.difficulty * 100).round()}% · ${round.presetIds.map((id) => ExercisePresetRegistry.nameIn(id, sameLanguage: CourseLanguagePair.isSameLanguage(widget.course))).join(', ')}',
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -3993,7 +3994,7 @@ class _GuidebookRoundGeneratorScreenState
         ),
         for (final entry in distribution)
           Text(
-            '• ${ExercisePresetRegistry.byId(entry.key)!.name}: ${entry.value}',
+            '• ${ExercisePresetRegistry.nameIn(entry.key, sameLanguage: CourseLanguagePair.isSameLanguage(widget.course))}: ${entry.value}',
           ),
         const SizedBox(height: 16),
         Wrap(
@@ -4367,7 +4368,10 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
   }
 
   Future<void> _addExercise() async {
-    final presetId = await _chooseStoryPreset(context);
+    final presetId = await _chooseStoryPreset(
+      context,
+      sameLanguage: CourseLanguagePair.isSameLanguage(widget.course),
+    );
     if (presetId == null || !mounted) return;
     final exercise = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
@@ -4723,7 +4727,14 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
                   ? (features.lineText.isEmpty
                         ? '(audio only)'
                         : features.lineText)
-                  : preset?.name ?? 'Exercise',
+                  : preset == null
+                  ? 'Exercise'
+                  : ExercisePresetRegistry.nameIn(
+                      preset.id,
+                      sameLanguage: CourseLanguagePair.isSameLanguage(
+                        widget.course,
+                      ),
+                    ),
             ),
             subtitle: Text(
               line
@@ -4942,6 +4953,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
               sourceLanguage: _course.sourceLanguage,
               learningLanguage: _course.learningLanguage,
               updatedAt: updatedAt,
+              sameLanguage: CourseLanguagePair.isSameLanguage(_course),
             ),
           ]
         : <LearningContent>[];
@@ -6276,7 +6288,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       case _StoryStepType.line:
         await _insertLine();
       case _StoryStepType.exercise:
-        final presetId = await _chooseStoryPreset(context);
+        final presetId = await _chooseStoryPreset(
+          context,
+          sameLanguage: CourseLanguagePair.isSameLanguage(widget.course),
+        );
         if (presetId == null || !mounted) return;
         await _insertPreset(presetId, title: 'New Exercise');
     }
@@ -6526,7 +6541,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       return;
     }
     final audit = generated
-        .expand((e) => CourseAuditService().auditExercise(e))
+        .expand(
+          (e) => CourseAuditService().auditExercise(
+            e,
+            sameLanguage: CourseLanguagePair.isSameLanguage(widget.course),
+          ),
+        )
         .toList();
     final ok = await showDialog<bool>(
       context: context,
@@ -7281,7 +7301,16 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     // Build 260 Revision 5: the exercise's difficulty.
                     title: Row(
                       children: [
-                        Flexible(child: Text(ExerciseLabels.typeLabel(e))),
+                        Flexible(
+                          child: Text(
+                            ExerciseLabels.typeLabel(
+                              e,
+                              sameLanguage: CourseLanguagePair.isSameLanguage(
+                                widget.course,
+                              ),
+                            ),
+                          ),
+                        ),
                         if (ExerciseDifficulty.of(e) case final level?)
                           DifficultyBadge(
                             key: ValueKey('exercise-difficulty-${e.id}'),
@@ -7457,39 +7486,52 @@ Exercise _dialogueLineExercise(
 
 /// The sheet that offers the presets a Story may use (`storyWizardPresets`);
 /// New Story's Add exercise and the Round editor's Add Step share it.
-Future<String?> _chooseStoryPreset(BuildContext context) =>
-    showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-              child: Text(
-                'Add an exercise to the Story',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-              ),
-            ),
-            for (final id in storyWizardPresets)
-              if (ExercisePresetRegistry.byId(id) case final preset?)
-                Card(
-                  key: ValueKey('story-wizard-preset-$id'),
-                  child: ListTile(
-                    leading: PresetActionChip(preset.action),
-                    title: Text(preset.name),
-                    subtitle: Text(preset.description),
-                    onTap: () => Navigator.pop(sheetContext, id),
+Future<String?> _chooseStoryPreset(
+  BuildContext context, {
+  required bool sameLanguage,
+}) => showModalBottomSheet<String>(
+  context: context,
+  isScrollControlled: true,
+  builder: (sheetContext) => SafeArea(
+    child: ListView(
+      shrinkWrap: true,
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text(
+            'Add an exercise to the Story',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+        ),
+        for (final id in storyWizardPresets)
+          if (ExercisePresetRegistry.byId(id) case final preset?
+              when ExercisePresetRegistry.offeredIn(
+                id,
+                sameLanguage: sameLanguage,
+              ))
+            Card(
+              key: ValueKey('story-wizard-preset-$id'),
+              child: ListTile(
+                leading: PresetActionChip(preset.action),
+                title: Text(
+                  ExercisePresetRegistry.nameIn(id, sameLanguage: sameLanguage),
+                ),
+                subtitle: Text(
+                  ExercisePresetRegistry.descriptionIn(
+                    id,
+                    sameLanguage: sameLanguage,
                   ),
                 ),
-          ],
-        ),
-      ),
-    );
+                onTap: () => Navigator.pop(sheetContext, id),
+              ),
+            ),
+      ],
+    ),
+  ),
+);
 
 enum _ExerciseWizardStage { setup, plan, guided }
 
@@ -7516,6 +7558,13 @@ class _ExerciseCreationWizardScreenState
     extends State<ExerciseCreationWizardScreen> {
   final _count = TextEditingController(text: '3');
   final _planner = const ExerciseCreationPlanner();
+
+  /// Build 275 Revision 4: the Course is in the same language (its preset
+  /// names, the presets it offers).
+  bool get _sameLanguage => CourseLanguagePair.isSameLanguage(widget.course);
+
+  String _presetName(String id) =>
+      ExercisePresetRegistry.nameIn(id, sameLanguage: _sameLanguage);
   final _ids = TimestampAuthoringIdGenerator();
   final _categories = <ExerciseCategory>{};
   final _selectedPresets = <String>[];
@@ -7550,6 +7599,7 @@ class _ExerciseCreationWizardScreenState
         presetIds: _selectedPresets,
         pattern: _selectedPresets,
         randomSeed: _seed,
+        sameLanguage: _sameLanguage,
       );
       setState(() {
         _plan = plan;
@@ -7740,16 +7790,20 @@ class _ExerciseCreationWizardScreenState
           runSpacing: 8,
           children: [
             for (final preset in ExercisePresetRegistry.presets)
-              FilterChip(
-                label: Text(
-                  _criterion == ExerciseWizardCriterion.repeatPattern &&
-                          _selectedPresets.contains(preset.id)
-                      ? '${_selectedPresets.indexOf(preset.id) + 1}. ${preset.name}'
-                      : preset.name,
+              if (ExercisePresetRegistry.offeredIn(
+                preset.id,
+                sameLanguage: _sameLanguage,
+              ))
+                FilterChip(
+                  label: Text(
+                    _criterion == ExerciseWizardCriterion.repeatPattern &&
+                            _selectedPresets.contains(preset.id)
+                        ? '${_selectedPresets.indexOf(preset.id) + 1}. ${_presetName(preset.id)}'
+                        : _presetName(preset.id),
+                  ),
+                  selected: _selectedPresets.contains(preset.id),
+                  onSelected: (selected) => _togglePreset(preset.id, selected),
                 ),
-                selected: _selectedPresets.contains(preset.id),
-                onSelected: (selected) => _togglePreset(preset.id, selected),
-              ),
           ],
         ),
       ],
@@ -7777,7 +7831,7 @@ class _ExerciseCreationWizardScreenState
         ListTile(
           dense: true,
           leading: CircleAvatar(child: Text('${i + 1}')),
-          title: Text(_plan!.presets[i].name),
+          title: Text(_presetName(_plan!.presets[i].id)),
           subtitle: Text(_plan!.presets[i].category.label),
         ),
       const SizedBox(height: 12),
@@ -7825,11 +7879,17 @@ class _ExerciseCreationWizardScreenState
         const SizedBox(height: 8),
         Card(
           child: ListTile(
-            title: Text(preset.name),
+            title: Text(_presetName(preset.id)),
             subtitle: Text(
               draft == null
                   ? 'Not edited yet'
-                  : ExercisePresetRegistry.nameOrId(draft.type),
+                  // The preset the draft records, not its earlier type view
+                  // (Build 275 Revision 4, review).
+                  : _presetName(
+                      draft.editorTemplate.isEmpty
+                          ? draft.type
+                          : draft.editorTemplate,
+                    ),
             ),
             trailing: const Icon(Icons.edit_outlined),
             onTap: _editCurrent,

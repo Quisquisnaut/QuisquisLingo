@@ -1241,7 +1241,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     // Lesson.
     if (_step == CourseWizardStep.guidebook) {
       final example = await _editModule(
-        CourseWizardSample.guidebook(_ids).single,
+        CourseWizardSample.guidebook(
+          _ids,
+          sameLanguage: CourseLanguagePair.isSameLanguage(_working),
+        ).single,
         guided: true,
       );
       if (example == null || !mounted) return;
@@ -2746,10 +2749,14 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         key: const Key('course-wizard-word-lookup'),
         contentPadding: EdgeInsets.zero,
         title: const Text('Word Lookup'),
-        subtitle: const Text(
-          'Learners tap a word of the language they learn to see its '
-          'translation from the GuideBook, for example “il conto” → “the '
-          'bill”. Never in Test Rounds or Duels.',
+        subtitle: Text(
+          CourseLanguagePair.isSameLanguage(_working)
+              ? 'Learners tap a word to see its meaning from the GuideBook, '
+                    'for example “espresso” → “a small, strong coffee”. '
+                    'Never in Test Rounds or Duels.'
+              : 'Learners tap a word of the language they learn to see its '
+                    'translation from the GuideBook, for example “il conto” '
+                    '→ “the bill”. Never in Test Rounds or Duels.',
         ),
         value: _options.wordLookup,
         onChanged: (value) =>
@@ -3096,11 +3103,16 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         ),
       ),
       if (modules.isEmpty)
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Text(
-            'No modules yet. Add the first one, for example “Al bar: '
-            'ordering and paying”, or press Fill with an example.',
+            // Build 275 Revision 4: the example Fill with an example gives.
+            CourseLanguagePair.isSameLanguage(_working)
+                ? 'No modules yet. Add the first one, for example “At the '
+                      'café: ordering and paying”, or press Fill with an '
+                      'example.'
+                : 'No modules yet. Add the first one, for example “Al bar: '
+                      'ordering and paying”, or press Fill with an example.',
           ),
         ),
       for (final (index, module) in modules.indexed)

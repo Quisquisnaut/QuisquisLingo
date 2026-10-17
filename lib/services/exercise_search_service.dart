@@ -1,5 +1,6 @@
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
+import 'course_language_pair.dart';
 import 'preset_recipes.dart';
 
 enum ExerciseSearchScope { course, lesson, round }
@@ -412,7 +413,11 @@ class ExerciseSearchService {
               roundId: round.id,
               exerciseId: exercise.id,
               exerciseType: definition.presetId,
-              exerciseDisplayName: definition.displayName,
+              // Build 275 Revision 4: the name the Course's kind gives.
+              exerciseDisplayName: ExercisePresetRegistry.nameIn(
+                definition.presetId,
+                sameLanguage: CourseLanguagePair.isSameLanguage(course),
+              ),
               matchingExcerpt: idMatch
                   ? exercise.id
                   : _excerpt(textMatch!.text),

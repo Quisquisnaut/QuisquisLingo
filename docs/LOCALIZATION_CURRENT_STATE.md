@@ -1,6 +1,6 @@
 # Localization: current state
 
-12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10); on 16 October 2026 for Build 274 Revision 3 (`2.0.74+274003`): Listen and pick the missing word (its title, heading and two lines, the answers' Sound N, its Help); for Build 275 Revision 0 (`2.0.75+275000`): the Course kind's Help question and Course Info's same-language line; and on 17 October 2026 for Build 275 Revision 1 (`2.0.75+275001`): what learners read in a Course in the same language (the two tables "A Course in the same language"), and for Revision 3 (`2.0.75+275003`): four of those lines made neutral (a word, a phrase or a sentence).
+12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10); on 16 October 2026 for Build 274 Revision 3 (`2.0.74+274003`): Listen and pick the missing word (its title, heading and two lines, the answers' Sound N, its Help); for Build 275 Revision 0 (`2.0.75+275000`): the Course kind's Help question and Course Info's same-language line; and on 17 October 2026 for Build 275 Revision 1 (`2.0.75+275001`): what learners read in a Course in the same language (the two tables "A Course in the same language"), for Revision 3 (`2.0.75+275003`): four of those lines made neutral (a word, a phrase or a sentence), and for Revision 4 (`2.0.75+275004`): the GuideBook field Help of a same-language Course and Exercise Help's same-language names (sections 6.6, 6.8, 6.9; the module title and the picture added after the owner's answers of 17 October 2026).
 
 This document says what QuisquisLingo shows in which language today, and lists the texts that are translated. The tables are generated from the catalogs in `lib/localization/` as they are in this revision.
 
@@ -26,7 +26,7 @@ One page was added to the second group after these decisions: the start page of 
 | Exercise titles, headings and instruction lines (137 texts) | English, Spanish, Italian, German, Portuguese, Dutch, French | The Course's Source language | `lib/localization/exercise_copy/` |
 | The buttons and messages of a Round, the Duel and the Review page (135 texts) | The same seven | The Course's Source language | `lib/localization/learner_panel/` |
 | Names of languages inside those lines, such as "Traduci in tedesco." (62 languages) | The same seven | The Course's Source language | `lib/localization/language_names.dart` |
-| Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (836 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
+| Help pages, the Editor Help questions and answers, the Help of each exercise type and of each form field, App Info, Course Info, the technical reference (854 texts) | English, Italian, Spanish | Each learner's Help Language | `lib/localization/help/` |
 | The Welcome Wizard (15 texts) | English, Italian, Spanish | The language chosen in Create Profile (the Help Language) | `lib/localization/welcome_text.dart` |
 | The start page, shown while a learner has no Course to study (27 texts) | English, Italian, Spanish | The Help Language | `lib/localization/start_page_text.dart` |
 | The content of a Course | Whatever its author wrote | The Course | The Course file |
@@ -561,7 +561,7 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `locale.italian` | Italiano | Italiano |
 | `locale.spanish` | Español | Español |
 
-### 6.6 Help: titles (141 texts, 3 languages)
+### 6.6 Help: titles (149 texts, 3 languages)
 
 The titles of the Help pages and of their sections.
 
@@ -668,6 +668,22 @@ The titles of the Help pages and of their sections.
 | `guidebookHelp.field.picture.title` | Picture (optional) | Picture (facoltativa) |
 | `guidebookHelp.field.overview.title` | Overview | Overview |
 | `guidebookHelp.field.pasteList.title` | Paste list | Paste list |
+
+#### The same fields in a Course in the same language (8)
+
+Build 275 Revision 4: the module page reads these in a Course in the same
+language.
+
+| Key | English | Italian |
+|---|---|---|
+| `guidebookHelp.field.title.sameLanguage.title` | Title | Title |
+| `guidebookHelp.field.picture.sameLanguage.title` | Picture (optional) | Picture (facoltativa) |
+| `guidebookHelp.field.sentences.sameLanguage.title` | Sentences | Sentences |
+| `guidebookHelp.field.words.sameLanguage.title` | Words & Expressions | Words & Expressions |
+| `guidebookHelp.field.target.sameLanguage.title` | Word or Sentence | Word o Sentence |
+| `guidebookHelp.field.source.sameLanguage.title` | Meaning | Meaning |
+| `guidebookHelp.field.context.sameLanguage.title` | Context (optional) | Context (facoltativo) |
+| `guidebookHelp.field.pasteList.sameLanguage.title` | Paste list | Paste list |
 
 #### Advanced (Admin) Help (12)
 
@@ -854,7 +870,7 @@ Each question has an answer, translated as well (counted in 6.9).
 | `editorHelp.qa.auditCodes.q` | Where are all the Audit codes listed? | Dove sono elencati tutti i codici dell’Audit? |
 | `editorHelp.qa.auditLimits.q` | Does the Audit check grammar or translations? | L’Audit controlla la grammatica o le traduzioni? |
 
-### 6.8 Help: short texts of the pages (21 texts, 3 languages)
+### 6.8 Help: short texts of the pages (23 texts, 3 languages)
 
 Search boxes, group names, small buttons and notes of the Help pages.
 
@@ -881,6 +897,8 @@ Search boxes, group names, small buttons and notes of the Help pages.
 | `exerciseHelp.category.cardsAndNotes` | Cards and notes | Cards and notes |
 | `exerciseHelp.category.comingLater` | Coming later | Coming later |
 | `exerciseHelp.comingLater` | In a later version: | In una versione futura: |
+| `exerciseHelp.sameLanguageName` | In a Course in the same language it is called {name}. | In un Course nella stessa lingua si chiama {name}. |
+| `exerciseHelp.sameLanguageNotOffered` | A Course in the same language does not offer it for new exercises: there {name} does the same. | Un Course nella stessa lingua non lo offre per i nuovi esercizi: lì {name} fa la stessa cosa. |
 
 ### 6.9 Help: the long texts (3 languages, not listed)
 
@@ -896,9 +914,9 @@ Answers, section bodies, the description of each exercise type and the Help of e
 | App Info | 21 |
 | Publisher signing guide | 14 |
 | All Courses Help and Course Library Help | 11 |
-| The field Help of the GuideBook module page | 9 |
+| The field Help of the GuideBook module page | 17 |
 | Debug Help | 3 |
-| Total | 497 |
+| Total | 505 |
 
 ### 6.10 The start page (27 texts, 3 languages)
 

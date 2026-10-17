@@ -35,6 +35,9 @@ class ExerciseCreationPlanner {
     List<String> presetIds = const [],
     List<String> pattern = const [],
     int randomSeed = 0,
+    // Build 275 Revision 4: a Course in the same language leaves out the
+    // presets it does not offer (`ExercisePresetRegistry.offeredIn`).
+    bool sameLanguage = false,
   }) {
     if (count < 1 || count > maximumExerciseCount) {
       throw ArgumentError.value(
@@ -43,12 +46,14 @@ class ExerciseCreationPlanner {
         'Choose between 1 and $maximumExerciseCount exercises.',
       );
     }
+    bool offered(String id) =>
+        ExercisePresetRegistry.offeredIn(id, sameLanguage: sameLanguage);
     final selected = switch (criterion) {
-      ExerciseWizardCriterion.balanced => _balanced(count),
-      ExerciseWizardCriterion.random => _random(count, randomSeed),
+      ExerciseWizardCriterion.balanced => _balanced(count, offered),
+      ExerciseWizardCriterion.random => _random(count, randomSeed, offered),
       ExerciseWizardCriterion.byCategory => _cycle(
         count,
-        _presetsForCategories(categories),
+        _presetsForCategories(categories).where(offered).toList(),
         'Choose at least one category.',
       ),
       ExerciseWizardCriterion.selectedTypes => _cycle(
@@ -65,19 +70,21 @@ class ExerciseCreationPlanner {
     return ExerciseCreationPlan(List.unmodifiable(selected));
   }
 
-  List<String> _balanced(int count) {
+  List<String> _balanced(int count, bool Function(String id) offered) {
+    List<ExercisePreset> optionsOf(ExerciseCategory category) => [
+      for (final preset in ExercisePresetRegistry.inCategory(category))
+        if (offered(preset.id)) preset,
+    ];
     // A skill group without a recipe (Coming later, or a group whose
     // presets arrive in a later revision) takes no turn.
     final categories = ExerciseCategory.values
-        .where(
-          (category) => ExercisePresetRegistry.inCategory(category).isNotEmpty,
-        )
+        .where((category) => optionsOf(category).isNotEmpty)
         .toList();
     final offsets = <ExerciseCategory, int>{};
     final out = <String>[];
     for (var i = 0; i < count; i++) {
       final category = categories[i % categories.length];
-      final options = ExercisePresetRegistry.inCategory(category);
+      final options = optionsOf(category);
       final offset = offsets[category] ?? 0;
       var id = options[offset % options.length].id;
       offsets[category] = offset + 1;
@@ -90,9 +97,12 @@ class ExerciseCreationPlanner {
     return out;
   }
 
-  List<String> _random(int count, int seed) {
+  List<String> _random(int count, int seed, bool Function(String id) offered) {
     final random = Random(seed);
-    final pool = ExercisePresetRegistry.presets;
+    final pool = [
+      for (final preset in ExercisePresetRegistry.presets)
+        if (offered(preset.id)) preset,
+    ];
     final out = <String>[];
     for (var i = 0; i < count; i++) {
       var index = random.nextInt(pool.length);

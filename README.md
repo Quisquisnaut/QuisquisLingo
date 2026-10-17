@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.75+275003 · Build 275, Revision 3 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.75+275004 · Build 275, Revision 4 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.75 Beta — QQL 275, Courses in the same language (Course Model v12)**
 
@@ -23,7 +23,12 @@ two variants of one language, such as English (UK) and English (US).
 Revision 3 treats a meaning as the language being learned: Word Lookup
 looks up its words and it can be heard on request; four lines no longer
 call a phrase or a sentence a word; and the Course Wizard asks before its
-first step's kind and languages become fixed.
+first step's kind and languages become fixed. Revision 4 changes what
+authors read: preset names such as Pick the word and Type the meaning, the
+three "to source" twins that would do the same as their "to target" twins
+left out, forms, the GuideBook page and its Help in words and meanings, an
+English example module, and New Course's question before the languages
+become fixed.
 
 Build 274 brings the owner's nine points of 13 October 2026
 ([plan](docs/274_PLAN.md), [change summary](docs/274_CHANGE_SUMMARY.md)).

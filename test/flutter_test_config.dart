@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/screens/course_wizard_screen.dart';
+import 'package:quisquislingo_app/screens/new_course_dialog.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
@@ -61,6 +62,8 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // (Build 275 Revision 3) would stop every Course Wizard test written
   // before it. Its own test turns it on.
   CourseWizardScreen.confirmsLanguages = false;
+  // New Course's Continue to Editor asks the same (Build 275 Revision 4).
+  NewCourseDialog.confirmsLanguages = false;
   // A Course save flushes its folder through the system's `sync` on Linux
   // and macOS (Build 271 Revision 1): no test starts a process for it; the
   // Course store's own test uses a recording one.

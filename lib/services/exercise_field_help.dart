@@ -293,11 +293,240 @@ abstract final class ExerciseFieldHelpRegistry {
     ];
   }
 
+  /// The answer syntax in a Course in the same language: the same rules,
+  /// English examples and no translations.
+  static const _sameLanguageAnswerSyntax =
+      'Enter complete equivalent answers on separate lines. Blank lines are ignored. '
+      'Optional text: I would like {just} an espresso. Alternatives: [glad|happy] to meet you. '
+      'Linked alternatives: [*:a|two] [*:cat|cats] pairs alternatives by position; '
+      'use at least two linked groups with equal alternative counts. '
+      'Scoped reordering: (I am tired <> today). Without parentheses, at home <> tomorrow '
+      'reorders the whole expression. Terminal punctuation stays at the sentence end; '
+      'generated sentence starts are capitalized. Use lowercase except for proper names.';
+
+  static const _sameLanguageExpressionChecks =
+      'At least one accepted answer is required. Malformed expressions are rejected. '
+      'Expansion is deterministic, duplicate results are removed, and the combined '
+      'limit is 128 answers; simplify an expression that exceeds it. '
+      'Declare equivalent answers explicitly: syntax does not invent synonyms.';
+
+  /// The Help of the translation presets' fields in a Course in the same
+  /// language, or null for a field whose Help says nothing of translations.
+  static ExerciseFieldHelp? _sameLanguageHelp(
+    String presetId,
+    String fieldKey,
+  ) {
+    final toWord = presetId.endsWith('_to_target');
+    switch ((presetId, fieldKey)) {
+      case (
+        'translation_choice_to_target' || 'translation_choice_to_source',
+        'question',
+      ):
+        return toWord
+            ? const ExerciseFieldHelp(
+                title: 'Sentence',
+                purpose:
+                    'The meaning the learner reads: a definition, a synonym or a short explanation.',
+                entryRules:
+                    'Enter one meaning. Do not write an instruction: QQL shows “Choose the answer that fits this meaning.” automatically. Line breaks stay part of the same text.',
+                validation:
+                    'Required. Provide words, phrases or sentences as answer options and mark exactly one correct.',
+              )
+            : const ExerciseFieldHelp(
+                title: 'Sentence',
+                purpose:
+                    'The word, phrase or sentence whose meaning the learner picks.',
+                entryRules:
+                    'Enter one word, phrase or sentence. Do not write an instruction: QQL shows “Choose the correct meaning.” automatically. The learner can play this text with text-to-speech when it is available; the exercise stays fully solvable without audio.',
+                validation:
+                    'Required. Provide meanings as answer options and mark exactly one correct.',
+              );
+      case (
+        'translation_choice_to_target' || 'translation_choice_to_source',
+        'answers',
+      ):
+        return ExerciseFieldHelp(
+          title: 'Answer options',
+          purpose: toWord
+              ? 'The words, phrases or sentences the learner chooses from.'
+              : 'The meanings the learner chooses from.',
+          entryRules:
+              'Enter one complete ${toWord ? 'word, phrase or sentence' : 'meaning'} per '
+              'line, from 2 to ${TranslationChoice.maxAnswers} options. '
+              'Blank lines are ignored. Options are shown in random order.',
+          validation:
+              'Between 2 and ${TranslationChoice.maxAnswers} options, none '
+              'blank and no phrase repeated (ignoring case, extra spaces '
+              'and final punctuation), and exactly one correct. Keep '
+              'distractors plausible but clearly wrong.',
+        );
+      case (
+        'type_translation_to_target' || 'build_translation_to_target',
+        'prompt',
+      ):
+        return ExerciseFieldHelp(
+          title: 'Sentence',
+          purpose: presetId.startsWith('type')
+              ? 'Supplies the meaning the learner reads before writing the word, phrase or sentence it describes.'
+              : 'Supplies the meaning the learner reads before building the sentence it describes.',
+          entryRules:
+              'Enter one meaning: a definition, a synonym or a short explanation. Line breaks belong to the same prompt; the answers go in their own field.',
+          validation:
+              'Provide a non-empty meaning and complete answers. Keep the meaning unambiguous: it should describe one answer.',
+          example: 'A small, strong coffee.',
+        );
+      case (
+        'type_translation_to_source' || 'build_translation_to_source',
+        'prompt',
+      ):
+        return ExerciseFieldHelp(
+          title: 'Sentence',
+          purpose: presetId.startsWith('type')
+              ? 'Supplies the word, phrase or sentence whose meaning the learner writes.'
+              : 'Supplies the sentence whose meaning the learner builds.',
+          entryRules:
+              'Enter one word, phrase or sentence. Line breaks belong to the same prompt; the answers go in their own field.',
+          validation:
+              'Provide non-empty text and complete answers that give its meaning, such as its synonyms.',
+          example: presetId.startsWith('type')
+              ? 'espresso'
+              : 'I would like an espresso.',
+        );
+      case (
+        'type_translation_to_target' || 'type_translation_to_source',
+        'accepted',
+      ):
+        return ExerciseFieldHelp(
+          title: 'Accepted answers',
+          purpose: toWord
+              ? 'Defines the complete answers accepted for the meaning.'
+              : 'Defines the complete meanings accepted for the text, such as its synonyms.',
+          entryRules: _sameLanguageAnswerSyntax,
+          validation: _sameLanguageExpressionChecks,
+          example: toWord ? 'espresso' : 'a small, strong coffee',
+        );
+      case (
+        'build_translation_to_target' || 'build_translation_to_source',
+        'tokens',
+      ):
+        return const ExerciseFieldHelp(
+          title: 'Available blocks',
+          purpose:
+              'Supplies the blocks used to construct the configured correct answers.',
+          entryRules:
+              'Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct answer; repeated words require repeated lines.',
+          validation:
+              'Every correct answer must be constructible from these blocks. Few distractors work best: at most 2 blocks unused by every correct answer are recommended, fewer in the first Rounds of a Lesson; more are allowed. A block used by any configured answer is not an unused distractor. Answer-expression syntax is not expanded.',
+          example: 'I\nwould\nlike\nan\nespresso',
+        );
+      case (
+        'build_translation_to_target' || 'build_translation_to_source',
+        'correctTranslation',
+      ):
+        return const ExerciseFieldHelp(
+          title: 'Correct answer',
+          purpose:
+              'Defines one complete literal answer, as the blocks form it.',
+          entryRules:
+              'Each separate answer entry holds one complete sentence or meaning. Use Add correct answer for another answer and the drag handle to reorder answers.',
+          validation:
+              'At least one non-empty answer is required. Answers must be unique after case, spacing and terminal-punctuation normalization, and constructible from distinct available block occurrences. Internal punctuation is preserved. No optional, alternative or reorder expressions, similarity matching or typo acceptance are applied.',
+          example: 'I would like an espresso.',
+        );
+      case ('reading_answer_target', 'prompt'):
+        return const ExerciseFieldHelp(
+          title: 'Text to read',
+          purpose:
+              'Explains the situation before the dialogue and the question; it is never read aloud. Example: Anna and Luca are in the kitchen after lunch.',
+          entryRules:
+              'Enter a short text. Multiple lines or paragraphs remain part of the text. The dialogue lines, the question and the answers follow it.',
+          validation:
+              'A text containing words, or dialogue lines, is required; punctuation alone is insufficient.',
+          example: 'Anna and Luca are in the kitchen after lunch.',
+        );
+      case ('reading_answer_target', 'dialogueReadAloud'):
+        return const ExerciseFieldHelp(
+          title: 'Read the dialogue aloud',
+          purpose:
+              'Whether the dialogue lines are spoken: automatically when the exercise appears, on request with the Play dialogue button, or not at all.',
+          entryRules:
+              'Choose Automatically, On request or No read-aloud. Each line is spoken in turn with a short pause.',
+          validation:
+              'Read-aloud is optional: the exercise is never an audio exercise and stays silent with Audio Exercises or Text-to-speech off.',
+          example: 'Automatically, line by line',
+        );
+      case ('reading_answer_target', 'question'):
+        final base = forField(fieldForEditor(presetId, fieldKey));
+        return ExerciseFieldHelp(
+          title: base.title,
+          purpose: base.purpose,
+          entryRules: base.entryRules,
+          validation:
+              'Read and answer requires a separate question. Match the question to the declared correct answer.',
+          example: base.example,
+        );
+      case ('listening_answer_target' || 'listening_answer_source', 'question'):
+        return const ExerciseFieldHelp(
+          title: 'Question',
+          purpose:
+              'The question the learner answers about what they hear. Example: Where does Maria do her shopping?',
+          entryRules:
+              'Enter one question about the recording: who, what, where, how many. To let the learner simply pick what was heard, use Listen and choose.',
+          validation:
+              'Required: a Published save refuses it empty. Make the recording long enough to answer it, and mark the correct answer.',
+          example: 'Where does Maria do her shopping?',
+        );
+      case ('word_match', 'pairs'):
+        return const ExerciseFieldHelp(
+          title: 'Meaning and word pairs',
+          purpose: 'Matches words with their meanings.',
+          entryRules:
+              'Enter at least two non-empty lines as meaning = word; three is the usual number. The first equals sign separates the two sides. Blank lines are ignored.',
+          validation:
+              'Every pair needs both sides. Check unique, unambiguous matching and remove malformed lines; fix lines without a usable separator before Preview or Save.',
+          example:
+              'a small, strong coffee = espresso\nhello, said before midday = good morning\nmore than one cat = the cats',
+        );
+    }
+    return null;
+  }
+
   /// The two Choose the answer twins share one form.
   static bool _isChoice(String presetId) =>
       presetId == 'choice_target' || presetId == 'choice_source';
 
-  static ExerciseFieldHelp forEditorField(String presetId, String fieldKey) {
+  /// The field Help a form shows: [sameLanguage]
+  /// (`CourseLanguagePair.isSameLanguage` of the exercise's Course) gives the
+  /// translation presets' fields their Help in words and meanings (Build 275
+  /// Revision 4), named as the form names them.
+  static ExerciseFieldHelp forEditorField(
+    String presetId,
+    String fieldKey, {
+    bool sameLanguage = false,
+  }) {
+    if (!sameLanguage) return _forEditorField(presetId, fieldKey);
+    final help =
+        _sameLanguageHelp(presetId, fieldKey) ??
+        _forEditorField(presetId, fieldKey);
+    // Every preset's Instruction or context: stored without a language,
+    // which in a Course in the same language makes nothing a translation.
+    return help.text == forField(ExerciseAuthoringField.instruction).text
+        ? _sameLanguageInstruction
+        : help;
+  }
+
+  static const _sameLanguageInstruction = ExerciseFieldHelp(
+    title: 'Instruction or context (optional)',
+    purpose:
+        'An optional line: what to do, the situation, or the meaning the exercise needs. Example: Put the dialogue at the café in order.',
+    entryRules:
+        'Write one line, or nothing. In a Round it takes the place of the standard instruction line under the heading; leave it empty to keep that line. It may set the scene (Anna goes to the market in the morning) or give the meaning (Anna reads a book). The question, the sentence and the answers go in their own fields.',
+    validation:
+        'Optional. It is stored without a language. Keep it consistent with the rest of the exercise, and do not give the answer away.',
+    example: 'Put the dialogue at the café in order.',
+  );
+
+  static ExerciseFieldHelp _forEditorField(String presetId, String fieldKey) {
     if ((_isChoice(presetId) || presetId == 'icon_choice') &&
         fieldKey == 'question') {
       final choice = presetId != 'icon_choice';

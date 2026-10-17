@@ -6,6 +6,7 @@ import '../models/one_line_text.dart';
 import '../models/preset_successors.dart';
 import 'answer_engine.dart';
 import 'course_credits.dart';
+import 'course_language_pair.dart';
 import 'first_letter_answer_service.dart';
 import 'portable_exercise_image.dart';
 import 'audit_code_registry.dart';
@@ -1034,7 +1035,14 @@ class CourseAuditService {
               ),
             );
           }
-          issues.addAll(auditExercise(ex, location: el, roundId: r.id));
+          issues.addAll(
+            auditExercise(
+              ex,
+              location: el,
+              roundId: r.id,
+              sameLanguage: CourseLanguagePair.isSameLanguage(course),
+            ),
+          );
           final prompt = [
             features.primaryText,
             features.clueText,
@@ -1693,7 +1701,10 @@ class CourseAuditService {
   /// says, appended to PRESET_CANONICAL_MISMATCH (owner report, 27 September
   /// 2026: an empty Icons field turned Select the image into a plain Choose
   /// with no explanation).
-  static String _mismatchHint(String presetId) => switch (presetId) {
+  static String _mismatchHint(
+    String presetId, {
+    bool sameLanguage = false,
+  }) => switch (presetId) {
     'dialogue_line' =>
       ' A Dialogue line needs its line as text, audio or both (role line).',
     'story_cover' =>
@@ -1710,13 +1721,15 @@ class CourseAuditService {
     'spell_heard' ||
     'listening_spelling' ||
     'missing_word' ||
-    'audio_match' => ' ${_presetNameOf(presetId)} needs its spoken text.',
+    'audio_match' =>
+      ' ${_presetNameOf(presetId, sameLanguage: sameLanguage)} needs its spoken text.',
     'one_word_fills_all' =>
       ' One word fills all needs two or more ___ gaps in its sentences.',
     'picture_choice' ||
     'picture_name' ||
     'picture_blocks' ||
-    'picture_flashcard' => ' ${_presetNameOf(presetId)} needs its picture.',
+    'picture_flashcard' =>
+      ' ${_presetNameOf(presetId, sameLanguage: sameLanguage)} needs its picture.',
     'picture_word_match' =>
       ' Match pictures to words needs a picture on every left item.',
     'sort_into_groups' =>
@@ -1728,12 +1741,70 @@ class CourseAuditService {
     'script_recognition' =>
       ' Recognize characters needs character images in the prompt or the options.',
     'reading_answer_target' =>
-      ' Read and answer needs a text to read (source language, role context) or dialogue lines, and no spoken text.',
+      sameLanguage
+          ? ' Read and answer needs a text to read (role context) or dialogue lines, and no spoken text.'
+          : ' Read and answer needs a text to read (source language, role context) or dialogue lines, and no spoken text.',
     _ => '',
   };
 
-  static String _presetNameOf(String presetId) =>
-      ExercisePresetRegistry.byId(presetId)?.name ?? presetId;
+  static String _presetNameOf(String presetId, {bool sameLanguage = false}) =>
+      ExercisePresetRegistry.byId(presetId) == null
+      ? presetId
+      : ExercisePresetRegistry.nameIn(presetId, sameLanguage: sameLanguage);
+
+  /// The name a message gives [ex] where it names a translation preset
+  /// ([translationName]): in a Course in the same language (Build 275
+  /// Revision 4) the preset's name there, or "This exercise" when the
+  /// exercise records none of those presets.
+  static String _translationName(
+    Exercise ex,
+    String translationName, {
+    required bool sameLanguage,
+  }) {
+    if (!sameLanguage) return translationName;
+    final stored = ex.editorTemplate;
+    final id = ExercisePresetRegistry.currentIdFor(stored) ?? stored;
+    // Only a preset of the family the message speaks of (a Pick the
+    // translation that plays as Type is "This exercise").
+    final family = _translationFamilies[translationName];
+    return family != null && family.contains(id)
+        ? ExercisePresetRegistry.sameLanguageNames[id]!
+        : 'This exercise';
+  }
+
+  static const _translationFamilies = <String, Set<String>>{
+    'Pick the translation': {
+      'translation_choice_to_target',
+      'translation_choice_to_source',
+    },
+    'Type the translation': {
+      'type_translation_to_target',
+      'type_translation_to_source',
+    },
+    'Build the translation': {
+      'build_translation_to_target',
+      'build_translation_to_source',
+    },
+  };
+
+  /// The friendly English name of a learner kind, in a Course in the same
+  /// language ([sameLanguage]) in words and meanings (Build 275 Revision 4:
+  /// a kind has no direction, so it names both).
+  static String kindLabelIn(
+    LearnerExerciseKind kind, {
+    required bool sameLanguage,
+  }) => sameLanguage
+      ? switch (kind) {
+          LearnerExerciseKind.selectTranslation =>
+            'Pick the word or the meaning',
+          LearnerExerciseKind.inputTranslation =>
+            'Type the word or the meaning',
+          LearnerExerciseKind.arrangeTranslation =>
+            'Build the sentence or the meaning',
+          LearnerExerciseKind.matchTranslation => 'Match words and meanings',
+          _ => kindLabel(kind),
+        }
+      : kindLabel(kind);
 
   /// The friendly English name of a learner kind, for messages and lists.
   static String kindLabel(LearnerExerciseKind kind) => switch (kind) {
@@ -1779,6 +1850,9 @@ class CourseAuditService {
     Exercise ex, {
     String location = 'Exercise',
     String? roundId,
+    // Build 275 Revision 4: the preset names of a Course in the same
+    // language in the messages.
+    bool sameLanguage = false,
   }) {
     final out = <CourseAuditIssue>[];
     void add(AuditCode definition, String m) => out.add(
@@ -1981,12 +2055,12 @@ class CourseAuditService {
         if (preset.primitive != ex.primitive) {
           add(
             AuditCode.presetCanonicalMismatch,
-            '${preset.name} configures ${preset.primitive.label} exercises; this one is ${ex.primitive.label}.',
+            '${ExercisePresetRegistry.nameIn(preset.id, sameLanguage: sameLanguage)} configures ${preset.primitive.label} exercises; this one is ${ex.primitive.label}.',
           );
         } else if (expected != null && !expected.contains(kind)) {
           add(
             AuditCode.presetCanonicalMismatch,
-            'This exercise no longer matches ${preset.name}: it plays as ${kindLabel(kind)}.${_mismatchHint(presetId)}',
+            'This exercise no longer matches ${ExercisePresetRegistry.nameIn(preset.id, sameLanguage: sameLanguage)}: it plays as ${kindLabelIn(kind, sameLanguage: sameLanguage)}.${_mismatchHint(presetId, sameLanguage: sameLanguage)}',
           );
         }
         switch (presetId) {
@@ -2061,22 +2135,31 @@ class CourseAuditService {
             }
           case 'translation_choice_to_target':
           case 'translation_choice_to_source':
+            final name = _translationName(
+              ex,
+              'Pick the translation',
+              sameLanguage: sameLanguage,
+            );
             if (f.questionText.trim().isEmpty) {
               add(
                 AuditCode.translationChoiceTextRequired,
-                'Pick the translation needs the text to translate.',
+                sameLanguage
+                    ? '$name needs the text the learner reads.'
+                    : 'Pick the translation needs the text to translate.',
               );
             }
             if (ex.items.length > TranslationChoice.maxAnswers) {
               add(
                 AuditCode.translationChoiceTooManyAnswers,
-                'Pick the translation accepts at most ${TranslationChoice.maxAnswers} answer options.',
+                '$name accepts at most ${TranslationChoice.maxAnswers} answer options.',
               );
             }
             if (f.primaryText.trim().isNotEmpty || f.audioElements.isNotEmpty) {
               add(
                 AuditCode.presetCanonicalMismatch,
-                'Pick the translation shows only the text to translate and speaks it itself; remove the extra prompt text or spoken text.',
+                sameLanguage
+                    ? '$name shows only its text and speaks it itself; remove the extra prompt text or spoken text.'
+                    : 'Pick the translation shows only the text to translate and speaks it itself; remove the extra prompt text or spoken text.',
               );
             }
           case 'true_false':
@@ -2407,7 +2490,7 @@ class CourseAuditService {
             case LearnerExerciseKind.inputTranslation:
               add(
                 AuditCode.translationAnswerRequired,
-                'Type the translation needs at least one accepted answer.',
+                '${_translationName(ex, 'Type the translation', sameLanguage: sameLanguage)} needs at least one accepted answer.',
               );
             case LearnerExerciseKind.inputListenWrite:
               add(
@@ -2458,7 +2541,9 @@ class CourseAuditService {
             f.clueText.trim().isEmpty) {
           add(
             AuditCode.translationSourceRequired,
-            'Type the translation needs source text.',
+            sameLanguage
+                ? '${_translationName(ex, 'Type the translation', sameLanguage: true)} needs the text the learner reads.'
+                : 'Type the translation needs source text.',
           );
         }
         if (kind == LearnerExerciseKind.inputListenGaps &&
@@ -2481,7 +2566,9 @@ class CourseAuditService {
           add(
             AuditCode.wordBlockDataRequired,
             translation
-                ? 'Build the translation needs usable Language blocks and at least one correct translation.'
+                ? sameLanguage
+                      ? '${_translationName(ex, 'Build the translation', sameLanguage: true)} needs usable blocks and at least one correct answer.'
+                      : 'Build the translation needs usable Language blocks and at least one correct translation.'
                 : 'Word-block exercise needs available blocks and a correct answer. Enter the answer and select its blocks in order.',
           );
         }
@@ -2560,7 +2647,9 @@ class CourseAuditService {
           add(
             AuditCode.wordBlockDistractorCount,
             translation
-                ? 'Build the translation has $extraCount blocks unused by every correct translation. Few distractors work best: 0, 1 or 2 are recommended; more are allowed when deliberate.'
+                ? sameLanguage
+                      ? '${_translationName(ex, 'Build the translation', sameLanguage: true)} has $extraCount blocks unused by every correct answer. Few distractors work best: 0, 1 or 2 are recommended; more are allowed when deliberate.'
+                      : 'Build the translation has $extraCount blocks unused by every correct translation. Few distractors work best: 0, 1 or 2 are recommended; more are allowed when deliberate.'
                 : 'Word-block exercise has $extraCount extra distractor blocks. Few distractors work best: 0, 1 or 2 are recommended; more are allowed when deliberate.',
           );
         }

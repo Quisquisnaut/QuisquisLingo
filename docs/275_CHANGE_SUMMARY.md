@@ -3,6 +3,48 @@
 Courses in the same language (`docs/SAME_LANGUAGE_COURSES_PLAN.md`, the
 owner's idea and decisions of 16 October 2026).
 
+## Revision 4 (2.0.75+275004): what authors read
+
+### Before
+
+- A same-language Course's authors read translation names (Pick the
+  translation (to target)…), forms that spoke of source, target and
+  translations, a GuideBook page labelled Target and Source with Italian
+  examples, and were offered three "to source" presets that do exactly what
+  their "to target" twins do.
+
+### Now
+
+- Preset names and descriptions speak of words and meanings on the
+  screens an author uses to make and check exercises, the Audit's messages
+  included; the three twins are not offered for new exercises (an existing
+  one still opens and plays). Known and left: two earlier dialogs still
+  show raw preset IDs (a later revision, owner).
+- The forms and their field Help, the GuideBook page, its field Help
+  (EN/IT/ES) and the examples are in words and meanings, in English; so
+  are the Audit's messages and New Course's sample exercise.
+- Exercise Help says what each preset is called there.
+- New Course's Continue to Editor asks before the kind and languages
+  become fixed, as the Course Wizard does.
+
+### Owner decisions (16 and 17 October 2026)
+
+- The plan's Revision 4; New Course asks the same question as the Wizard.
+- New Course's sample exercise in a same-language Course reads "Meaning
+  in English" and "Word in English" (proposed by the AI, kept by the
+  owner).
+- The Help texts that still named languages are fixed here (Listen and
+  answer's Question, the GuideBook picture); two earlier dialogs that show
+  raw preset IDs wait for a later revision; Word Lookup in a Course of
+  synonyms paired both ways is left as it is.
+
+### What does not change
+
+A translation Course, except that the Exercise Wizard's guided step now
+names its draft's preset and New Course's question applies to both kinds;
+stored preset IDs; learners' screens (Revisions 1 and 3); Course files,
+scoring and learner data.
+
 ## Revision 3 (2.0.75+275003): meanings, and the Wizard's first step
 
 ### Before

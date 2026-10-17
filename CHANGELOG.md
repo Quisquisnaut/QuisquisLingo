@@ -1,3 +1,58 @@
+# 2.0.75 (Build 275, Revision 4) - What authors read in a same-language Course - 2026-10-17
+
+The plan's Revision 4 (`docs/SAME_LANGUAGE_COURSES_PLAN.md`) and the owner's
+decision of 17 October 2026 on New Course.
+
+- **Preset names** in a Course in the same language: Pick the word, Pick the
+  meaning, Type the word, Type the meaning, Build the sentence, Build the
+  meaning, Match words and meanings; Choose the answer, Listen and choose,
+  Listen and answer and Read and answer without "(to target)", with
+  descriptions that speak of words and meanings. In the exercise form and
+  its preset list, the Exercise Wizard (its choices, its plan and its
+  steps), the Story steps, the Round Wizard's plan, the Round editor's
+  rows, Search, and the Audit's messages wherever they name one of these
+  presets (Apply's and Preview's checks included). The stored preset IDs
+  never change.
+- **Three presets are not offered for new exercises** there: Choose the
+  answer, Listen and choose and Listen and answer "to source", which would
+  do exactly what their "to target" twins do. An exercise made with one
+  still opens and plays. The preset list's direction filter reads To the
+  word and To the meaning; the four presets that lose "(to target)" are
+  listed under both.
+- **The forms** of Pick, Type and Build and of Match the words speak of
+  words, answers and meanings instead of translations, their error
+  messages and the Help of every field too (Match the words' field is
+  "Meaning and word pairs", in the order its lines are written). Read and
+  answer's form says no source or target language, and the Help of every
+  preset's Instruction or context no longer mentions translations.
+- **The Audit's messages** name the presets and the kinds of exercise in
+  words and meanings ("it plays as Pick the word or the meaning").
+- **New Course's sample exercise**, in every new Round of a same-language
+  Course, reads "Meaning in English" and "Word in English".
+- **The GuideBook module page**: rows labelled Word, Sentence and Meaning,
+  and so are its messages about a half-filled row and Paste list's lines it
+  cannot read; the descriptions, tooltips, title example and paste help in
+  words and meanings; the field Help in EN/IT/ES; and an English example
+  module, "At the café", for Fill with an example (also the Course
+  Wizard's GuideBook step). English never leaves out its subject, so the
+  example of words that may be left out is "I would like {just} an
+  espresso"; the two senses of "the bill" each have their picture. The
+  module title's Help and the Course Wizard's empty GuideBook line give an
+  English example too, and the picture's Help speaks of "a Course in
+  English". Listen and answer's Question Help no longer speaks of a source
+  language.
+- **Exercise Help** says what each preset is called in a same-language
+  Course, and that the three twins are not offered there.
+- **New Course's Continue to Editor asks first**, as the Course Wizard
+  does: "Are you sure? After this step the kind of Course and its languages
+  cannot be changed, unless you leave the Course Editor with Discard changes
+  before its first save and create the Course again."
+- A translation Course reads as before, except that the Exercise Wizard's
+  guided step now names its draft's preset ("Choose the answer (to
+  target)", not "choice") and New Course's question applies to both
+  kinds.
+- Tests: `test/same_language_authors_275_test.dart`.
+
 # 2.0.75 (Build 275, Revision 3) - Meanings, and the Wizard's first step - 2026-10-17
 
 The owner's decisions of 17 October 2026 on the points Revision 1 left open

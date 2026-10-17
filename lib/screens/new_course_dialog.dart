@@ -75,6 +75,18 @@ class NewCourseDialog extends StatefulWidget {
   /// Whether a Course already has this name; the author may go on anyway.
   final bool Function(String title) titleTaken;
 
+  /// Build 275 Revision 4 (owner decision of 17 October 2026): Continue to
+  /// Editor asks before the kind of Course and its languages become fixed,
+  /// as the Course Wizard's Continue with Wizard does. Off in the tests
+  /// written before it (`test/flutter_test_config.dart`); its own test
+  /// turns it on.
+  static bool confirmsLanguages = true;
+
+  static const languagesFixedMessage =
+      'After this step the kind of Course and its languages cannot be '
+      'changed, unless you leave the Course Editor with Discard changes '
+      'before its first save and create the Course again.';
+
   @override
   State<NewCourseDialog> createState() => _NewCourseDialogState();
 }
@@ -133,6 +145,30 @@ class _NewCourseDialogState extends State<NewCourseDialog> {
     }
     switch (_form.submit(title, widget.operations)) {
       case NewCourseAccepted(:final course):
+        // Asked once everything else is in order, so Cancel keeps a form
+        // that would make a Course.
+        if (NewCourseDialog.confirmsLanguages) {
+          final goOn = await showDialog<bool>(
+            context: context,
+            builder: (confirmContext) => AlertDialog(
+              title: const Text('Are you sure?'),
+              content: const Text(NewCourseDialog.languagesFixedMessage),
+              actions: [
+                TextButton(
+                  key: const Key('new-course-languages-fixed-cancel'),
+                  onPressed: () => Navigator.pop(confirmContext, false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  key: const Key('new-course-languages-fixed-confirm'),
+                  onPressed: () => Navigator.pop(confirmContext, true),
+                  child: const Text('Continue'),
+                ),
+              ],
+            ),
+          );
+          if (goOn != true || !mounted) return;
+        }
         Navigator.pop(context, course);
       case NewCourseRefused(:final message):
         if (message != null) _tell(message);

@@ -8,7 +8,8 @@ typedef GuidebookPastedEntry = ({String target, String source, String context});
 typedef GuidebookUnreadLine = ({int number, String line, String reason});
 
 /// Paste list on the GuideBook module page (Build 266 Revision 1): one entry
-/// per line, `target = source [context]`, the Context in square brackets at
+/// per line, `target = source [context]` (`word = meaning [context]` in a
+/// Course in the same language), the Context in square brackets at
 /// the end and optional. The separators are [GuidebookVocabulary]'s
 /// (` = `, ` → `, ` - `, `:`). Blank lines are skipped; every other line it
 /// cannot read is named with the reason, never guessed.
@@ -20,13 +21,22 @@ abstract final class GuidebookPasteList {
     'come stai? = how are you?',
   ];
 
+  /// The same in a Course in the same language (Build 275 Revision 4).
+  static const sameLanguageExampleLines = [
+    'the bill = the paper that says what you must pay [restaurant]',
+    'the bill = the beak of a bird [birds]',
+    'good morning = hello, said before midday',
+    'how are you? = a friendly question about someone\'s health',
+  ];
+
   static final _context = RegExp(r'\s*\[([^\[\]]*)\]\s*$');
 
   static ({
     List<GuidebookPastedEntry> entries,
     List<GuidebookUnreadLine> unread,
   })
-  read(String text) {
+  read(String text, {bool sameLanguage = false, bool sentences = false}) {
+    final side = sentences ? 'sentence' : 'word';
     final entries = <GuidebookPastedEntry>[];
     final unread = <GuidebookUnreadLine>[];
     final lines = text.split(RegExp(r'\r\n|\r|\n'));
@@ -44,12 +54,22 @@ abstract final class GuidebookPasteList {
       }
       final pair = GuidebookVocabulary.parse(rest);
       if (pair == null) {
-        refuse('write it as target = source');
+        refuse(
+          sameLanguage
+              ? 'write it as $side = meaning'
+              : 'write it as target = source',
+        );
         continue;
       }
       final problem = GuidebookText.targetProblem(pair.target);
       if (problem != null) {
-        refuse('Target: $problem');
+        // Build 275 Revision 4: a Course in the same language names the
+        // sides as its module page does.
+        refuse(
+          sameLanguage
+              ? '${sentences ? 'Sentence' : 'Word'}: $problem'
+              : 'Target: $problem',
+        );
         continue;
       }
       if (pair.source.contains('[') || pair.source.contains(']')) {

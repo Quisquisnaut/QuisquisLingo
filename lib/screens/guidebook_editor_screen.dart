@@ -7,6 +7,7 @@ import '../localization/locale_service.dart';
 import '../models/course_models.dart';
 import '../models/guidebook_text.dart';
 import '../services/authoring_duplication_service.dart';
+import '../services/course_language_pair.dart';
 import '../services/exercise_image_metadata_service.dart';
 import '../services/guidebook_module_sample.dart';
 import '../services/guidebook_paste_list.dart';
@@ -186,9 +187,14 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
           children: [
             Tooltip(
               message:
-                  'Sentences: example sentences with their translation. '
-                  'Words: the Words & Expressions entries, single words and '
-                  'fixed expressions with their translation.',
+                  widget.course != null &&
+                      CourseLanguagePair.isSameLanguage(widget.course!)
+                  ? 'Sentences: example sentences with their meaning. '
+                        'Words: the Words & Expressions entries, single words '
+                        'and fixed expressions with their meaning.'
+                  : 'Sentences: example sentences with their translation. '
+                        'Words: the Words & Expressions entries, single words '
+                        'and fixed expressions with their translation.',
               child: Text(
                 _counts(module),
                 key: ValueKey('guidebook-module-counts-$index'),
@@ -585,6 +591,13 @@ class _GuidebookModuleEditorScreenState
   ) {
     String? firstProblem;
     _EntryRow? firstRow;
+    // The sides as the rows' labels name them (Build 275 Revision 4).
+    final targetSide = !_sameLanguage
+        ? 'Target'
+        : identical(rows, _words)
+        ? 'Word'
+        : 'Sentence';
+    final sourceSide = _sameLanguage ? 'Meaning' : 'Source';
     for (var i = 0; i < rows.length; i++) {
       final row = rows[i];
       row.targetError = null;
@@ -592,13 +605,13 @@ class _GuidebookModuleEditorScreenState
       if (row.isEmpty) continue;
       final target = row.target.text.trim();
       final problem = target.isEmpty
-          ? 'Write the Target, or clear the row.'
+          ? 'Write the $targetSide, or clear the row.'
           : GuidebookText.targetProblem(target);
       if (problem != null) {
-        row.targetError = target.isEmpty ? problem : 'Target: $problem.';
+        row.targetError = target.isEmpty ? problem : '$targetSide: $problem.';
       }
       if (row.source.text.trim().isEmpty) {
-        row.sourceError = 'Write the Source, or clear the row.';
+        row.sourceError = 'Write the $sourceSide, or clear the row.';
       }
       final error = row.targetError ?? row.sourceError;
       if (error != null && firstProblem == null) {
@@ -943,6 +956,7 @@ class _GuidebookModuleEditorScreenState
     final sample = GuidebookModuleSample.module(
       id: widget.module.id,
       ids: _ids,
+      sameLanguage: _sameLanguage,
     );
     setState(() {
       _title.text = sample.title;
@@ -989,10 +1003,14 @@ class _GuidebookModuleEditorScreenState
   Future<void> _pasteList(List<_EntryRow> rows, {required bool word}) async {
     final pasted = await showDialog<String>(
       context: context,
-      builder: (_) => _PasteListDialog(word: word),
+      builder: (_) => _PasteListDialog(word: word, sameLanguage: _sameLanguage),
     );
     if (pasted == null || !mounted) return;
-    final read = GuidebookPasteList.read(pasted);
+    final read = GuidebookPasteList.read(
+      pasted,
+      sameLanguage: _sameLanguage,
+      sentences: !word,
+    );
     final added = [
       for (final entry in read.entries)
         _EntryRow(
@@ -1041,7 +1059,7 @@ class _GuidebookModuleEditorScreenState
   /// field's Help in the Help Language (EN/IT/ES).
   Widget _fieldHelp(String field, {Key? key}) => IconButton(
     key: key ?? ValueKey('guidebook-field-help-$field'),
-    tooltip: _fieldTooltips[field],
+    tooltip: _tooltipFor(field),
     onPressed: () => _showFieldHelp(field),
     icon: const Icon(Icons.help_outline),
   );
@@ -1055,13 +1073,9 @@ class _GuidebookModuleEditorScreenState
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          helpText.lookup(locale, 'guidebookHelp.field.$field.title'),
-        ),
+        title: Text(helpText.lookup(locale, _helpKey(field, 'title'))),
         content: SingleChildScrollView(
-          child: Text(
-            helpText.lookup(locale, 'guidebookHelp.field.$field.body'),
-          ),
+          child: Text(helpText.lookup(locale, _helpKey(field, 'body'))),
         ),
         actions: [
           TextButton(
@@ -1091,6 +1105,43 @@ class _GuidebookModuleEditorScreenState
         'Paste list: add many entries at once, one per line, '
         'target = source [context].',
   };
+
+  /// The same in a Course in the same language (Build 275 Revision 4).
+  static const _sameLanguageTooltips = {
+    'title': 'Title: the module\'s own name, one short topic.',
+    'picture': 'Picture (optional): what this word looks like.',
+    'sentences': 'Sentences: examples in use, each with its meaning.',
+    'words':
+        'Words & Expressions: single words and fixed expressions, each with '
+        'its meaning. Word Lookup and Review read them.',
+    'target': 'Word or sentence: as learners should learn it.',
+    'source':
+        'Meaning: a definition, a synonym or a short explanation, in the '
+        'same language.',
+    'context':
+        'Context: a short note: the sense, the subject area, formal or '
+        'informal, who is speaking.',
+    'pasteList':
+        'Paste list: add many entries at once, one per line, '
+        'word = meaning [context].',
+  };
+
+  /// Build 275 Revision 4: the Course is in the same language.
+  bool get _sameLanguage =>
+      widget.course != null &&
+      CourseLanguagePair.isSameLanguage(widget.course!);
+
+  String? _tooltipFor(String field) =>
+      (_sameLanguage ? _sameLanguageTooltips[field] : null) ??
+      _fieldTooltips[field];
+
+  /// The field Help's key: a same-language variant where one is written.
+  String _helpKey(String field, String part) {
+    final same = 'guidebookHelp.field.$field.sameLanguage.$part';
+    return _sameLanguage && _sameLanguageTooltips.containsKey(field)
+        ? same
+        : 'guidebookHelp.field.$field.$part';
+  }
 
   void _removeRow(List<_EntryRow> rows, int index) =>
       setState(() => rows.removeAt(index).dispose());
@@ -1310,7 +1361,10 @@ class _GuidebookModuleEditorScreenState
                   key: ValueKey('$prefix-target'),
                   controller: row.target,
                   decoration: decoration(
-                    _sideLabel('Target', widget.course?.targetLanguage),
+                    _sideLabel(
+                      _sameLanguage ? (word ? 'Word' : 'Sentence') : 'Target',
+                      widget.course?.targetLanguage,
+                    ),
                     error: row.targetError,
                     help: _fieldHelp(
                       'target',
@@ -1334,7 +1388,10 @@ class _GuidebookModuleEditorScreenState
                   key: ValueKey('$prefix-source'),
                   controller: row.source,
                   decoration: decoration(
-                    _sideLabel('Source', widget.course?.sourceLanguage),
+                    _sideLabel(
+                      _sameLanguage ? 'Meaning' : 'Source',
+                      widget.course?.sourceLanguage,
+                    ),
                     error: row.sourceError,
                     help: _fieldHelp(
                       'source',
@@ -1395,11 +1452,17 @@ class _GuidebookModuleEditorScreenState
       Text(description),
       const SizedBox(height: 4),
       Tooltip(
-        message:
-            'Words that may be left out, like an understood subject: shown '
-            'in grey, accepted with or without.',
+        message: _sameLanguage
+            ? 'Words that may be left out: shown in grey, accepted with or '
+                  'without.'
+            : 'Words that may be left out, like an understood subject: shown '
+                  'in grey, accepted with or without.',
         child: Text(
-          '{…} in a Target marks words that may be left out: {io} sono stanco.',
+          _sameLanguage
+              ? '{…} in a Word or Sentence marks words that may be left '
+                    'out: I would like {just} an espresso.'
+              : '{…} in a Target marks words that may be left out: {io} sono '
+                    'stanco.',
           key: ValueKey('$key-braces'),
           style: Theme.of(context).textTheme.bodySmall,
         ),
@@ -1429,7 +1492,7 @@ class _GuidebookModuleEditorScreenState
             label: Text(word ? 'Add word or expression' : 'Add sentence'),
           ),
           Tooltip(
-            message: _fieldTooltips['pasteList']!,
+            message: _tooltipFor('pasteList')!,
             child: TextButton.icon(
               key: ValueKey(
                 word
@@ -1599,6 +1662,7 @@ class _GuidebookModuleEditorScreenState
     final sample = GuidebookModuleSample.module(
       id: widget.module.id,
       ids: _ids,
+      sameLanguage: _sameLanguage,
     );
     setState(() {
       switch (_part) {
@@ -1660,7 +1724,9 @@ class _GuidebookModuleEditorScreenState
     decoration: InputDecoration(
       border: const OutlineInputBorder(),
       labelText: 'Title',
-      helperText: 'The module\'s own name, for example "Al bar".',
+      helperText: _sameLanguage
+          ? 'The module\'s own name, for example "At the café".'
+          : 'The module\'s own name, for example "Al bar".',
       errorText: _titleError,
       suffixIcon: _fieldHelp('title'),
     ),
@@ -1671,8 +1737,12 @@ class _GuidebookModuleEditorScreenState
 
   Widget _sentencesList() => _list(
     'Sentences',
-    'Example sentences in use, each with its translation. Example: '
-        'Lei è stanca? = Are you tired?, Context: formal, to a woman.',
+    _sameLanguage
+        ? 'Example sentences in use, each with its meaning in other words. '
+              'Example: Are you tired? = Do you need to rest?, Context: to a '
+              'friend.'
+        : 'Example sentences in use, each with its translation. Example: '
+              'Lei è stanca? = Are you tired?, Context: formal, to a woman.',
     'guidebook-module-sentences',
     _sentences,
     word: false,
@@ -1680,10 +1750,15 @@ class _GuidebookModuleEditorScreenState
 
   Widget _wordsList() => _list(
     'Words & Expressions',
-    'Single words and fixed expressions, each with its translation. '
-        'Examples: il conto = the bill (Context: restaurant), '
-        'il conto = the account (Context: bank), buongiorno = good '
-        'morning.',
+    _sameLanguage
+        ? 'Single words and fixed expressions, each with its meaning. '
+              'Examples: the bill = the paper that says what you must pay '
+              '(Context: restaurant), the bill = the beak of a bird '
+              '(Context: birds), good morning = hello, said before midday.'
+        : 'Single words and fixed expressions, each with its translation. '
+              'Examples: il conto = the bill (Context: restaurant), '
+              'il conto = the account (Context: bank), buongiorno = good '
+              'morning.',
     'guidebook-module-words',
     _words,
     word: true,
@@ -1893,9 +1968,12 @@ Future<bool> askAnotherModule(BuildContext context, String added) async =>
 /// Paste list's dialog (Build 266 Revision 1). It owns its text controller,
 /// so the controller lives until the dialog's closing animation ends.
 class _PasteListDialog extends StatefulWidget {
-  const _PasteListDialog({required this.word});
+  const _PasteListDialog({required this.word, this.sameLanguage = false});
 
   final bool word;
+
+  /// Build 275 Revision 4: word = meaning in a Course in the same language.
+  final bool sameLanguage;
 
   @override
   State<_PasteListDialog> createState() => _PasteListDialogState();
@@ -1907,6 +1985,11 @@ class _PasteListDialogState extends State<_PasteListDialog> {
   static const _sentenceExamples = [
     'Lei è stanca? = Are you tired? [formal, to a woman]',
     'Il conto, per favore. = The bill, please.',
+  ];
+
+  static const _sameLanguageSentenceExamples = [
+    'Are you tired? = Do you need to rest? [to a friend]',
+    'Could I have the bill, please? = I want to pay now.',
   ];
 
   @override
@@ -1930,9 +2013,11 @@ class _PasteListDialogState extends State<_PasteListDialog> {
           border: const OutlineInputBorder(),
           labelText: 'One entry per line',
           helperText:
-              'target = source [context], the Context optional. Example:\n'
-              '${(widget.word ? GuidebookPasteList.exampleLines : _sentenceExamples).join('\n')}',
-          helperMaxLines: 6,
+              '${widget.sameLanguage ? '${widget.word ? 'word' : 'sentence'} = meaning' : 'target = source'} [context], the Context optional. Example:\n'
+              '${(widget.sameLanguage ? (widget.word ? GuidebookPasteList.sameLanguageExampleLines : _sameLanguageSentenceExamples) : (widget.word ? GuidebookPasteList.exampleLines : _sentenceExamples)).join('\n')}',
+          // Build 275 Revision 4: the meanings are longer than translations
+          // and wrap on a phone.
+          helperMaxLines: 8,
         ),
       ),
     ),

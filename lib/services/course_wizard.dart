@@ -1151,8 +1151,16 @@ abstract final class CourseWizardSample {
 
   /// The GuideBook step's example: Build 266's sample module, in Italian and
   /// English whatever the Course's languages, every ID fresh.
-  static List<GuidebookModule> guidebook(AuthoringIdGenerator ids) => [
-    GuidebookModuleSample.module(id: ids.next('module'), ids: ids),
+  static List<GuidebookModule> guidebook(
+    AuthoringIdGenerator ids, {
+    // Build 275 Revision 4: in English for a Course in the same language.
+    bool sameLanguage = false,
+  }) => [
+    GuidebookModuleSample.module(
+      id: ids.next('module'),
+      ids: ids,
+      sameLanguage: sameLanguage,
+    ),
   ];
 
   static final lessons = _lessons('At the bar');
