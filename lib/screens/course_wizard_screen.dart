@@ -501,7 +501,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
               if (_target.tagError != null) return _target.tagError;
               final source = _source.choice!;
               final target = _target.choice!;
-              if (CourseLanguagePair.sameChoices(
+              if (CourseLanguagePair.identicalChoices(
                 learningName: target.name,
                 learningTag: target.tag,
                 baseName: source.name,
@@ -819,6 +819,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       sourceLanguageTag: source.tag,
       targetLanguageTag: target.tag,
       languageVariant: _variant.text.trim(),
+      // Build 275 Revision 2: the kind chosen is stored.
+      sameLanguage: _kind == CourseKind.sameLanguage,
     );
     final session = CourseAuthoringSession(
       course: course,
@@ -1227,7 +1229,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     setState(() {
       switch (_step) {
         case CourseWizardStep.basics:
-          // Once the Course exists, its kind comes from its languages.
+          // Once the Course exists, its kind is the one it stores.
           _setBasics(
             CourseWizardSample.basicsFor(
               _starting ? _kind : CourseLanguagePair.kindOf(_working),

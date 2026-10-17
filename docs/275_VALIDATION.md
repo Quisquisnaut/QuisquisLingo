@@ -1,5 +1,47 @@
 # Build 275 validation
 
+## Revision 2 (2.0.75+275002), the creator's choice is stored
+
+- `test/same_language_courses_275_test.dart`, **23 passed**: the kind
+  stored, read back and absent from a translation Course's file; the same
+  two languages without the choice a translation Course; a strict field
+  (a string or `null` refused); `identicalChoices` (one language twice,
+  capitals, accents and `_` ignored; any other name or tag accepted, also
+  a hand-typed name with a tag on one side only); the minimum build
+  stamped once and not raised for a translation Course; a real save through
+  `CourseEditorService` stores the kind with `minimumAppBuild` 275002 and
+  reads them back; a Merge of two kinds refused in both orders; Copy as New
+  Course and a copied Round keep the kind; the Wizard refuses one language
+  twice and goes on with English (UK) and English (US); New Course's form
+  stores the kind chosen and none for two variants; Course Info's line
+  follows the stored kind. `test/same_language_learner_275_test.dart`,
+  **9 passed**, its Courses made In the same language;
+  `new_course_form_272_test` expects no kind for prefilled languages
+  without one. The two files run six times clean after the last change
+  (32 tests each run).
+- Independent read-only review: nothing blocking. Corrected: the Merge
+  refused two kinds in one order only (`sameLanguage` is written only when
+  true, and the comparison looped over the left Course's fields): an
+  explicit refusal now comes first, tested both ways; the Help names the
+  tag of each variant (en-GB, en-US) for the device's voice and the flag,
+  and the English sentence on variants reads plainly; two comments still
+  said the kind comes from the languages; New Course's form still picked a
+  kind for two prefilled languages without one (`_kindOfLanguages`
+  removed); `tools/validate_courses.py` refuses `sameLanguage: true` with
+  two language names; the plan asks Revision 4's file for
+  `minimumAppBuild` 275002 (an import does not stamp it); the numbering
+  in the handoff and the 275000 entry; the tests above (null, the real
+  save, the Merge, the hand-typed tag). Left as agreed: the same
+  hand-typed name with a tag on one side only is two languages (the rule
+  word for word); a hand-edited file with the flag and two languages reads
+  as the file says. Its re-review of the corrections: right, nothing
+  blocking; its last points (the plan's Revision 2 section, the Italian
+  and Spanish clause on In the same language, a comment's wrapping) were
+  corrected.
+- `flutter analyze`: no issues, on the final tree.
+- Complete suite on the final tree (`flutter test --concurrency=1`):
+  **4,947 passed, 1 skipped**, 48 minutes.
+
 ## Revision 1 (2.0.75+275001), what learners read
 
 - New tests: `test/same_language_learner_275_test.dart`, **9 passed**, the

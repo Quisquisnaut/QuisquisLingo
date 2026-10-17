@@ -92,6 +92,12 @@ class CourseMergeService {
 
   bool get fileDialogsAvailable => _transfer.fileDialogsAvailable;
 
+  /// Why two Courses of different kinds cannot be merged.
+  static const sameLanguageMismatch =
+      'Course merge blocked: one Course is In the same language and the '
+      'other is Through another language. Only Courses of the same kind can '
+      'be merged.';
+
   void validateCompatibility(Course left, Course right) {
     if (left.originType != CourseOriginType.custom ||
         right.originType != CourseOriginType.custom) {
@@ -101,6 +107,11 @@ class CourseMergeService {
         left.courseVersion == right.courseVersion &&
         left.modifiedAtUtc == right.modifiedAtUtc) {
       throw const FormatException('A Course cannot be merged with itself.');
+    }
+    // Build 275 Revision 2: `sameLanguage` is written only when true, so the
+    // comparison below would see it from one side only.
+    if (left.sameLanguage != right.sameLanguage) {
+      throw const FormatException(sameLanguageMismatch);
     }
     final leftInfo = _courseInfo(left);
     final rightInfo = _courseInfo(right);

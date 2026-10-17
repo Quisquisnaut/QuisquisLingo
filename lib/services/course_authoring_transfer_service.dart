@@ -386,6 +386,7 @@ class CourseAuthoringTransferService {
     useGuidebook: source.useGuidebook,
     allowPageSharing: source.allowPageSharing,
     wordLookup: source.wordLookup,
+    sameLanguage: source.sameLanguage,
     sectionNames: source.sectionNames,
     learningLanguage: source.learningLanguage,
     interfaceLanguage: source.interfaceLanguage,

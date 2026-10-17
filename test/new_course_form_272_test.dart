@@ -68,8 +68,9 @@ void main() {
         ),
       );
       expect(form.title.text, 'Italian at the bar');
-      // Two languages and no kind: the kind they make.
-      expect(form.kind, CourseKind.otherLanguage);
+      // Two languages and no kind: the creator still chooses (Build 275
+      // Revision 2: a kind is never worked out from the languages).
+      expect(form.kind, isNull);
       expect(form.source.text.text, 'English');
       expect(form.target.text.text, 'Venexian');
       expect(form.variant.text, 'Lagoon');

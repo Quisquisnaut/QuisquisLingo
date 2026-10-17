@@ -3,6 +3,47 @@
 Courses in the same language (`docs/SAME_LANGUAGE_COURSES_PLAN.md`, the
 owner's idea and decisions of 16 October 2026).
 
+## Revision 2 (2.0.75+275002): the creator's choice of kind is stored
+
+### Before
+
+- QQL worked out the kind from the two languages: the same language on
+  both sides (by tag, or by name for a language typed by hand) made a
+  Course in the same language. Two variants of one language had to be
+  typed by hand with their tags (English (UK) with en-GB) to make a
+  translation Course, and Course Info refused tags that would have changed
+  the kind.
+
+### Now
+
+- The creator's choice is kept in the Course file (`sameLanguage`) and
+  decides alone. A Course made In the same language asks for this build or
+  later.
+- Through another language accepts any two languages, two variants of one
+  language too (English (UK) and English (US)); it refuses only one
+  language written twice. In the same language keeps one Language field.
+- The copies (Fork, Copy as New Course, Move/Copy to another Lesson) keep
+  the kind; a Merge of two kinds is refused in either order (the review
+  found that the earlier comparison refused it in one order only).
+- New Course's form no longer picks a kind for two prefilled languages.
+- The Help says the creator decides and QQL keeps the choice.
+
+### Owner decision (17 October 2026)
+
+- "The creator chooses whether the course is "same language" kind or
+  "through another language" kind. … it's up to creators to decide which
+  pairs are "same language"." Agreed the same day: one Language field for
+  In the same language; Through another language refuses only one language
+  twice.
+
+### What does not change
+
+What learners read in each kind (Revision 1), the forms' two cards and
+Which should I choose?, Course scoring, progression and learner data. An
+English to English Course made before this revision without the new field
+is now a translation Course (only the owner's test Courses were made with
+Revisions 0 and 1).
+
 ## Revision 1 (2.0.75+275001): what learners read
 
 ### Before

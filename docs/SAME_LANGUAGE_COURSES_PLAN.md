@@ -5,8 +5,9 @@ in that language (English to English, Spanish to Spanish, any language to
 itself). Planned while Build 274 was running (read only: this document is the
 only thing written). **Build 275**, after Build 274's remaining revisions
 (owner decision of 16 October 2026; the modularization left over from
-Build 273, its Revisions 10–12, becomes Build 276). Revision 4, several
-correct translations in the GuideBook, joined the plan the same day.
+Build 273, its Revisions 10–12, becomes Build 276). Several correct
+translations in the GuideBook joined the plan the same day (Revision 5 since
+the owner's decision of 17 October 2026 added Revision 2).
 
 Every revision, as in the earlier Builds: version `2.0.75+275RRR`, Beta
 expiry 30 days from its release day, `CHANGELOG.md`, `README.md`, the
@@ -27,7 +28,9 @@ screen or a rule an author reads changes. When a learner catalog changes,
    or a short explanation, in the same language.
 3. **Variants**: a Course between two variants of one language (English (UK)
    to English (US)) is **not** same-language: it translates between the
-   variants (lift → elevator).
+   variants (lift → elevator). *Since Revision 2 (decision 13) the creator
+   decides: two variants written as two languages make a translation
+   Course.*
 4. **Languages without a learner catalog** (Korean to Korean, …) are
    allowed: their buttons and instructions are in English, as today for
    every language outside the seven catalogs.
@@ -46,15 +49,16 @@ screen or a rule an author reads changes. When a learner catalog changes,
      whole definition cannot be typed word for word.
    - b. A region (or script) on one side only (English and English (US))
      counts as same-language; two different regions or scripts (en-GB and
-     en-US, sr-Latn and sr-Cyrl) make it a translation Course.
-   - c. The names in the table of Revision 2, and "Through another
+     en-US, sr-Latn and sr-Cyrl) make it a translation Course. *Replaced by
+     decision 13 in Revision 2: nothing is derived from the tags.*
+   - c. The names in the table of Revision 3, and "Through another
      language" / "In the same language" on the Basics cards.
    - d. The test Course to import is English to English only.
    - e. Fill with an example follows the kind: with "In the same language"
      chosen it fills an English to English example, and the later steps'
      examples (Lessons, GuideBook module) follow it.
 
-### Several correct translations (owner, 16 October 2026; Revision 4)
+### Several correct translations (owner, 16 October 2026; Revision 5)
 
 9. **Repeated rows**: two GuideBook rows, Sentences as well as Words &
    Expressions, with the same Source (and the same Context) are
@@ -71,23 +75,36 @@ screen or a rule an author reads changes. When a learner catalog changes,
     the answers the GuideBook gives, so every correct translation must be
     written in the GuideBook.
 
-## The rule: one owner, nothing stored
+### The creator chooses (owner, 17 October 2026; Revision 2)
 
-- **`CourseLanguagePair`** (new, `lib/services/course_language_pair.dart`,
-  pure Dart): `isSameLanguage(course)`.
-  - Both sides are resolved as they are today: the learning side by
-    `CourseLanguageResolver.learning(course)`, the learners' side by
-    `CourseLanguageResolver.base(course)`.
-  - Same-language when the primary language subtags are equal and the
-    regions (and scripts) are not both present and different: `es` / `es`,
-    `en` / `en-US` are same-language; `en-GB` / `en-US`, `sr-Latn` /
-    `sr-Cyrl`, `en` / `it` are not.
-  - A side QQL cannot resolve to a code (a language typed by hand and not in
-    `LanguageCatalog`) is compared by its name, capitals and accents ignored.
-- **Derived, never stored.** A Course's languages never change after it is
-  created (Build 260 Revision 0), so a Course never changes kind. No Course
-  file change, no `minimumAppBuild`: an earlier app opens a same-language
-  Course with today's translation wording, which is harmless.
+13. **The creator's choice decides, and it is stored.** Owner's words: "The
+    creator chooses whether the course is "same language" kind or "through
+    another language" kind. In the former case, the course will not use
+    translations but meanings. Therefore, it's up to creators to decide
+    which pairs are "same language"." The kind chosen when the Course is
+    made is written in the Course file and never derived from the language
+    tags (the derived rule confused authors: variants against dialects,
+    Viterbese typed beside Italian). Agreed with the owner the same day:
+    - In the same language keeps one Language field (both sides are that
+      language) and the optional Language variant;
+    - Through another language takes any two languages, two variants of one
+      language too (English (UK) and English (US)); it refuses only one
+      language written twice, the same name and the same tag.
+
+## The rule: one owner, the creator's choice stored
+
+- **`CourseLanguagePair`** (`lib/services/course_language_pair.dart`, pure
+  Dart): `isSameLanguage(course)` and `kindOf(course)`.
+- **Stored, never derived** (Revision 2, decision 13): `Course.sameLanguage`,
+  written as `"sameLanguage": true` only for a Course made In the same
+  language. A Course's kind and languages never change after it is created
+  (Build 260 Revision 0). A Course in the same language asks for
+  `minimumAppBuild` 275002 (`CourseLanguagePair.withMinimumAppBuild`, the
+  last rule of `CourseMinimumBuild.stamp`): an earlier app would drop the
+  field on its first save.
+  - *Revision 0 and 1 derived the kind from the two languages (the primary
+    subtags, a region or script on one side only, a name typed by hand).
+    No Course was stored with that rule outside the owner's tests.*
 - **Never test "same-language" anywhere else**: screens, services and
   catalogs ask `CourseLanguagePair`. (A study format, such as the card decks
   discussed the same day, would be a separate choice: a deck can be
@@ -195,7 +212,7 @@ BUILD THE SENTENCE.
 - **Change**: in a same-language Course these read "word" and "meaning":
   - titles PICK THE WORD, PICK THE MEANING, TYPE THE WORD, TYPE THE MEANING,
     BUILD THE SENTENCE, BUILD THE MEANING, MATCH WORDS AND MEANINGS (the
-    names of Revision 2's table, so `ExerciseTitle.slugOfName` keeps working
+    names of Revision 3's table, so `ExerciseTitle.slugOfName` keeps working
     from the name);
   - lines such as "Choose the word for this meaning.", "Choose the correct
     meaning.", "Type the word for this meaning.", "Type the meaning of this
@@ -226,7 +243,55 @@ BUILD THE SENTENCE.
   exercises show the new titles, lines and feedback (Round, Review, Duel,
   Preview); a translation Course shows today's.
 
-## Revision 2: what authors read
+## Revision 2: the creator's choice is stored
+
+Delivered as `2.0.75+275002` (owner decision 13, 17 October 2026).
+
+- **The Course file**: `sameLanguage` (a boolean, written only when true;
+  any other value is a format error; `tools/validate_courses.py` checks it).
+  `docs/COURSE_JSON_FORMAT.md` documents it.
+- **Made by the two forms**: the Course Wizard's Continue with Wizard and
+  New Course's Continue to Editor write the kind chosen
+  (`CourseLibraryOperations.newCourse` / `newWizardCourse(sameLanguage:)`).
+  Continue by hand carries it to New Course's form, as before.
+- **Kept by the copies**: Fork and Copy as New Course
+  (`AuthoringDuplicationService`), Move/Copy to another Lesson
+  (`CourseAuthoringTransferService`), the Publisher export (the JSON). A
+  Merge refuses two Courses of different kinds, in either order
+  (`CourseMergeService.sameLanguageMismatch`; its comparison of the Course
+  fields saw the field from one side only, because it is written only
+  when true: found by the independent review).
+- **`minimumAppBuild` 275002** for a Course in the same language.
+- **Through another language**: refused only for one language written
+  twice (`CourseLanguagePair.identicalChoices`: the same name and the same
+  tag, capitals and accents ignored); the message says to choose In the same
+  language or write two different languages.
+- **Removed**: the derivation (`sameTags`, `sameLanguages`, `sameChoices`,
+  the cache), the advice to type variants by hand with their tags, and
+  Course Info's check that a tag never changes the kind
+  (`CourseInfoUpdateService.keepsKind`, `kindChangeRefusal`): a tag no
+  longer decides anything.
+- **Unsaved course changes** names a difference of the field as "Kind of
+  Course" under Course Info (it never changes, but a list must name every
+  field).
+- **New Course's form never picks a kind** for languages it receives
+  without one (`_kindOfLanguages` removed): the creator chooses.
+- `tools/validate_courses.py` refuses `sameLanguage: true` with two
+  different language names (QQL's own files).
+- Help EN/IT/ES: the FAQ `courseKind` says QQL keeps the choice, that two
+  variants fit either kind (Through another language translates between
+  them, each with its tag in Language tag, en-GB and en-US, for the
+  device's voice and the flag; In the same language teaches one of them),
+  and that In the same language writes the language once.
+- Tests: `test/same_language_courses_275_test.dart` (the stored kind, a
+  strict field, the same languages without the choice translate, the
+  refusal and two variants accepted, the minimum build, a real save
+  through `CourseEditorService`, a Merge of two kinds refused both ways,
+  the copies); `test/same_language_learner_275_test.dart` makes its
+  Courses In the same language; `new_course_form_272_test` expects no
+  kind for prefilled languages without one.
+
+## Revision 3: what authors read
 
 ### Preset names
 
@@ -287,7 +352,7 @@ The names from `nameIn` in each caller; the three twins absent from the
 preset list and present in a stored exercise; the GuideBook labels and Help;
 the module example; a translation Course unchanged.
 
-## Revision 3: a test Course to import
+## Revision 4: a test Course to import
 
 - **QQL Test: En-En Exercise Lab** (title in the style of the other test
   Courses), `demo_courses/exercise_lab_en_en.json`, written by a generator
@@ -295,14 +360,16 @@ the module example; a translation Course unchanged.
 - Custom, the made-up QQL-user Maintainer of the other test Courses
   (`afb065f8-701c-48d2-85f7-c80d44abecb9`), Course version 1, derivative
   works allowed, no Rights Holder (owner decision of 14 October 2026 for the
-  test Courses), not bundled (no Course comes with the app).
+  test Courses), not bundled (no Course comes with the app),
+  `"sameLanguage": true` and `"minimumAppBuild": 275002` (Revision 2:
+  an import does not stamp the build, only a save does).
 - One Lesson per group of presets, one exercise for each preset offered in a
   same-language Course, a GuideBook module of words and meanings; written by
   AI and not reviewed, as App Info says of the test Courses.
 - Tests: the file imports; every exercise plays; every title and line comes
   from the same-language keys; the GuideBook and Word Lookup read meanings.
 
-## Revision 4: several correct translations in the GuideBook
+## Revision 5: several correct translations in the GuideBook
 
 The owner's example: English *I am a teacher* is German *Ich bin Lehrer.* or
 *Ich bin Lehrerin.* (and Italian *Sono un insegnante.*, *Sono

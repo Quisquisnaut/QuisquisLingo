@@ -18,23 +18,28 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
 | Rev | What | State |
 |---|---|---|
 | 0 | Choosing the kind of Course (Wizard, New Course, Course Info, the FAQ) | done, `db0bd468` |
-| 1 | What learners read ("word" and "meaning") | in progress |
-| 2 | What authors read (preset names, forms, GuideBook) | planned |
-| 3 | A test Course to import (En-En Exercise Lab) | planned |
-| 4 | Several correct translations in the GuideBook | planned (display option: owner's choice pending) |
+| 1 | What learners read ("word" and "meaning") | done, `2d524fec` |
+| 2 | The creator's choice of kind is stored (owner, 17 October 2026) | done |
+| 3 | What authors read (preset names, forms, GuideBook) | planned |
+| 4 | A test Course to import (En-En Exercise Lab) | planned |
+| 5 | Several correct translations in the GuideBook | planned (display option: owner's choice pending) |
 
 ## Open points for the owner
 
 - Closed: the FAQ's English text (the plan's draft, adjusted to the
   screens: the kind is chosen in the Wizard or in New Course's form; two
   variants of one language make a translation Course, typed by hand with
-  their tags; "typing a meaning" until Revision 2 names the preset) was
+  their tags; "typing a meaning" until Revision 3 names the preset) was
   approved by the owner on 16 October 2026 ("All good").
-- Revision 4's display of alternatives (options A to D of the mockup;
+- Revision 5's display of alternatives (options A to D of the mockup;
   A recommended).
-- The FAQ describes the finished Build: until Revisions 1 and 2 a
+- Still open from Revision 1: Word Lookup on meanings; a speaker for
+  meanings; "word" also labels a sentence.
+- The FAQ describes the finished Build: until Revisions 1 and 3 a
   same-language Course's exercises and forms still say translation,
   source and target (said in the CHANGELOG).
+- Closed by Revision 2 (the kind is stored, nothing derived): the two
+  points below.
 - Rule edges the review found, left as the plan words them: a variant or
   extlang subtag is ignored (`de-1901`/`de-1996`, `zh-yue`/`zh` count as
   the same language), and a script on one side with a region on the other
@@ -48,6 +53,30 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
   together: an earlier Course whose two tags would change its kind gets
   neither, even one that alone would be fine. The kind is protected;
   owner's call whether to offer the tags one at a time.
+
+## Revision 2 (2.0.75+275002): the creator's choice is stored
+
+- Owner decision of 17 October 2026 (the plan's decision 13; Revisions 2–4
+  of the plan became 3–5).
+- Done: `Course.sameLanguage` (model, JSON, validator, format document);
+  the two forms store the kind; the copies keep it; `minimumAppBuild`
+  275002; `identicalChoices` replaces the derivation; Course Info's tag
+  check removed; the change list names the field; Help EN/IT/ES; tests;
+  version 275002 (`bump.py 275001 275002`); the plan, CHANGELOG, README,
+  AGENTS, change summary, validation.
+- Note: `dart format lib` once reformatted eleven files outside this
+  revision (lines left long by earlier commits); they were restored with
+  `git checkout` so only this revision's files change. Format the files
+  edited, never the whole folder.
+- Done: the independent review (nothing blocking; corrections in
+  `docs/275_VALIDATION.md`: the Merge refused two kinds in one order only,
+  the Help's tag hint, New Course's form no longer infers a kind, the
+  validator's check, the tests); focused tests pass (93 in seven files).
+- Done: the re-review (corrections right; its last points corrected), six
+  clean runs, `flutter analyze` clean, complete suite 4,947 passed,
+  1 skipped. Committed "Build 275 Revision 2: the creator's choice of kind
+  is stored" and pushed `build-275`. Next: Revision 3 (what authors read),
+  after the owner's answers to the open points.
 
 ## Revision 1 (2.0.75+275001): what learners read
 
@@ -72,8 +101,9 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
 - Done: the independent review and its re-review (corrections in
   `docs/275_VALIDATION.md`); `flutter analyze` clean.
 - Done: complete suite 4,944 passed, 1 skipped.
-- To do: commit "Build 275 Revision 1: what learners read in a
-  same-language Course"; push. Then Revision 2 (what authors read).
+- Committed `2d524fec` "Build 275 Revision 1: what learners read in a
+  same-language Course" and pushed `build-275`. Next: Revision 2 (what
+  authors read), after the owner's answers to the open points above.
 
 ## Revision 0 (2.0.75+275000): choosing the kind of Course
 

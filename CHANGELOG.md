@@ -1,3 +1,36 @@
+# 2.0.75 (Build 275, Revision 2) - The creator's choice of kind is stored - 2026-10-17
+
+The owner's decision of 17 October 2026 (`docs/SAME_LANGUAGE_COURSES_PLAN.md`,
+decision 13): the creator decides whether a Course is In the same language;
+QQL no longer works it out from the language tags.
+
+- **The kind chosen is kept in the Course file** (`"sameLanguage": true`,
+  written only for a Course In the same language) and never changes, like
+  the languages. A Course without it teaches through another language,
+  whatever its languages: an English to English Course made before this
+  revision is now a translation Course. Such a Course asks for this build
+  or later (`minimumAppBuild` 275002).
+- **Through another language takes two variants of one language**, such as
+  English (UK) and English (US), written as two languages; it refuses only
+  one language written twice (the same name and the same tag), and says to
+  choose In the same language or write two different languages. No tag has
+  to be typed by hand any more.
+- **In the same language** keeps one Language field and the optional
+  Language variant.
+- Fork, Copy as New Course and Move/Copy to another Lesson keep the kind;
+  two Courses of different kinds cannot be merged, whichever is the stored
+  one.
+- New Course's form no longer picks a kind for two languages it receives
+  without one: the creator chooses.
+- Course Info no longer refuses language tags that would have changed the
+  kind: a tag decides nothing now.
+- Help (EN/IT/ES): "Same language or another language: which Course should
+  I make?" says that QQL keeps the creator's choice, that two variants fit
+  either kind, and that each variant takes its tag (en-GB, en-US) for the
+  device's voice and the flag.
+- Tests: `test/same_language_courses_275_test.dart` (the stored kind, the
+  refusal, the minimum build, the copies).
+
 # 2.0.75 (Build 275, Revision 1) - What learners read in a same-language Course - 2026-10-17
 
 The plan's Revision 1 (`docs/SAME_LANGUAGE_COURSES_PLAN.md`).

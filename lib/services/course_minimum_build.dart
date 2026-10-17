@@ -1,4 +1,5 @@
 import '../models/course_models.dart';
+import 'course_language_pair.dart';
 import 'editor_notes.dart';
 import 'lesson_icon_pictures.dart';
 import 'page_blocks.dart';
@@ -28,6 +29,8 @@ abstract final class CourseMinimumBuild {
     // Build 267 Revision 8: and one whose exercises carry Editor Notes.
     stamped = EditorNotes.withMinimumAppBuild(stamped);
     // Build 274 Revision 3: and one with answers that are sounds.
-    return SoundAnswers.withMinimumAppBuild(stamped);
+    stamped = SoundAnswers.withMinimumAppBuild(stamped);
+    // Build 275 Revision 2: and one in the same language.
+    return CourseLanguagePair.withMinimumAppBuild(stamped);
   }
 }

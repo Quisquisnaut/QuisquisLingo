@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/localization/help/help_structure.dart';
@@ -10,9 +12,15 @@ import 'package:quisquislingo_app/screens/course_wizard_screen.dart';
 import 'package:quisquislingo_app/screens/editor_help_screen.dart';
 import 'package:quisquislingo_app/screens/new_course_dialog.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
-import 'package:quisquislingo_app/services/course_info_update_service.dart';
+import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
+import 'package:quisquislingo_app/services/course_authoring_transfer_service.dart';
 import 'package:quisquislingo_app/services/course_language_pair.dart';
-import 'package:quisquislingo_app/services/course_language_resolver.dart';
+import 'package:quisquislingo_app/services/course_merge_service.dart';
+import 'package:quisquislingo_app/services/course_backup_service.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
+import 'package:quisquislingo_app/services/course_minimum_build.dart';
 import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_wizard.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -20,9 +28,9 @@ import 'package:quisquislingo_app/widgets/course_kind_choice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Build 275 Revision 0 (owner decisions of 16 October 2026): a Course can
-// teach a language in that same language. The kind is derived from the two
-// languages (CourseLanguagePair), chosen first in the Course Wizard and in
-// New Course's form, and never stored.
+// teach a language in that same language, chosen first in the Course Wizard
+// and in New Course's form. Revision 2 (owner decision of 17 October 2026):
+// the choice is stored in the Course (`sameLanguage`) and never derived.
 
 const _profileId = '27500000-0000-4000-8000-000000000001';
 const _profile = LearnerProfile(
@@ -37,6 +45,7 @@ Course _course({
   required String target,
   String sourceTag = '',
   String targetTag = '',
+  bool sameLanguage = false,
 }) => _operations.newWizardCourse(
   creator: _profile,
   title: 'Kinds',
@@ -44,6 +53,7 @@ Course _course({
   targetLanguage: target,
   sourceLanguageTag: sourceTag,
   targetLanguageTag: targetTag,
+  sameLanguage: sameLanguage,
 );
 
 void _tall(WidgetTester tester) {
@@ -63,129 +73,220 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('the rule', () {
-    test('two tags: the language, then the region and the script', () {
-      for (final (a, b, same) in [
-        ('es', 'es', true),
-        ('en', 'en-US', true),
-        ('en-GB', 'en-US', false),
-        ('sr-Latn', 'sr-Cyrl', false),
-        ('sr-Latn', 'sr-RS', true),
-        ('zh-Hant', 'zh-Hans', false),
-        ('en', 'it', false),
-        ('EN_us', 'en-US', true),
-      ]) {
-        expect(CourseLanguagePair.sameTags(a, b), same, reason: '$a / $b');
-        expect(CourseLanguagePair.sameTags(b, a), same, reason: '$b / $a');
-      }
-    });
-
-    test('a language typed by hand is compared by its name', () {
-      bool same(String a, String b) => CourseLanguagePair.sameLanguages(
-        ResolvedCourseLanguage(name: a, code: null),
-        ResolvedCourseLanguage(name: b, code: null),
-      );
-      expect(same('Viterbese', 'viterbèse'), isTrue);
-      expect(same('Viterbese', 'Romanesco'), isFalse);
-      expect(same('', ''), isFalse);
-      // A name of a listed language takes its tag: an earlier Course may
-      // name one language in two ways.
-      expect(same('Français', 'French'), isTrue);
-      expect(same('Deutsch', 'French'), isFalse);
-      // Two variants typed by hand with their tags are two languages.
-      expect(
-        CourseLanguagePair.sameChoices(
-          learningName: 'English (US)',
-          learningTag: 'en-US',
-          baseName: 'English (UK)',
-          baseTag: 'en-GB',
-        ),
-        isFalse,
-      );
-    });
-
-    test("a Course's kind, from its stored languages", () {
+    test('the kind is what the creator chose, stored in the Course', () {
       final english = _course(
         source: 'English',
         target: 'English',
         sourceTag: 'en',
         targetTag: 'en',
+        sameLanguage: true,
       );
       expect(CourseLanguagePair.isSameLanguage(english), isTrue);
       expect(CourseLanguagePair.kindOf(english), CourseKind.sameLanguage);
-      // A region on one side only is the same language.
-      final american = _course(
+      expect(english.toJson()['sameLanguage'], isTrue);
+      final again = Course.fromJson(english.toJson());
+      expect(again.sameLanguage, isTrue);
+      // Never derived from the languages: the same two languages without
+      // the choice are a translation Course.
+      final translation = _course(
         source: 'English',
         target: 'English',
-        targetTag: 'en-US',
-      );
-      expect(CourseLanguagePair.isSameLanguage(american), isTrue);
-      // Two variants translate between them (owner decision 3).
-      final variants = _course(
-        source: 'English',
-        target: 'English',
-        sourceTag: 'en-GB',
-        targetTag: 'en-US',
-      );
-      expect(CourseLanguagePair.isSameLanguage(variants), isFalse);
-      final italian = _course(
-        source: 'English',
-        target: 'Italian',
         sourceTag: 'en',
-        targetTag: 'it',
+        targetTag: 'en',
       );
-      expect(CourseLanguagePair.kindOf(italian), CourseKind.otherLanguage);
-      // Two languages typed by hand, by name.
-      final byHand = _course(source: 'Viterbese', target: 'Viterbese');
-      expect(CourseLanguagePair.isSameLanguage(byHand), isTrue);
+      expect(CourseLanguagePair.kindOf(translation), CourseKind.otherLanguage);
+      expect(translation.toJson().containsKey('sameLanguage'), isFalse);
+      // A dialect typed by hand beside its language is the creator's call
+      // too: Viterbese through Italian translates.
+      final viterbese = _course(
+        source: 'Italian',
+        target: 'Viterbese',
+        sourceTag: 'it',
+      );
+      expect(CourseLanguagePair.isSameLanguage(viterbese), isFalse);
     });
 
-    test('Course Info never gives a tag that changes the kind', () {
-      // A language typed by hand, without a tag, beside Italian: a
-      // translation Course. Calling it Italian would make it same-language.
-      final byHand = _course(
-        source: 'Viterbese',
-        target: 'Italian',
-        targetTag: 'it',
-      );
-      expect(CourseLanguagePair.isSameLanguage(byHand), isFalse);
+    test('the field is strict, and a Course without it reads as before', () {
+      final json = _course(source: 'English', target: 'Italian').toJson();
+      expect(Course.fromJson(json).sameLanguage, isFalse);
       expect(
-        CourseInfoUpdateService.keepsKind(
-          byHand,
-          sourceTag: 'it',
-          targetTag: 'it',
-        ),
+        () => Course.fromJson({...json, 'sameLanguage': 'yes'}),
+        throwsFormatException,
+      );
+      expect(
+        () => Course.fromJson({...json, 'sameLanguage': null}),
+        throwsFormatException,
+      );
+      expect(
+        Course.fromJson({...json, 'sameLanguage': false}).sameLanguage,
         isFalse,
-      );
-      // A tag of its own keeps it a translation Course.
-      expect(
-        CourseInfoUpdateService.keepsKind(
-          byHand,
-          sourceTag: 'vit',
-          targetTag: 'it',
-        ),
-        isTrue,
       );
     });
 
-    test('two languages as a form holds them', () {
-      expect(
-        CourseLanguagePair.sameChoices(
-          learningName: 'English',
-          learningTag: 'en',
-          baseName: 'English',
-          baseTag: 'en',
-        ),
-        isTrue,
+    test(
+      'Through another language refuses only one language written twice',
+      () {
+        bool identical(String a, String aTag, String b, String bTag) =>
+            CourseLanguagePair.identicalChoices(
+              learningName: a,
+              learningTag: aTag,
+              baseName: b,
+              baseTag: bTag,
+            );
+        expect(identical('English', 'en', 'English', 'en'), isTrue);
+        expect(identical('english', 'EN', 'English', 'en'), isTrue);
+        expect(identical('Viterbèse', '', 'Viterbese', ''), isTrue);
+        expect(identical('', '', '', ''), isFalse);
+        // Any difference of name or tag is two languages.
+        expect(
+          identical('English (US)', 'en-US', 'English (UK)', 'en-GB'),
+          isFalse,
+        );
+        expect(identical('English (UK)', 'en', 'English', 'en'), isFalse);
+        expect(identical('English', 'en-US', 'English', 'en-GB'), isFalse);
+        expect(identical('English', 'en_US', 'English', 'en-us'), isTrue);
+        expect(identical('Italian', 'it', 'English', 'en'), isFalse);
+        expect(identical('Viterbese', '', 'Italian', 'it'), isFalse);
+        // The agreed rule, word for word: the same name with a tag on one
+        // side only is two languages.
+        expect(identical('Viterbese', '', 'Viterbese', 'vit'), isFalse);
+      },
+    );
+
+    test('a Course in the same language asks for this build or later', () {
+      final english = _course(
+        source: 'English',
+        target: 'English',
+        sourceTag: 'en',
+        targetTag: 'en',
+        sameLanguage: true,
       );
+      final stamped = CourseMinimumBuild.stamp(english);
+      expect(stamped.minimumAppBuild, CourseLanguagePair.minimumAppBuild);
+      expect(stamped.sameLanguage, isTrue);
+      // Stamped once: a Course already asking for it is left as it is.
+      expect(CourseLanguagePair.withMinimumAppBuild(stamped), same(stamped));
+      final translation = _course(source: 'English', target: 'Italian');
+      // A translation Course is not raised for it (a new Course already
+      // asks for the picture border's build).
       expect(
-        CourseLanguagePair.sameChoices(
-          learningName: 'Italian',
-          learningTag: 'it',
-          baseName: 'English',
-          baseTag: 'en',
-        ),
-        isFalse,
+        CourseMinimumBuild.stamp(translation).minimumAppBuild,
+        lessThan(CourseLanguagePair.minimumAppBuild),
       );
+    });
+
+    test('two Courses of different kinds are never merged, either way', () {
+      final english = _course(
+        source: 'English',
+        target: 'English',
+        sourceTag: 'en',
+        targetTag: 'en',
+        sameLanguage: true,
+      );
+      final translation = _course(
+        source: 'English',
+        target: 'English',
+        sourceTag: 'en',
+        targetTag: 'en',
+      );
+      final merge = CourseMergeService();
+      for (final (left, right) in [
+        (english, translation),
+        (translation, english),
+      ]) {
+        expect(
+          () => merge.validateCompatibility(left, right),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              CourseMergeService.sameLanguageMismatch,
+            ),
+          ),
+        );
+      }
+    });
+
+    test('Copy as New Course, a Fork and a copied Round keep the kind', () {
+      final form = NewCourseForm(creator: _profile)
+        ..kind = CourseKind.sameLanguage
+        ..title.text = 'Kinds';
+      addTearDown(form.dispose);
+      form.target.text.text = 'English';
+      final english =
+          (form.submit('Kinds', _operations) as NewCourseAccepted).course;
+      expect(english.sameLanguage, isTrue);
+      // Copy as New Course and a Fork share one copy of the Course.
+      final copy = AuthoringDuplicationService().copyCourseAsNew(
+        english,
+        title: 'A copy',
+        originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+          profileId: _profileId,
+          displayName: 'Kind Author',
+        ),
+        maintainer: const CourseMaintainer(_profileId),
+      );
+      expect(copy.sameLanguage, isTrue);
+      final moved = CourseAuthoringTransferService().copyRound(
+        english,
+        sourceLessonId: english.lessons.first.lessonId,
+        roundId: english.lessons.first.rounds.first.id,
+        destinationLessonId: english.lessons.last.lessonId,
+      );
+      expect(moved.sameLanguage, isTrue);
+    });
+  });
+
+  group('a save', () {
+    late Directory root;
+
+    setUp(() async {
+      root = await Directory.systemTemp.createTemp('qql_275_kind_');
+      ProfileService.beginAccessSession();
+      await ProfileService().createProfile(
+        'Kind Author',
+        learnerProfileId: _profileId,
+        generateScreenNameSuffix: false,
+      );
+    });
+
+    tearDown(() async {
+      if (await root.exists()) await root.delete(recursive: true);
+    });
+
+    test('stores the kind and the build that reads it', () async {
+      final media = CourseMediaStore(supportDirectory: () async => root);
+      final editor = CourseEditorService(
+        courseStore: CourseFileStore(supportDirectory: () async => root),
+        mediaStore: media,
+        backupService: CourseBackupService(
+          backupsDirectoryProvider: () async => root,
+          mediaStore: media,
+        ),
+        clock: () => _now,
+      );
+      final english = _course(
+        source: 'English',
+        target: 'English',
+        sourceTag: 'en',
+        targetTag: 'en',
+        sameLanguage: true,
+      );
+      final saved = await editor.confirmCourseTransaction(
+        originalCourse: english,
+        workingCourse: english,
+        languageCode: 'EN',
+        versionNotes: '',
+        isNewCourse: true,
+      );
+      expect(saved.course.sameLanguage, isTrue);
+      expect(saved.course.minimumAppBuild, CourseLanguagePair.minimumAppBuild);
+      // Read back as the app lists stored Courses.
+      final again = (await editor.listUserCourses()).singleWhere(
+        (course) => course.courseId == english.courseId,
+      );
+      expect(again.sameLanguage, isTrue);
+      expect(again.minimumAppBuild, CourseLanguagePair.minimumAppBuild);
     });
   });
 
@@ -271,6 +372,7 @@ void main() {
       expect(find.text('Step 2 of 8: Flag or cover image'), findsOneWidget);
       await tester.tap(find.byKey(const Key('course-wizard-back')));
       await tester.pumpAndSettle();
+      // Basics reads the kind stored in the Course just made.
       expect(
         tester
             .widget<Text>(find.byKey(const Key('course-wizard-kind-shown')))
@@ -288,6 +390,7 @@ void main() {
         target: 'English',
         sourceTag: 'en',
         targetTag: 'en',
+        sameLanguage: true,
       );
       await tester.pumpWidget(
         MaterialApp(
@@ -335,6 +438,30 @@ void main() {
         find.text(CourseKindChoice.sameLanguageTwice('English')),
         findsOneWidget,
       );
+    });
+
+    testWidgets('Through another language takes two variants of one language', (
+      tester,
+    ) async {
+      _tall(tester);
+      final profiles = ProfileService();
+      await profiles.createProfile('Kind Author', learnerProfileId: _profileId);
+      await profiles.setActiveProfileById(_profileId);
+      await tester.pumpWidget(const MaterialApp(home: CourseWizardScreen()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-wizard-kind-other')));
+      await tester.pump();
+      await tester.enterText(_field('Course title *'), 'Lift and elevator');
+      await tester.enterText(_field('Source language *'), 'English (UK)');
+      await tester.enterText(_field('Target language *'), 'English (US)');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('course-wizard-continue')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(CourseKindChoice.sameLanguageTwice('English (US)')),
+        findsNothing,
+      );
+      expect(find.text('Step 2 of 8: Flag or cover image'), findsOneWidget);
     });
 
     testWidgets('Fill with an example follows the kind', (tester) async {
@@ -413,6 +540,7 @@ void main() {
         target: 'English',
         sourceTag: 'en',
         targetTag: 'en',
+        sameLanguage: true,
       );
       await tester.pumpWidget(
         MaterialApp(
@@ -527,6 +655,16 @@ void main() {
           (form.submit('Kinds', _operations) as NewCourseAccepted).course;
       expect(course.sourceLanguage, 'English');
       expect(course.targetLanguage, 'English');
+      expect(course.sameLanguage, isTrue);
+      // Through another language stores no kind.
+      form
+        ..kind = CourseKind.otherLanguage
+        ..source.text.text = 'English (UK)'
+        ..target.text.text = 'English (US)';
+      expect(form.kindProblem, isNull);
+      final variants =
+          (form.submit('Kinds', _operations) as NewCourseAccepted).course;
+      expect(variants.sameLanguage, isFalse);
     });
 
     testWidgets('a kind switched before Continue to Editor writes what the '
@@ -619,8 +757,19 @@ void main() {
             target: 'English',
             sourceTag: 'en',
             targetTag: 'en',
+            sameLanguage: true,
           ),
           true,
+        ),
+        // The same languages without the choice: a translation Course.
+        (
+          _course(
+            source: 'English',
+            target: 'English',
+            sourceTag: 'en',
+            targetTag: 'en',
+          ),
+          false,
         ),
         (
           _course(

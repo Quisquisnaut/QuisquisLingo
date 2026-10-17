@@ -192,15 +192,6 @@ class _CourseInfoEditorState extends State<CourseInfoEditor> {
       }
     }
     if (!mounted) return;
-    // Build 275 Revision 0: a tag never changes the kind of Course.
-    if (!_form.keepsKind(source, target)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(CourseInfoUpdateService.kindChangeRefusal),
-        ),
-      );
-      return;
-    }
     setState(() {
       _form.sourceTag = source;
       _form.targetTag = target;
@@ -559,7 +550,7 @@ class _CourseInfoEditorState extends State<CourseInfoEditor> {
                     ),
                   ],
                 ),
-              // Build 275 Revision 0: the kind, from the two languages.
+              // Build 275: the kind the creator chose, which never changes.
               if (CourseLanguagePair.isSameLanguage(course))
                 Padding(
                   padding: const EdgeInsets.only(top: 8),

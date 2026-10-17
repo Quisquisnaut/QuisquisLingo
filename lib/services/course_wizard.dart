@@ -162,9 +162,9 @@ class CourseWizardBasics {
   });
 
   /// The kind of Course the author chose (Build 275 Revision 0), or null
-  /// before a choice. Form state only: a Course's kind is derived from its
-  /// languages ([CourseLanguagePair]); in the same language both languages
-  /// are the one chosen.
+  /// before a choice. The Course stores it when it is made
+  /// ([Course.sameLanguage], Revision 2); in the same language both
+  /// languages are the one chosen.
   final CourseKind? kind;
   final String title;
   final String sourceLanguage;

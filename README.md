@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.75+275001 · Build 275, Revision 1 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.75+275002 · Build 275, Revision 2 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.75 Beta — QQL 275, Courses in the same language (Course Model v12)**
 
@@ -11,13 +11,15 @@ explained in English, Spanish in Spanish, any language in itself
 first: the Course Wizard's first step and New Course's form offer Through
 another language and In the same language (with one Language field),
 and Which should I choose? opens a new Editor Help answer on the
-didactic pros and cons of each. The kind is derived from the two
-languages, never stored; Course Info says when a Course is in the same
-language. Revision 1 changes what learners read in such a Course: the
-translation exercises are titled Pick the word, Type the meaning, Build
-the sentence and so on, their lines and the answer feedback speak of
-words and meanings, and Word Lookup offers a meaning, in the seven
-learner languages.
+didactic pros and cons of each. Course Info says when a Course is in
+the same language. Revision 1 changes what learners read in such a
+Course: the translation exercises are titled Pick the word, Type the
+meaning, Build the sentence and so on, their lines and the answer
+feedback speak of words and meanings, and Word Lookup offers a meaning,
+in the seven learner languages. Revision 2 keeps the creator's choice in
+the Course file (`sameLanguage`) instead of working it out from the
+language tags: the creator decides, and Through another language accepts
+two variants of one language, such as English (UK) and English (US).
 
 Build 274 brings the owner's nine points of 13 October 2026
 ([plan](docs/274_PLAN.md), [change summary](docs/274_CHANGE_SUMMARY.md)).

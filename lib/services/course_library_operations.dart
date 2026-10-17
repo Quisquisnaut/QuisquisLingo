@@ -975,6 +975,8 @@ class CourseLibraryOperations {
     // typed by hand without one).
     String sourceLanguageTag = '',
     String targetLanguageTag = '',
+    // Build 275 Revision 2: the creator chose In the same language.
+    bool sameLanguage = false,
     required List<NewCourseCredit> credits,
     required String license,
     required DerivativeWorksPolicy derivativeWorksPolicy,
@@ -1000,6 +1002,7 @@ class CourseLibraryOperations {
       targetLanguage: targetLanguage,
       sourceLanguageTag: sourceLanguageTag,
       targetLanguageTag: targetLanguageTag,
+      sameLanguage: sameLanguage,
       credits: credits,
       license: license,
       derivativeWorksPolicy: derivativeWorksPolicy,
@@ -1037,6 +1040,7 @@ class CourseLibraryOperations {
     String sourceLanguageTag = '',
     String targetLanguageTag = '',
     String languageVariant = '',
+    bool sameLanguage = false,
   }) => _draftCourse(
     creator: creator,
     maintainerProfileId: creator.learnerProfileId,
@@ -1045,6 +1049,7 @@ class CourseLibraryOperations {
     targetLanguage: targetLanguage,
     sourceLanguageTag: sourceLanguageTag,
     targetLanguageTag: targetLanguageTag,
+    sameLanguage: sameLanguage,
     credits: [
       (
         name: creator.presentationName,
@@ -1073,6 +1078,7 @@ class CourseLibraryOperations {
     required String targetLanguage,
     required String sourceLanguageTag,
     required String targetLanguageTag,
+    required bool sameLanguage,
     required List<NewCourseCredit> credits,
     required String license,
     required DerivativeWorksPolicy derivativeWorksPolicy,
@@ -1114,6 +1120,7 @@ class CourseLibraryOperations {
       lastVersionEditorDisplayName: creator.presentationName,
       modifiedAtUtc: nowUtc,
       publicationState: PublicationState.draft,
+      sameLanguage: sameLanguage,
       learningLanguage: targetLanguage,
       interfaceLanguage: sourceLanguage,
       sourceLanguage: sourceLanguage,

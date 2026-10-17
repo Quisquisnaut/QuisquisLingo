@@ -66,7 +66,7 @@ class NewCourseForm {
         text: '${NewCourseStructure.defaultRoundsPerLesson}',
       ),
       maintainerProfileId = creator.learnerProfileId,
-      kind = prefill?.kind ?? _kindOfLanguages(prefill) {
+      kind = prefill?.kind {
     if (prefill != null && source.isHandEntered) {
       source.tag.text = prefill.sourceLanguageTag;
     }
@@ -79,27 +79,10 @@ class NewCourseForm {
   final LearnerProfile creator;
 
   /// Build 275 Revision 0: the kind of Course, from the Course Wizard or
-  /// chosen here (none at first). In the same language [target] is the one
-  /// Language field and both languages are written from it.
+  /// chosen here (none at first; Revision 2: never worked out from the
+  /// languages). In the same language [target] is the one Language field
+  /// and both languages are written from it.
   CourseKind? kind;
-
-  /// A Wizard's values that carry languages but no kind: the kind they
-  /// make.
-  static CourseKind? _kindOfLanguages(CourseWizardBasics? prefill) {
-    if (prefill == null ||
-        prefill.sourceLanguage.trim().isEmpty ||
-        prefill.targetLanguage.trim().isEmpty) {
-      return null;
-    }
-    return CourseLanguagePair.sameChoices(
-          learningName: prefill.targetLanguage,
-          learningTag: prefill.targetLanguageTag,
-          baseName: prefill.sourceLanguage,
-          baseTag: prefill.sourceLanguageTag,
-        )
-        ? CourseKind.sameLanguage
-        : CourseKind.otherLanguage;
-  }
 
   final TextEditingController title;
   final LanguageFieldController source;
@@ -204,7 +187,7 @@ class NewCourseForm {
     if (kind == CourseKind.otherLanguage &&
         sourceLanguage != null &&
         targetLanguage != null &&
-        CourseLanguagePair.sameChoices(
+        CourseLanguagePair.identicalChoices(
           learningName: targetLanguage.name,
           learningTag: targetLanguage.tag,
           baseName: sourceLanguage.name,
@@ -251,6 +234,7 @@ class NewCourseForm {
         targetLanguage: targetLanguage.name,
         sourceLanguageTag: sourceLanguage.tag,
         targetLanguageTag: targetLanguage.tag,
+        sameLanguage: kind == CourseKind.sameLanguage,
         credits: [
           for (final row in authors)
             (

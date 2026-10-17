@@ -72,6 +72,8 @@ abstract final class CourseChangeSummary {
       courseInfo,
       'Learning language name for learners',
     ),
+    // Build 275 Revision 2: chosen once, but named should it ever differ.
+    'sameLanguage': (courseInfo, 'Kind of Course'),
     'flagCode': (courseInfo, 'Course flag'),
     'worldFlagId': (courseInfo, 'Course flag'),
     'flagImageBase64': (courseInfo, 'Course flag'),

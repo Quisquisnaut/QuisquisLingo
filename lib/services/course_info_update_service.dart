@@ -1,6 +1,5 @@
 import '../models/course_models.dart';
 import 'course_governance_service.dart';
-import 'course_language_pair.dart';
 import 'course_service.dart';
 import 'language_catalog.dart';
 
@@ -95,38 +94,6 @@ class CourseInfoUpdateService {
         'That tag would move the learning language’s XP and streak: the learning language cannot change.',
       );
     }
-    if (!keepsKind(
-      course,
-      sourceTag: change.sourceLanguageTag,
-      targetTag: change.targetLanguageTag,
-    )) {
-      throw ArgumentError(kindChangeRefusal);
-    }
-  }
-
-  /// Build 275 Revision 0: what Course Info says of tags that would change
-  /// the kind of Course.
-  static const kindChangeRefusal =
-      'Those tags would change the kind of Course (through another language, '
-      'or in the same language): a Course’s kind cannot change.';
-
-  /// Whether [course] with the tags [sourceTag] and [targetTag] ('' for
-  /// none) is still the same kind of Course ([CourseLanguagePair]): a tag
-  /// chosen for a language typed by hand, or one that drops a region
-  /// another field holds, could make a translation Course a same-language
-  /// one or the other way round.
-  static bool keepsKind(
-    Course course, {
-    required String sourceTag,
-    required String targetTag,
-  }) {
-    final tagged = Course.fromJson({
-      ...course.toJson(),
-      if (sourceTag.trim().isNotEmpty) 'sourceLanguageTag': sourceTag.trim(),
-      if (targetTag.trim().isNotEmpty) 'targetLanguageTag': targetTag.trim(),
-    });
-    return CourseLanguagePair.kindOf(tagged) ==
-        CourseLanguagePair.kindOf(course);
   }
 
   /// Whether [course] with the learning language tag [tag] ('' for none)

@@ -907,6 +907,13 @@ class Course {
   /// meaningful only while [useGuidebook] is on.
   final bool wordLookup;
 
+  /// Build 275 Revision 2 (owner decision of 17 October 2026): the creator
+  /// chose In the same language when the Course was made, so it uses
+  /// meanings, not translations. Stored only when true; it never changes,
+  /// like the languages. A Course without it teaches through another
+  /// language.
+  final bool sameLanguage;
+
   /// Explicit reusable names; legacy Lesson assignments remain available too.
   final List<String> sectionNames;
   final String learningLanguage;
@@ -1022,6 +1029,7 @@ class Course {
     this.useGuidebook = true,
     this.allowPageSharing = true,
     this.wordLookup = true,
+    this.sameLanguage = false,
     List<String> sectionNames = const [],
     required this.learningLanguage,
     required this.interfaceLanguage,
@@ -1385,6 +1393,7 @@ class Course {
     if (!useGuidebook) 'useGuidebook': false,
     if (!allowPageSharing) 'allowPageSharing': false,
     if (!wordLookup) 'wordLookup': false,
+    if (sameLanguage) 'sameLanguage': true,
     if (sectionNames.isNotEmpty) 'sectionNames': sectionNames,
     'courseId': courseId,
     'originType': originType.name,
@@ -1476,6 +1485,7 @@ class Course {
       'useGuidebook',
       'allowPageSharing',
       'wordLookup',
+      'sameLanguage',
     ]) {
       if (json.containsKey(key) && json[key] is! bool) {
         throw FormatException('course.$key must be a boolean.');
@@ -1736,6 +1746,7 @@ class Course {
       useGuidebook: json['useGuidebook'] as bool? ?? true,
       allowPageSharing: json['allowPageSharing'] as bool? ?? true,
       wordLookup: json['wordLookup'] as bool? ?? true,
+      sameLanguage: json['sameLanguage'] as bool? ?? false,
       sectionNames: JsonRead.stringList(json, 'sectionNames', 'course'),
       learningLanguage: learning,
       interfaceLanguage: interface,

@@ -197,6 +197,18 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     if not isinstance(data.get("wordLookup", True), bool):
         # Build 265: Word Lookup, stored only when off.
         issues.append("root: wordLookup must be a boolean")
+    if not isinstance(data.get("sameLanguage", False), bool):
+        # Build 275 Revision 2: a Course in the same language, stored only
+        # when true.
+        issues.append("root: sameLanguage must be a boolean")
+    elif data.get("sameLanguage") is True and (
+        str(data.get("sourceLanguage", "")).strip().lower()
+        != str(data.get("targetLanguage", "")).strip().lower()
+    ):
+        issues.append(
+            "root: sameLanguage needs one language on both sides "
+            "(sourceLanguage and targetLanguage)"
+        )
     if not isinstance(data.get("temporarySample"), bool):
         issues.append("root: temporarySample must be a boolean")
     elif data.get("temporarySample"):

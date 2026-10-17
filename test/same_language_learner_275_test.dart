@@ -51,6 +51,7 @@ Course _withLaboratory(
         targetLanguage: target,
         sourceLanguageTag: sourceTag,
         targetLanguageTag: targetTag,
+        sameLanguage: source == target,
       )
       .toJson(),
   'lessons': laboratory.toJson()['lessons'],

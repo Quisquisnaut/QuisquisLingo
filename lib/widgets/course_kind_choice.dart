@@ -42,12 +42,12 @@ class CourseKindChoice extends StatelessWidget {
       'the same language.';
 
   /// What the forms say when Through another language names one language
-  /// twice. Two variants of one language are a translation Course: each is
-  /// typed by hand with its tag (the list holds languages, not variants).
+  /// twice (the same name and tag). Two variants with different names are
+  /// accepted.
   static String sameLanguageTwice(String language) =>
-      'Both languages are $language: choose In the same language. For two '
-      'variants of one language, type each by hand with its tag, such as '
-      'English (UK) with en-GB and English (US) with en-US.';
+      'Both languages are $language: choose In the same language, or write '
+      'two different languages (for two variants, for example English (UK) '
+      'and English (US)).';
 
   /// The kind as the Course shows it once it exists.
   static String shown(CourseKind kind, String source, String target) =>
