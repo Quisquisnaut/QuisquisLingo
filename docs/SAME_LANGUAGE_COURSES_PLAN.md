@@ -6,8 +6,8 @@ itself). Planned while Build 274 was running (read only: this document is the
 only thing written). **Build 275**, after Build 274's remaining revisions
 (owner decision of 16 October 2026; the modularization left over from
 Build 273, its Revisions 10–12, becomes Build 276). Several correct
-translations in the GuideBook joined the plan the same day (Revision 5 since
-the owner's decision of 17 October 2026 added Revision 2).
+translations in the GuideBook joined the plan the same day (Revision 6 since
+the owner's decisions of 17 October 2026 added Revisions 2 and 3).
 
 Every revision, as in the earlier Builds: version `2.0.75+275RRR`, Beta
 expiry 30 days from its release day, `CHANGELOG.md`, `README.md`, the
@@ -51,14 +51,14 @@ screen or a rule an author reads changes. When a learner catalog changes,
      counts as same-language; two different regions or scripts (en-GB and
      en-US, sr-Latn and sr-Cyrl) make it a translation Course. *Replaced by
      decision 13 in Revision 2: nothing is derived from the tags.*
-   - c. The names in the table of Revision 3, and "Through another
+   - c. The names in the table of Revision 4, and "Through another
      language" / "In the same language" on the Basics cards.
    - d. The test Course to import is English to English only.
    - e. Fill with an example follows the kind: with "In the same language"
      chosen it fills an English to English example, and the later steps'
      examples (Lessons, GuideBook module) follow it.
 
-### Several correct translations (owner, 16 October 2026; Revision 5)
+### Several correct translations (owner, 16 October 2026; Revision 6)
 
 9. **Repeated rows**: two GuideBook rows, Sentences as well as Words &
    Expressions, with the same Source (and the same Context) are
@@ -90,6 +90,24 @@ screen or a rule an author reads changes. When a learner catalog changes,
     - Through another language takes any two languages, two variants of one
       language too (English (UK) and English (US)); it refuses only one
       language written twice, the same name and the same tag.
+
+### Meanings and the Wizard's first step (owner, 17 October 2026; Revision 3)
+
+14. **In a same-language Course a meaning is the language being learned**:
+    Word Lookup looks up the words of a meaning, and a meaning gets the
+    speaker on request wherever a word would (a Course with recorded MP3s
+    lists the meanings among its texts to record).
+15. **Four lines become neutral**, right for a word, a phrase or a sentence;
+    the titles stay as named: Pick the word "Choose the answer that fits
+    this meaning.", Type the word "Write the answer that fits this
+    meaning.", Type the meaning "Write what this means.", Match words and
+    meanings "Pair each item with its meaning."
+16. **The Course Wizard's first step stays read-only** once Continue with
+    Wizard has made the Course (as in manual creation, the languages are
+    fixed once the Course is made), and **Continue with Wizard asks
+    first**: "Are you sure? After this step the kind of Course and its
+    languages cannot be changed, unless you leave the Wizard without saving
+    and start a new one."
 
 ## The rule: one owner, the creator's choice stored
 
@@ -212,7 +230,7 @@ BUILD THE SENTENCE.
 - **Change**: in a same-language Course these read "word" and "meaning":
   - titles PICK THE WORD, PICK THE MEANING, TYPE THE WORD, TYPE THE MEANING,
     BUILD THE SENTENCE, BUILD THE MEANING, MATCH WORDS AND MEANINGS (the
-    names of Revision 3's table, so `ExerciseTitle.slugOfName` keeps working
+    names of Revision 4's table, so `ExerciseTitle.slugOfName` keeps working
     from the name);
   - lines such as "Choose the word for this meaning.", "Choose the correct
     meaning.", "Type the word for this meaning.", "Type the meaning of this
@@ -232,8 +250,9 @@ BUILD THE SENTENCE.
   today.
 - A translation Course is unchanged: the Laboratory presentation baseline
   stays as it is (a test checks it).
-- **To confirm when the revision starts** (consequences, not yet decided;
-  left as they are in Revision 1 and put to the owner):
+- **To confirm when the revision starts** (left as they are in Revision 1
+  and put to the owner; decided on 17 October 2026 and delivered in
+  Revision 3, decision 14):
   - Word Lookup skips text marked as the Course's source language; in a
     same-language Course a meaning is in the language being learned, so
     Word Lookup could look its words up too.
@@ -291,7 +310,46 @@ Delivered as `2.0.75+275002` (owner decision 13, 17 October 2026).
   Courses In the same language; `new_course_form_272_test` expects no
   kind for prefilled languages without one.
 
-## Revision 3: what authors read
+## Revision 3: meanings, and the Wizard's first step
+
+Delivered as `2.0.75+275003` (decisions 14 to 16, 17 October 2026).
+
+- **Word Lookup**: `WordLookupScope(sameLanguage:)` (the Round screen gives
+  `CourseLanguagePair.isSameLanguage`); `LookupText` skips text marked as
+  the source language only outside a same-language Course. Pick the
+  translation's question is a `LookupText` when it is a meaning (marked
+  source); a question in the language being learned stays plain text, as
+  before, because its GuideBook entry would show the answer.
+- **The speakers**: `PlaybackOnRequest.promptText`, `answerText`,
+  `optionWord` and `texts` take `sameLanguage`: text marked as the source
+  language is heard like target-language text (Pick the word's meaning,
+  Pick the meaning's right meaning after the answer, the meaning Type the
+  word and Build the sentence show, the meaning Type the meaning and Build
+  the meaning accept). `CourseAudioUsage.spokenTexts(sameLanguage:)`,
+  `usesByClip` and `CourseAudioTexts.of` ask the Course, so the Audio
+  Library's Texts in this Course and Used in N exercises know the
+  meanings; `ExerciseMascotRoom.of(sameLanguage:)` keeps the speaker's
+  room beside the prompt. The voice is the text's language, which in a
+  same-language Course is the one language.
+- **The lines**: `instruction.sameLanguage.selectWord`, `inputWord`,
+  `inputMeaning`, `matchTranslation` in the seven catalogs (six
+  AI-written); Build 263's first-word rule kept.
+- **The Wizard**: `CourseWizardScreen.confirmsLanguages` (off in the tests
+  written before it), a dialog (`languagesFixedTitle`,
+  `languagesFixedMessage`) whose Continue is
+  `course-wizard-languages-fixed-confirm`; Cancel stays on the first step;
+  Continue by hand never asks.
+- When both the sentence and the answer can be heard (same-language
+  Courses only), the answer's speaker is `translation-choice-answer-audio`
+  and the note that audio is off is shown once.
+- Help EN/IT/ES: Word Lookup (Editor Help and App Info), Texts to record,
+  the Course kind answer (meanings looked up and heard; the Wizard's
+  question).
+- Tests: `test/same_language_meanings_275_test.dart`; a Wizard case in
+  `test/same_language_courses_275_test.dart`; the new lines in
+  `test/same_language_learner_275_test.dart`.
+
+## Revision 4: what authors read
 
 ### Preset names
 
@@ -352,7 +410,7 @@ The names from `nameIn` in each caller; the three twins absent from the
 preset list and present in a stored exercise; the GuideBook labels and Help;
 the module example; a translation Course unchanged.
 
-## Revision 4: a test Course to import
+## Revision 5: a test Course to import
 
 - **QQL Test: En-En Exercise Lab** (title in the style of the other test
   Courses), `demo_courses/exercise_lab_en_en.json`, written by a generator
@@ -369,7 +427,7 @@ the module example; a translation Course unchanged.
 - Tests: the file imports; every exercise plays; every title and line comes
   from the same-language keys; the GuideBook and Word Lookup read meanings.
 
-## Revision 5: several correct translations in the GuideBook
+## Revision 6: several correct translations in the GuideBook
 
 The owner's example: English *I am a teacher* is German *Ich bin Lehrer.* or
 *Ich bin Lehrerin.* (and Italian *Sono un insegnante.*, *Sono

@@ -2,6 +2,7 @@ import '../models/course_models.dart';
 import 'audio_library_index.dart';
 import 'audio_segmenter.dart';
 import 'course_audio_usage.dart';
+import 'course_language_pair.dart';
 import 'exercise_search_service.dart';
 import 'storage/course_storage_names.dart';
 
@@ -58,13 +59,18 @@ abstract final class CourseAudioTexts {
   static List<CourseSpokenText> of(Course course) {
     final counts = <String, int>{};
     final published = <String>{};
+    // Build 275 Revision 3: a same-language Course's meanings are heard too.
+    final sameLanguage = CourseLanguagePair.isSameLanguage(course);
     for (final lesson in course.lessons) {
       for (final round in lesson.rounds) {
         final delivered =
             lesson.publicationState == PublicationState.published &&
             round.publicationState == PublicationState.published;
         for (final exercise in round.exercises) {
-          for (final text in CourseAudioUsage.spokenTexts(exercise)) {
+          for (final text in CourseAudioUsage.spokenTexts(
+            exercise,
+            sameLanguage: sameLanguage,
+          )) {
             counts.update(text, (count) => count + 1, ifAbsent: () => 1);
             if (delivered &&
                 exercise.publicationState == PublicationState.published) {

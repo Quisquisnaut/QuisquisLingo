@@ -1,5 +1,6 @@
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
+import 'course_language_pair.dart';
 import 'inline_marks.dart';
 import 'playback_on_request.dart';
 import 'sound_answers.dart';
@@ -34,9 +35,13 @@ abstract final class CourseAudioUsage {
   /// audio elements (main, context, passage, dialogue lines, Story lines,
   /// the flashcard word), its answers' sounds, what a learner may hear on
   /// request (`PlaybackOnRequest`: a translation's target-language sentence
-  /// or answer, the words of picture options; Build 274 Revision 2), the
+  /// or answer, the words of picture options; Build 274 Revision 2; with
+  /// [sameLanguage], the meanings too, Build 275 Revision 3), the
   /// flashcard's example, and a Page's audio blocks and read-aloud text.
-  static List<String> spokenTexts(Exercise exercise) {
+  static List<String> spokenTexts(
+    Exercise exercise, {
+    bool sameLanguage = false,
+  }) {
     final features = ExerciseFeatures(exercise);
     final texts = <String>[
       for (final element in features.audioElements) element.text,
@@ -46,7 +51,7 @@ abstract final class CourseAudioUsage {
             if (element.isAudio) element.text,
           item.label,
         ],
-      ...PlaybackOnRequest.texts(exercise),
+      ...PlaybackOnRequest.texts(exercise, sameLanguage: sameLanguage),
       features.textOf('usage'),
       for (final block in features.pageBlocks)
         if (block.isAudio)
@@ -73,11 +78,16 @@ abstract final class CourseAudioUsage {
     List<CourseAudioClip>? Function(String text) segment,
   ) {
     final uses = <String, List<AudioClipUse>>{};
+    // Build 275 Revision 3: a same-language Course's meanings are heard too.
+    final sameLanguage = CourseLanguagePair.isSameLanguage(course);
     for (final (lessonIndex, lesson) in course.lessons.indexed) {
       for (final (roundIndex, round) in lesson.rounds.indexed) {
         for (final (exerciseIndex, exercise) in round.exercises.indexed) {
           final clipIds = <String>{
-            for (final text in spokenTexts(exercise))
+            for (final text in spokenTexts(
+              exercise,
+              sameLanguage: sameLanguage,
+            ))
               ...?segment(text)?.map((clip) => clip.id),
             // Build 274 Revision 3: the recordings answers name by their id.
             ...SoundAnswers.recordingIds(exercise),

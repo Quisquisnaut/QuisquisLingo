@@ -151,14 +151,15 @@ const exerciseCopyFr = <String, String>{
   'title.build_the_meaning': 'CONSTRUIS LE SENS',
   'title.match_words_and_meanings': 'ASSOCIE MOTS ET SENS',
   'instruction.sameLanguage.selectWord':
-      'Sélectionne le mot qui correspond à ce sens.',
+      'Sélectionne la réponse qui correspond à ce sens.',
   'instruction.sameLanguage.selectMeaning': 'Sélectionne le sens correct.',
   'instruction.sameLanguage.inputWord':
-      'Saisis le mot qui correspond à ce sens.',
-  'instruction.sameLanguage.inputMeaning': 'Saisis le sens de ce mot.',
+      'Saisis la réponse qui correspond à ce sens.',
+  'instruction.sameLanguage.inputMeaning': 'Saisis ce que cela veut dire.',
   'instruction.sameLanguage.arrangeSentence':
       'Forme avec les blocs de mots la phrase qui correspond à ce sens.',
   'instruction.sameLanguage.arrangeMeaning':
       'Forme avec les blocs de mots le sens de cette phrase.',
-  'instruction.sameLanguage.matchTranslation': 'Relie chaque mot à son sens.',
+  'instruction.sameLanguage.matchTranslation':
+      'Relie chaque élément à son sens.',
 };

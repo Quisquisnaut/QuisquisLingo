@@ -1,6 +1,6 @@
 # Localization: current state
 
-12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10); on 16 October 2026 for Build 274 Revision 3 (`2.0.74+274003`): Listen and pick the missing word (its title, heading and two lines, the answers' Sound N, its Help); for Build 275 Revision 0 (`2.0.75+275000`): the Course kind's Help question and Course Info's same-language line; and on 17 October 2026 for Build 275 Revision 1 (`2.0.75+275001`): what learners read in a Course in the same language (the two tables "A Course in the same language").
+12 October 2026, Build 271 Revision 5 (`2.0.71+271005`); brought up to date on 13 October 2026 for Build 272 Revision 17 (`2.0.72+272017`): the Welcome Wizard's second step, and the start page (section 6.10); on 16 October 2026 for Build 274 Revision 3 (`2.0.74+274003`): Listen and pick the missing word (its title, heading and two lines, the answers' Sound N, its Help); for Build 275 Revision 0 (`2.0.75+275000`): the Course kind's Help question and Course Info's same-language line; and on 17 October 2026 for Build 275 Revision 1 (`2.0.75+275001`): what learners read in a Course in the same language (the two tables "A Course in the same language"), and for Revision 3 (`2.0.75+275003`): four of those lines made neutral (a word, a phrase or a sentence).
 
 This document says what QuisquisLingo shows in which language today, and lists the texts that are translated. The tables are generated from the catalogs in `lib/localization/` as they are in this revision.
 
@@ -437,13 +437,13 @@ English, with the Italian translation as the example. Spanish has the same texts
 | `title.build_the_sentence` | BUILD THE SENTENCE | COMPONI LA FRASE |
 | `title.build_the_meaning` | BUILD THE MEANING | COMPONI IL SIGNIFICATO |
 | `title.match_words_and_meanings` | MATCH WORDS AND MEANINGS | ABBINA PAROLE E SIGNIFICATI |
-| `instruction.sameLanguage.selectWord` | Choose the word for this meaning. | Seleziona la parola che corrisponde a questo significato. |
+| `instruction.sameLanguage.selectWord` | Choose the answer that fits this meaning. | Seleziona la risposta che corrisponde a questo significato. |
 | `instruction.sameLanguage.selectMeaning` | Choose the correct meaning. | Seleziona il significato corretto. |
-| `instruction.sameLanguage.inputWord` | Write the word for this meaning. | Inserisci la parola che corrisponde a questo significato. |
-| `instruction.sameLanguage.inputMeaning` | Write the meaning of this word. | Inserisci il significato di questa parola. |
+| `instruction.sameLanguage.inputWord` | Write the answer that fits this meaning. | Inserisci la risposta che corrisponde a questo significato. |
+| `instruction.sameLanguage.inputMeaning` | Write what this means. | Inserisci che cosa significa. |
 | `instruction.sameLanguage.arrangeSentence` | Form the sentence for this meaning with the word blocks. | Forma con i blocchi di parole la frase che corrisponde a questo significato. |
 | `instruction.sameLanguage.arrangeMeaning` | Form the meaning of this sentence with the word blocks. | Forma con i blocchi di parole il significato di questa frase. |
-| `instruction.sameLanguage.matchTranslation` | Pair each word with its meaning. | Accoppia ogni parola al suo significato. |
+| `instruction.sameLanguage.matchTranslation` | Pair each item with its meaning. | Accoppia ogni elemento al suo significato. |
 
 ### 6.3 The Welcome Wizard (15 texts, 3 languages)
 

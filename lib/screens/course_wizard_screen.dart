@@ -86,6 +86,19 @@ class CourseWizardScreen extends StatefulWidget {
   final bool Function(String title)? titleTaken;
   final DateTime Function()? clock;
 
+  /// Build 275 Revision 3 (owner decision of 17 October 2026): Continue with
+  /// Wizard asks before the kind of Course and its languages become fixed
+  /// (the first step shows them read-only afterwards). Off in the tests
+  /// written before it (`test/flutter_test_config.dart`); its own test
+  /// turns it on.
+  static bool confirmsLanguages = true;
+
+  static const languagesFixedTitle = 'Are you sure?';
+  static const languagesFixedMessage =
+      'After this step the kind of Course and its languages cannot be '
+      'changed, unless you leave the Wizard without saving and start a new '
+      'one.';
+
   @override
   State<CourseWizardScreen> createState() => _CourseWizardScreenState();
 }
@@ -798,6 +811,16 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           message: 'A Course with this name already exists.',
           action: 'Continue anyway',
           cancel: 'Edit name',
+        )) {
+      return;
+    }
+    if (!mounted) return;
+    if (CourseWizardScreen.confirmsLanguages &&
+        !await _confirm(
+          key: const Key('course-wizard-languages-fixed-confirm'),
+          title: CourseWizardScreen.languagesFixedTitle,
+          message: CourseWizardScreen.languagesFixedMessage,
+          action: 'Continue',
         )) {
       return;
     }

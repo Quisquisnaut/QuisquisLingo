@@ -1,5 +1,58 @@
 # Build 275 validation
 
+## Revision 3 (2.0.75+275003), meanings and the Wizard's first step
+
+- New tests: `test/same_language_meanings_275_test.dart`, **9 passed**: for
+  each of the six translation presets, the meaning heard only in a
+  same-language Course and the word side heard alike in both kinds,
+  nothing before the answer; Pick the word says its meaning, Pick the
+  meaning its right meaning; the Audio Library's texts and a recording's
+  uses count the meanings of a same-language Course only; a meaning's
+  words looked up only in a same-language Course (a word in both); on the
+  Round screen, Pick the word's meaning with its speaker and as a
+  `LookupText` in a same-language Course, no speaker for it in a
+  translation Course, and Pick the meaning's word plain text; an option
+  word marked as the source language heard only in a same-language
+  Course; after the answer, in a learner's Round with audio off, the two
+  speakers and the note once; the lookup proved with a GuideBook entry
+  inside the meaning. In `test/same_language_courses_275_test.dart`,
+  Continue with Wizard's question (Cancel stays on the editable first
+  step; Continue goes on and the first step is read-only) and Continue by
+  hand, which never asks. `test/same_language_learner_275_test.dart`
+  checks the new lines in English and Italian. The three files run six
+  times clean after the last change (43 tests each run).
+- Run with them: `playback_on_request_274_test`, `audio_usage_270_test`,
+  `audio_library_271_test`, `word_lookup_ui_265_test`,
+  `word_lookup_265_test`, `exercise_mascot_256_test`,
+  `owner_review_263_revision0_test` (the first-word rule in the seven
+  catalogs), `exercise_laboratory_254_test` (the presentation baseline: a
+  translation Course unchanged), `learner_panel_260_test`,
+  `course_languages_260_test`, `course_wizard_267_test`,
+  `wizard_wording_267_test`: all passed.
+- Independent read-only review: nothing blocking. Corrected: after an
+  answer a same-language Course showed two speakers with one key and the
+  audio-off note twice (the answer's speaker is now
+  `translation-choice-answer-audio`, the note shown once); the Round
+  screen test now proves the lookup with a GuideBook entry inside the
+  meaning (and none in a translation Course); new tests of option words,
+  of the two speakers after an answer, and that Continue by hand never
+  asks; the Italian, Spanish and Portuguese Type the meaning lines no
+  longer repeat their title ("Inserisci che cosa significa.", "Introduce
+  qué significa.", "Introduza o que significa."); the Texts in this
+  Course Help sentence; the Course Wizard Help names the question; doc
+  comments; the renumbering in AGENTS and the handoff; the key's name in
+  the documents; "learners of a translation Course see no change". Told to
+  the owner: a Course of synonyms paired both ways can show the answer in
+  a meaning's lookup. Its re-review of the corrections: right, nothing
+  blocking; its points corrected: the note test ran in the Preview, where
+  audio is always on (now a learner's Round with audio off, the note
+  exactly once), the test counts, the question word (the longest, never
+  an article). Left: the speakers' note keys off `PlaybackOnRequest`
+  while the prompt block draws under `_promptShown` (equal in practice).
+- `flutter analyze`: no issues, on the final tree.
+- Complete suite on the final tree (`flutter test --concurrency=1`):
+  **4,958 passed, 1 skipped**, 51 minutes.
+
 ## Revision 2 (2.0.75+275002), the creator's choice is stored
 
 - `test/same_language_courses_275_test.dart`, **23 passed**: the kind

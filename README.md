@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.75+275002 · Build 275, Revision 2 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.75+275003 · Build 275, Revision 3 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.75 Beta — QQL 275, Courses in the same language (Course Model v12)**
 
@@ -20,6 +20,10 @@ in the seven learner languages. Revision 2 keeps the creator's choice in
 the Course file (`sameLanguage`) instead of working it out from the
 language tags: the creator decides, and Through another language accepts
 two variants of one language, such as English (UK) and English (US).
+Revision 3 treats a meaning as the language being learned: Word Lookup
+looks up its words and it can be heard on request; four lines no longer
+call a phrase or a sentence a word; and the Course Wizard asks before its
+first step's kind and languages become fixed.
 
 Build 274 brings the owner's nine points of 13 October 2026
 ([plan](docs/274_PLAN.md), [change summary](docs/274_CHANGE_SUMMARY.md)).

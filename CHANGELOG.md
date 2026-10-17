@@ -1,3 +1,39 @@
+# 2.0.75 (Build 275, Revision 3) - Meanings, and the Wizard's first step - 2026-10-17
+
+The owner's decisions of 17 October 2026 on the points Revision 1 left open
+(`docs/SAME_LANGUAGE_COURSES_PLAN.md`, decisions 14 to 16).
+
+- **In a Course in the same language a meaning is the language being
+  learned**:
+  - Word Lookup looks up the words of a meaning, as it does for words
+    (Pick the word's meaning too; Pick the meaning's word stays plain
+    text, because its GuideBook entry would show the answer);
+  - a meaning gets the speaker on request wherever a word has one: Pick
+    the word's meaning, Pick the meaning's right meaning after the answer,
+    the meaning Type the word and Build the sentence show, the meaning
+    Type the meaning and Build the meaning accept;
+  - the Audio Library's Texts in this Course and Used in N exercises count
+    those meanings, so a Course with recorded MP3s lists them as texts to
+    record.
+- **Four lines are neutral**, right for a word, a phrase or a sentence
+  (the titles stay): "Choose the answer that fits this meaning.", "Write
+  the answer that fits this meaning.", "Write what this means.", "Pair each
+  item with its meaning.", in the seven learner languages (six translated
+  by AI).
+- **The Course Wizard asks before the languages become fixed**: Continue
+  with Wizard says "Are you sure? After this step the kind of Course and
+  its languages cannot be changed, unless you leave the Wizard without
+  saving and start a new one." Cancel stays on the first step; afterwards
+  the first step shows them read-only, as before. Continue by hand does not
+  ask.
+- After an answer that can be heard, a same-language Course shows the
+  sentence's speaker and the answer's, and the note that audio is off once.
+- Learners of a translation Course see no change.
+- Help (EN/IT/ES): Word Lookup, Texts in this Course, and the Course kind
+  answer.
+- Tests: `test/same_language_meanings_275_test.dart` (9) and two Wizard
+  cases in `test/same_language_courses_275_test.dart`.
+
 # 2.0.75 (Build 275, Revision 2) - The creator's choice of kind is stored - 2026-10-17
 
 The owner's decision of 17 October 2026 (`docs/SAME_LANGUAGE_COURSES_PLAN.md`,

@@ -19,23 +19,33 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
 |---|---|---|
 | 0 | Choosing the kind of Course (Wizard, New Course, Course Info, the FAQ) | done, `db0bd468` |
 | 1 | What learners read ("word" and "meaning") | done, `2d524fec` |
-| 2 | The creator's choice of kind is stored (owner, 17 October 2026) | done |
-| 3 | What authors read (preset names, forms, GuideBook) | planned |
-| 4 | A test Course to import (En-En Exercise Lab) | planned |
-| 5 | Several correct translations in the GuideBook | planned (display option: owner's choice pending) |
+| 2 | The creator's choice of kind is stored (owner, 17 October 2026) | done, `46c494ce` |
+| 3 | Meanings (Word Lookup, speakers, neutral lines), the Wizard's question (owner, 17 October 2026) | done |
+| 4 | What authors read (preset names, forms, GuideBook) | planned |
+| 5 | A test Course to import (En-En Exercise Lab) | planned |
+| 6 | Several correct translations in the GuideBook | planned (display option: owner's choice pending) |
 
 ## Open points for the owner
 
 - Closed: the FAQ's English text (the plan's draft, adjusted to the
   screens: the kind is chosen in the Wizard or in New Course's form; two
   variants of one language make a translation Course, typed by hand with
-  their tags; "typing a meaning" until Revision 3 names the preset) was
+  their tags; "typing a meaning" until Revision 4 names the preset) was
   approved by the owner on 16 October 2026 ("All good").
-- Revision 5's display of alternatives (options A to D of the mockup;
+- Revision 6's display of alternatives (options A to D of the mockup;
   A recommended).
-- Still open from Revision 1: Word Lookup on meanings; a speaker for
-  meanings; "word" also labels a sentence.
-- The FAQ describes the finished Build: until Revisions 1 and 3 a
+- Closed on 17 October 2026 (Revision 3): Word Lookup on meanings and a
+  speaker for meanings (both yes), "word" for a sentence (neutral lines,
+  titles kept); the Wizard's first step stays read-only and Continue with
+  Wizard asks first; Save writes, Apply only changes the working copy
+  (already so everywhere).
+- Asked of the owner: should New Course's Continue to Editor ask the same
+  question as the Wizard?
+- For the owner (found by Revision 3's review): in a Course of synonyms
+  whose GuideBook pairs both ways (glad = happy, happy = glad), looking up
+  a meaning's word in Pick the word or Type the word shows the answer. A
+  later remedy: leave the exercise's own answer out of the card.
+- The FAQ describes the finished Build: until Revisions 1 and 4 a
   same-language Course's exercises and forms still say translation,
   source and target (said in the CHANGELOG).
 - Closed by Revision 2 (the kind is stored, nothing derived): the two
@@ -53,6 +63,24 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
   together: an earlier Course whose two tags would change its kind gets
   neither, even one that alone would be fine. The kind is protected;
   owner's call whether to offer the tags one at a time.
+
+## Revision 3 (2.0.75+275003): meanings, and the Wizard's first step
+
+- Owner decisions of 17 October 2026 (the plan's decisions 14 to 16; the
+  later revisions renumbered 4 to 6).
+- Done: Word Lookup and the speakers on meanings (`sameLanguage` flags on
+  `WordLookupScope`, `PlaybackOnRequest`, `CourseAudioUsage`,
+  `ExerciseMascotRoom`), the four neutral lines in seven catalogs, the
+  Wizard's question (`CourseWizardScreen.confirmsLanguages`), Help
+  EN/IT/ES, tests, version 275003, the plan, CHANGELOG, README, AGENTS,
+  change summary, validation, `LOCALIZATION_CURRENT_STATE`.
+- Done: the independent review and its re-review (corrections in
+  `docs/275_VALIDATION.md`: two speakers after an answer, the note once,
+  the lookup proved with a GuideBook entry, the learner's Round with audio
+  off, three lines, Help); six clean runs; `flutter analyze` clean.
+- Done: complete suite 4,958 passed, 1 skipped. Committed "Build 275
+  Revision 3: meanings, and the Wizard's first step" and pushed
+  `build-275`. Next: Revision 4 (what authors read).
 
 ## Revision 2 (2.0.75+275002): the creator's choice is stored
 
@@ -75,7 +103,7 @@ learner catalog changes, `docs/LOCALIZATION_CURRENT_STATE.md` follows it.
 - Done: the re-review (corrections right; its last points corrected), six
   clean runs, `flutter analyze` clean, complete suite 4,947 passed,
   1 skipped. Committed "Build 275 Revision 2: the creator's choice of kind
-  is stored" and pushed `build-275`. Next: Revision 3 (what authors read),
+  is stored" and pushed `build-275`. Next: Revision 3 (what authors read; now Revision 4),
   after the owner's answers to the open points.
 
 ## Revision 1 (2.0.75+275001): what learners read

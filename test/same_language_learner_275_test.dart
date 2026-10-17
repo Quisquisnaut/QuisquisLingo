@@ -25,6 +25,8 @@ import 'support/pump_file_io.dart';
 // feedback say "word" and "meaning", never "translation"; no language is
 // named. A translation Course reads as before. One switch:
 // ExerciseCopyService and LearnerPanelText ask CourseLanguagePair.
+// Revision 3 (owner decision of 17 October 2026): four lines are neutral,
+// right for a word, a phrase or a sentence.
 
 const _profile = LearnerProfile(
   learnerProfileId: '27500000-0000-4000-8000-000000000101',
@@ -179,7 +181,7 @@ void main() {
         (
           'translation_choice_to_target',
           'PICK THE WORD',
-          'Choose the word for this meaning.',
+          'Choose the answer that fits this meaning.',
         ),
         (
           'translation_choice_to_source',
@@ -189,12 +191,12 @@ void main() {
         (
           'type_translation_to_target',
           'TYPE THE WORD',
-          'Write the word for this meaning.',
+          'Write the answer that fits this meaning.',
         ),
         (
           'type_translation_to_source',
           'TYPE THE MEANING',
-          'Write the meaning of this word.',
+          'Write what this means.',
         ),
         (
           'build_translation_to_target',
@@ -209,7 +211,7 @@ void main() {
         (
           'word_match',
           'MATCH WORDS AND MEANINGS',
-          'Pair each word with its meaning.',
+          'Pair each item with its meaning.',
         ),
       ]) {
         final exercise = _example(english, preset);
@@ -246,13 +248,13 @@ void main() {
       expect(ExerciseCopyService.title(italian, pick), 'SCEGLI LA PAROLA');
       expect(
         ExerciseCopyService.instructionForExercise(italian, pick),
-        'Seleziona la parola che corrisponde a questo significato.',
+        'Seleziona la risposta che corrisponde a questo significato.',
       );
       final type = _example(italian, 'type_translation_to_source');
       expect(ExerciseCopyService.title(italian, type), 'SCRIVI IL SIGNIFICATO');
       expect(
         ExerciseCopyService.instructionForExercise(italian, type),
-        'Inserisci il significato di questa parola.',
+        'Inserisci che cosa significa.',
       );
     });
 
@@ -400,7 +402,7 @@ void main() {
       tester
           .widget<Text>(find.byKey(const Key('translation-choice-instruction')))
           .data,
-      'Choose the word for this meaning.',
+      'Choose the answer that fits this meaning.',
     );
   });
 }

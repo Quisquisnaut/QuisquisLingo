@@ -381,6 +381,93 @@ void main() {
       );
     });
 
+    testWidgets('Continue with Wizard asks before the kind and languages '
+        'become fixed', (tester) async {
+      _tall(tester);
+      CourseWizardScreen.confirmsLanguages = true;
+      addTearDown(() => CourseWizardScreen.confirmsLanguages = false);
+      final profiles = ProfileService();
+      await profiles.createProfile('Kind Author', learnerProfileId: _profileId);
+      await profiles.setActiveProfileById(_profileId);
+      await tester.pumpWidget(const MaterialApp(home: CourseWizardScreen()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-wizard-kind-same')));
+      await tester.pump();
+      await tester.enterText(_field('Course title *'), 'English words');
+      await tester.enterText(
+        find.byKey(const Key('course-wizard-language')),
+        'English',
+      );
+      await tester.pump();
+      final confirm = find.byKey(
+        const Key('course-wizard-languages-fixed-confirm'),
+      );
+      await tester.tap(find.byKey(const Key('course-wizard-continue')));
+      await tester.pumpAndSettle();
+      expect(find.text(CourseWizardScreen.languagesFixedTitle), findsOneWidget);
+      expect(
+        find.text(CourseWizardScreen.languagesFixedMessage),
+        findsOneWidget,
+      );
+      // Cancel: still the first step, its fields still editable.
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(TextButton, 'Cancel'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(confirm, findsNothing);
+      expect(find.byKey(const Key('course-wizard-language')), findsOneWidget);
+      expect(find.byKey(const Key('course-wizard-kind-shown')), findsNothing);
+      // Continue: step 2, and the first step shows them read-only.
+      await tester.tap(find.byKey(const Key('course-wizard-continue')));
+      await tester.pumpAndSettle();
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
+      expect(find.text('Step 2 of 8: Flag or cover image'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('course-wizard-back')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('course-wizard-kind-shown')), findsOneWidget);
+      expect(find.byKey(const Key('course-wizard-language')), findsNothing);
+    });
+
+    testWidgets('Continue by hand never asks', (tester) async {
+      _tall(tester);
+      CourseWizardScreen.confirmsLanguages = true;
+      addTearDown(() => CourseWizardScreen.confirmsLanguages = false);
+      CourseWizardOutcome? outcome;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () async {
+                outcome = await Navigator.of(context).push<CourseWizardOutcome>(
+                  MaterialPageRoute(builder: (_) => const CourseWizardScreen()),
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-wizard-kind-other')));
+      await tester.pump();
+      await tester.enterText(_field('Course title *'), 'Kinds');
+      await tester.enterText(_field('Source language *'), 'English');
+      await tester.enterText(_field('Target language *'), 'Italian');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('course-wizard-manual')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('course-wizard-languages-fixed-confirm')),
+        findsNothing,
+      );
+      expect(outcome, isA<CourseWizardCreateManually>());
+    });
+
     testWidgets('Fill on a resumed Wizard follows the Course\'s kind', (
       tester,
     ) async {

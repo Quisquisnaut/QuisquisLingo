@@ -3,6 +3,48 @@
 Courses in the same language (`docs/SAME_LANGUAGE_COURSES_PLAN.md`, the
 owner's idea and decisions of 16 October 2026).
 
+## Revision 3 (2.0.75+275003): meanings, and the Wizard's first step
+
+### Before
+
+- In a same-language Course a meaning was treated as the learners' own
+  language: Word Lookup did not look up its words and no speaker read it.
+- "Choose the word for this meaning." also stood above a phrase or a
+  sentence.
+- Continue with Wizard fixed the kind and the languages without a word.
+
+### Now
+
+- A meaning's words can be looked up, and a meaning can be heard on
+  request wherever a word can; recorded Courses list the meanings as texts
+  to record.
+- Four lines are neutral: "Choose the answer that fits this meaning.",
+  "Write the answer that fits this meaning.", "Write what this means.",
+  "Pair each item with its meaning."
+- Continue with Wizard asks first: "Are you sure? After this step the kind
+  of Course and its languages cannot be changed, unless you leave the
+  Wizard without saving and start a new one."
+
+### Owner decisions (17 October 2026)
+
+- Word Lookup and the speakers treat meanings as the language being
+  learned; neutral lines with the titles kept; the Wizard's first step
+  stays read-only after Continue with Wizard, which asks first (as in
+  manual creation, the languages are fixed once the Course is made).
+- Save writes to the device; Apply (or Next and Back) only changes the
+  working copy. Every screen already follows it.
+
+### What does not change
+
+What learners of a translation Course see; Pick the meaning's word stays
+plain text (its GuideBook entry would show the answer); Course files,
+scoring and learner data.
+
+### Told to the owner
+
+In a Course of synonyms whose GuideBook pairs both ways (glad = happy,
+happy = glad), looking up a meaning's word can show the answer.
+
 ## Revision 2 (2.0.75+275002): the creator's choice of kind is stored
 
 ### Before

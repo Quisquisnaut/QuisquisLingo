@@ -154,16 +154,16 @@ const exerciseCopyDe = <String, String>{
   'title.build_the_sentence': 'SATZ BILDEN',
   'title.build_the_meaning': 'BEDEUTUNG BILDEN',
   'title.match_words_and_meanings': 'WÖRTER UND BEDEUTUNGEN ZUORDNEN',
-  'instruction.sameLanguage.selectWord': 'Wähle das Wort zu dieser Bedeutung.',
+  'instruction.sameLanguage.selectWord':
+      'Wähle die Antwort, die zu dieser Bedeutung passt.',
   'instruction.sameLanguage.selectMeaning': 'Wähle die richtige Bedeutung.',
   'instruction.sameLanguage.inputWord':
-      'Schreibe das Wort zu dieser Bedeutung.',
-  'instruction.sameLanguage.inputMeaning':
-      'Schreibe die Bedeutung dieses Wortes.',
+      'Schreibe die Antwort, die zu dieser Bedeutung passt.',
+  'instruction.sameLanguage.inputMeaning': 'Schreibe, was das bedeutet.',
   'instruction.sameLanguage.arrangeSentence':
       'Bilde mit den Wortbausteinen den Satz zu dieser Bedeutung.',
   'instruction.sameLanguage.arrangeMeaning':
       'Bilde mit den Wortbausteinen die Bedeutung dieses Satzes.',
   'instruction.sameLanguage.matchTranslation':
-      'Bilde Paare aus jedem Wort und seiner Bedeutung.',
+      'Bilde Paare aus jedem Begriff und seiner Bedeutung.',
 };

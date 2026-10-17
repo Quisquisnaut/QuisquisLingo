@@ -144,14 +144,16 @@ const exerciseCopyEn = <String, String>{
   'title.build_the_sentence': 'BUILD THE SENTENCE',
   'title.build_the_meaning': 'BUILD THE MEANING',
   'title.match_words_and_meanings': 'MATCH WORDS AND MEANINGS',
-  'instruction.sameLanguage.selectWord': 'Choose the word for this meaning.',
+  'instruction.sameLanguage.selectWord':
+      'Choose the answer that fits this meaning.',
   'instruction.sameLanguage.selectMeaning': 'Choose the correct meaning.',
-  'instruction.sameLanguage.inputWord': 'Write the word for this meaning.',
-  'instruction.sameLanguage.inputMeaning': 'Write the meaning of this word.',
+  'instruction.sameLanguage.inputWord':
+      'Write the answer that fits this meaning.',
+  'instruction.sameLanguage.inputMeaning': 'Write what this means.',
   'instruction.sameLanguage.arrangeSentence':
       'Form the sentence for this meaning with the word blocks.',
   'instruction.sameLanguage.arrangeMeaning':
       'Form the meaning of this sentence with the word blocks.',
   'instruction.sameLanguage.matchTranslation':
-      'Pair each word with its meaning.',
+      'Pair each item with its meaning.',
 };

@@ -148,15 +148,15 @@ const exerciseCopyNl = <String, String>{
   'title.build_the_meaning': 'MAAK DE BETEKENIS',
   'title.match_words_and_meanings': 'KOPPEL WOORDEN EN BETEKENISSEN',
   'instruction.sameLanguage.selectWord':
-      'Selecteer het woord bij deze betekenis.',
+      'Selecteer het antwoord dat bij deze betekenis past.',
   'instruction.sameLanguage.selectMeaning': 'Selecteer de juiste betekenis.',
-  'instruction.sameLanguage.inputWord': 'Schrijf het woord bij deze betekenis.',
-  'instruction.sameLanguage.inputMeaning':
-      'Schrijf de betekenis van dit woord.',
+  'instruction.sameLanguage.inputWord':
+      'Schrijf het antwoord dat bij deze betekenis past.',
+  'instruction.sameLanguage.inputMeaning': 'Schrijf op wat dit betekent.',
   'instruction.sameLanguage.arrangeSentence':
       'Vorm met de woordblokken de zin bij deze betekenis.',
   'instruction.sameLanguage.arrangeMeaning':
       'Vorm met de woordblokken de betekenis van deze zin.',
   'instruction.sameLanguage.matchTranslation':
-      'Zet elk woord bij zijn betekenis.',
+      'Zet elk item bij zijn betekenis.',
 };

@@ -34,6 +34,7 @@ class ExerciseMascotRoom {
     Exercise exercise, {
     required bool promptAsInstruction,
     ExerciseMascotAnchor? only,
+    bool sameLanguage = false,
   }) {
     final anchor = ExerciseMascotPolicy.anchorFor(exercise);
     if (anchor == ExerciseMascotAnchor.none) return null;
@@ -56,7 +57,11 @@ class ExerciseMascotRoom {
             ? text.bodyMedium?.copyWith(fontWeight: FontWeight.w600)
             : text.titleMedium,
         !promptAsInstruction &&
-                PlaybackOnRequest.promptText(ExerciseFeatures(exercise)) != null
+                PlaybackOnRequest.promptText(
+                      ExerciseFeatures(exercise),
+                      sameLanguage: sameLanguage,
+                    ) !=
+                    null
             ? 48.0
             : 0.0,
       ),

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/screens/course_wizard_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
@@ -56,6 +57,10 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // The pop-up of a Course import (Build 272 Revision 13) would stop
   // every import test written before it. Its own tests turn it on.
   CourseImportCheckDialog.enabled = false;
+  // Continue with Wizard's question before the languages become fixed
+  // (Build 275 Revision 3) would stop every Course Wizard test written
+  // before it. Its own test turns it on.
+  CourseWizardScreen.confirmsLanguages = false;
   // A Course save flushes its folder through the system's `sync` on Linux
   // and macOS (Build 271 Revision 1): no test starts a process for it; the
   // Course store's own test uses a recording one.

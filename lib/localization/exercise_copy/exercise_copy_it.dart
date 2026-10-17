@@ -151,17 +151,16 @@ const exerciseCopyIt = <String, String>{
   'title.build_the_meaning': 'COMPONI IL SIGNIFICATO',
   'title.match_words_and_meanings': 'ABBINA PAROLE E SIGNIFICATI',
   'instruction.sameLanguage.selectWord':
-      'Seleziona la parola che corrisponde a questo significato.',
+      'Seleziona la risposta che corrisponde a questo significato.',
   'instruction.sameLanguage.selectMeaning':
       'Seleziona il significato corretto.',
   'instruction.sameLanguage.inputWord':
-      'Inserisci la parola che corrisponde a questo significato.',
-  'instruction.sameLanguage.inputMeaning':
-      'Inserisci il significato di questa parola.',
+      'Inserisci la risposta che corrisponde a questo significato.',
+  'instruction.sameLanguage.inputMeaning': 'Inserisci che cosa significa.',
   'instruction.sameLanguage.arrangeSentence':
       'Forma con i blocchi di parole la frase che corrisponde a questo significato.',
   'instruction.sameLanguage.arrangeMeaning':
       'Forma con i blocchi di parole il significato di questa frase.',
   'instruction.sameLanguage.matchTranslation':
-      'Accoppia ogni parola al suo significato.',
+      'Accoppia ogni elemento al suo significato.',
 };

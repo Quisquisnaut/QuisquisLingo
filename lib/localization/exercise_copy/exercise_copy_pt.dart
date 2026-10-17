@@ -148,16 +148,15 @@ const exerciseCopyPt = <String, String>{
   'title.build_the_meaning': 'FORMAR O SIGNIFICADO',
   'title.match_words_and_meanings': 'ASSOCIAR PALAVRAS E SIGNIFICADOS',
   'instruction.sameLanguage.selectWord':
-      'Selecione a palavra que corresponde a este significado.',
+      'Selecione a resposta que corresponde a este significado.',
   'instruction.sameLanguage.selectMeaning': 'Selecione o significado correto.',
   'instruction.sameLanguage.inputWord':
-      'Introduza a palavra que corresponde a este significado.',
-  'instruction.sameLanguage.inputMeaning':
-      'Introduza o significado desta palavra.',
+      'Introduza a resposta que corresponde a este significado.',
+  'instruction.sameLanguage.inputMeaning': 'Introduza o que significa.',
   'instruction.sameLanguage.arrangeSentence':
       'Construa com os blocos de palavras a frase que corresponde a este significado.',
   'instruction.sameLanguage.arrangeMeaning':
       'Construa com os blocos de palavras o significado desta frase.',
   'instruction.sameLanguage.matchTranslation':
-      'Emparelhe cada palavra com o seu significado.',
+      'Emparelhe cada elemento com o seu significado.',
 };

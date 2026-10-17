@@ -2159,8 +2159,11 @@ class _RoundScreenState extends State<RoundScreen> {
   /// Optional audio control for the Pick the translation types. It is
   /// always visible when it applies, and greyed out (never hiding or skipping
   /// the exercise) when the learner turned audio or TTS off.
-  Widget _translationAudioButton(String text) => IconButton.filledTonal(
-    key: const Key('translation-choice-audio'),
+  Widget _translationAudioButton(
+    String text, {
+    Key key = const Key('translation-choice-audio'),
+  }) => IconButton.filledTonal(
+    key: key,
     tooltip: _optionalAudioEnabled ? _t('playAudio') : _t('audioUnavailable'),
     onPressed: _optionalAudioEnabled ? () => _speakText(text) : null,
     icon: const Icon(Icons.volume_up_outlined),
@@ -2171,7 +2174,10 @@ class _RoundScreenState extends State<RoundScreen> {
   /// Revision 2: Build the translation and Type the translation into the
   /// source language).
   Widget _withPromptSpeaker(Widget text) {
-    final spoken = PlaybackOnRequest.promptText(_features);
+    final spoken = PlaybackOnRequest.promptText(
+      _features,
+      sameLanguage: _sameLanguage,
+    );
     if (spoken == null) return text;
     return Row(
       children: [
@@ -2200,7 +2206,13 @@ class _RoundScreenState extends State<RoundScreen> {
   Widget _withOptionSpeaker(int i, ExerciseItem? item, Widget tile) {
     final speaker = _wordSpeaker(
       ValueKey('option-speaker-$i'),
-      item == null ? null : PlaybackOnRequest.optionWord(_features, item),
+      item == null
+          ? null
+          : PlaybackOnRequest.optionWord(
+              _features,
+              item,
+              sameLanguage: _sameLanguage,
+            ),
     );
     if (speaker == null) return tile;
     return Stack(
@@ -2222,7 +2234,13 @@ class _RoundScreenState extends State<RoundScreen> {
     final item = items[choice.id];
     final speaker = _wordSpeaker(
       ValueKey('match-word-speaker-${choice.id}'),
-      item == null ? null : PlaybackOnRequest.optionWord(_features, item),
+      item == null
+          ? null
+          : PlaybackOnRequest.optionWord(
+              _features,
+              item,
+              sameLanguage: _sameLanguage,
+            ),
     );
     if (speaker == null) return text;
     return Row(
@@ -2251,23 +2269,36 @@ class _RoundScreenState extends State<RoundScreen> {
       ex,
       _features,
       answered: _answered,
+      sameLanguage: _sameLanguage,
     );
     if (spoken == null) return const [];
+    // Build 275 Revision 3: in a same-language Course the sentence above
+    // may have its speaker too (a meaning); the answer's speaker then has
+    // its own key, and the note that audio is off is shown once, above.
+    final promptHeard =
+        PlaybackOnRequest.promptText(_features, sameLanguage: _sameLanguage) !=
+        null;
     return [
       const SizedBox(height: 8),
       Row(
         children: [
           Expanded(child: Text(_t('listenToAnswer'))),
-          _translationAudioButton(spoken),
+          _translationAudioButton(
+            spoken,
+            key: promptHeard
+                ? const Key('translation-choice-answer-audio')
+                : const Key('translation-choice-audio'),
+          ),
         ],
       ),
-      if (!_optionalAudioEnabled) _translationAudioUnavailableNote(),
+      if (!_optionalAudioEnabled && !promptHeard)
+        _translationAudioUnavailableNote(),
     ];
   }
 
   Widget _translationChoiceExercise(Exercise ex) {
     final f = _features;
-    final spoken = PlaybackOnRequest.promptText(f);
+    final spoken = PlaybackOnRequest.promptText(f, sameLanguage: _sameLanguage);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -2277,11 +2308,22 @@ class _RoundScreenState extends State<RoundScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    f.questionText,
-                    key: const Key('translation-choice-text'),
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
+                  // Build 275 Revision 3: a meaning (a same-language
+                  // Course's Pick the word) can be looked up; a question in
+                  // the language being learned stays plain, as before (its
+                  // GuideBook entry would show the answer).
+                  child: f.questionLanguage == TextLanguage.source
+                      ? LookupText(
+                          f.questionText,
+                          textKey: const Key('translation-choice-text'),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                          language: f.questionLanguage,
+                        )
+                      : Text(
+                          f.questionText,
+                          key: const Key('translation-choice-text'),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
                 ),
                 if (spoken != null) _translationAudioButton(spoken),
               ],
@@ -4584,6 +4626,7 @@ class _RoundScreenState extends State<RoundScreen> {
             context,
             _exercise,
             promptAsInstruction: _promptAsInstruction,
+            sameLanguage: _sameLanguage,
           ) !=
           null,
     );
@@ -4600,6 +4643,7 @@ class _RoundScreenState extends State<RoundScreen> {
       _exercise,
       promptAsInstruction: _promptAsInstruction,
       only: anchor,
+      sameLanguage: _sameLanguage,
     );
     return room == null ? null : (asset: asset, size: room.size);
   }
@@ -5089,9 +5133,14 @@ class _RoundScreenState extends State<RoundScreen> {
       notePlural: _t('wordLookup.notes'),
       actionLabel: _t('wordLookup.action'),
       courseId: widget.course.courseId,
+      sameLanguage: _sameLanguage,
       child: page,
     );
   }
+
+  /// Build 275 Revision 3: in a same-language Course meanings are the
+  /// language being learned (Word Lookup, the speakers on request).
+  bool get _sameLanguage => CourseLanguagePair.isSameLanguage(widget.course);
 
   Widget _buildPage(BuildContext context) {
     if (!widget.previewMode && BetaLifecycleService.isExpired()) {
@@ -5494,7 +5543,11 @@ class _RoundScreenState extends State<RoundScreen> {
                   ),
                 ),
               ),
-              if (PlaybackOnRequest.promptText(_features) != null &&
+              if (PlaybackOnRequest.promptText(
+                        _features,
+                        sameLanguage: _sameLanguage,
+                      ) !=
+                      null &&
                   !_optionalAudioEnabled) ...[
                 const SizedBox(height: 8),
                 _translationAudioUnavailableNote(),

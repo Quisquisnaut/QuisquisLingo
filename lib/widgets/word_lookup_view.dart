@@ -25,10 +25,16 @@ class WordLookupScope extends StatefulWidget {
     required this.notePlural,
     required this.actionLabel,
     this.courseId = '',
+    this.sameLanguage = false,
     required this.child,
   });
 
   final WordLookupIndex index;
+
+  /// Build 275 Revision 3 (owner decision of 17 October 2026): the Course
+  /// is in the same language, so a meaning, marked as the source language,
+  /// is the language being learned too and its words can be looked up.
+  final bool sameLanguage;
 
   /// The Course whose media folder holds an entry picture stored as Course
   /// media (Build 266).
@@ -73,6 +79,7 @@ class WordLookupScopeData {
   String get notePlural => _state.widget.notePlural;
   String get actionLabel => _state.widget.actionLabel;
   String get courseId => _state.widget.courseId;
+  bool get sameLanguage => _state.widget.sameLanguage;
 
   /// One card at a time: opening one closes the card open before.
   void opened(VoidCallback close) => _state._opened(close);
@@ -188,9 +195,10 @@ class LookupRun {
 /// Text the learner can look words up in (Build 265).
 ///
 /// Without a [WordLookupScope], or for text stated in the learner's own
-/// language ([language] source; owner decision Q1 of 6 October 2026), it is
-/// the plain [Text] it replaces, with [textKey] on that [Text], so finders
-/// and keys keep working.
+/// language ([language] source; owner decision Q1 of 6 October 2026) outside
+/// a same-language Course (Build 275 Revision 3: there a meaning is the
+/// language being learned), it is the plain [Text] it replaces, with
+/// [textKey] on that [Text], so finders and keys keep working.
 class LookupText extends StatefulWidget {
   LookupText(
     String text, {
@@ -271,7 +279,7 @@ class _LookupTextState extends State<LookupText> {
     final scope = _scope;
     final text = widget.plainText;
     if (scope == null ||
-        widget.language == TextLanguage.source ||
+        (widget.language == TextLanguage.source && !scope.sameLanguage) ||
         text.trim().isEmpty) {
       return null;
     }
